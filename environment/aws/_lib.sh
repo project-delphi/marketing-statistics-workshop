@@ -17,10 +17,12 @@ ASSUME_YES="${ASSUME_YES:-0}"
 # a script sets this to 1 (teardown.sh, to show the delete path).
 DRY_RUN_ASSUME_EXISTS="${DRY_RUN_ASSUME_EXISTS:-0}"
 # Every resource the scripts create carries this tag; the IAM policies in iam/ rely on it.
+# shellcheck disable=SC2034 # used by the scripts that source this file
 PROJECT_TAG_KEY="Project"
 PROJECT_TAG_VALUE="${PROJECT_TAG_VALUE:-mktstats-workshop}"
 
 AWS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC2034 # used by the scripts that source this file
 REPO_ROOT="$(cd "$AWS_DIR/../.." && pwd)"
 
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }

@@ -93,7 +93,9 @@ case "$EC2_ACCESS" in
     ;;
   *) die "EC2_ACCESS must be ssh or ssm, not '$EC2_ACCESS'." ;;
 esac
-[[ "$EC2_VOLUME_GB" =~ ^[0-9]+$ ]] && ((EC2_VOLUME_GB >= 20)) || die "EC2_VOLUME_GB must be a number >= 20 (the image alone is several GB)."
+if ! [[ "$EC2_VOLUME_GB" =~ ^[0-9]+$ ]] || ((EC2_VOLUME_GB < 20)); then
+  die "EC2_VOLUME_GB must be a number >= 20 (the image alone is several GB)."
+fi
 # These two values are written into the user-data script; keep them free of shell syntax.
 [[ "$EC2_IMAGE" =~ ^[A-Za-z0-9./:@_-]+$ ]] || die "EC2_IMAGE contains unexpected characters: $EC2_IMAGE"
 [[ "$MKTSTATS_REF" =~ ^[A-Za-z0-9._/-]+$ ]] || die "MKTSTATS_REF must be a branch or tag name: $MKTSTATS_REF"
