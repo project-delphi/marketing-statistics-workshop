@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 372 570" width="372" height="570" role="img" aria-labelledby="ig-title ig-desc" class="ig">
+<title id="ig-title">How the parts of the workshop connect</title>
+<desc id="ig-desc">Three lanes, read from top to bottom, each ending in a business decision. Customer value, the middle lane: transaction logs are summarized as recency, frequency and monetary value (RFM) and fitted with BG/NBD or Pareto/NBD models and the Gamma-Gamma spend model, giving customer lifetime value (CLV) with intervals, which decides whom to retain and what a customer is worth. Media and lift, the left lane: geo tests give sales by region; synthetic control, CausalImpact and GeoLift compare them with a counterfactual to measure the lift; the measured lift enters the Bayesian marketing mix model (MMM) as priors or likelihood terms; the model's response curves drive the allocator, which decides what to spend where. Targeting, the right lane: randomized experiments, treated against control, train uplift models (causal forests, meta-learners) that estimate the effect per customer; customers are ranked by uplift, and the discount goes where uplift times margin exceeds its cost. CLV connects the lanes: it feeds the allocator's long-run objective and the margin used in targeting.</desc>
+<style>
+.ig { font-family: var(--ms-fig-font, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif); }
+.ig text { text-anchor: middle; }
+.ig .ig-box { fill: var(--ms-fig-surface, #f4f7f7); stroke-width: 1.75; }
+.ig .ig-src { fill: var(--ms-fig-bg, #ffffff); stroke: var(--ms-fig-border, #b6c4c7); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.ig .ig-media { stroke: var(--ms-fig-media, #33598f); }
+.ig .ig-customer { stroke: var(--ms-fig-customer, #0a6273); }
+.ig .ig-target { stroke: var(--ms-fig-target, #a6304c); }
+.ig .ig-decision { fill: var(--ms-fig-decision-soft, #fcf5e6); stroke: var(--ms-fig-decision, #8a5300); stroke-width: 1.75; }
+.ig .ig-lane { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+.ig .ig-lane-media { fill: var(--ms-fig-media, #33598f); }
+.ig .ig-lane-customer { fill: var(--ms-fig-customer, #0a6273); }
+.ig .ig-lane-target { fill: var(--ms-fig-target, #a6304c); }
+.ig .ig-t { font-size: 14px; font-weight: 650; fill: var(--ms-fig-heading, #0f252c); }
+.ig .ig-s { font-size: 12px; fill: var(--ms-fig-muted, #4f5f66); }
+.ig .ig-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; fill: var(--ms-fig-decision, #8a5300); }
+.ig .ig-d { font-size: 13px; font-weight: 600; fill: var(--ms-fig-heading, #0f252c); }
+.ig .ig-edge { fill: none; stroke: var(--ms-fig-line, #6b7b81); stroke-width: 1.5; }
+.ig .ig-edge-clv { fill: none; stroke: var(--ms-fig-customer, #0a6273); stroke-width: 2; }
+.ig .ig-head { fill: var(--ms-fig-line, #6b7b81); }
+.ig .ig-head-clv { fill: var(--ms-fig-customer, #0a6273); }
+.ig .ig-label { font-size: 12px; font-style: italic; fill: var(--ms-fig-muted, #4f5f66); paint-order: stroke; stroke: var(--ms-fig-bg, #ffffff); stroke-width: 4px; stroke-linejoin: round; }
+.ig .ig-label-clv { fill: var(--ms-fig-customer, #0a6273); font-weight: 600; }
+</style>
+<defs>
+<marker id="ig-arrow" viewBox="0 0 10 10" refX="9.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="ig-head" d="M0,0 L10,5 L0,10 z"/></marker>
+<marker id="ig-arrow-clv" viewBox="0 0 10 10" refX="9.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="ig-head-clv" d="M0,0 L10,5 L0,10 z"/></marker>
+</defs>
+
+<!-- Lane headers -->
+<text class="ig-lane ig-lane-media" x="60" y="14">MEDIA AND LIFT</text>
+<text class="ig-lane ig-lane-customer" x="186" y="14">CUSTOMER VALUE</text>
+<text class="ig-lane ig-lane-target" x="312" y="14">TARGETING</text>
+
+<!-- Row A: data -->
+<rect class="ig-src" x="2" y="24" width="116" height="58" rx="8"/>
+<text class="ig-t" x="60" y="46">Geo tests</text>
+<text class="ig-s" x="60" y="62">test vs. control</text>
+<text class="ig-s" x="60" y="75">regions</text>
+
+<rect class="ig-src" x="128" y="24" width="116" height="58" rx="8"/>
+<text class="ig-t" x="186" y="46">Transactions</text>
+<text class="ig-s" x="186" y="62">who bought, when</text>
+<text class="ig-s" x="186" y="75">and how much</text>
+
+<rect class="ig-src" x="254" y="24" width="116" height="58" rx="8"/>
+<text class="ig-t" x="312" y="46">Experiments</text>
+<text class="ig-s" x="312" y="62">an offer, assigned</text>
+<text class="ig-s" x="312" y="75">at random</text>
+
+<!-- Row A to B -->
+<path class="ig-edge" d="M60,83 V111" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="60" y="101">sales by region</text>
+<path class="ig-edge" d="M186,83 V111" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="186" y="101">RFM summary</text>
+<path class="ig-edge" d="M312,83 V111" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="312" y="101">treated vs. control</text>
+
+<!-- Row B: models -->
+<rect class="ig-box ig-media" x="2" y="112" width="116" height="74" rx="8"/>
+<text class="ig-t" x="60" y="134">Lift models</text>
+<text class="ig-s" x="60" y="151">synthetic control,</text>
+<text class="ig-s" x="60" y="165">CausalImpact,</text>
+<text class="ig-s" x="60" y="179">GeoLift</text>
+
+<rect class="ig-box ig-customer" x="128" y="112" width="116" height="74" rx="8"/>
+<text class="ig-t" x="186" y="134">BTYD + spend</text>
+<text class="ig-s" x="186" y="151">BG/NBD,</text>
+<text class="ig-s" x="186" y="165">Pareto/NBD,</text>
+<text class="ig-s" x="186" y="179">Gamma-Gamma</text>
+
+<rect class="ig-box ig-target" x="254" y="112" width="116" height="74" rx="8"/>
+<text class="ig-t" x="312" y="134">Uplift models</text>
+<text class="ig-s" x="312" y="151">causal forest,</text>
+<text class="ig-s" x="312" y="165">meta-learners</text>
+
+<!-- Row B to C -->
+<path class="ig-edge" d="M60,187 V219" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="60" y="207">counterfactual</text>
+<path class="ig-edge" d="M186,187 V219" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="186" y="207">purchases × spend</text>
+<path class="ig-edge" d="M312,187 V219" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="312" y="207">effect per customer</text>
+
+<!-- Row C: estimates -->
+<rect class="ig-box ig-media" x="2" y="220" width="116" height="58" rx="8"/>
+<text class="ig-t" x="60" y="242">Measured lift</text>
+<text class="ig-s" x="60" y="258">incremental sales,</text>
+<text class="ig-s" x="60" y="271">with intervals</text>
+
+<rect class="ig-box ig-customer" x="128" y="220" width="116" height="58" rx="8"/>
+<text class="ig-t" x="186" y="242">CLV</text>
+<text class="ig-s" x="186" y="258">per customer,</text>
+<text class="ig-s" x="186" y="271">with intervals</text>
+
+<rect class="ig-box ig-target" x="254" y="220" width="116" height="58" rx="8"/>
+<text class="ig-t" x="312" y="242">Uplift scores</text>
+<text class="ig-s" x="312" y="258">who responds</text>
+<text class="ig-s" x="312" y="271">to the offer</text>
+
+<!-- Media lane: lift to the MMM to the allocator -->
+<path class="ig-edge" d="M60,279 V313" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="60" y="300">priors / likelihood</text>
+
+<rect class="ig-box ig-media" x="2" y="314" width="116" height="58" rx="8"/>
+<text class="ig-t" x="60" y="336">Bayesian MMM</text>
+<text class="ig-s" x="60" y="352">ROAS per channel,</text>
+<text class="ig-s" x="60" y="365">with intervals</text>
+
+<path class="ig-edge" d="M60,373 V407" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="60" y="394">response curves</text>
+
+<!-- Targeting lane: scores to targeting -->
+<path class="ig-edge" d="M312,279 V407" marker-end="url(#ig-arrow)"/>
+<text class="ig-label" x="312" y="347">rank by uplift</text>
+
+<!-- CLV feeds the allocator, the targeting margin and its own decision -->
+<path class="ig-edge-clv" d="M186,279 V495" marker-end="url(#ig-arrow-clv)"/>
+<path class="ig-edge-clv" d="M186,437 H119" marker-end="url(#ig-arrow-clv)"/>
+<path class="ig-edge-clv" d="M186,437 H253" marker-end="url(#ig-arrow-clv)"/>
+<text class="ig-label ig-label-clv" x="152" y="415">long-run</text>
+<text class="ig-label ig-label-clv" x="152" y="429">objective</text>
+<text class="ig-label ig-label-clv" x="220" y="429">margin</text>
+
+<!-- Row E: allocation and targeting -->
+<rect class="ig-box ig-media" x="2" y="408" width="116" height="58" rx="8"/>
+<text class="ig-t" x="60" y="430">Allocator</text>
+<text class="ig-s" x="60" y="446">splits the budget</text>
+<text class="ig-s" x="60" y="459">across channels</text>
+
+<rect class="ig-box ig-target" x="254" y="408" width="116" height="58" rx="8"/>
+<text class="ig-t" x="312" y="430">Targeting</text>
+<text class="ig-s" x="312" y="446">where uplift ×</text>
+<text class="ig-s" x="312" y="459">margin &gt; cost</text>
+
+<!-- Row E to F -->
+<path class="ig-edge" d="M60,467 V495" marker-end="url(#ig-arrow)"/>
+<path class="ig-edge" d="M312,467 V495" marker-end="url(#ig-arrow)"/>
+
+<!-- Row F: decisions -->
+<rect class="ig-decision" x="2" y="496" width="116" height="72" rx="8"/>
+<text class="ig-eyebrow" x="60" y="513">DECISION</text>
+<text class="ig-d" x="60" y="531">What to spend</text>
+<text class="ig-d" x="60" y="546">where</text>
+
+<rect class="ig-decision" x="128" y="496" width="116" height="72" rx="8"/>
+<text class="ig-eyebrow" x="186" y="513">DECISION</text>
+<text class="ig-d" x="186" y="531">Whom to retain;</text>
+<text class="ig-d" x="186" y="546">what a customer</text>
+<text class="ig-d" x="186" y="561">is worth</text>
+
+<rect class="ig-decision" x="254" y="496" width="116" height="72" rx="8"/>
+<text class="ig-eyebrow" x="312" y="513">DECISION</text>
+<text class="ig-d" x="312" y="531">Whom to send</text>
+<text class="ig-d" x="312" y="546">the discount</text>
+</svg>
