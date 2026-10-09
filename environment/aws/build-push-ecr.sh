@@ -13,8 +13,10 @@
 #   AWS_REGION         required. Must be the Region of your SageMaker domain (AWS requires the
 #                      ECR repository and the domain to be in the same Region).
 #   ECR_REPO           repository name (default: mktstats-env)
-#   IMAGE_TAG          tag to push (default: the CI tag, the first 12 characters of the sha256 of
-#                      environment/Dockerfile + requirements.txt + r-packages.txt, as image.yml does)
+#   IMAGE_TAG          tag to push. Default when building: the CI tag, the first 12 characters of
+#                      the sha256 of environment/Dockerfile + requirements.txt + r-packages.txt, as
+#                      image.yml computes it. Default when copying: SOURCE_IMAGE's own tag
+#                      (required if that tag is :latest or a digest).
 #   SOURCE_IMAGE       optional. Copy this image instead of building, for example
 #                      ghcr.io/project-delphi/marketing-statistics-workshop/env:<tag>
 #                      (the GHCR package may be private until the repository owner makes it public)
@@ -62,7 +64,18 @@ env_hash() {
     cat "${files[@]}" | shasum -a 256 | cut -c1-12
   fi
 }
-IMAGE_TAG="${IMAGE_TAG:-$(env_hash)}"
+if [[ -z "${IMAGE_TAG:-}" ]]; then
+  if [[ -n "$SOURCE_IMAGE" ]]; then
+    # Keep the source's tag, so the ECR tag still names one environment.
+    SOURCE_TAG="${SOURCE_IMAGE##*:}"
+    if [[ "$SOURCE_IMAGE" == *@* || "$SOURCE_IMAGE" != *:* || "$SOURCE_TAG" == */* || "$SOURCE_TAG" == latest ]]; then
+      die "SOURCE_IMAGE has no fixed tag; set IMAGE_TAG (e.g. the CI hash) or use SOURCE_IMAGE=...:<hash>."
+    fi
+    IMAGE_TAG="$SOURCE_TAG"
+  else
+    IMAGE_TAG="$(env_hash)"
+  fi
+fi
 
 ACCOUNT_ID="$(aws_capture "<account-id>" sts get-caller-identity --query Account --output text)"
 REGISTRY="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
