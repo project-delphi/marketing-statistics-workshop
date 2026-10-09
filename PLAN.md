@@ -170,13 +170,13 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M12 capstone + rubric [PE]
 
 ### Phase 6 — site and docs
-- [ ] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`
-- [ ] [AD] `references.qmd` (every entry fetched; Verified + date + claim supported)
+- [x] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`
+- [x] [AD] `references.qmd` (every entry fetched; Verified + date + claim supported)
 - [ ] [PE] `prepare.qmd` entry check; `teach.qmd`; day warm-ups/wrap-ups; knowledge checks
 - [ ] [UI] landing page (hero, counts, day cards, path, integration diagram SVG), slides/welcome.qmd, browser check both themes
 - [ ] [TE] `setup.qmd` (Colab Python/R, local Docker/uv, AWS) with measured install times from records
 - [ ] [TE] `environment/aws/` (SageMaker BYOI, lifecycle config, EC2, IAM, S3, teardown) — documented, not run
-- [ ] [AD] `faq.qmd`
+- [x] [AD] `faq.qmd`
 
 ### Phase 7 — release
 - [ ] [Lead] `repo.ref` → tag; full Colab sweep; `release_check.py` passes; final report
