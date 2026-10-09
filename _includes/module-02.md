@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the fit recovers known parameters, forecast a holdout period, and turn the probability a customer is alive into a retargeting rule.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Stop retargeting customers whose P(alive) is below τ = contact cost ÷ (margin per purchase × assumed response rate), and count how many customers and dollars that affects.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. PyMC-Marketing implements BG/NBD and Pareto/NBD with full posteriors, in the same library we use for the marketing mix model on Day 4.
 
 Labs
 :   Python: `labs/python/02-btyd.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Simulate the BG/NBD generative story and say what each parameter (r, α, a, b) controls.
+- Compute the sufficient statistics x (repeat purchases), t_x (time of last purchase since the first) and T (customer age) for a calibration period, without swapping them.
+- Fit BG/NBD by MAP and by MCMC and check that the true parameters fall inside the 94% HDI.
+- Compare predicted with actual holdout purchases on CDNOW for BG/NBD and Pareto/NBD.
+- Set a P(alive) threshold for retargeting from the contact cost and the expected margin.
+
+**You leave with:**
+
+- A parameter-recovery table: true value, MAP, posterior mean and 94% HDI
+- Holdout tracking plots for CDNOW (predicted versus actual repeat purchases)
+- A per-customer P(alive) and expected-purchases table with a retarget / stop flag
 :::
 
 ::: {.prerequisites}

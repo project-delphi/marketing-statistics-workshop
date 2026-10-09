@@ -9,7 +9,7 @@
 **[Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonality in PyMC-Marketing, set priors from spend shares, check priors and posterior against the data, and report ROAS per channel with intervals against the known truth.
 :::
 
 ::: {.module-actions}
@@ -24,7 +24,7 @@
 **[Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Feed geo-test results into the MMM as extra likelihood terms, validate it with time-slice cross-validation and parameter stability, and see what an MMM cannot identify, such as a channel whose spend follows demand.
 :::
 
 ::: {.module-actions}
@@ -39,7 +39,7 @@
 **[Budget allocation under uncertainty](/modules/10-budget-allocation.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Turn response curves into a budget: write a constrained SLSQP allocator, compare it with PyMC-Marketing's optimizer, add minimum and maximum spend per channel, make the allocation robust to posterior uncertainty, and credit channels for the long-run value of the customers they bring.
 :::
 
 ::: {.module-actions}

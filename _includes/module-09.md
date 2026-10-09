@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Feed geo-test results into the MMM as extra likelihood terms, validate it with time-slice cross-validation and parameter stability, and see what an MMM cannot identify, such as a channel whose spend follows demand.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide which channel's ROAS is reliable enough to move budget on now, and which channel needs a new lift test first.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python, R
+:   Python, R. Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation; a short R notebook runs Meta's Robyn, an R package, for comparison (its spike passed in Docker; the Colab run is pending).
 
 Labs
 :   Python: `labs/python/09-mmm-calibration.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Show on synthetic data how a demand-following channel biases its ROAS in an uncalibrated MMM.
+- Convert a geo-test result into a lift-test row (channel, x, Δx, Δy, σ) and add it to the model with add_lift_test_measurements.
+- Compare ROAS intervals before and after calibration against the truth.
+- Run time-slice cross-validation and judge out-of-sample error and parameter stability across folds.
+- Name what the MMM cannot identify from these data, and the test that would resolve it.
+
+**You leave with:**
+
+- A before/after table of ROAS intervals for the calibrated and uncalibrated model, next to the truth
+- A time-slice cross-validation scorecard and a parameter-stability plot
+- A list of channels ranked by how much a new lift test would change the decision
 :::
 
 ::: {.prerequisites}

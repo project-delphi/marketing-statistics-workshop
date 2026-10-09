@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Estimate who responds to an email offer because of it, with causal forests (grf in R, EconML in Python) and meta-learners, evaluate targeting rules with Qini curves and RATE on held-out data, and target only where the expected incremental margin exceeds the offer cost.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Send the offer only to customers whose expected incremental margin exceeds the offer cost; report how many that is and the incremental profit compared with mailing everyone.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   R, Python
+:   R, Python. R for grf, the reference implementation of causal forests and of RATE; Python for EconML's double machine learning causal forest and the meta-learners.
 
 Labs
 :   R: `labs/r/11-grf-causal-forest.ipynb` (in preparation)<br>Python: `labs/python/11-uplift-econml.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Explain why predicting who buys is not the same as predicting who buys because of the offer (uplift).
+- Fit a causal forest in grf and report the average treatment effect with a doubly robust 95% interval.
+- Evaluate a targeting rule on held-out data with rank_average_treatment_effect (RATE and its TOC curve) and with a Qini curve.
+- Fit EconML's CausalForestDML and S-, T- and X-learners, and compare their effect estimates with the true effects in the synthetic experiment.
+- Turn effect estimates into a targeting list where incremental margin exceeds offer cost, and compare its profit with mailing everyone or no one.
+
+**You leave with:**
+
+- An ATE and a RATE/TOC readout for the Hillstrom email test
+- Qini curves on held-out data for four uplift models
+- A targeting list with expected incremental profit against 'mail all' and 'mail none'
 :::
 
 ::: {.prerequisites}

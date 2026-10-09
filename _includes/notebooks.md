@@ -6,8 +6,8 @@
 | [0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) | `00-setup-warmup` | R | Colab (R runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/00-setup-warmup.ipynb) | 2 s on Colab (2026-10-09) |
 | [1 · Transaction logs to customer-base analysis](/modules/01-customer-base.qmd) | `01-customer-base-sql` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [2 · Buy-till-you-die models: BG/NBD and Pareto/NBD](/modules/02-btyd.qmd) | `02-btyd` | Python | Colab (Python runtime, CPU) | in preparation | — |
-| [3 · Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) | `03-clvtools-covariates` | R | Colab (R runtime, CPU) | in preparation | — |
-| [3 · Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) | `03-btyd-vs-ml` | Python | Colab (Python runtime, CPU) | in preparation | — |
+| [3 · Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) | `03-clvtools-covariates` | R | Colab (R runtime, CPU) | in preparation | — |
+| [3 · Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) | `03-btyd-vs-ml` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd) | `04-monetary-clv` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd) | `05-clv-decisions` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [6 · Experiments done right](/modules/06-experiments.qmd) | `06-experiments` | Python | Colab (Python runtime, CPU) | in preparation | — |

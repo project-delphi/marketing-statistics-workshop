@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a geo-test readout, a calibrated MMM, a budget allocation and uplift targeting) and present a five-slide decision brief with its uncertainty.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Recommend next quarter's budget by channel and the customers to target with the retention offer, with expected value, a 94% interval and the main risk to the recommendation.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   255 minutes (15 briefing, 180 lab, 60 debrief)
 
 Languages
-:   Python
+:   Python. Python, so the whole pipeline runs in one notebook on one runtime; results from the R notebooks (Modules 3, 7 and 11) can be carried in as numbers.
 
 Labs
 :   Python: `labs/python/12-capstone.ipynb` (in preparation)
@@ -38,7 +38,15 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Chain the week's methods into one reproducible notebook in which each stage's output feeds the next.
+- Check each stage against the synthetic truth before building on it.
+- Combine CLV, the calibrated MMM and uplift estimates into one budget and one targeting rule.
+- Present a decision with its interval, its assumptions and the next test you would run, in five slides.
+
+**You leave with:**
+
+- One notebook that runs the pipeline end to end, with a checkpoint at every stage
+- A five-slide decision brief, presented and scored against the rubric
 :::
 
 ::: {.prerequisites}

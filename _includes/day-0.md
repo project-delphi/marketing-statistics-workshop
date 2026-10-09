@@ -9,7 +9,7 @@
 **[Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Check that your environment runs, turn a raw transaction log into a customer table in DuckDB SQL and in pandas (or dplyr), and see how to check code that a coding agent wrote.
 :::
 
 ::: {.module-actions}

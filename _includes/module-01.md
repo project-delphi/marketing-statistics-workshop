@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Turn raw transaction logs into a customer table with DuckDB window functions, draw cohort retention curves, and see why churn is never observed when customers can leave without telling you.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide whether an 'inactive for N days' rule is good enough to stop retargeting customers, by counting how many still-active customers it would drop.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   105 minutes (45 briefing, 50 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python with DuckDB. SQL is what analytics engineers already write, and DuckDB runs it inside the notebook on Colab with no database server; the same queries work on a warehouse.
 
 Labs
 :   Python: `labs/python/01-customer-base-sql.ipynb` (in preparation)
@@ -38,7 +38,16 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Clean a real transaction log in SQL: cancellations, missing customer IDs, returns and same-day purchases.
+- Compute frequency, recency and customer age with window functions, using exactly the definitions the Module 2 models need.
+- Build monthly cohort retention curves and read them without mixing up cohorts and calendar time.
+- Explain why churn is unobserved in a non-contractual setting, and measure how often a 'no purchase in 90 days' rule misclassifies customers against known truth.
+
+**You leave with:**
+
+- A reusable SQL query that turns any transaction log into an RFM table (frequency, recency, age, mean spend)
+- Cohort retention curves for CDNOW and UCI Online Retail II
+- A confusion table of a recency-rule churn flag against the synthetic retailer's true alive status
 :::
 
 ::: {.prerequisites}

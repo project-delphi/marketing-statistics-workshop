@@ -9,7 +9,7 @@
 **[Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Estimate who responds to an email offer because of it, with causal forests (grf in R, EconML in Python) and meta-learners, evaluate targeting rules with Qini curves and RATE on held-out data, and target only where the expected incremental margin exceeds the offer cost.
 :::
 
 ::: {.module-actions}
@@ -24,7 +24,7 @@
 **[Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a geo-test readout, a calibrated MMM, a budget allocation and uplift targeting) and present a five-slide decision brief with its uncertainty.
 :::
 
 ::: {.module-actions}

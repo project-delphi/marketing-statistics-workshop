@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Check that your environment runs, turn a raw transaction log into a customer table in DuckDB SQL and in pandas (or dplyr), and see how to check code that a coding agent wrote.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide where you will run the labs (Colab, local Docker or AWS) and whether you will do the R notebooks, based on an environment check that actually ran.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   60-minute lab · optional
 
 Languages
-:   Python, R
+:   Python, R. Both. Python is the main harness for the week; the R notebook checks the R runtime that Modules 3, 7 and 11 use, so you find out now, not on Day 1, whether it works for you.
 
 Labs
 :   Python: `labs/python/00-setup-warmup.ipynb`<br>R: `labs/r/00-setup-warmup.ipynb`
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Run the environment check on Colab or locally and read what its report says.
+- Build a one-row-per-customer table from a transaction log with DuckDB SQL (GROUP BY, MIN, MAX, COUNT, SUM).
+- Rebuild the same table in pandas (or dplyr in R) and check that the two agree.
+- Count repeat purchases on distinct days, not rows, and explain why the difference matters for later models.
+- Verify code written by a coding agent with a checkpoint before you trust it.
+
+**You leave with:**
+
+- A working Colab or local environment with the workshop's pinned packages
+- Three checkpoint-tested functions that turn the CDNOW transaction log into a customer table
+- A note of where you will run the labs and whether you will do the R notebooks
 :::
 
 ::: {.prerequisites}

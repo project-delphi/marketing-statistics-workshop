@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Turn response curves into a budget: write a constrained SLSQP allocator, compare it with PyMC-Marketing's optimizer, add minimum and maximum spend per channel, make the allocation robust to posterior uncertainty, and credit channels for the long-run value of the customers they bring.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Recommend next quarter's weekly spend per channel within the agreed bounds, with expected incremental sales and a 94% interval, and show how the recommendation changes under a risk-averse or a CLV-weighted objective.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. The optimizer works directly on PyMC-Marketing's posterior draws, and SciPy's SLSQP, which you call yourself, is the algorithm the library uses.
 
 Labs
 :   Python: `labs/python/10-budget-allocation.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Derive steady-state response curves and marginal ROAS per channel from the posterior.
+- Write a constrained allocator with scipy.optimize.minimize (SLSQP) and check it against the allocation that is optimal under the true parameters.
+- Run PyMC-Marketing's budget optimizer with minimum and maximum bounds and reconcile it with your allocator.
+- Evaluate allocations over posterior draws and choose one by a stated risk rule (mean versus 10% quantile of response).
+- Add a CLV-weighted term so channels that acquire more valuable customers get credit beyond short-run sales.
+
+**You leave with:**
+
+- Your own allocate() function with bounds and a budget constraint
+- A comparison of your allocation, PyMC-Marketing's and the true optimum
+- Three allocations (mean, risk-averse, CLV-weighted) with expected sales and 94% intervals
 :::
 
 ::: {.prerequisites}

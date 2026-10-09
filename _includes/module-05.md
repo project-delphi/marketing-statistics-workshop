@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Set the maximum CAC we can afford per acquisition channel, and decide whether to run the proposed retention campaign.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production.
 
 Labs
 :   Python: `labs/python/05-clv-decisions.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Compute a customer acquisition cost (CAC) cap per channel from the posterior of new-customer CLV and a stated risk rule.
+- Report segment value with 94% credible intervals and say which differences between segments are supported by the data.
+- Find the retention improvement a campaign needs to break even, and judge whether it is plausible.
+- Write customer scores (P(alive), CLV mean and interval, segment, model version, date) to a DuckDB table with a fixed schema.
+- Write a one-page decision memo that states the numbers, their uncertainty and the assumptions behind them.
+
+**You leave with:**
+
+- A CAC-cap table by acquisition channel, compared with the true new-customer CLV
+- A customer_scores table in a DuckDB 'warehouse' file
+- A one-page CFO memo, peer-reviewed in the afternoon clinic
 :::
 
 ::: {.prerequisites}

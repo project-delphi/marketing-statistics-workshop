@@ -9,7 +9,7 @@
 **[Experiments done right](/modules/06-experiments.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Design and read randomized experiments correctly: power and minimum detectable effect, sample-ratio checks, why peeking inflates false positives, CUPED variance reduction, delta-method standard errors for ratio metrics, and why attribution is not incrementality.
 :::
 
 ::: {.module-actions}
@@ -24,7 +24,7 @@
 **[Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Estimate the lift of a regional campaign with difference-in-differences and synthetic control written from scratch, test them with placebos and power simulations on a geo panel with known lift, compare with CausalImpact in R, and check the method on California's Proposition 99.
 :::
 
 ::: {.module-actions}

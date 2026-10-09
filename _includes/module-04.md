@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Add a Gamma-Gamma spend model after checking that spend is independent of purchase frequency, compute discounted CLV with its uncertainty, test how it moves with horizon and discount rate, and handle the contractual case with the shifted-beta-geometric model.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Report what an average customer and the whole customer base are worth over 12 and 36 months with a 94% interval, and name the assumption (horizon, discount rate or spend model) that moves the number most.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. PyMC-Marketing's GammaGammaModel and ShiftedBetaGeoModel sit on the same posterior machinery as the Module 2 transaction models, so uncertainty can flow from purchases to dollars.
 
 Labs
 :   Python: `labs/python/04-monetary-clv.ipynb` (in preparation)
@@ -38,13 +38,23 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Check the Gamma-Gamma independence assumption with the correlation between frequency and mean spend among repeat buyers.
+- Fit Gamma-Gamma and check that the true spend parameters (p, q, v) fall inside the 94% HDI.
+- Compute discounted CLV with PyMC-Marketing, then write your own version that carries the uncertainty of both the purchase and the spend models.
+- Show how CLV changes with the horizon in months and the monthly discount rate.
+- Fit the shifted-beta-geometric (sBG) model to the Fader–Hardie retention data and project retention for later years.
+
+**You leave with:**
+
+- A per-customer CLV table with posterior mean and 94% interval
+- A sensitivity grid of total CLV by horizon (12, 24, 36 months) and monthly discount rate
+- An sBG retention projection compared with the published survival percentages
 :::
 
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 3 · Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) and its lab.
+- [Module 3 · Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) and its lab.
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

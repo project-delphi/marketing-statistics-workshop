@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonality in PyMC-Marketing, set priors from spend shares, check priors and posterior against the data, and report ROAS per channel with intervals against the known truth.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide which channels pay back: list channels whose ROAS exceeds the break-even ROAS (1 ÷ gross margin) with posterior probability ≥ 0.9, channels below it with probability ≥ 0.9, and channels the data cannot yet decide.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. PyMC-Marketing 1.2.0 is a Bayesian MMM that runs on Colab's CPU; Google's Meridian conflicts with it on package versions and its docs recommend a GPU (see DECISIONS.md).
 
 Labs
 :   Python: `labs/python/08-bayesian-mmm.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Write geometric adstock and logistic saturation as functions and explain what the decay α and the saturation λ do.
+- Set channel-coefficient priors from spend shares and run a prior predictive check.
+- Fit the model with nutpie and check divergences, R-hat and effective sample size before reading any result.
+- Compute ROAS per channel with a 94% HDI and check that the truth lies inside it for at least 3 of the 4 channels.
+- Run the same workflow on a second dataset whose true parameters you do not know.
+
+**You leave with:**
+
+- Your own adstock and saturation functions, checked against PyMC-Marketing's
+- A diagnostics table (divergences, R-hat, ESS) and prior and posterior predictive plots
+- A ROAS table with 94% HDIs next to the true ROAS
 :::
 
 ::: {.prerequisites}

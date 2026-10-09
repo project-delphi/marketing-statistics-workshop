@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Design and read randomized experiments correctly: power and minimum detectable effect, sample-ratio checks, why peeking inflates false positives, CUPED variance reduction, delta-method standard errors for ratio metrics, and why attribution is not incrementality.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide whether to roll out the email campaign: report incremental revenue per customer with a 95% confidence interval after the SRM check and CUPED, and compare it with the cost per email.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python
+:   Python. Python. NumPy, SciPy and statsmodels cover everything here, and each method is short enough to write from scratch and check.
 
 Labs
 :   Python: `labs/python/06-experiments.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Compute the sample size needed for a minimum detectable effect (MDE), and the MDE for a fixed sample.
+- Detect a sample-ratio mismatch (SRM) with a chi-square test before reading any result.
+- Simulate A/A tests with repeated peeking, measure the inflated false-positive rate, and calibrate a stricter threshold for a fixed number of looks.
+- Reduce variance with CUPED using a pre-experiment covariate, and compute a delta-method standard error for a ratio metric.
+- Show with a simulation why last-click attribution credits conversions that would have happened anyway.
+
+**You leave with:**
+
+- A power and MDE calculator checked against simulation
+- A peeking simulation showing the false-positive rate under daily looks
+- An experiment readout for the email test (SRM check, CUPED-adjusted effect, 95% interval)
 :::
 
 ::: {.prerequisites}

@@ -9,7 +9,7 @@
 **[Transaction logs to customer-base analysis](/modules/01-customer-base.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Turn raw transaction logs into a customer table with DuckDB window functions, draw cohort retention curves, and see why churn is never observed when customers can leave without telling you.
 :::
 
 ::: {.module-actions}
@@ -24,7 +24,7 @@
 **[Buy-till-you-die models: BG/NBD and Pareto/NBD](/modules/02-btyd.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the fit recovers known parameters, forecast a holdout period, and turn the probability a customer is alive into a retargeting rule.
 :::
 
 ::: {.module-actions}
@@ -36,10 +36,10 @@
 
 [Module 3]{.eyebrow}
 
-**[Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd)**
+**[Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd)**
 
 ::: {.module-summary}
-*Summary to be written.*
+Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and recover the true channel effects, then run a fair holdout comparison of BTYD against gradient boosting.
 :::
 
 ::: {.module-actions}

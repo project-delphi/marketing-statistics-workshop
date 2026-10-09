@@ -2,7 +2,7 @@
 
 ## Before Day 1 · Pre-work {#day-0}
 
-*Is my environment ready, and can I turn a transaction log into a customer table?*
+*Is my environment ready, and can I count purchases per customer in pandas, SQL or dplyr?*
 
 On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) (about 60 minutes).
 
@@ -22,7 +22,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 12:00–12:55 | [Lab]{.slot-lab} | Module 2 |
 | 12:55–13:05 | [Debrief]{.slot-debrief} | Module 2 |
 | 13:05–14:00 | [Lunch]{.slot-break} |  |
-| 14:00–14:45 | [Briefing]{.slot-briefing} | [3 · Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) |
+| 14:00–14:45 | [Briefing]{.slot-briefing} | [3 · Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd) |
 | 14:45–15:40 | [Lab]{.slot-lab} | Module 3 |
 | 15:40–15:50 | [Debrief]{.slot-debrief} | Module 3 |
 | 15:50–16:00 | [Break]{.slot-break} |  |
@@ -96,7 +96,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 
 ## [Day 5 · Whom should we target?](/day-5.qmd) {#day-5}
 
-*Whom should we target, and how should we spend?* 09:00–17:00
+*Whom should we target, and what is the plan for next quarter?* 09:00–17:00
 
 ::: {.timetable}
 | Time | Session | Module |

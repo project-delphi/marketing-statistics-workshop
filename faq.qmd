@@ -1,8 +1,147 @@
-<!-- STUB created by the UI Expert; the owner's file replaces it -->
-
 ---
 title: "FAQ"
-subtitle: "Frequently asked questions"
+description: "Practical questions about hardware, languages, where to run the labs, what to do when an install fails, cost, partial attendance, reporting mistakes, readiness and ground truth."
 ---
 
-This page is written by the Academic Director.
+::: {.section-lede}
+Short answers to the questions people ask before and during the workshop. Setup steps are on
+[Setup](setup.qmd); what has actually run, where and when, is on [Readiness](readiness.qmd).
+:::
+
+## Do I need a GPU?
+
+No. Every lab is designed to run on Colab's free CPU runtime, and that is where the workshop measures it.
+
+A GPU would not help much here. The Bayesian models are small (from 4 parameters for a BG/NBD to a few
+dozen for a marketing mix model), fitted to thousands of customers or a few hundred weeks of data. They are
+fitted with NUTS, a sampler that takes one step at a time along each chain, and for models this size each
+step's gradient is a small computation, so shipping it to a GPU costs more than it saves. The labs run two
+chains because Colab's free runtime has two CPU cores, and they use nutpie, a fast CPU sampler for PyMC
+models. The forests (grf, EconML) and the R packages (CLVTools, CausalImpact, GeoLift) run on CPU.
+
+The one tool in this area whose documentation recommends a GPU is Google's Meridian, which is one reason it
+is discussed in the Module 9 briefing but has no lab (see the [references](references.qmd#library-docs)).
+
+Run times measured on Colab's CPU runtime are on the [Readiness](readiness.qmd) page.
+
+## Python or R?
+
+Python is the main language: every module has a Python notebook, and the pipeline in the capstone is
+Python. R appears where the R package is the reference implementation of the method:
+
+- Module 3: CLVTools (Pareto/NBD with covariates);
+- Module 7: CausalImpact and GeoLift (geo tests);
+- Module 9: Robyn, Meta's marketing mix model (a short comparison notebook, if its Colab run succeeds);
+- Module 11: grf (causal forests and RATE).
+
+In those modules the R notebook is part of the lab, paired with a Python notebook, and the lab brief says
+which to open first. You need R basics only at the level of the R pre-work notebook: the R notebooks give
+you the data and the model calls, and you write short functions. If you cannot run R at all, you can still
+do the Python half of each paired lab and read the R results on the module page.
+
+## Colab, my own machine, or AWS?
+
+| | Colab | Your own machine (Docker) | AWS |
+|---|---|---|---|
+| Install | Nothing; each notebook installs what it needs in its first cell | The workshop's Docker image, once | A custom image on SageMaker Studio, or EC2 |
+| Hardware | Free CPU runtime (2 cores) | Your laptop or server | Your choice of instance |
+| Same versions as the tests | Yes (pinned) | Yes (the image is what CI runs) | Yes (same image) |
+| Status | The runtime the labs are designed and timed for | Run by the workshop authors (see Readiness) | **Documented, not run** by the authors |
+
+Use Colab unless your organization blocks it or your data must stay inside your own environment. Steps for
+each route are on [Setup](setup.qmd). Colab sessions end after a period of inactivity and delete their
+files; nothing a lab writes (for example the Module 5 DuckDB file) survives a new session.
+
+Install and setup times measured so far:
+
+{{< include /_includes/install-times.md >}}
+
+## What if the Colab install fails?
+
+Work down this list:
+
+1. **"Runtime > Restart session, then Run all."** If the install cell prints this, do exactly that. It
+   means an older PyMC or ArviZ was already loaded in the session.
+2. **Check the runtime type.** Python notebooks need the Python runtime; R notebooks need the R runtime
+   (Runtime > Change runtime type). Opening an R notebook in a Python runtime fails at the first cell.
+3. **Run the install cell again.** A dropped download (pip or the R package repository) usually succeeds on
+   a second try.
+4. **Start a fresh runtime** (Runtime > Disconnect and delete runtime), then Run all.
+5. **Still failing:** switch to the Docker image on your own machine ([Setup](setup.qmd)), and report the
+   failure (see below) with the error message and the run record the notebook prints.
+
+If a single exercise is what is stuck, not the install, run `workshop.use_reference(N)` (Python) or
+`use_reference(N)` (R) with the exercise number to use the reference solution and move on.
+
+## What does it cost?
+
+The materials are free: code under the MIT License and teaching content under CC BY 4.0. The labs are
+designed to run on Colab's free tier, without a paid plan. Running locally needs Docker; check your
+organization's software policy. On AWS you pay AWS for whatever you start and for as long as it runs; read
+the cost notes in the AWS section of [Setup](setup.qmd) before starting anything, and shut resources down
+afterwards. The workshop quotes no prices.
+
+## Can I attend only some days?
+
+Yes, with these dependencies:
+
+- Each day answers one question and starts with a warm-up that recaps what it needs.
+- Day 2 (customer value) builds on Day 1's purchase models; Day 4's budget allocation (Module 10) uses the
+  calibrated model from Module 9; the Day 5 capstone uses ideas from every day.
+- Every notebook runs on its own from a fresh runtime: none needs files produced by an earlier notebook.
+
+If you missed a module, read its module page and run its notebook with reference solutions
+(`use_reference`) to see the whole flow before the next one.
+
+## How do I report a mistake?
+
+Open an issue on the [workshop repository]({{< var repo.url >}}/issues). Include the module and notebook
+name, the cell or page, what you expected and what happened, and, for a notebook problem, the run record
+the notebook prints at the end (it lists versions and settings). Corrections to references are welcome too;
+every reference says when it was checked.
+
+## Why does the Readiness page say "not run" for some things?
+
+Because nothing is claimed to run unless it ran. For each notebook the [Readiness](readiness.qmd) page shows
+separate evidence lanes: CI, the Docker image on a laptop, Colab, and AWS. A lane says "not run" when there
+is no current run record for it. A record stops counting when the notebook's code, its data or helpers, or
+the pinned versions change, or when it is older than {{< var readiness.max_run_age_days >}} days. AWS is
+always "documented, not run": we wrote and checked the scripts but did not spend on cloud resources. A
+notebook is "ready to teach" only after a recent, complete, full-settings run on Colab.
+
+Current status:
+
+{{< include /_includes/readiness-summary.md >}}
+
+## How does the "ground truth" work?
+
+Most labs use a synthetic retailer generated by seeded code in the workshop's Python package
+(`mktstats.synth`). Because we generate the data, we know the true answers (purchase and dropout rates,
+spend parameters, each channel's return on ad spend, the true lift of the regional campaign, each
+customer's true response to the email offer), stored in `data/synthetic/truth.json`.
+
+Checkpoints compare your estimate with that truth using a named interval, for example "the true value lies
+inside the 94% HDI" (highest-density interval). A 94% interval misses the truth about 6% of the time even
+when everything is right, so checks over several parameters allow a stated number of misses (for example
+"3 of 4 channels").
+
+Each method is then applied to a real dataset (CDNOW, UCI Online Retail II, Hillstrom, California's
+Proposition 99, the Fader–Hardie retention data) where there is no truth. There the checkpoints test
+structure (row counts, ranges) or reproduce a published value: for example, a correct customer table
+reproduces Fader, Hardie and Lee's published BG/NBD estimates for CDNOW. Two datasets used for comparison
+are themselves simulated by their authors (Robyn's `dt_simulated_weekly`, documented as simulated) or treated
+as such (PyMC-Marketing's `mmm_example.csv`); the [references](references.qmd#datasets) say what each source
+states.
+
+## What are QUICK and FULL?
+
+FULL is the teaching setting: the sampling and data sizes the module pages' numbers come from. QUICK
+(switch in the harness cell, or `MKTSTATS_QUICK=1`) shortens sampling and subsamples data for a room that is
+out of time and for automated tests. It never skips a checkpoint. With QUICK, intervals are wider and a
+decision close to its threshold can flip; that is a lesson about sample size, not a bug.
+
+## Can I use a coding agent?
+
+Yes. The pre-work notebook has an exercise on checking code an agent wrote: give it a small case whose answer
+you know, and never trust a library call written from memory without checking the installed version. The
+checkpoints in every lab are a good test harness for agent-written functions.

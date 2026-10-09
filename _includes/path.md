@@ -10,7 +10,7 @@
 ::: {.path-body}
 [Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd){.path-title} [Optional]{.chip}
 
-*Summary to be written.*
+Check that your environment runs, turn a raw transaction log into a customer table in DuckDB SQL and in pandas (or dplyr), and see how to check code that a coding agent wrote.
 :::
 :::
 :::
@@ -23,7 +23,7 @@
 ::: {.path-body}
 [Transaction logs to customer-base analysis](/modules/01-customer-base.qmd){.path-title}
 
-*Summary to be written.*
+Turn raw transaction logs into a customer table with DuckDB window functions, draw cohort retention curves, and see why churn is never observed when customers can leave without telling you.
 :::
 :::
 ::: {.path-step}
@@ -32,16 +32,16 @@
 ::: {.path-body}
 [Buy-till-you-die models: BG/NBD and Pareto/NBD](/modules/02-btyd.qmd){.path-title}
 
-*Summary to be written.*
+Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the fit recovers known parameters, forecast a holdout period, and turn the probability a customer is alive into a retargeting rule.
 :::
 :::
 ::: {.path-step}
 [3]{.path-num}
 
 ::: {.path-body}
-[Covariates, the R reference (CLVTools), and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd){.path-title}
+[Covariates in CLVTools, and BTYD versus machine learning](/modules/03-covariates-and-ml.qmd){.path-title}
 
-*Summary to be written.*
+Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and recover the true channel effects, then run a fair holdout comparison of BTYD against gradient boosting.
 :::
 :::
 :::
@@ -54,7 +54,7 @@
 ::: {.path-body}
 [Monetary value and dollar CLV](/modules/04-monetary-clv.qmd){.path-title}
 
-*Summary to be written.*
+Add a Gamma-Gamma spend model after checking that spend is independent of purchase frequency, compute discounted CLV with its uncertainty, test how it moves with horizon and discount rate, and handle the contractual case with the shifted-beta-geometric model.
 :::
 :::
 ::: {.path-step}
@@ -63,7 +63,7 @@
 ::: {.path-body}
 [From CLV to decisions](/modules/05-clv-decisions.qmd){.path-title}
 
-*Summary to be written.*
+Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO.
 :::
 :::
 :::
@@ -76,7 +76,7 @@
 ::: {.path-body}
 [Experiments done right](/modules/06-experiments.qmd){.path-title}
 
-*Summary to be written.*
+Design and read randomized experiments correctly: power and minimum detectable effect, sample-ratio checks, why peeking inflates false positives, CUPED variance reduction, delta-method standard errors for ratio metrics, and why attribution is not incrementality.
 :::
 :::
 ::: {.path-step}
@@ -85,7 +85,7 @@
 ::: {.path-body}
 [Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd){.path-title}
 
-*Summary to be written.*
+Estimate the lift of a regional campaign with difference-in-differences and synthetic control written from scratch, test them with placebos and power simulations on a geo panel with known lift, compare with CausalImpact in R, and check the method on California's Proposition 99.
 :::
 :::
 :::
@@ -98,7 +98,7 @@
 ::: {.path-body}
 [Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd){.path-title}
 
-*Summary to be written.*
+Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonality in PyMC-Marketing, set priors from spend shares, check priors and posterior against the data, and report ROAS per channel with intervals against the known truth.
 :::
 :::
 ::: {.path-step}
@@ -107,7 +107,7 @@
 ::: {.path-body}
 [Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd){.path-title}
 
-*Summary to be written.*
+Feed geo-test results into the MMM as extra likelihood terms, validate it with time-slice cross-validation and parameter stability, and see what an MMM cannot identify, such as a channel whose spend follows demand.
 :::
 :::
 ::: {.path-step}
@@ -116,7 +116,7 @@
 ::: {.path-body}
 [Budget allocation under uncertainty](/modules/10-budget-allocation.qmd){.path-title}
 
-*Summary to be written.*
+Turn response curves into a budget: write a constrained SLSQP allocator, compare it with PyMC-Marketing's optimizer, add minimum and maximum spend per channel, make the allocation robust to posterior uncertainty, and credit channels for the long-run value of the customers they bring.
 :::
 :::
 :::
@@ -129,7 +129,7 @@
 ::: {.path-body}
 [Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd){.path-title}
 
-*Summary to be written.*
+Estimate who responds to an email offer because of it, with causal forests (grf in R, EconML in Python) and meta-learners, evaluate targeting rules with Qini curves and RATE on held-out data, and target only where the expected incremental margin exceeds the offer cost.
 :::
 :::
 ::: {.path-step}
@@ -138,7 +138,7 @@
 ::: {.path-body}
 [Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd){.path-title}
 
-*Summary to be written.*
+In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a geo-test readout, a calibrated MMM, a budget allocation and uplift targeting) and present a five-slide decision brief with its uncertainty.
 :::
 :::
 :::

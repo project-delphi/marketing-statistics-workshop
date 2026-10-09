@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and recover the true channel effects, then run a fair holdout comparison of BTYD against gradient boosting.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Decide whether channels differ enough in purchase and dropout rates to be treated differently, and which method to use for next quarter's purchase forecast, based on the holdout error you measured.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   R, Python
+:   R, Python. R for CLVTools, the reference implementation of the Pareto/NBD with covariates; Python for the machine-learning comparison with scikit-learn.
 
 Labs
 :   R: `labs/r/03-clvtools-covariates.ipynb` (in preparation)<br>Python: `labs/python/03-btyd-vs-ml.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Fit a Pareto/NBD with static covariates in CLVTools (clvdata, then SetStaticCovariates, then pnbd) and interpret the purchase and dropout coefficients.
+- Check that the channel effects estimated on the synthetic retailer match the truth within their 90% confidence intervals.
+- Compare CLVTools' fit with the Python fit from Module 2 on the same customers.
+- Build features and a holdout target without leakage, and compare gradient boosting with BTYD on holdout purchases.
+- State what each approach gives that the other cannot (P(alive) and extrapolation versus flexible features).
+
+**You leave with:**
+
+- A table of true versus estimated channel effects on purchase and dropout rates
+- A side-by-side of CLVTools and PyMC-Marketing parameter estimates
+- A holdout scorecard (error by customer group) for BTYD and gradient boosting, with the result you measured
 :::
 
 ::: {.prerequisites}

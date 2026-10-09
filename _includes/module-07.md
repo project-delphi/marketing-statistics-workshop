@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-*Summary to be written.*
+Estimate the lift of a regional campaign with difference-in-differences and synthetic control written from scratch, test them with placebos and power simulations on a geo panel with known lift, compare with CausalImpact in R, and check the method on California's Proposition 99.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@
 :::
 
 ::: {.module-decision}
-**The decision.** *Decision to be written.*
+**The decision.** Was the campaign incremental, and by how much? Report incremental sales with an interval and the implied return on the campaign spend.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python, R
+:   Python, R. Python for difference-in-differences and synthetic control written from scratch with SciPy; R because CausalImpact (bsts) and GeoLift are R packages and the reference implementations (the Python port of CausalImpact has had no release since 2023).
 
 Labs
 :   Python: `labs/python/07-synthetic-control-did.ipynb` (in preparation)<br>R: `labs/r/07-causalimpact-geolift.ipynb` (in preparation)
@@ -38,7 +38,17 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-*Objectives to be written.*
+- Estimate a campaign effect with a two-period difference-in-differences and state the parallel-trends assumption it needs.
+- Fit synthetic-control weights by constrained least squares with SciPy and estimate incremental sales.
+- Run in-space placebo tests and compute a permutation p-value.
+- Estimate the power of a geo test by simulation, injecting a known lift into pre-period data.
+- Run CausalImpact on the same panel and compare its interval with the truth and with your synthetic control.
+
+**You leave with:**
+
+- Your own did() and synthetic_control() functions, checked against the known lift
+- A placebo plot and a power curve for the retailer's geo test
+- A Prop 99 replication of the synthetic-control gap
 :::
 
 ::: {.prerequisites}

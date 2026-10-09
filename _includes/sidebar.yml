@@ -15,7 +15,7 @@ website:
       - href: modules/02-btyd.qmd
         text: '2 · Buy-till-you-die models: BG/NBD and Pareto/NBD'
       - href: modules/03-covariates-and-ml.qmd
-        text: 3 · Covariates, the R reference (CLVTools), and BTYD versus machine learning
+        text: 3 · Covariates in CLVTools, and BTYD versus machine learning
     - section: Day 2 · What is a customer worth?
       contents:
       - href: modules/04-monetary-clv.qmd

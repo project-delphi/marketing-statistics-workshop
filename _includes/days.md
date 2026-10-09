@@ -6,7 +6,7 @@
 
 [Pre-work](/modules/00-prework.qmd){.day-card-title}
 
-[Is my environment ready, and can I turn a transaction log into a customer table?]{.day-card-question}
+[Is my environment ready, and can I count purchases per customer in pandas, SQL or dplyr?]{.day-card-question}
 
 [Module 0, optional]{.day-card-span}
 :::
@@ -51,7 +51,7 @@
 
 [Whom should we target?](/day-5.qmd){.day-card-title}
 
-[Whom should we target, and how should we spend?]{.day-card-question}
+[Whom should we target, and what is the plan for next quarter?]{.day-card-question}
 
 [Modules 11–12 · 09:00–17:00]{.day-card-span}
 :::
