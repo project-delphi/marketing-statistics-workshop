@@ -1,0 +1,37 @@
+# What the labs import, CI executes with, and the Docker image installs.
+# Compiled to requirements.txt with Colab's own versions as constraints:
+#   uv pip compile environment/requirements.in -c environment/colab-constraints.txt \
+#     --python-version 3.13 --python-platform x86_64-unknown-linux-gnu --universal \
+#     -o environment/requirements.txt
+# Version facts and the docs each pin was checked against: environment/VERSIONS.md.
+
+# Modelling
+pymc-marketing==1.2.0
+econml==0.17.0
+nutpie
+statsmodels
+scikit-learn
+lightgbm
+scipy
+numpy
+pandas
+
+# Data
+duckdb
+pyarrow
+openpyxl
+
+# Plots
+matplotlib
+
+# Notebook execution and authoring
+nbclient
+nbformat
+ipykernel
+jupytext
+jupyterlab
+
+# Site generators and tests
+pyyaml
+pytest
+ruff
