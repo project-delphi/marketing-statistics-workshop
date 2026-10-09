@@ -1,0 +1,40 @@
+# Rendered site: built and deployed by CI, never committed.
+/_site/
+/.quarto/
+/site_libs/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+renv/staging/
+
+# Notebooks
+.ipynb_checkpoints/
+/executed/
+
+# Data caches (downloads land here; small committed data lives in data/synthetic and data/real)
+/data/.cache/
+/.cache/
+
+# Secrets and local settings
+.env
+.env.*
+.claude/settings.local.json
+
+# OS and editors
+.DS_Store
+.vscode/
+.idea/
+.claude/worktrees/
