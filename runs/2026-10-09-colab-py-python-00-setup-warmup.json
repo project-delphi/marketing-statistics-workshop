@@ -8,10 +8,8 @@
   "kernel": "python3",
   "settings": {},
   "ref": "main",
-  "mktstats_commit": "7134bd676690e169ad5b43c6f6239fa28281164c",
   "evidence": "run_record() output, added with scripts/add_run_record.py",
   "content_sha": "d2de7a46cdb85f85",
-  "deps_sha": "8f2d67931822ce84",
   "python": "3.13.16",
   "colab_release": "release-colab-external-images_20261007-060045_RC00",
   "runtime": "colab",
@@ -33,9 +31,11 @@
     "duckdb": "1.3.2",
     "matplotlib": "3.10.0"
   },
-  "install_seconds": 10.9,
   "runs": [
     {
+      "mktstats_commit": "7134bd676690e169ad5b43c6f6239fa28281164c",
+      "deps_sha": "8f2d67931822ce84",
+      "install_seconds": 10.9,
       "notebook": "python/00-setup-warmup",
       "scope": "notebook",
       "status": "pass",
@@ -67,6 +67,46 @@
         0.0,
         0.0,
         0.04,
+        0.01,
+        0.01
+      ],
+      "cell_errors": 0
+    },
+    {
+      "mktstats_commit": "45ca2e8de5b4445a0935bb7d82600e2ee8072117",
+      "deps_sha": "a8c9c925ced9be21",
+      "install_seconds": 9.1,
+      "notebook": "python/00-setup-warmup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.4,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        0.58,
+        0.55,
+        0.03,
+        0.0,
+        0.0,
+        0.02,
+        0.0,
+        0.0,
+        0.07,
+        0.0,
+        0.0,
+        0.03,
         0.01,
         0.01
       ],

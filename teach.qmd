@@ -7,7 +7,7 @@ subtitle: "The instructor guide: the kit, the rhythm, pacing, debriefs and what 
 Owner: Pedagogy Expert; reviewer: Academic Director. Written 2026-10-09.
 Module titles, minutes and the readiness age limit come from _variables.yml through var shortcodes.
 This page states no run times: measured ones are on readiness.qmd, generated from runs/.
-Files that are not rendered pages (briefs/, knowledge-checks.md) are linked on GitHub so the
+Files that are not rendered pages (briefs/) are linked on GitHub so the
 offline link check passes.
 Debrief prompts marked "check against _variables.yml decision" were written before the Academic
 Director's final decision wording; re-read them against modules.mNN.decision.
@@ -30,7 +30,7 @@ The [readiness page](readiness.qmd) is generated from the run records in `runs/`
 - **Every checkpoint says whose code it checked:** "passed on your code" or "passed on the REFERENCE solution". `workshop.summary()` (R: `workshop_summary()`) lists both at the end. Run all stops at the first unwritten exercise with a message that says how to continue.
 - **`QUICK`** (switch in the harness cell, or `MKTSTATS_QUICK=1`) shortens sampling and subsamples data. It never skips a checkpoint. Intervals get wider and may not match the module page.
 - **Lab briefs** ([`briefs/` on GitHub]({{< var repo.url >}}/tree/{{< var repo.ref >}}/briefs)): for each lab, what each exercise asks for, the truth each checkpoint compares against, the data, and the decision. The [lab standard]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/_lab-standard.md) says how every lab is built (Predict, Run, Explain, Check; checkpoint messages; the Decision cell).
-- **Knowledge checks** ([`knowledge-checks.md` on GitHub]({{< var repo.url >}}/blob/{{< var repo.ref >}}/knowledge-checks.md)): three to five questions per module with answers, for warm-ups, debriefs and an evening self-check.
+- **[Knowledge checks](knowledge-checks.md)**: three to five questions per module with answers, for warm-ups, debriefs and an evening self-check.
 - **Day pages** ([Day 1](day-1.qmd), [Day 2](day-2.qmd), [Day 3](day-3.qmd), [Day 4](day-4.qmd), [Day 5](day-5.qmd)): the timetable, the warm-up questions with answers, the clinics on Days 2 and 3, the capstone run of show on Day 5, and the wrap-up with the running results table.
 - **Capstone task and rubric** ([on GitHub]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/12-capstone-rubric.md)): the task for pairs, the five-slide brief, timing checkpoints, a rubric scored in 5 minutes per pair, and a score sheet.
 - **Before Day 1** ([Before Day 1](prepare.qmd)): the entry check and remediation you send participants a week ahead.
