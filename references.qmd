@@ -199,7 +199,10 @@ itself, and we say what we relied on instead. How we checked is explained at the
   folding, and localization: An improved R̂ for assessing convergence of MCMC (with discussion). *Bayesian
   Analysis*, 16(2), 667–718. <https://doi.org/10.1214/20-BA1221>\
   *Verified (2026-10-09).* The rank-normalized split-R̂ and bulk and tail effective sample sizes that
-  the labs check before reading a posterior.
+  the labs check before reading a posterior. Section 2 recommends running at least four chains and
+  using the draws only if R̂ < 1.01 and the rank-normalized (bulk) effective sample size is above 400;
+  Module 8's gate uses these two thresholds (read in the arXiv version, arXiv:1903.08008, through its
+  ar5iv HTML rendering).
 
 ## Day 5 · Whom should we target? {#day-5}
 
