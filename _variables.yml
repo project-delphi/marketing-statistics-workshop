@@ -496,11 +496,15 @@ modules:
     decision: "Send the offer only to customers whose expected incremental margin exceeds the offer cost; report how many that is and the incremental profit compared with mailing everyone."
     recap: "Module 10 decides how much to spend per channel but treats every customer the same."
     next: "Each module so far answers one question with its own data. The capstone (Module 12) joins them into one pipeline and one decision brief."
+    # Both notebooks are done in the one lab slot: open the Python notebook first (its install
+    # takes longest), work Part A in R, then Part B and the decision in Python.
     notebooks:
-      - {path: labs/r/11-grf-causal-forest.ipynb, source: labs/src/11-grf-causal-forest.R, kernel: ir}
-      - {path: labs/python/11-uplift-econml.ipynb, source: labs/src/11-uplift-econml.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/r/11-grf-causal-forest.ipynb, source: labs/src/11-grf-causal-forest.R, kernel: ir, install: [grf]}
+      - {path: labs/python/11-uplift-econml.ipynb, source: labs/src/11-uplift-econml.py, kernel: python3, install: [econml, scikit-learn, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/uplift.py, src/mktstats/data.py, R/mktstats.R, data/synthetic/email_experiment.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Hillstrom MineThatData e-mail test (64,000 customers; downloaded, not stored here)", url: "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv", sha256: 0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece}
+      - {name: "Synthetic e-mail experiment with true effects (data/synthetic/email_experiment.csv, truth.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/email_experiment.csv"}
   m12:
     slug: 12-capstone
     title: "Capstone: one decision pipeline for the retailer"
