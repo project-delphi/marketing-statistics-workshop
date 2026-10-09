@@ -26,8 +26,8 @@ REPO_ROOT="$(cd "$AWS_DIR/../.." && pwd)"
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 note() { printf '%s\n' "$*" >&2; }
 
-# Print the leading comment block of the calling script as its help text.
-usage() { sed -n '2,/^$/{s/^# \{0,1\}//;p;}' "$0"; }
+# Print the leading comment block of the calling script, up to its list of checked docs.
+usage() { sed -n '2,/^$/{/^# Docs checked/q;s/^# \{0,1\}//;p;}' "$0"; }
 
 # Handle the flags every script accepts. Returns 1 for anything else.
 common_flag() {
@@ -65,11 +65,14 @@ need_cmd() {
   fi
 }
 
-# Quote one word for display: plain words as they are, anything else in single quotes.
+# Quote one word for display: plain words as they are; words with a single quote but nothing
+# special to double quotes in double quotes; anything else in single quotes.
 shell_quote() {
-  local s=$1 q="'\\''"
+  local s=$1 q="'\\''" special='[$`"\\!]'
   if [[ "$s" =~ ^[A-Za-z0-9_./:=@%+,-]+$ ]]; then
     printf '%s' "$s"
+  elif [[ "$s" == *"'"* && ! "$s" =~ $special ]]; then
+    printf '"%s"' "$s"
   else
     printf "'%s'" "${s//\'/$q}"
   fi
@@ -168,7 +171,8 @@ confirm() {
 
 # wait_for DESCRIPTION SECONDS INTERVAL CMD...: rerun CMD (which prints a status) until it prints
 # a word from $WAIT_OK; fail on a word from $WAIT_FAIL or after SECONDS, printing $WAIT_HINT if
-# set. A dry run returns at once.
+# set. If CMD fails (for example "not found" after a delete) the status is GONE, so a deletion
+# waits with WAIT_OK=GONE. A dry run returns at once.
 wait_for() {
   local what=$1 limit=$2 every=$3 status waited=0 ok="${WAIT_OK:-}" fail="${WAIT_FAIL:-}"
   shift 3
@@ -177,7 +181,7 @@ wait_for() {
   note "  (repeated every ${every}s until one of: ${ok}; fails on: ${fail:-none})"
   if [[ "$DRY_RUN" == 1 ]]; then return 0; fi
   while :; do
-    status=$("$@" 2> /dev/null || true)
+    status=$("$@" 2> /dev/null) || status=GONE
     if [[ -n "$status" && " $ok " == *" $status "* ]]; then
       note "  $what: $status"
       return 0
