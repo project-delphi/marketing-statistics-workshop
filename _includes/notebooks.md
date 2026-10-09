@@ -2,7 +2,7 @@
 
 | Module | Notebook | Language | Runtime | Open | Time on Colab |
 |---|---|---|---|---|---|
-| [0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) | `00-setup-warmup` | Python | Colab (Python runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/00-setup-warmup.ipynb) | not yet timed on Colab |
+| [0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) | `00-setup-warmup` | Python | Colab (Python runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/00-setup-warmup.ipynb) | 2 s on Colab (2026-10-09) |
 | [0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) | `00-setup-warmup` | R | Colab (R runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/00-setup-warmup.ipynb) | not yet timed on Colab |
 | [1 · Transaction logs to customer-base analysis](/modules/01-customer-base.qmd) | `01-customer-base-sql` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [2 · Buy-till-you-die models: BG/NBD and Pareto/NBD](/modules/02-btyd.qmd) | `02-btyd` | Python | Colab (Python runtime, CPU) | in preparation | — |
