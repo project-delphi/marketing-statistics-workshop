@@ -330,10 +330,17 @@ with workshop.checkpoint(2):
         )
     flat_draws = {c: new_clv.sel(channel=c).values.ravel() for c in CHANNELS}
     for c in CHANNELS:
-        checks.close(cap_mean[c], flat_draws[c].mean(), rel=1e-9,
-                     name=f"the mean-rule cap for {c}")
-        checks.close(cap_20[c], np.quantile(flat_draws[c], 0.2), rel=0.005,
-                     name=f"the 20th-percentile cap for {c}")
+        want_mean, want_20 = flat_draws[c].mean(), np.quantile(flat_draws[c], 0.2)
+        assert abs(cap_mean[c] - want_mean) <= 1e-9 * want_mean, (
+            f"Checkpoint 2: with q=None the {c} cap should be the posterior mean, {want_mean:.2f};"
+            f" yours is {cap_mean[c]:.2f}. Average over chain and draw. To move on, run"
+            " workshop.use_reference(2)."
+        )
+        assert abs(cap_20[c] - want_20) <= 0.005 * want_20, (
+            f"Checkpoint 2: the {c} cap at q=0.2 should be the 20th percentile of its draws,"
+            f" {want_20:.2f}; yours is {cap_20[c]:.2f}. Take the q quantile (not 1 - q) over"
+            " (chain, draw). To move on, run workshop.use_reference(2)."
+        )
         assert cap_20[c] < cap_mean[c], (
             f"Checkpoint 2: for {c} the 20th-percentile cap ({cap_20[c]:.2f}) should be below the"
             f" mean ({cap_mean[c]:.2f}). Did you take the quantile over draws, not channels? To"
@@ -476,14 +483,23 @@ with workshop.checkpoint(3):
         "Checkpoint 3: a segment's posterior mean lies outside its HDI: check the column order."
         " To move on, run workshop.use_reference(3)."
     )
-    a, b = "search · 4+ repeat", "search · 1-3 repeat"
+    # Test on the pair of segments whose comparison is least certain, so that a probability
+    # computed from posterior means (always 0 or 1) cannot pass.
+    mean_of = {s: clv_draws.isel(customer_id=(segments == s).to_numpy()).mean("customer_id")
+               for s in sorted(segments.unique())}
+    names = list(mean_of)
+    a, b = min(((x, y) for i, x in enumerate(names) for y in names[i + 1:]),
+               key=lambda pair: abs(float((mean_of[pair[0]] > mean_of[pair[1]]).mean()) - 0.5))
+    want_ab = float((mean_of[a] > mean_of[b]).mean())
     p_ab, p_ba = prob_greater(clv_draws, segments, a, b), prob_greater(clv_draws, segments, b, a)
     checks.probability([p_ab, p_ba], name="prob_greater(...)")
-    checks.close(p_ab + p_ba, 1.0, abs=1e-9, name="P(a > b) + P(b > a)")
-    mean_of = {s: clv_draws.isel(customer_id=(segments == s).to_numpy()).mean("customer_id")
-               for s in (a, b)}
-    checks.close(p_ab, float((mean_of[a] > mean_of[b]).mean()), abs=1e-9,
-                 name=f"P({a} > {b}), compared draw by draw")
+    assert abs(p_ab - want_ab) <= 1e-9 and abs(p_ab + p_ba - 1) <= 1e-9, (
+        f"Checkpoint 3: P({a} > {b}) is {want_ab:.3f} when the two means are compared draw by"
+        f" draw; yours gives {p_ab:.3f} (and {p_ba:.3f} the other way round; the two should add"
+        " up to 1). Compare the segments' mean CLV per customer in each draw, then take the"
+        " share of draws where a wins, not a comparison of posterior means. To move on, run"
+        " workshop.use_reference(3)."
+    )
 seg_table.round(1)
 
 # %% [markdown]
