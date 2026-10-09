@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "source": "test_notebooks",
+  "env": "ci-amd64",
+  "env_detail": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39, runner Python 3.13.14",
+  "mode": "worked",
+  "kernel": "python3",
+  "settings": {
+    "MKTSTATS_QUICK": "1"
+  },
+  "commit": null,
+  "ref": "main",
+  "evidence": "scripts/test_notebooks.py --record",
+  "content_sha": "c497b89f2247f9cf",
+  "deps_sha": "6a4dff3f15a362e3",
+  "runs": [
+    {
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "fail",
+      "seconds": 42.9,
+      "phases": {
+        "generated": 0.14,
+        "other": 28.21,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 11.6,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-015",
+        "seconds": 25.26
+      },
+      "verified": 6,
+      "note": "stopped with an error"
+    }
+  ]
+}
