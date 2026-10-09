@@ -5,13 +5,245 @@ title: "{{< var modules.m08.title >}}"
 {{< include /_includes/module-08.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Day 3 measured incrementality directly: an email test with randomized customers, and a regional campaign with a synthetic control. Each answer covers one campaign, in one channel, in one window. A marketing team spends on TV, search, social and display every week and needs to know what each dollar returns, and what next month's budget will. This module builds a model of how every channel drives sales over three years of weekly data, checks that it recovers known returns, and decides which channels pay back.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-08.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. What a marketing mix model is for
+
+A **marketing mix model** (MMM) explains weekly sales with a **baseline** (trend, seasonality, price, holidays) plus one term per media channel. It uses aggregate data that every business has (sales and spend by week), not customer-level tracking. Its outputs are the inputs to budgeting:
+
+- **ROAS** (return on ad spend) per channel: the sales a channel's spend caused, divided by that spend;
+- **response curves**: how a channel's sales contribution grows as its spend grows, which Module 10 uses to divide a budget.
+
+An MMM is an observational model. It sees spend and sales move together and attributes part of sales to spend. That is the strength and the weakness of the method: it covers every channel continuously, and it can be fooled by anything that moves spend and sales together for another reason (Chan and Perry 2017). This module builds the model and checks it on data where the truth is known; Module 9 confronts the weakness.
+
+The data are three years of weekly sales (156 weeks, 2023-01-02 to 2025-12-22) for the synthetic retailer, with spend on four channels, a price index and a holiday flag. Media cause about a third of sales in the truth. The channels are bought differently: TV in bursts with weeks off, search steady and rising with the season, social in a few four-week pushes, display small and slowly growing. How much a channel's spend moves *on its own* decides how well its effect can be measured, and that sentence explains most of the results below.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $y_t$ | sales in week $t$ |
+| $x_{c,t}$ | spend on channel $c$ in week $t$ |
+| $a_{c,t}$ | adstocked spend: $x_{c}$ spread over the following weeks |
+| $\alpha_c$ | adstock decay of channel $c$, between 0 and 1 |
+| $L$ | maximum lag of adstock, 8 weeks |
+| $\lambda_c$ | saturation parameter: how fast the channel's effect approaches its ceiling |
+| $\beta_c$ | the channel's effect size: the most it can add in a week |
+| $s(\cdot)$ | the logistic saturation function |
+| $\boldsymbol\gamma$ | coefficients of the controls (price, holiday, trend) and the seasonality terms |
+| $\text{share}_c$ | channel $c$'s share of total spend |
+| $\text{ROAS}_c$ | sales caused by channel $c$'s spend over a window, divided by that spend |
+| $m$ | gross margin rate (30%) |
+
+PyMC-Marketing scales each channel's spend by its maximum and sales by their maximum before fitting, so $\lambda_c$ is scale-free and $\beta_c$ is in units of the best week's sales.
+
+## 2. Adstock and saturation
+
+**Objective for this section:** write geometric adstock and logistic saturation as functions and explain what the decay $\alpha$ and the saturation $\lambda$ do.
+
+The model for weekly sales is
+
+$$
+y_t = \underbrace{\gamma_0 + \boldsymbol\gamma^{\top}\mathbf{z}_t}_{\text{baseline: trend, seasonality, price, holiday}}
+\;+\; \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big) \;+\; \varepsilon_t ,
+\qquad \varepsilon_t \sim \text{Normal}(0, \sigma^2),
+$$ {#eq-mmm}
+
+where $\mathbf{z}_t$ holds the controls and two orders of yearly sine and cosine terms. Each channel's spend passes through two transforms.
+
+**Adstock** spreads one week's spend over the following weeks, because people remember an ad. Geometric adstock with decay $\alpha$ and maximum lag $L$ is
+
+$$
+a_t = \sum_{l=0}^{L-1} w_l\, x_{t-l},
+\qquad
+w_l = \frac{\alpha^{l}}{\sum_{k=0}^{L-1} \alpha^{k}} ,
+$$ {#eq-adstock}
+
+with weeks before the data counted as zero spend. The weights are **normalized** to sum to 1, so a dollar's effect is spread over later weeks but its total is unchanged: $\alpha$ decides *when* the effect arrives, not how large it is. With $\alpha = 0.5$ the weights are 0.502, 0.251, 0.126, …: half the effect lands in the week of spend. In the truth, TV's $\alpha$ is 0.6 (a long memory) and search's 0.2 (mostly immediate).
+
+**Saturation** bends the curve, because each extra dollar reaches people who have already seen the ad or were never going to buy. Logistic saturation is
+
+$$
+s(a; \lambda) = \frac{1 - e^{-\lambda a}}{1 + e^{-\lambda a}} = \tanh\!\left(\frac{\lambda a}{2}\right),
+\qquad
+s'(a) = \frac{\lambda}{2}\,\big(1 - s(a)^2\big).
+$$ {#eq-saturation}
+
+It is zero at zero spend, rises steeply, and flattens toward 1; in @eq-mmm the channel's effect is $\beta_c\, s(\cdot)$, so $\beta_c$ is the ceiling. At $\lambda a = 1$, $s = 0.462$, just under half the ceiling. The slope $s'$ (the return on the *next* dollar) falls as spend grows, so the **average** return over all dollars is higher than the **marginal** return on the last one. That is why "the ROAS of a channel" depends on how much you already spend on it, and why Module 10 allocates budgets by marginal, not average, returns.
+
+The lab asks you to write both functions and checks them against PyMC-Marketing's own on several spend series and parameter values.
+
+::: {.self-check}
+**Check yourself.** A channel sits at $\lambda a = 1$. Using @eq-saturation, by how much does its contribution grow if spend doubles (to $\lambda a = 2$)? What happens to its average return per dollar?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$s(1) = \tanh(0.5) = 0.462$ and $s(2) = \tanh(1) = 0.762$: the contribution grows by 65% while spend grows by 100%. The average return per dollar falls to $0.762 / 2 \div 0.462 = 0.82$ of what it was, and the marginal return on the last dollar falls further. A ROAS measured at one spend level does not carry over to another.
 :::
+:::
+
+## 3. Priors before data
+
+**Objective for this section:** set channel-coefficient priors from spend shares and run a prior predictive check.
+
+A **prior** is what the model believes about a parameter before it sees sales (Module 2). PyMC-Marketing's default prior for every channel's $\beta_c$ is HalfNormal with scale 2, the same for every channel: a small channel gets as much room as the largest. The lab encodes a weak, defensible belief instead: without other information, expect a channel to matter in proportion to what the business spends on it,
+
+$$
+\beta_c \sim \text{HalfNormal}(\sigma_c),
+\qquad
+\sigma_c = C \cdot \text{share}_c ,
+$$ {#eq-prior}
+
+where $C$ is the number of channels, so the scales average 1. A HalfNormal puts about 95% of its mass below $2\sigma$, so the scale caps what the model expects a channel can do before seeing data. TV, the largest spender, gets the widest prior and display the narrowest. Spend shares are not evidence of effectiveness (a lift test is, Module 9); they keep a small channel from being handed an implausibly large effect by noise.
+
+### The prior predictive check
+
+Before fitting, simulate sales from the priors alone and compare with the data. A prior that allows absurd data is not an innocent "uninformative" choice: it is a model that believes absurd things. FULL run, 500 simulated series:
+
+- the prior's 94% band for weekly sales, in its widest week, runs from −$344 million to +$239 million, against observed sales of at most $0.51 million;
+- the prior's 94% interval for media's share of all sales runs from 50% to 381%.
+
+The band covers the data, and it is absurd. The main cause is not the channel priors but the **trend control**: `t` runs from 0 to 155 and its coefficient has a default Normal(0, 2) prior on sales divided by their maximum, so the trend alone can move sales by hundreds of times by the last week. Here 156 weeks of data pin it down, so the lab keeps it. On your own data, rescale the trend (to years, say) or narrow its prior, and run this check again. This is the first step of a **Bayesian workflow**: check the prior, fit, check the computation, check the fit, then read the results (Gelman et al. 2020).
+
+## 4. Can we trust the fit?
+
+**Objective for this section:** fit the model with nutpie and check divergences, R-hat and effective sample size before reading any result.
+
+The lab fits @eq-mmm by MCMC with the nutpie sampler, 2 chains of 2,000 draws, with `target_accept=0.9` (smaller sampler steps than the default 0.8, which left an occasional divergence in the workshop's test fits). On Colab this fit is the longest cell of the lab; its measured time is on the [Readiness](/readiness.qmd) page.
+
+MCMC draws are a sample from the posterior only if the sampler worked. Three checks come first, and the lab reads no result until all three pass:
+
+| Check | What it detects | Threshold |
+|---|---|---|
+| **Divergences** | steps where the sampler's numerical path broke down, usually in a region of the posterior that is hard to explore; draws near them may be biased | 0 |
+| **R-hat** ($\hat R$) | chains (and the halves of each chain) that disagree with each other | at most 1.01 |
+| **Bulk ESS** | how many independent draws the correlated draws are worth, for estimating the posterior's center | at least 400 |
+
+The R-hat and ESS thresholds come from Vehtari et al. (2021), who define the rank-normalized versions ArviZ computes. They also recommend at least four chains; the workshop runs two because Colab's default runtime has two CPUs, and applies the total ESS threshold of 400 to them.
+
+FULL run: **0 divergences, max $\hat R$ = 1.004, min bulk ESS = 493.** The gate passes. The lowest ESS belongs to `saturation_lam[search]`, then the intercept and `saturation_beta[search]`. Over the range of spend a channel actually had, a steeper curve with a lower ceiling (larger $\lambda$, smaller $\beta$) fits about as well as a flatter one with a higher ceiling, so the sampler moves slowly along that ridge. The channel's ROAS, which depends on both together, can still be estimated well.
+
+The fourth check is the **posterior predictive check**: data simulated from the fitted model should look like the data. In the lab, 8 of 156 weeks fall outside the 94% posterior predictive band, against about 9 expected by chance.
+
+::: {.self-check}
+**Check yourself.** A colleague's MMM reports 12 divergences, max $\hat R$ = 1.03 and a bulk ESS of 150, and their ROAS table looks sensible. What do you tell them, and what would you try first?
+
+::: {.callout-tip collapse="true" title="Answer"}
+That the ROAS table cannot be read yet: all three checks fail, so the draws may not represent the posterior, and a sensible-looking table is no evidence that they do. Try a smaller step size first (`target_accept` closer to 1) for the divergences, then more draws (and chains) for $\hat R$ and ESS. If divergences persist, look at the priors and the parameterization: a ridge between $\lambda$ and $\beta$, or a prior that allows absurd values (section 3), is a common cause.
+:::
+:::
+
+## 5. What each dollar returned
+
+**Objective for this section:** compute ROAS per channel with a 94% HDI and check that the truth lies inside it for at least 3 of the 4 channels.
+
+The **return on ad spend** of channel $c$ over a window $W$ is the sales its spend caused, divided by that spend:
+
+$$
+\text{ROAS}_c = \frac{\sum_{t \in W} \big(\hat y_t - \hat y_t^{(x_c = 0)}\big)}{\sum_{t \in W} x_{c,t}} ,
+$$ {#eq-roas}
+
+where $\hat y_t^{(x_c = 0)}$ is the model's sales had channel $c$ spent nothing in the window. "Caused" is a counterfactual, as in Module 7, but here the counterfactual comes from the model rather than from control regions. PyMC-Marketing computes @eq-roas for every posterior draw (`incrementality.contribution_over_spend`), so ROAS has a full posterior. The truth uses the same definition with the noiseless true contributions over all 156 weeks.
+
+FULL run:
+
+| Channel | Posterior mean ROAS | 94% HDI | True ROAS |
+|---|---|---|---|
+| TV | 1.61 | 1.52 to 1.69 | 1.6 |
+| search | 2.57 | 1.17 to 4.49 | 3.0 |
+| social | 1.19 | 0.61 to 1.90 | 1.4 |
+| display | 0.29 | 0.00 to 0.84 | 0.6 |
+
+All four true values lie inside their 94% HDIs. (Four 94% intervals all cover only about $0.94^4 \approx 78\%$ of the time, so the checkpoint asks for 3 of 4.) The widths tell the identification story:
+
+- **TV** switches on and off, so its effect stands out against everything else: its interval is narrow.
+- **Search** has the highest true ROAS and the widest interval. Its spend varies little and rises with the season, which also raises sales, so the model cannot separate the two well and many ROAS values fit.
+- **Display** is small and slowly growing: little variation, little information.
+
+The adstock decays tell a related story: TV's is recovered precisely (0.598, 94% HDI 0.573 to 0.620; truth 0.6), while social's true 0.4 falls **outside** its interval (0.199, 0.000 to 0.387) even though social's ROAS interval covers the truth. The data constrain a channel's total effect better than *when* the effect arrives, and the two trade off.
+
+Search is the warning for Module 9. Here search spend only *correlates* with the season, and the model still gets its ROAS roughly right with a wide interval. If spend *followed* demand (more search ads bought when people were already searching), the model would credit search with sales the demand caused, and could do so with a narrow, confident, wrong interval.
+
+## 6. A dataset without truth
+
+**Objective for this section:** run the same workflow on a second dataset whose true parameters you do not know.
+
+On real data nobody knows the true ROAS. The lab repeats the workflow on `mmm_example.csv`, a demo file from the PyMC-Marketing repository: 179 weeks of sales, two media variables `x1` and `x2`, two event flags and a trend. Its documentation calls it a simulated example and gives no true parameters, so the fit can be checked but not scored. `x1` and `x2` run between 0 and 1, so they are not dollars; the lab reports each channel's **share** of the media contribution rather than ROAS, computed per draw so that every draw's shares sum to 1.
+
+FULL run: 0 divergences, max $\hat R$ = 1.005, min bulk ESS = 818; `x1` contributes 80.2% of the media effect (94% HDI 77.9% to 82.5%) and `x2` 19.8%.
+
+Without truth, three things stand between you and a wrong answer: the sampler diagnostics, the predictive checks, and outside evidence. Only the third can catch a model that fits the data well and gets the causal effect wrong. The strongest outside evidence is an experiment, such as the geo test of Module 7, which Module 9 feeds into the MMM.
+
+## 7. The decision
+
+A dollar of sales earns the retailer its gross margin, 30% here, so a channel pays back on short-run sales if $m \times \text{ROAS} > 1$:
+
+$$
+\text{break-even ROAS} = \frac{1}{m} = \frac{1}{0.30} \approx 3.33 ,
+\qquad
+P(\text{ROAS}_c > 3.33) = \frac{1}{J}\sum_{j=1}^{J} \mathbb{1}\big[\text{ROAS}_c^{(j)} > 3.33\big].
+$$ {#eq-breakeven-roas}
+
+::: {.module-decision}
+**Decision.** Classify a channel as **pays back** if $P(\text{ROAS} > 3.33) \ge 0.9$, **does not pay back** if $P(\text{ROAS} < 3.33) \ge 0.9$, and **undecided** otherwise. The 0.9 is a business choice: how sure we want to be before moving money. The diagnostics gate passed, so the results can be read. FULL run:
+
+| Channel | ROAS (94% HDI) | $P(\text{ROAS} > 3.33)$ | Verdict |
+|---|---|---|---|
+| TV | 1.61 (1.52 to 1.69) | 0.000 | does not pay back |
+| search | 2.57 (1.17 to 4.49) | 0.175 | undecided |
+| social | 1.19 (0.61 to 1.90) | 0.002 | does not pay back |
+| display | 0.29 (0.00 to 0.84) | 0.000 | does not pay back |
+
+On short-run sales, no channel is shown to pay back at a 30% margin; TV, social and display do not, with high probability, and search cannot be decided from these data. The truth agrees (no true ROAS reaches 3.33; search's is 3.0). Two things would change the answer: a lift test on search, which would narrow its interval (Module 9), and the value of the **customers** a channel brings beyond this quarter's sales, which this short-run ROAS ignores (Module 10 adds it, using Module 5's customer values).
+:::
+
+## Summary
+
+- An MMM explains weekly sales as a baseline plus one saturating, carried-over term per channel (@eq-mmm).
+- Normalized geometric adstock (@eq-adstock) moves an effect in time without changing its total; logistic saturation (@eq-saturation) makes the return on the next dollar fall as spend grows.
+- Priors scaled by spend shares (@eq-prior) are a weak, stated belief. The prior predictive check exposed an absurd default prior on the trend.
+- Read nothing before the gate: 0 divergences, $\hat R \le 1.01$, bulk ESS $\ge 400$; then a posterior predictive check. The FULL fit passed (1.004, 493).
+- ROAS (@eq-roas) has a posterior; all four true ROAS values were inside their 94% HDIs. Intervals are narrow for channels whose spend moves on its own (TV) and wide for channels whose spend moves with demand (search).
+- At a 30% margin the break-even ROAS is 3.33 (@eq-breakeven-roas): three channels do not pay back on short-run sales and search is undecided.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 8 |
+|---|---|---|
+| @eq-adstock | normalized geometric adstock | **Exercise 1**: `geometric_adstock(x, alpha, l_max, normalize)`; Checkpoint 1 compares it with PyMC-Marketing's |
+| @eq-saturation | logistic saturation | **Exercise 2**: `logistic_saturation(x, lam)`; Checkpoint 2 compares it with PyMC-Marketing's |
+| @eq-prior | spend-share priors | **Exercise 3**: `beta_prior_sigma(spend)`; Checkpoint 3 checks the scales; then the provided prior predictive check |
+| @eq-mmm | the model | Provided: `MMM(...)` and the nutpie fit |
+| Divergences, $\hat R$, ESS | the diagnostics gate | **Exercise 4**: `diagnose(idata)`; Checkpoint 4 uses a fake posterior with known problems, then the real fit |
+| @eq-roas | ROAS per channel with a 94% HDI | **Exercise 5**: `roas_table(roas_draws, true_roas)`; Checkpoint 5 asks for 3 of 4 true values inside |
+| Shares of the media contribution | the workflow without truth | **Exercise 6**: `contribution_share(idata)`; Checkpoint 6 checks shares sum to 1 in every draw |
+| @eq-breakeven-roas | which channels pay back | Provided: the Decision cell |
+
+## Gotchas
+
+- **Normalized adstock** keeps a dollar's total effect fixed; without normalization, a larger $\alpha$ also makes the effect larger and $\beta$ absorbs the difference.
+- **Scaled units.** PyMC-Marketing's $\beta_c$ is in units of maximum weekly sales and $\lambda_c$ applies to spend divided by its maximum. Convert before comparing with anything in dollars.
+- **Default priors are choices.** The default trend prior allowed sales of hundreds of millions; run the prior predictive check on your own data.
+- **ArviZ 1.x defaults to an 89% equal-tailed interval.** Name the interval: here, 94% HDI.
+- **Two chains** are below the four that Vehtari et al. recommend. Colab's two CPUs are why; on a bigger machine, run four.
+- **A good fit is not a correct ROAS.** Predictive checks test the fit to sales, not the causal attribution between channels.
+- **Average ROAS is not marginal ROAS.** Budget decisions need the return on the next dollar (Module 10).
+- **Spend that follows demand** inflates a channel's ROAS; the model cannot tell from these data alone (Module 9).
+
+## Next steps
+
+This MMM recovered the truth because the synthetic data contain nothing to fool it: no channel's spend is driven by the same demand that drives sales. Real search budgets often are. When spend follows demand, an MMM credits the channel with sales it did not cause, fits the data just as well, and can report a narrow interval around the wrong ROAS. Module 9 builds that failure on purpose, then calibrates the model with lift tests (Module 7's geo-test results as extra likelihood terms) and validates it out of sample with time-slice cross-validation.
+
+## Further reading
+
+1. Jin, Y., Wang, Y., Sun, Y., Chan, D., & Koehler, J. (2017). [*Bayesian methods for media mix modeling with carryover and shape effects*](https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/). Google. Adstock, saturation and priors in a Bayesian MMM.
+2. Gelman, A., Vehtari, A., Simpson, D., Margossian, C. C., Carpenter, B., Yao, Y., Kennedy, L., Gabry, J., Bürkner, P.-C., & Modrák, M. (2020). [*Bayesian workflow*](https://doi.org/10.48550/arXiv.2011.01808). arXiv:2011.01808. Prior checks, computational diagnostics and predictive checks as one workflow.
+3. Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). [Rank-normalization, folding, and localization: An improved R̂ for assessing convergence of MCMC](https://doi.org/10.1214/20-BA1221). *Bayesian Analysis*, 16(2), 667–718. The $\hat R$ and ESS the gate uses, and its thresholds.
+4. Chan, D., & Perry, M. (2017). [*Challenges and opportunities in media mix modeling*](https://research.google/pubs/challenges-and-opportunities-in-media-mix-modeling/). Google. Why MMMs struggle: limited data, correlated inputs and confounding.
+5. PyMC-Marketing, [MMM example](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_example.html). The library's own walk-through on `mmm_example.csv`.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.
