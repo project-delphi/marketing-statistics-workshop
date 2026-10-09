@@ -377,7 +377,10 @@ with workshop.checkpoint(label="Prop 99"):
         f"Synthetic California misses the real one by {rmspe99:.1f} packs per year before 1989:"
         " the weights did not fit. Check sc_weights (TODO 2)."
     )
-    assert gap99[~pre99].mean() < 0, "The gap after 1988 should be negative (fewer packs sold)."
+    assert gap99[~pre99].mean() < 0, (
+        f"The average gap after 1988 is {gap99[~pre99].mean():+.1f} packs; it should be negative."
+        " Check sc_weights (TODO 2)."
+    )
 
 print(f"Gap in 2000: {gap99[-1]:+.1f} packs per capita; average 1989-2000: {gap99[~pre99].mean():+.1f};"
       f" pre-1989 fit error (RMSPE) {rmspe99:.1f} packs")
@@ -620,8 +623,11 @@ print(f"Smallest lift on this grid with power >= 0.8: {min(detectable) if detect
 # **Optional: CausalImpact from the R notebook.** Type its cumulative 95% interval for incremental
 # sales below, for example `causalimpact_interval = (48_000, 144_000)`.
 #
-# **Assumptions** (stated, not estimated): gross margin 30% of sales; campaign cost \$20,000.
-# Change `CAMPAIGN_COST` in the next cell if your campaign cost differs.
+# **Costs** (known from the campaign's books, not estimated; the next cell reads them from
+# `truth.json`): gross margin 30% of sales; campaign cost \$25,000, which is 1.25% of each
+# treated geo's average pre-period weekly sales, spent in every test week. To pay back, the
+# campaign must add \$25,000 ÷ 0.30 ≈ \$83,300 of sales. Change `CAMPAIGN_COST` in the next
+# cell to see how the verdict depends on the cost.
 #
 # **The rule**, fixed before reading the numbers: call the campaign **incremental** if the
 # in-space placebo p-value is below 0.1 and, if entered, the CausalImpact interval excludes 0.
@@ -630,8 +636,8 @@ print(f"Smallest lift on this grid with power >= 0.8: {min(detectable) if detect
 
 # %%
 causalimpact_interval = None  # (lower, upper) cumulative AbsEffect from the R notebook, or None
-GROSS_MARGIN = 0.30  # assumption: margin per dollar of sales
-CAMPAIGN_COST = 20_000  # assumption: $ spent on the campaign in the treated geos
+GROSS_MARGIN = truth["campaign"]["margin"]  # 0.30 (truth.json)
+CAMPAIGN_COST = truth["campaign"]["cost"]  # $25,000 (truth.json)
 
 errors = []
 for s in range(26, int(pre.sum()) - 10 + 1):  # every 10-week window with 26 weeks before it
@@ -657,7 +663,7 @@ print(f"  Difference-in-differences: {did_result['incremental_sales']:,.0f} (lif
 if causalimpact_interval is not None:
     print(f"  CausalImpact 95% interval (R notebook): {causalimpact_interval[0]:,.0f} to {causalimpact_interval[1]:,.0f}")
 print(f"  Incremental margin at {GROSS_MARGIN:.0%}: ${margin:,.0f} (90% interval ${margin_lo:,.0f} to"
-      f" ${margin_hi:,.0f}); return on ${CAMPAIGN_COST:,}: {margin / CAMPAIGN_COST:.2f}x"
+      f" ${margin_hi:,.0f}); return on ${CAMPAIGN_COST:,.0f}: {margin / CAMPAIGN_COST:.2f}x"
       f" ({margin_lo / CAMPAIGN_COST:.2f}x to {margin_hi / CAMPAIGN_COST:.2f}x)")
 print("Rule")
 print("  Incremental if the placebo p < 0.1 (and the CausalImpact interval, if entered, excludes 0);")
@@ -685,7 +691,7 @@ print(f"  Mode: {'QUICK run' if QUICK else 'FULL run'} (QUICK changes only the p
 print(f"True lift: {truth['lift_pct']:.1f}%; true incremental sales: {truth['incremental_sales']:,.0f}"
       f" (inside the 90% interval: {inc_lo <= truth['incremental_sales'] <= inc_hi})")
 print(f"True incremental margin: ${GROSS_MARGIN * truth['incremental_sales']:,.0f}"
-      f" against a cost of ${CAMPAIGN_COST:,}")
+      f" against a cost of ${CAMPAIGN_COST:,.0f}")
 
 # %% [markdown]
 # ## Stretch (optional) · An event-study plot
