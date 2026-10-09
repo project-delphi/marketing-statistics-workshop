@@ -49,7 +49,7 @@ and whether that evidence is still current.
 | | 9 Lift-test calibration, time-slice CV, parameter stability, what MMM can't identify; Robyn comparison | `python/09-mmm-calibration`, `r/09-robyn` (only if spike passes) | Py; R (Robyn) |
 | | 10 Budget allocation: PyMC-Marketing optimizer + from-scratch SLSQP, constraints, risk-aware via draws, CLV-weighted objective | `python/10-budget-allocation` | Py |
 | 5 Whom to target, how to spend? | 11 Uplift on Hillstrom: grf causal forest (ATE, RATE/TOC); EconML `CausalForestDML(discrete_treatment=True)` + meta-learners; Qini on held-out; target where margin > offer cost | `r/11-grf-causal-forest`, `python/11-uplift-econml` | R reference (grf) + Py |
-| | 12 Capstone (11:15–17:00): CLV → geo test → calibrated MMM → allocation + uplift → 5-slide brief; rubric | `python/12-capstone` | Py |
+| | 12 Capstone (11:25–17:00): CLV → geo test → calibrated MMM → allocation + uplift → 5-slide brief; rubric | `python/12-capstone` | Py |
 
 Two-module days (2, 3) get the upper-bound lab slots plus a 60-min applied clinic tied to that day's decision (Day 2: CFO-memo peer
 review; Day 3: geo-test design review using the GeoLift market-selection demo). A generated test checks every day fits 09:00–17:00.

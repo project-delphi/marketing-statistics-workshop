@@ -52,6 +52,9 @@ github_packages:
   GeoLift: {repo: facebookincubator/GeoLift, sha: db34ea4299ff0e28515ebac502b78c076c93c905, license: MIT}
 
 # Days: each day answers one question. `blocks` drive the generated timetable and clocks.
+# A module block without `part` is the whole module (briefing, lab, debrief in a row). With
+# `part: briefing|lab|debrief` it is that part only; a part may be split over several blocks
+# with `minutes:` (the segments must add up to the module's minutes for that part).
 days:
   d0:
     label: "Before Day 1"
@@ -81,9 +84,12 @@ days:
       - {kind: warmup, minutes: 15}
       - {kind: module, id: m04}
       - {kind: break, minutes: 15}
-      - {kind: module, id: m05}
+      - {kind: module, id: m05, part: briefing}
       - {kind: lunch, minutes: 60}
+      - {kind: module, id: m05, part: lab}
+      - {kind: module, id: m05, part: debrief}
       - {kind: clinic, minutes: 60, title: "CFO memo clinic: peer review of the Module 5 decision memo"}
+      - {kind: break, minutes: 10}
       - {kind: wrapup, minutes: 20}
   d3:
     label: "Day 3"
@@ -94,9 +100,12 @@ days:
       - {kind: warmup, minutes: 15}
       - {kind: module, id: m06}
       - {kind: break, minutes: 15}
-      - {kind: module, id: m07}
+      - {kind: module, id: m07, part: briefing}
       - {kind: lunch, minutes: 60}
+      - {kind: module, id: m07, part: lab}
+      - {kind: module, id: m07, part: debrief}
       - {kind: clinic, minutes: 60, title: "Geo-test design review, with the GeoLift market-selection demo"}
+      - {kind: break, minutes: 10}
       - {kind: wrapup, minutes: 20}
   d4:
     label: "Day 4"
@@ -121,7 +130,12 @@ days:
       - {kind: warmup, minutes: 15}
       - {kind: module, id: m11}
       - {kind: break, minutes: 15}
-      - {kind: module, id: m12}
+      - {kind: module, id: m12, part: briefing}
+      - {kind: module, id: m12, part: lab, minutes: 80, title: "Pair work: CLV forecasts and the geo test"}
+      - {kind: lunch, minutes: 50}
+      - {kind: module, id: m12, part: lab, minutes: 100, title: "Pair work: calibrated MMM, allocation, targeting, the 5-slide brief"}
+      - {kind: break, minutes: 10}
+      - {kind: module, id: m12, part: debrief, title: "Presentations and scoring"}
       - {kind: wrapup, minutes: 20}
 
 # Modules. minutes: briefing / lab / debrief. Content keys (summary, objectives, outcomes, decision,
@@ -304,8 +318,8 @@ modules:
     slug: 12-capstone
     title: "Capstone: one decision pipeline for the retailer"
     day: d5
-    # Briefing 15 min, then pair work with lunch inside it, then presentations.
-    minutes: {briefing: 15, lab: 240, debrief: 60}
+    # Briefing 15 min, pair work in two segments around lunch (see days.d5.blocks), presentations.
+    minutes: {briefing: 15, lab: 180, debrief: 60}
     language: [python]
     language_why: ""
     summary: ""
