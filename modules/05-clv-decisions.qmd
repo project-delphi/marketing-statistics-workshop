@@ -244,9 +244,9 @@ Both decisions assume what nothing so far has tested: that channels cause the cu
 | Equation | What it is | In Lab 5 |
 |---|---|---|
 | @eq-new-value | 12-month margin value of a new customer | **Exercise 1**: `new_customer_clv(model, gg_idata, channel_rows, months, monthly_rate, margin)`; Checkpoint 1 tests a toy model before any fit, then each channel within 15% of the truth |
-| Mean and quantile caps | CAC caps under a risk rule | **Exercise 2**: `cac_cap(clv_draws, q)`; Checkpoint 2 checks that caps rise with $q$ and sit below the mean for $q < 0.5$ |
+| Mean and quantile caps | CAC caps under a risk rule | **Exercise 2**: `cac_cap(clv_draws, q)`; Checkpoint 2 checks the mean and quantile caps against the draws, and that caps rise with $q$ |
 | @eq-p-beats-cac | probability a channel pays back | Provided: the Decision cell |
-| @eq-p-greater (and @eq-var-diff) | segment comparison | **Exercise 3**: `segment_value(clv_draws, segments)` and `prob_greater(...)`; Checkpoint 3 checks that segments add up in every draw and that $P(a > b) + P(b > a) = 1$ |
+| @eq-p-greater (and @eq-var-diff) | segment comparison | **Exercise 3**: `segment_value(clv_draws, segments)` and `prob_greater(...)`; Checkpoint 3 checks that segment totals add up to the base total and that $P(a > b) + P(b > a) = 1$ on the pair hardest to call |
 | @eq-breakeven | break-even lift | **Exercise 4**: `breakeven_lift(cost, margin_per_purchase, expected_purchases)` and `campaign_table(lift, segments)`; Checkpoint 4 checks hand cases and monotonicity |
 | The scores schema | warehouse write-back | **Exercise 5**: `write_scores(con, scores, model_version, scored_at)`; Checkpoint 5 checks the schema, no nulls, ranges and idempotency |
 | The memo numbers | the CFO memo | Provided: the memo template; the memo is written in the clinic |

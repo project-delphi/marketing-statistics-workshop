@@ -222,9 +222,9 @@ The profitability call is fragile, and the honest sentence says so. With CausalI
 | Equation | What it is | In Lab 7 |
 |---|---|---|
 | @eq-did | log-scale difference-in-differences | **Python Exercise 1**: `did(panel, treated_geos, test_start, test_end)`; Checkpoint 1 checks the lift within ±2.5 points of the truth |
-| @eq-sc | synthetic-control weights | **Python Exercise 2**: `sc_weights(y_pre, X_pre)` with SLSQP; Checkpoint 2 compares the fit with an NNLS solution; the Prop 99 check reproduces the published gap |
+| @eq-sc | synthetic-control weights | **Python Exercise 2**: `sc_weights(y_pre, X_pre)` with SLSQP; Checkpoint 2 compares the fit with an NNLS solution and the lift with the truth; the Prop 99 check tests the pre-1989 fit and the sign of the gap |
 | @eq-placebo | RMSPE ratio and permutation p-value | **Python Exercise 3**: `permutation_pvalue(treated_stat, placebo_stats)`; Checkpoint 3 also runs the panel with the campaign removed |
-| Power by simulation | detection rate for an injected lift | **Python Exercise 4**: `geo_power(pre_panel, treated_geos, lift_pct, n_sims, rng)`; Checkpoint 4 checks about 5% at no lift and a rising curve |
+| Power by simulation | detection rate for an injected lift | **Python Exercise 4**: `geo_power(pre_panel, treated_geos, lift_pct, n_sims, rng)`; Checkpoint 4 checks low power at no lift and a curve that rises with the lift |
 | @eq-bsts | CausalImpact | **R Exercise 1**: `run_causal_impact(panel, treated_geos, test_start, test_end, niter)`; Checkpoint 1 checks the truth inside the 95% interval |
 | Contaminated controls | the first CausalImpact assumption, broken | **R Exercise 2**: `contaminated_effect(...)`; Checkpoint 2 checks the contaminated estimate is lower than the clean one |
 | Placebo-in-time interval, margin and return | the decision | Provided: the Python Decision cell |

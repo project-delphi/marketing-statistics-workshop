@@ -220,7 +220,7 @@ On short-run sales, no channel is shown to pay back at a 30% margin; TV, social 
 | @eq-mmm | the model | Provided: `MMM(...)` and the nutpie fit |
 | Divergences, $\hat R$, ESS | the diagnostics gate | **Exercise 4**: `diagnose(idata)`; Checkpoint 4 uses a fake posterior with known problems, then the real fit |
 | @eq-roas | ROAS per channel with a 94% HDI | **Exercise 5**: `roas_table(roas_draws, true_roas)`; Checkpoint 5 asks for 3 of 4 true values inside |
-| Shares of the media contribution | the workflow without truth | **Exercise 6**: `contribution_share(idata)`; Checkpoint 6 checks shares sum to 1 in every draw |
+| Shares of the media contribution | the workflow without truth | **Exercise 6**: `contribution_share(idata)`; Checkpoint 6 checks that the mean shares sum to 1 and the intervals lie in [0, 1] |
 | @eq-breakeven-roas | which channels pay back | Provided: the Decision cell |
 
 ## Gotchas
