@@ -1,0 +1,137 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DescribeCallsWithoutResourceScope",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeImages",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeKeyPairs",
+        "ec2:DescribeVolumes",
+        "tag:GetResources"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadTheUbuntu2404AmiParameter",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameter",
+      "Resource": "arn:aws:ssm:REGION::parameter/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id"
+    },
+    {
+      "Sid": "RunInstancesUntaggedResources",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:REGION::image/*",
+        "arn:aws:ec2:REGION:ACCOUNT_ID:subnet/*",
+        "arn:aws:ec2:REGION:ACCOUNT_ID:network-interface/*",
+        "arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*",
+        "arn:aws:ec2:REGION:ACCOUNT_ID:key-pair/*"
+      ]
+    },
+    {
+      "Sid": "RunInstancesOnlyWithTheProjectTag",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:REGION:ACCOUNT_ID:instance/*",
+        "arn:aws:ec2:REGION:ACCOUNT_ID:volume/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "mktstats-workshop"
+        }
+      }
+    },
+    {
+      "Sid": "TagOnlyWhileCreating",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:*/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": [
+            "RunInstances",
+            "CreateSecurityGroup",
+            "CreateKeyPair"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "TerminateOnlyTaggedInstances",
+      "Effect": "Allow",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "mktstats-workshop"
+        }
+      }
+    },
+    {
+      "Sid": "CreateSecurityGroupOnlyWithTheProjectTag",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "mktstats-workshop"
+        }
+      }
+    },
+    {
+      "Sid": "CreateSecurityGroupInAnyVpc",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:vpc/*"
+    },
+    {
+      "Sid": "ChangeAndDeleteOnlyTaggedSecurityGroups",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:DeleteSecurityGroup"
+      ],
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "mktstats-workshop"
+        }
+      }
+    },
+    {
+      "Sid": "TheRuleThatAnIngressAuthorizationCreates",
+      "Effect": "Allow",
+      "Action": "ec2:AuthorizeSecurityGroupIngress",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:security-group-rule/*"
+    },
+    {
+      "Sid": "CreateKeyPairOnlyWithTheProjectTag",
+      "Effect": "Allow",
+      "Action": "ec2:CreateKeyPair",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:key-pair/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestTag/Project": "mktstats-workshop"
+        }
+      }
+    },
+    {
+      "Sid": "DeleteOnlyTaggedKeyPairs",
+      "Effect": "Allow",
+      "Action": "ec2:DeleteKeyPair",
+      "Resource": "arn:aws:ec2:REGION:ACCOUNT_ID:key-pair/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/Project": "mktstats-workshop"
+        }
+      }
+    }
+  ]
+}

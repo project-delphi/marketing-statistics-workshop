@@ -1,0 +1,114 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WorkshopImage",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateImage",
+        "sagemaker:DescribeImage",
+        "sagemaker:DeleteImage",
+        "sagemaker:CreateImageVersion",
+        "sagemaker:ListImageVersions"
+      ],
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:image/IMAGE_NAME"
+    },
+    {
+      "Sid": "WorkshopImageVersions",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeImageVersion",
+        "sagemaker:DeleteImageVersion"
+      ],
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:image-version/IMAGE_NAME/*"
+    },
+    {
+      "Sid": "WorkshopAppImageConfig",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateAppImageConfig",
+        "sagemaker:DescribeAppImageConfig",
+        "sagemaker:DeleteAppImageConfig"
+      ],
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:app-image-config/APP_IMAGE_CONFIG_NAME"
+    },
+    {
+      "Sid": "WorkshopLifecycleConfig",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateStudioLifecycleConfig",
+        "sagemaker:DescribeStudioLifecycleConfig",
+        "sagemaker:DeleteStudioLifecycleConfig"
+      ],
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:studio-lifecycle-config/LCC_NAME"
+    },
+    {
+      "Sid": "OneDomain",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:DescribeDomain",
+        "sagemaker:UpdateDomain"
+      ],
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:domain/DOMAIN_ID"
+    },
+    {
+      "Sid": "SpacesAndAppsInThatDomain",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:CreateSpace",
+        "sagemaker:DescribeSpace",
+        "sagemaker:DeleteSpace",
+        "sagemaker:CreateApp",
+        "sagemaker:DescribeApp",
+        "sagemaker:DeleteApp"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:space/DOMAIN_ID/*",
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:app/DOMAIN_ID/*"
+      ]
+    },
+    {
+      "Sid": "SignInUrlForThatDomain",
+      "Effect": "Allow",
+      "Action": "sagemaker:CreatePresignedDomainUrl",
+      "Resource": "arn:aws:sagemaker:REGION:ACCOUNT_ID:user-profile/DOMAIN_ID/*"
+    },
+    {
+      "Sid": "TagWhatTheScriptsCreate",
+      "Effect": "Allow",
+      "Action": "sagemaker:AddTags",
+      "Resource": [
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:image/IMAGE_NAME",
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:app-image-config/APP_IMAGE_CONFIG_NAME",
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:studio-lifecycle-config/LCC_NAME",
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:space/DOMAIN_ID/*",
+        "arn:aws:sagemaker:REGION:ACCOUNT_ID:app/DOMAIN_ID/*"
+      ]
+    },
+    {
+      "Sid": "ListCallsWithoutResourceScope",
+      "Effect": "Allow",
+      "Action": [
+        "sagemaker:ListDomains",
+        "sagemaker:ListApps",
+        "sagemaker:ListSpaces",
+        "sagemaker:ListImages",
+        "sagemaker:ListAppImageConfigs",
+        "sagemaker:ListStudioLifecycleConfigs",
+        "tag:GetResources"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassOnlyTheExecutionRoleToSageMaker",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "sagemaker.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
