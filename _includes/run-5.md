@@ -5,7 +5,7 @@
 |---|---|---|
 | 09:00–09:15 | [Warm-up]{.slot-debrief} |  |
 | 09:15–10:05 | [Briefing]{.slot-briefing} | [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd): the briefing. |
-| 10:05–11:00 | [Lab]{.slot-lab} | [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd): R lab (in preparation), Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 10:05–11:00 | [Lab]{.slot-lab} | [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd): [R lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/11-grf-causal-forest.ipynb), [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/11-uplift-econml.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 11:00–11:10 | [Debrief]{.slot-debrief} | [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd): debrief on the decision. Send the offer only to customers whose expected incremental margin exceeds the offer cost; report how many that is and the incremental profit compared with mailing everyone. |
 | 11:10–11:25 | [Break]{.slot-break} |  |
 | 11:25–11:40 | [Briefing]{.slot-briefing} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): the briefing. |

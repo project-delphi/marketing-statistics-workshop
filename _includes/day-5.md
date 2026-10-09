@@ -13,7 +13,7 @@ Estimate who responds to an email offer because of it, with causal forests (grf 
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/11-uplift.qmd){.btn-quiet} [R lab in preparation]{.chip} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/11-uplift.qmd){.btn-quiet} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/11-grf-causal-forest.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/11-uplift-econml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}

@@ -16,8 +16,8 @@
 | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd) | `08-bayesian-mmm` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd) | `09-mmm-calibration` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd) | `10-budget-allocation` | Python | Colab (Python runtime, CPU) | in preparation | — |
-| [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd) | `11-grf-causal-forest` | R | Colab (R runtime, CPU) | in preparation | — |
-| [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd) | `11-uplift-econml` | Python | Colab (Python runtime, CPU) | in preparation | — |
+| [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd) | `11-grf-causal-forest` | R | Colab (R runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/11-grf-causal-forest.ipynb) | not yet timed on Colab |
+| [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd) | `11-uplift-econml` | Python | Colab (Python runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/11-uplift-econml.ipynb) | not yet timed on Colab |
 | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd) | `12-capstone` | Python | Colab (Python runtime, CPU) | in preparation | — |
 
 Times come from run records of a worked, full-settings run of the whole notebook on Colab ([readiness](/readiness.qmd)); laptop, Docker and CI times are never shown as Colab times.
