@@ -100,6 +100,19 @@ capture() {
   fi
 }
 
+# capture_quiet PLACEHOLDER CMD...: like capture, but discards CMD's stderr (lookups that are
+# expected to fail when something does not exist yet). Use with `|| true`.
+capture_quiet() {
+  local placeholder=$1
+  shift
+  show "$@"
+  if [[ "$DRY_RUN" == 1 ]]; then
+    printf '%s\n' "$placeholder"
+  else
+    "$@" 2> /dev/null
+  fi
+}
+
 # probe CMD...: succeed if CMD succeeds (output discarded). Used for "does this exist?" checks.
 probe() {
   show "$@"
@@ -115,6 +128,11 @@ aws_capture() {
   local placeholder=$1
   shift
   capture "$placeholder" aws "$@" --region "$AWS_REGION"
+}
+aws_capture_quiet() {
+  local placeholder=$1
+  shift
+  capture_quiet "$placeholder" aws "$@" --region "$AWS_REGION"
 }
 aws_probe() { probe aws "$@" --region "$AWS_REGION"; }
 
@@ -135,7 +153,8 @@ confirm() {
 }
 
 # wait_for DESCRIPTION SECONDS INTERVAL CMD...: rerun CMD (which prints a status) until it prints
-# a word from $WAIT_OK; fail on a word from $WAIT_FAIL or after SECONDS. A dry run returns at once.
+# a word from $WAIT_OK; fail on a word from $WAIT_FAIL or after SECONDS, printing $WAIT_HINT if
+# set. A dry run returns at once.
 wait_for() {
   local what=$1 limit=$2 every=$3 status waited=0 ok="${WAIT_OK:-}" fail="${WAIT_FAIL:-}"
   shift 3
@@ -150,15 +169,16 @@ wait_for() {
       return 0
     fi
     if [[ -n "$fail" && -n "$status" && " $fail " == *" $status "* ]]; then
-      die "$what: $status"
+      die "$what: $status${WAIT_HINT:+. $WAIT_HINT}"
     fi
-    if ((waited >= limit)); then die "$what: still '$status' after ${limit}s"; fi
+    if ((waited >= limit)); then die "$what: still '$status' after ${limit}s${WAIT_HINT:+. $WAIT_HINT}"; fi
     sleep "$every"
     waited=$((waited + every))
   done
 }
 
 make_tmpdir() {
-  TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/mktstats-aws.XXXXXX")"
+  local base="${TMPDIR:-/tmp}"
+  TMP_DIR="$(mktemp -d "${base%/}/mktstats-aws.XXXXXX")"
   trap 'rm -rf "$TMP_DIR"' EXIT
 }
