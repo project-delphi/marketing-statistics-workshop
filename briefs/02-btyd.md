@@ -4,7 +4,7 @@
 |---|---|
 | Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
 | Notebook | `labs/src/02-btyd.py` → `labs/python/02-btyd.ipynb` |
-| Lab slot | 55 min (`modules.m02.minutes.lab`). Planned: 52 min. |
+| Lab slot | 55 min (`modules.m02.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Day | Day 1, second module |
 
 ## Question and decision
@@ -40,35 +40,38 @@ Module 1, Exercise 3) or with the learner's own Module 1 SQL.
 
 ## Model fits (once each, all in provided cells)
 
-| Fit | Method | QUICK | FULL | Laptop timing we have |
+| Fit | Method | QUICK | FULL | Timings we have |
 |---|---|---|---|---|
-| BG/NBD, synthetic | MAP (default priors) | same | same | — |
-| BG/NBD, synthetic | MCMC, `nuts_sampler="nutpie"` | chains=2, draws=300, tune=300 | chains=2, draws=1000, tune=1000 | — |
-| BG/NBD, CDNOW | MAP with flat priors (`Prior("HalfFlat")` for r, alpha, a, b) | same | same | 3 s (2026-10-09) |
-| BG/NBD, CDNOW | MCMC nutpie, default priors | chains=2, draws=300, tune=300 | chains=2, draws=1000, tune=1000 | 3.1 s for 2×500 (spike S2 record) |
-| Pareto/NBD, CDNOW | **MAP only** (flat priors) | same | same | 4.3 s (2026-10-09); MCMC 2×300 took 57 s in spike S2, so no MCMC here |
+| BG/NBD, synthetic | MAP (default priors) | same | same | seconds (estimate) |
+| BG/NBD, synthetic | MCMC, `nuts_sampler="nutpie"` | chains=2, draws=300, tune=300 | chains=2, draws=1000, tune=1000 | Colab: CDNOW 2×500 took 13.7 s after compile (lead, 2026-10-09) |
+| BG/NBD, CDNOW | MAP with flat priors (`Prior("HalfFlat")` for r, alpha, a, b) | same | same | laptop 3 s |
+| BG/NBD, CDNOW | MCMC nutpie, default priors | chains=2, draws=300, tune=300 | chains=2, draws=1000, tune=1000 | as above |
+| Pareto/NBD, CDNOW | **MAP only** (flat priors) | same | same | laptop 4.3 s; MCMC 2×300 took **231 s on Colab** (lead), so no MCMC in the lab |
 
-All laptop timings are a 10-core Apple Silicon laptop (native environment), **not Colab** (2 vCPUs). Use
-`chains=2` because Colab has 2 vCPUs. Call: `model.fit(data=rfm, method="mcmc", nuts_sampler="nutpie",
-chains=2, draws=..., tune=..., random_seed=...)` (extra keywords go to the sampler).
+"Laptop" = a 10-core Apple Silicon laptop, native environment, 2026-10-09: not a Colab time. On a fresh
+Colab runtime the first fit also pays about 35–45 s of numba compilation (lead's measurement); give the
+learner the next Predict prompt to read while it runs. Use `chains=2` (Colab has 2 vCPUs) and
+`progressbar=False`. Call: `model.fit(data=rfm, method="mcmc", nuts_sampler="nutpie", chains=2,
+draws=..., tune=..., random_seed=..., progressbar=False)` (extra keywords go to the sampler). Estimated
+total compute: under 2 minutes FULL, under 1 minute QUICK, plus the compile (estimate until a run record).
 
 ## Parts and exercises
 
 | Part | Exercise | Minutes |
 |---|---|---|
-| A · The generative story | 1 · Simulate BG/NBD customers | 8 |
+| A · The generative story | 1 · Simulate BG/NBD customers | 7 |
 | | 2 · Sufficient statistics and the calibration/holdout split | 8 |
 | B · Fit and check recovery | 3 · Parameter recovery table | 8 |
-| | 4 · MAP versus MCMC | 6 |
-| C · Real data: CDNOW | 5 · Benchmark and holdout tracking | 10 |
-| D · Decision | 6 · A P(alive) threshold for retargeting | 8 |
-| Decision | Whom do we stop retargeting? | 4 |
-| **Total** | | **52** |
+| | *Run: MAP versus MCMC (provided comparison)* | — |
+| C · Real data: CDNOW | 4 · Benchmark and holdout tracking | 9 |
+| D · Toward the decision | 5 · A P(alive) threshold for retargeting | 8 |
+| **Exercises** | | **40** |
+| Decision | Whom do we stop retargeting? | 5 |
 
-### Exercise 1 · Simulate BG/NBD customers (8 minutes)
+### Exercise 1 · Simulate BG/NBD customers (7 minutes)
 
-- **Predict.** If the dropout probability p after each purchase is high, what happens to a customer's
-  frequency and recency?
+- **Predict.** Raise the dropout probability p from 0.1 to 0.5. Will mean frequency go up, down or stay
+  the same? And mean recency?
 - **Function.** `simulate_bgnbd(r, alpha, a, b, T, n, rng) -> pd.DataFrame` with `frequency, recency, T,
   alive`: draw λ_i ~ Gamma(shape r, rate α), p_i ~ Beta(a, b); purchases arrive as a Poisson process;
   after each purchase the customer leaves with probability p_i; observe up to T.
@@ -81,7 +84,7 @@ chains=2, draws=..., tune=..., random_seed=...)` (extra keywords go to the sampl
 
 ### Exercise 2 · Sufficient statistics and the calibration/holdout split (8 minutes)
 
-- **Predict.** If you swapped recency and T, which customers would look most alive?
+- **Predict.** If you swapped recency and T, would customers who bought recently look more alive or less alive than they are?
 - **Function.** `calibration_holdout(tx, cal_end: str, holdout_end: str) -> pd.DataFrame` with
   `customer_id, frequency, recency, T, holdout_purchases` (purchase days in the holdout window), weeks
   as days/7.
@@ -94,7 +97,7 @@ chains=2, draws=..., tune=..., random_seed=...)` (extra keywords go to the sampl
 
 *Provided before this exercise: the two synthetic fits (MAP and MCMC).*
 
-- **Predict.** Which parameter will have the widest 94% HDI relative to its value?
+- **Predict.** Which parameter will have the widest 94% HDI relative to its mean: r, α, a or b? Pick one.
 - **Function.** `recovery_table(idata, truth: dict, prob: float = 0.94) -> pd.DataFrame` with `param,
   truth, mean, hdi_low, hdi_high, covered`. Use `az.hdi(idata, prob=prob)` on the posterior (or flatten
   draws to 1-D first; a raw (chain, draw) array is summarized per chain).
@@ -105,23 +108,21 @@ chains=2, draws=..., tune=..., random_seed=...)` (extra keywords go to the sampl
 - **Explain.** a and b (the dropout process) are less well identified than r and α: dropout is never
   observed directly.
 
-### Exercise 4 · MAP versus MCMC (6 minutes)
+### Run · MAP versus MCMC (provided comparison)
 
-- **Predict.** Will the MAP estimate equal the posterior mean?
-- **Function.** `compare_map_mcmc(map_idata, mcmc_idata) -> pd.DataFrame` with the relative difference
-  between MAP and posterior mean per parameter.
-- **Checkpoint.** Every MAP value lies inside the MCMC 94% HDI (`checks.in_interval`, one call per
-  parameter).
-- **Explain.** MAP is fast and good for point forecasts; it gives no uncertainty, which matters for
-  customers near the decision threshold.
+A provided cell adds the MAP estimate as a column of the Exercise 3 table and prints whether each MAP value
+lies inside the MCMC 94% HDI. Sentence before it: "Look at whether MAP and the posterior mean agree, and
+note that MAP gives one number with no interval." One Explain line: MAP is fast and fine for point
+forecasts; it gives no uncertainty, which matters for customers near the decision threshold. This is
+why the lab uses MAP only where MCMC is too slow (Pareto/NBD).
 
-### Exercise 5 · Benchmark and holdout tracking (10 minutes)
+### Exercise 4 · Benchmark and holdout tracking (9 minutes)
 
 *Provided before this exercise: the CDNOW fits (flat-prior MAP BG/NBD, MCMC BG/NBD, flat-prior MAP
 Pareto/NBD).*
 
-- **Predict.** Will the model over- or under-predict holdout purchases for customers with many
-  calibration purchases?
+- **Predict.** For customers with 7 or more calibration purchases, will the model's holdout forecast be
+  above or below what they actually bought? For customers with none?
 - **Function.** `holdout_comparison(model, cal: pd.DataFrame, holdout_weeks: float) -> pd.DataFrame`
   grouping customers by calibration frequency (0, 1, …, 6, 7+) with mean actual and mean predicted holdout
   purchases, predicted by `model.expected_purchases(data=cal, future_t=holdout_weeks)` (posterior mean).
@@ -137,7 +138,7 @@ Pareto/NBD).*
   BG/NBD and Pareto/NBD forecast similarly (Fader, Hardie & Lee 2005). Provided plot:
   `pymc_marketing.clv.plot_expected_purchases_over_time` (cumulative tracking plot over the holdout).
 
-### Exercise 6 · A P(alive) threshold for retargeting (8 minutes)
+### Exercise 5 · A P(alive) threshold for retargeting (8 minutes)
 
 - **Predict.** Contact cost $0.50, margin $20 per purchase, and 5% of alive customers buy because of the
   ad. What threshold τ do you get?
@@ -150,18 +151,25 @@ Pareto/NBD).*
   decision uses the **Pareto/NBD** P(alive), because BG/NBD gives P(alive) = 1 to every customer with no
   repeat purchase (checked 2026-10-09 with `expected_probability_alive`), which would never stop them.
 
-### Decision · Whom do we stop retargeting? (4 minutes)
+### Decision · Whom do we stop retargeting? (5 minutes)
 
-Provided cell for CDNOW at the end of calibration: Pareto/NBD P(alive) per customer
-(`ParetoNBDModel.expected_probability_alive(data=cal)`), the τ from Exercise 6, and a table: customers
-stopped, retargeting cost saved, expected margin forgone (Σ P(alive) × m × u over stopped customers),
-with u at 2%, 5% and 10%. Rule in markdown: "Stop retargeting when P(alive) < τ; the decision is only as
-good as u, which we have not measured yet."
+Provided cell for CDNOW at the end of calibration, in the standard order:
+- **Number:** customers with Pareto/NBD P(alive) < τ (`ParetoNBDModel.expected_probability_alive(data=cal)`,
+  τ from Exercise 5 at c = $0.50, m = $20, u = 5%), the retargeting cost saved and the expected margin
+  forgone (Σ P(alive) × m × u over stopped customers), repeated for u = 2%, 5% and 10%.
+- **Rule:** "Stop retargeting a customer when P(alive) × m × u < c", stated before the table.
+- **Recommendation:** how many customers to stop and the money involved, with the uncertainty stated
+  honestly: the Pareto/NBD here is a MAP fit, so the spread comes from the range of u, not from a posterior
+  (MCMC took 231 s on Colab). What would change it: a measured u (Day 3) or a posterior (stretch).
+
+The cell prints the mode (QUICK/FULL) beside the recommendation.
 
 ## Stretch (optional)
 
-`plot_probability_alive_matrix` for BG/NBD and Pareto/NBD side by side; Pareto/NBD MCMC with
-`method="demz"` and a timer, compared with MAP.
+`plot_probability_alive_matrix` for BG/NBD and Pareto/NBD side by side. Or fit `ModifiedBetaGeoModel`
+(MBG/NBD, which drops the BG/NBD assumption that all non-repeat customers are still active, per its
+docstring) by MCMC with nutpie, apply the decision rule to each posterior draw and report the probability
+that stopping beats retargeting for the customers near τ.
 
 ## Known pitfalls
 
@@ -188,6 +196,6 @@ Installed source, pymc-marketing 1.2.0, on 2026-10-09:
 
 ## Open items for the Technical Expert
 
-- `btyd_bgnbd` should also return per-customer `true_alive` at the end of observation (for Exercise 6).
+- `btyd_bgnbd` should also return per-customer `true_alive` at the end of observation (for Exercise 5).
 - Helper for the Exercise 1 closed form, tested against a 100,000-customer simulation.
 - Confirm the `checks.k_of_K_in_interval` signature used in Exercise 3.

@@ -4,7 +4,7 @@
 |---|---|
 | Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
 | Notebook | `labs/src/01-customer-base-sql.py` → `labs/python/01-customer-base-sql.ipynb` |
-| Lab slot | 50 min (`modules.m01.minutes.lab`). Planned: 49 min. |
+| Lab slot | 50 min (`modules.m01.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 35 (limit 35) + decision 5 + slack 5 = 50. Minutes are estimates until a pilot. |
 | Day | Day 1, first module after the warm-up |
 
 ## Question and decision
@@ -39,17 +39,20 @@ None. This module is SQL and counting. The first checkpoint is Exercise 1.
 
 | Part | Exercise | Minutes |
 |---|---|---|
-| A · From log to purchases | 1 · Clean Online Retail II in SQL | 8 |
-| | 2 · Purchase days and gaps with window functions | 8 |
-| B · The RFM table | 3 · Frequency, recency, age and spend in SQL | 12 |
-| C · Cohorts and unobserved churn | 4 · Cohort retention curves | 9 |
-| | 5 · How wrong is the recency rule? | 8 |
-| Decision | Should we stop retargeting by an inactivity rule? | 4 |
-| **Total** | | **49** |
+| A · From log to purchases | 1 · Clean Online Retail II in SQL | 7 |
+| | *Run: purchase days and gaps with `LAG` (worked example, provided)* | — |
+| B · The RFM table | 2 · Frequency, recency, age and spend with window functions | 12 |
+| C · Cohorts and unobserved churn | 3 · Cohort retention curves | 8 |
+| | 4 · How wrong is the recency rule? | 8 |
+| **Exercises** | | **35** |
+| Decision | Should we stop retargeting by an inactivity rule? | 5 |
 
-### Exercise 1 · Clean Online Retail II in SQL (8 minutes)
+Expected compute: seconds per query in both modes (DuckDB on about 1 million rows); no model fits. QUICK
+uses one year of Online Retail II.
 
-- **Predict.** What share of rows have no Customer ID? What share are cancellations?
+### Exercise 1 · Clean Online Retail II in SQL (7 minutes)
+
+- **Predict.** What share of rows have no Customer ID: under 10%, 10 to 30%, or over 30%?
 - **Function.** `clean_online_retail(con, table: str = "retail_raw") -> pd.DataFrame` returning one row
   per invoice: `customer_id, invoice, invoice_date (DATE), amount` where amount = Σ Quantity × Price.
   Rules: drop rows with missing Customer ID; drop cancellations (Invoice starting with `C`); drop rows with
@@ -60,21 +63,22 @@ None. This module is SQL and counting. The first checkpoint is Exercise 1.
 - **Explain.** Many of this retailer's customers are wholesalers (UCI page). Cancellations and returns
   would make spend negative and break the spend model on Day 2.
 
-### Exercise 2 · Purchase days and gaps with window functions (8 minutes)
+### Run · Purchase days and gaps with `LAG` (provided worked example)
 
-- **Predict.** What is the median number of days between purchases for CDNOW customers?
-- **Function.** `purchase_days_sql(con, table: str) -> pd.DataFrame` with one row per customer per
-  purchase **day**: `customer_id, purchase_date, day_amount, purchase_index` (`ROW_NUMBER() OVER
-  (PARTITION BY customer_id ORDER BY purchase_date)`) and `days_since_prev` (`purchase_date -
-  LAG(purchase_date) OVER (...)`).
-- **Checkpoint.** Every customer's `purchase_index` starts at 1 and has no gaps; `days_since_prev` is
-  null exactly when `purchase_index = 1` and positive otherwise (same-day purchases merged).
-- **Explain.** BTYD models count purchase days: two orders on one day are one purchase occasion.
+A provided query builds one row per customer per purchase **day** (`GROUP BY customer_id,
+purchase_date`, summing the amount into `day_amount`) and adds `purchase_index` (`ROW_NUMBER() OVER
+(PARTITION BY customer_id ORDER BY purchase_date)`) and `days_since_prev` (`purchase_date -
+LAG(purchase_date) OVER (...)`), then plots the distribution of gaps for CDNOW. One sentence before the
+plot: "Look at how many gaps are under 7 days; BTYD models count purchase days, so two orders on one day
+are one purchase occasion." This is the pattern Exercise 2 reuses.
 
-### Exercise 3 · Frequency, recency, age and spend in SQL (12 minutes)
+### Exercise 2 · Frequency, recency, age and spend with window functions (12 minutes)
 
-- **Predict.** For a customer, which is larger, recency or age? When are they equal? When is recency 0?
-- **Function.** `rfm_sql(con, table: str, cutoff: str, unit_days: int = 7) -> pd.DataFrame` with
+- **Predict.** For a customer, which is larger, recency or age (T)? Can they be equal? Write one sentence
+  for each.
+- **Function.** `rfm_sql(con, table: str, cutoff: str, unit_days: int = 7) -> pd.DataFrame` built on the
+  purchase-day rows (use `MIN(...) OVER (PARTITION BY customer_id)` or `ROW_NUMBER` to find each
+  customer's first day), with
   `customer_id, frequency, recency, T, monetary_value`, using only purchases on or before `cutoff`:
   - `frequency` x = number of purchase days after the first;
   - `recency` t_x = (last purchase day − first purchase day) / `unit_days`;
@@ -93,9 +97,9 @@ None. This module is SQL and counting. The first checkpoint is Exercise 1.
   merges purchases within the same week and floors times, giving 1,428 non-repeaters and different
   model estimates (measured 2026-10-09). Use days scaled by 7.
 
-### Exercise 4 · Cohort retention curves (9 minutes)
+### Exercise 3 · Cohort retention curves (8 minutes)
 
-- **Predict.** Will the retention curve flatten out or fall to zero?
+- **Predict.** Twelve months after their first purchase, what share of a cohort will still be buying in that month: under 10%, 10 to 30%, or over 30%? Will the curve flatten or fall to zero?
 - **Function.** `cohort_retention_sql(con, table: str) -> pd.DataFrame` with `cohort_month,
   months_since_first, active_share`: the share of each monthly acquisition cohort with at least one
   purchase in month k after their first purchase (k = 0, 1, …).
@@ -105,10 +109,10 @@ None. This module is SQL and counting. The first checkpoint is Exercise 1.
   CDNOW (provided plotting cell). CDNOW is a single acquisition cohort (first purchase in Q1 1997), so its
   curve is one line.
 
-### Exercise 5 · How wrong is the recency rule? (8 minutes)
+### Exercise 4 · How wrong is the recency rule? (8 minutes)
 
 - **Predict.** Of synthetic customers with no purchase in the last 90 days before the calibration end,
-  what share are still alive?
+  what share are still alive: under 10%, 10 to 40%, or over 40%?
 - **Function.** `recency_rule(rfm: pd.DataFrame, days: int, unit_days: int = 7) -> pd.Series[bool]`
   flagging "churned" when `(T - recency) * unit_days > days`; and `confusion(flag, true_alive) -> dict`
   with keys `tp, fp, fn, tn` where positive = flagged churned and truth = not alive.
@@ -117,14 +121,17 @@ None. This module is SQL and counting. The first checkpoint is Exercise 1.
 - **Explain.** In a non-contractual business nobody tells you they left, so "churn" is never observed.
   The alive flag exists only because we generated the data.
 
-### Decision · Should we stop retargeting by an inactivity rule? (4 minutes)
+### Decision · Should we stop retargeting by an inactivity rule? (5 minutes)
 
-Provided cell: for N in {30, 60, 90, 180} days, a table of customers dropped, of which truly alive, and
-the purchases those alive customers will make in the holdout window (from the synthetic transactions
-after the calibration end). Rule stated in markdown: "An inactivity rule is acceptable only if the alive
-customers it drops are worth less than the retargeting cost it saves; the rule itself cannot tell you
-which customers those are." The learner writes one sentence choosing N or rejecting the rule. This sets
-up Module 2.
+Provided cell, in the standard order:
+- **Number:** for N in {30, 60, 90, 180} days, customers dropped, of which truly alive, and the purchases
+  those alive customers make in the holdout window (synthetic transactions after the calibration end),
+  valued at an assumed $6 margin per purchase; retargeting cost saved at an assumed $1.50 per customer
+  per quarter.
+- **Rule:** "Use an inactivity rule only if the margin from the alive customers it drops is less than the
+  retargeting cost it saves." (No posterior here, so no probability; Module 2 adds one.)
+- **Recommendation:** the learner's sentence choosing N or rejecting the rule, and what would change it
+  (a model that tells alive from dead customers better than recency alone: Module 2).
 
 ## Provided scaffolding
 
@@ -133,16 +140,16 @@ Loaders and DuckDB registration; plotting cells for gaps, cohorts and the decisi
 
 ## Stretch (optional)
 
-Rewrite Exercise 3 with `QUALIFY` and a single pass; or compute RFM quintile segments (`NTILE(5)`) and
-compare them with Exercise 5's truth.
+Rewrite Exercise 2 with `QUALIFY` and a single pass; or compute RFM quintile segments (`NTILE(5)`) and
+compare them with Exercise 4's truth.
 
 ## Known pitfalls
 
 - Online Retail II comes in two sheets/years in the original Excel file; the loader should return one
   table. Invoice dates have times; cast to DATE before counting purchase days.
-- `rfm_summary(time_unit="W")` merges same-week purchases (see Exercise 3).
-- Do not use the holdout period in Exercise 3 (cutoff filter first).
-- The synthetic customers acquired after the calibration end must be excluded from Exercise 5.
+- `rfm_summary(time_unit="W")` merges same-week purchases (see Exercise 2).
+- Do not use the holdout period in Exercise 2 (cutoff filter first).
+- The synthetic customers acquired after the calibration end must be excluded from Exercise 4.
 
 ## APIs verified (and how)
 
@@ -157,4 +164,4 @@ compare them with Exercise 5's truth.
 
 - `load_online_retail_ii()`: one table, original column names or snake_case (state which), parquet mirror
   allowed by CC BY 4.0; `load_cdnow()`: columns `customer_id, date, n_cds, amount`.
-- Embed reference counts (Exercise 1 rows, Exercise 5 confusion) from the committed data snapshot.
+- Embed reference counts (Exercise 1 rows, Exercise 4 confusion) from the committed data snapshot.

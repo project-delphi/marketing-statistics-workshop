@@ -4,7 +4,7 @@
 |---|---|
 | Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
 | Notebook | `labs/src/04-monetary-clv.py` → `labs/python/04-monetary-clv.ipynb` |
-| Lab slot | 55 min (`modules.m04.minutes.lab`). Planned: 55 min. |
+| Lab slot | 55 min (`modules.m04.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Day | Day 2, first module |
 
 ## Question and decision
@@ -56,17 +56,23 @@ Pareto/NBD MCMC fit took 57 s for 2×300 draws on CDNOW on a 10-core laptop (spi
 | Part | Exercise | Minutes |
 |---|---|---|
 | A · The spend model | 1 · Is spend independent of frequency? | 6 |
-| | 2 · Recover the spend parameters | 8 |
-| B · Discounted CLV | 3 · CLV with PyMC-Marketing | 8 |
-| | 4 · Your own CLV that carries both uncertainties | 10 |
-| | 5 · Horizon and discount-rate sensitivity | 8 |
-| C · Contractual customers | 6 · Encode the retention counts and fit the sBG | 10 |
+| | 2 · Recover the spend parameters | 7 |
+| B · Discounted CLV | *Run: CLV with PyMC-Marketing (provided)* | — |
+| | 3 · Your own CLV that carries both uncertainties | 10 |
+| | 4 · Horizon and discount-rate sensitivity | 7 |
+| C · Contractual customers | 5 · Encode the retention counts and fit the sBG | 10 |
+| **Exercises** | | **40** |
 | Decision | What is a customer worth? | 5 |
-| **Total** | | **55** |
+
+Expected compute (estimates until a run record): BG/NBD MCMC about 15 s FULL on Colab (the lead measured
+13.7 s for 2×500 on CDNOW after compile) plus 35–45 s of numba compilation on a fresh runtime;
+Gamma-Gamma seconds; the CLV grid (9 cells × monthly steps over all customers) under a minute. Use
+`progressbar=False`.
 
 ### Exercise 1 · Is spend independent of frequency? (6 minutes)
 
-- **Predict.** Do customers who buy more often spend more per purchase?
+- **Predict.** Among repeat buyers, will the correlation between number of purchases and mean spend per
+  purchase be below 0.2, between 0.2 and 0.5, or above 0.5?
 - **Function.** `spend_frequency_correlation(rfm) -> float`: Pearson correlation between `frequency` and
   `monetary_value` among repeat buyers (frequency > 0).
 - **Checkpoint.** Equals the reference on the synthetic data (generated independent, so small) and on
@@ -75,7 +81,7 @@ Pareto/NBD MCMC fit took 57 s for 2×300 draws on CDNOW on a 10-core laptop (spi
   small correlation is consistent with that; it does not prove it. If it were large, you would need a model
   of spend and frequency together.
 
-### Exercise 2 · Recover the spend parameters (8 minutes)
+### Exercise 2 · Recover the spend parameters (7 minutes)
 
 - **Predict.** A customer made one repeat purchase of $200. Will their expected spend be closer to $200 or
   to the population mean?
@@ -88,52 +94,54 @@ Pareto/NBD MCMC fit took 57 s for 2×300 draws on CDNOW on a 10-core laptop (spi
 - **Explain.** Expected spend is a weighted average of the population mean and the customer's own mean;
   the weight on the customer's own mean grows with their number of purchases.
 
-### Exercise 3 · CLV with PyMC-Marketing (8 minutes)
+### Run · CLV with PyMC-Marketing (provided)
 
-- **Predict.** What is the average customer worth over the next 12 months at 1% a month?
-- **Function.** `library_clv(gg, transaction_model, rfm, months, monthly_rate) -> xr.DataArray` wrapping
-  `gg.expected_customer_lifetime_value(transaction_model=transaction_model, data=rfm, future_t=months,
-  discount_rate=monthly_rate, time_unit="W")`. `rfm` needs `customer_id, frequency, recency, T,
-  monetary_value`; zero-repeat customers get the population mean spend.
-- **Checkpoint.** Output dims `(chain, draw, customer_id)`; all values ≥ 0; total 12-month CLV posterior
-  mean within a tolerance of the true expected total from `mktstats.synth.true_clv(customers, months=12,
-  monthly_rate=0.01)` (proposed helper, see open items). The Technical Expert sets the tolerance from the
-  reference run and reports it; it must not be looser than 20% (the transaction model is BG/NBD on
-  Pareto/NBD data).
-- **Explain.** Two easy mistakes: `future_t` is always in **months**, whatever `time_unit` is, and
-  `discount_rate` is **monthly**. And the library multiplies by the posterior **mean** spend, so its
-  interval reflects only the purchase model's uncertainty (read in `gamma_gamma.py`).
+A provided cell computes `clv_lib = gg.expected_customer_lifetime_value(transaction_model=bgnbd, data=rfm,
+future_t=12, discount_rate=0.01, time_unit="W")` (dims `(chain, draw, customer_id)`; `rfm` has
+`customer_id, frequency, recency, T, monetary_value`; zero-repeat customers get the population mean spend)
+and prints the total with its 94% HDI next to the true expected total from
+`mktstats.synth.true_clv(customers, months=12, monthly_rate=0.01)` (proposed helper). Markdown before it
+names the two easy mistakes: `future_t` is always in **months**, whatever `time_unit` is, and
+`discount_rate` is **monthly**. It also says what the source shows: the library multiplies by the
+posterior **mean** spend, so its interval reflects only the purchase model's uncertainty
+(`gamma_gamma.py`). Exercise 3 fixes that.
 
-### Exercise 4 · Your own CLV that carries both uncertainties (10 minutes)
+### Exercise 3 · Your own CLV that carries both uncertainties (10 minutes)
 
-- **Predict.** Will adding spend uncertainty widen the interval of total CLV a little or a lot?
+- **Predict.** The library's 94% interval for total 12-month CLV is shown above. With spend uncertainty
+  added, will the interval be about the same width, up to twice as wide, or more than twice as wide?
 - **Function.** `discounted_clv(purchases_by_month, spend, monthly_rate) -> xr.DataArray` where
   `purchases_by_month` has dims `(chain, draw, customer_id, month)` (expected purchases **in** month k,
   provided: differences of `transaction_model.expected_purchases(data, future_t=k × 30.4375 / 7)`, the
   library's days-per-month constant) and `spend` has dims `(chain, draw, customer_id)` from
   `gg.expected_customer_spend(data=rfm)`. Return Σ_k spend × purchases_k / (1 + d)^k.
-- **Checkpoint (two).** (1) With `spend` replaced by its posterior mean, matches `library_clv` to a
-  relative 1e-6. (2) The 94% HDI of total CLV is at least as wide as the library's.
+- **Checkpoint (three).** (1) With `spend` replaced by its posterior mean, matches `clv_lib` to a relative
+  1e-6. (2) The 94% HDI of total CLV is at least as wide as the library's. (3) The total 12-month posterior
+  mean is within a tolerance of `true_clv`; the Technical Expert sets the tolerance from the reference run
+  in both QUICK and FULL and states it, no looser than 20%, because the transaction model is a BG/NBD fitted
+  to Pareto/NBD data.
 - **Explain.** Pairing draws from two separately fitted posteriors assumes the two posteriors are
   independent, which is the Gamma-Gamma independence assumption again. Most of the uncertainty in a single
   customer's CLV is about that customer's behaviour, which neither interval includes (both are intervals
   for an *expected* value).
 
-### Exercise 5 · Horizon and discount-rate sensitivity (8 minutes)
+### Exercise 4 · Horizon and discount-rate sensitivity (7 minutes)
 
-- **Predict.** Which moves total CLV more: going from 12 to 36 months, or from 0% to 2% a month?
+- **Predict.** Which moves total CLV more: going from 12 to 36 months at 1% a month, or from 0% to 2% a
+  month at 36 months? Pick one.
 - **Function.** `clv_grid(clv_fn, horizons=(12, 24, 36), rates=(0.0, 0.01, 0.02)) -> pd.DataFrame` with
-  total CLV posterior mean and 94% HDI for each cell, where `clv_fn(months, rate)` is Exercise 4's function
-  with its inputs bound.
+  total CLV posterior mean and 94% HDI for each cell, where `clv_fn(months, rate)` is Exercise 3's function
+  with its inputs bound (provided as a partial).
 - **Checkpoint.** Total CLV increases with horizon at each rate and decreases with rate at each horizon
-  (`checks.monotone`); the (12, 0.01) cell equals Exercise 4's result.
+  (`checks.monotone`); the (12, 0.01) cell equals Exercise 3's result.
 - **Explain.** 1% a month is about 12.7% a year. The horizon is a business choice (how long the plan is,
   how far you trust the model); P(alive) decays, so the increase from 24 to 36 months is smaller than from
   12 to 24.
 
-### Exercise 6 · Encode the retention counts and fit the sBG (10 minutes)
+### Exercise 5 · Encode the retention counts and fit the sBG (10 minutes)
 
-- **Predict.** Will the year-to-year retention rate rise, fall or stay flat after year 7? Why?
+- **Predict.** Will the year-to-year retention rate of Regular customers rise, fall or stay flat after
+  year 7? Pick one.
 - **Function.** `counts_to_customers(alive: list[int], cohort: str) -> pd.DataFrame` with
   `customer_id, recency, T, cohort` for years 0…n: customers lost during year t get `recency = t`;
   customers still active after year n get `recency = T`; every row has **`T = n + 1`**.
@@ -149,10 +157,13 @@ Pareto/NBD MCMC fit took 57 s for 2×300 draws on CDNOW on a 10-core laptop (spi
 
 ### Decision · What is a customer worth? (5 minutes)
 
-Provided cell: a table of average-customer and total-base CLV for 12 and 36 months at 1% a month with 94%
-HDIs (from Exercise 4), and the Exercise 5 grid highlighted. The learner writes one sentence: the number
-they would give the CFO and the assumption that moves it most. Rule: "Quote the expected value with its
-interval and the horizon and rate it assumes; never quote a CLV without them."
+Provided cell, in the standard order:
+- **Number:** average-customer and total-base CLV for 12 and 36 months at 1% a month, posterior mean and
+  94% HDI (Exercise 3), and the largest change in the Exercise 4 grid.
+- **Rule:** "Quote CLV as an expected value with its interval, horizon and monthly rate; when two
+  assumptions are uncertain, report the one that moves the total most."
+- **Recommendation:** the learner's sentence giving the number for the CFO and the assumption that moves it
+  most, and what would change it (a different margin, horizon or spend model). The cell prints the mode.
 
 ## Stretch (optional)
 
@@ -164,8 +175,8 @@ add the acquisition channel and report CLV by channel (bridge to Module 5).
 - `future_t` in months; `discount_rate` monthly; `time_unit` must match the RFM units (weeks).
 - Gamma-Gamma fit data must have `monetary_value > 0` (repeat buyers only); prediction data may include
   zero-repeat customers.
-- sBG encoding off by one (Exercise 6).
-- The library's CLV interval ignores spend uncertainty (Exercise 3).
+- sBG encoding off by one (Exercise 5).
+- The library's CLV interval ignores spend uncertainty (provided CLV cell; Exercise 3 fixes it).
 - Default `BetaGeoModel` priors use a phi/kappa reparameterization of a and b (`phi_dropout`,
   `kappa_dropout` in the trace); recovery tables must read `a` and `b` from the posterior deterministics.
 

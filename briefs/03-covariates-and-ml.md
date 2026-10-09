@@ -4,7 +4,8 @@
 |---|---|
 | Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
 | Notebooks | `labs/src/03-clvtools-covariates.R` → `labs/r/03-clvtools-covariates.ipynb` (Part A–B); `labs/src/03-btyd-vs-ml.py` → `labs/python/03-btyd-vs-ml.ipynb` (Part C) |
-| Lab slot | 55 min for both notebooks (`modules.m03.minutes.lab`). Planned: 27 (R) + 25 (Python) + 3 decision = 55 min. |
+| Lab slot | 55 min for both notebooks (`modules.m03.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (R 22 + Python 18; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
+| Order | Open the **Python** notebook first and run its install cell (≈ 31 s install + 17 s import on Colab, lead's measurement 2026-10-09). Then open the **R** notebook (CLVTools installs in ≈ 15 s including GSL) and work Parts A–B. Return to the Python notebook for Part C; its runtime is ready. The decision cell is in the Python notebook. |
 | Day | Day 1, after lunch |
 
 ## Question and decision
@@ -47,19 +48,21 @@ coefficients `trans.channelB`, `life.channelB`, … for a character column `chan
 
 | Notebook · Part | Exercise | Minutes |
 |---|---|---|
-| R · A · CLVTools on the Day 1 data | 1 · Build the clv.data object and compare with Day 1 | 9 |
-| R · B · Channel as a covariate | 2 · Fit the Pareto/NBD with the channel covariate | 10 |
-| | 3 · Translate coefficients into rates | 8 |
+| R · A · CLVTools on the Day 1 data | 1 · Build the clv.data object and compare with Day 1 | 7 |
+| R · B · Channel as a covariate | 2 · Fit the Pareto/NBD with the channel covariate | 8 |
+| | 3 · Translate coefficients into rates | 7 |
 | Python · C · BTYD versus gradient boosting | 4 · Features and a target without leakage | 9 |
-| | 5 · A holdout scorecard | 8 |
-| | 6 · Where does each method win? | 8 |
-| Decision | Treat channels differently? Which forecaster? | 3 |
-| **Total** | | **55** |
+| | 5 · A holdout scorecard | 9 |
+| **Exercises** | | **40** |
+| Decision (Python notebook) | Treat channels differently? Which forecaster? | 5 |
 
-### Exercise 1 · Build the clv.data object and compare with Day 1 (9 minutes)
+Expected compute: R fits about a second each (Docker on a laptop, 2026-10-09; Colab not yet measured);
+Python Pareto/NBD MAP seconds, gradient boosting seconds, bootstrap seconds. Estimates until a run record.
 
-- **Predict.** Will CLVTools' Pareto/NBD on CDNOW give the same estimates as PyMC-Marketing's on Day 1?
-  Which parameters might differ, and why?
+### Exercise 1 · Build the clv.data object and compare with Day 1 (7 minutes)
+
+- **Predict.** Will CLVTools' Pareto/NBD estimate of r on CDNOW be within 1% of PyMC-Marketing's Day 1
+  value (0.553): yes or no? Which of r, α, s, β is most likely to differ?
 - **Function.** `make_clvdata(tx, split)` returning `clvdata(tx, date.format = "ymd", time.unit = "week",
   estimation.split = split, name.id = "Id", name.date = "Date", name.price = "Price")`; then a provided
   `pnbd()` fit, and `compare_with_day1(fit, day1)` returning a data frame of parameter, CLVTools,
@@ -75,9 +78,11 @@ coefficients `trans.channelB`, `life.channelB`, … for a character column `chan
   `split = 39` CLVTools gave s = 0.625, β = 12.244 against 0.606, 11.664, because dropout is never
   observed and the likelihood is flat in that direction.
 
-### Exercise 2 · Fit the Pareto/NBD with the channel covariate (10 minutes)
+### Exercise 2 · Fit the Pareto/NBD with the channel covariate (8 minutes)
 
-- **Predict.** Which acquisition channel brings customers who buy more often but leave sooner?
+- **Predict.** The provided cell above shows each channel's share of customers who never bought again.
+  For the channel with the highest share, will its dropout coefficient be positive (customers leave sooner)
+  or negative?
 - **Function.** `fit_channel_pnbd(clv, customers)`: `SetStaticCovariates(clv, data.cov.life = cov,
   data.cov.trans = cov, names.cov.life = "channel", names.cov.trans = "channel", name.id = "Id")` with
   `cov` holding `Id` and `channel`, then `pnbd()`. Return the fitted object.
@@ -88,9 +93,10 @@ coefficients `trans.channelB`, `life.channelB`, … for a character column `chan
 - **Explain.** A covariate explains part of the heterogeneity that the gamma distributions otherwise
   absorb; the population parameters (r, α, s, β) now describe the reference channel.
 
-### Exercise 3 · Translate coefficients into rates (8 minutes)
+### Exercise 3 · Translate coefficients into rates (7 minutes)
 
-- **Predict.** A purchase coefficient of 0.3: by what factor does it change the average purchase rate?
+- **Predict.** A purchase coefficient of 0.3: does it raise the average purchase rate by about 3%, 30% or
+  35%?
 - **Function.** `channel_rates(fit, channels)` returning per channel the mean purchase rate r/α_c and mean
   dropout rate s/β_c (per week) and the implied mean lifetime 1/(s/β_c) weeks (state that this is the
   rate at the population mean, not the mean of individual lifetimes).
@@ -101,8 +107,8 @@ coefficients `trans.channelB`, `life.channelB`, … for a character column `chan
 
 ### Exercise 4 · Features and a target without leakage (9 minutes)
 
-- **Predict.** If you build features from the whole log, how much will the machine-learning model's
-  holdout error improve, and why is that improvement fake?
+- **Predict.** If features were built from the whole log, including the holdout weeks, would the
+  gradient-boosting holdout error look better, worse or the same? Would that be a real improvement?
 - **Function.** `make_features(tx, customers, cutoff) -> pd.DataFrame` using only transactions on or
   before `cutoff`: frequency, recency, T, mean spend, weeks since last purchase, purchases in the last 4
   and 13 weeks, channel dummies. Supervised design: train on features at `cutoff − H` with the target =
@@ -112,44 +118,48 @@ coefficients `trans.channelB`, `life.channelB`, … for a character column `chan
 - **Explain.** BTYD needs no labelled training window; the machine-learning model does, which costs you
   H weeks of history.
 
-### Exercise 5 · A holdout scorecard (8 minutes)
+### Exercise 5 · A holdout scorecard (9 minutes)
 
 *Provided before this exercise: Pareto/NBD MAP (with channel covariates via `model_config`
 `purchase_covariate_cols` and `dropout_covariate_cols` for the retailer; without for CDNOW) and the
 gradient-boosting fit, each predicting holdout purchases.*
 
-- **Predict.** Which method will have the lower error for customers with zero calibration purchases? For
-  the heaviest buyers?
+- **Predict.** For customers with zero calibration purchases, which method will have the lower mean
+  absolute error: BTYD or gradient boosting? And for customers with 8 or more?
 - **Function.** `holdout_scorecard(y_true, preds: dict[str, np.ndarray], groups) -> pd.DataFrame` with,
   per method and group (calibration frequency 0, 1, 2–3, 4–7, 8+), MAE, RMSE and total bias (Σ predicted −
   Σ actual).
 - **Checkpoint.** On a fixed toy input with known answers the function returns the exact numbers; on the
   real inputs, the table has every method × group and the totals equal the sums. The checkpoint does
   **not** test which method wins.
-- **Explain.** Read the table you got. State the result as measured, with the dataset and the split.
+- **Explain.** Compare with your prediction and point to the group where the methods differ most. Name
+  the mechanism: BTYD extrapolates from each customer's own x, t_x and T; gradient boosting learns from
+  other customers' features but forecasts only the horizon it was trained on.
 
-### Exercise 6 · Where does each method win? (8 minutes)
+*Provided after this exercise:* a 95% bootstrap interval (1,000 resamples of customers, seed shown) for the
+difference in mean absolute error between the methods, on both datasets. Sentence before it: "Look at
+whether the interval includes 0; if it does, these data do not separate the methods." BTYD also gives
+P(alive), forecasts for any horizon and for new customers, and parameters with meaning. Simple
+heuristics have been found competitive for some tasks (Wübben & von Wangenheim 2008), which is why the
+lab measures instead of assuming.
 
-- **Predict.** What can the BTYD model tell you that gradient boosting cannot, even if gradient boosting
-  has a lower error?
-- **Function.** `bootstrap_difference(y_true, pred_a, pred_b, n_boot=1000, rng) -> dict` with the mean
-  difference in absolute error between methods and a 95% bootstrap interval (resampling customers).
-- **Checkpoint.** On a toy input where method A is exactly 1 better per customer, the mean difference is
-  1 and the interval is [1, 1]; interval ordering low ≤ mean ≤ high on real data.
-- **Explain.** BTYD gives P(alive), forecasts for any horizon and new customers, and parameters with
-  meaning; gradient boosting uses any feature you have but forecasts only the horizon it was trained on.
-  The literature has found simple heuristics competitive for some tasks (Wübben & von Wangenheim 2008),
-  which is why we measure rather than assume.
+### Decision · Treat channels differently? Which forecaster? (5 minutes)
 
-### Decision · Treat channels differently? Which forecaster? (3 minutes)
-
-Provided cell shows the Exercise 3 channel table and the Exercise 6 interval for both datasets. The
-learner writes two sentences: whether channel differences are large enough to matter for acquisition
-spending (Module 5 will price them) and which forecaster they would deploy, citing the interval.
+Provided cell, in the standard order:
+- **Number:** the Exercise 3 channel table (purchase and dropout rate per channel with 90% intervals from
+  `confint`) and the bootstrap interval for the error difference on each dataset.
+- **Rule:** "Treat channels differently in acquisition spending if their rates differ by more than 20%
+  with the 90% intervals not overlapping zero effect; deploy the forecaster with the lower error only if
+  the 95% interval of the difference excludes 0, otherwise prefer BTYD for what it adds (P(alive), any
+  horizon)." The 20% is a stated business threshold, not a statistical constant.
+- **Recommendation:** the learner's sentence for each question, and what would change it (more holdout
+  weeks; a different horizon). Module 5 prices the channel differences.
 
 ## Provided scaffolding
 
-Loaders; Pareto/NBD MAP and gradient-boosting fits; plotting of the scorecard. R: the plain `pnbd()` fit
+Loaders; a table of each channel's customer count and share of customers with no repeat purchase
+(R, before Exercise 2); Pareto/NBD MAP and gradient-boosting fits; the bootstrap interval; plotting of the
+scorecard. R: the plain `pnbd()` fit
 in Exercise 1 and `predict(fit)` output (columns include `PAlive`, `CET`, `DERT`, `predicted.CLV`).
 
 ## Stretch (optional)
