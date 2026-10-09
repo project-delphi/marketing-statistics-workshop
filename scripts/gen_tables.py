@@ -84,9 +84,17 @@ def clock(minutes: int) -> str:
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
+PARTS = ("briefing", "lab", "debrief")
+
+
 def plan(v: dict, dkey: str) -> list[dict]:
-    """The day's segments with clock times. A module block becomes its briefing, lab and
-    debrief segments (parts with 0 minutes are left out)."""
+    """The day's segments with clock times.
+
+    A module block without `part` is the whole module: its briefing, lab and debrief, back
+    to back (parts with 0 minutes are left out). A module block with `part:` is only that
+    part, for `minutes:` (default: all of the part) with an optional `title:`, so a part
+    can be split around lunch (part_problems() checks the pieces add up).
+    """
     d = v["days"][dkey]
     if not d.get("blocks"):
         return []
@@ -95,12 +103,16 @@ def plan(v: dict, dkey: str) -> list[dict]:
     for block in d["blocks"]:
         if block["kind"] == "module":
             m = v["modules"][block["id"]]
-            for part in ("briefing", "lab", "debrief"):
-                minutes = int(m["minutes"].get(part, 0) or 0)
+            part = block.get("part")
+            parts = [part] if part else list(PARTS)
+            for p in parts:
+                default = int(m["minutes"].get(p, 0) or 0)
+                minutes = int(block.get("minutes", default)) if part else default
                 if minutes:
-                    out.append(
-                        {"kind": part, "module": block["id"], "start": t, "end": t + minutes}
-                    )
+                    seg = {"kind": p, "module": block["id"], "start": t, "end": t + minutes}
+                    if part and block.get("title"):
+                        seg["title"] = block["title"]
+                    out.append(seg)
                     t += minutes
         else:
             minutes = int(block["minutes"])
@@ -108,6 +120,40 @@ def plan(v: dict, dkey: str) -> list[dict]:
             out.append({"kind": block["kind"], "title": title, "start": t, "end": t + minutes})
             t += minutes
     return out
+
+
+def part_problems(v: dict) -> list[str]:
+    """Each scheduled module's segments must add up to its minutes, part by part; a module
+    is scheduled either whole or in parts, on its own day; every day ends by 17:00."""
+    problems = []
+    for dkey, d in days(v):
+        segs = plan(v, dkey)
+        if segs and segs[-1]["end"] > to_minutes("17:00"):
+            problems.append(f"{dkey} ends at {clock(segs[-1]['end'])}, after 17:00")
+        if segs and segs[0]["start"] < to_minutes("09:00"):
+            problems.append(f"{dkey} starts at {clock(segs[0]['start'])}, before 09:00")
+        for b in d.get("blocks") or []:
+            if b["kind"] == "module" and v["modules"][b["id"]]["day"] != dkey:
+                problems.append(f"{dkey}: {b['id']} is scheduled here but its day is another")
+    for key, m in modules(v):
+        segs = [s for dk, _ in days(v) for s in plan(v, dk) if s.get("module") == key]
+        if not segs:
+            continue
+        blocks = [
+            b
+            for _, d in days(v)
+            for b in d.get("blocks") or []
+            if b["kind"] == "module" and b["id"] == key
+        ]
+        whole = [b for b in blocks if not b.get("part")]
+        if whole and len(blocks) > 1:
+            problems.append(f"{key}: scheduled whole and in parts (or twice)")
+        for p in PARTS:
+            want = int(m["minutes"].get(p, 0) or 0)
+            got = sum(s["end"] - s["start"] for s in segs if s["kind"] == p)
+            if got != want:
+                problems.append(f"{key}: its {p} segments add up to {got} minutes, not {want}")
+    return problems
 
 
 def span(segments: list[dict]) -> str:
@@ -120,7 +166,20 @@ def module_segments(v: dict, key: str) -> list[dict]:
 
 
 def module_clock(v: dict, key: str) -> str:
-    return span(module_segments(v, key))
+    """'09:15–11:00', or one range per stretch when a break splits the module:
+    '11:30–12:25 · 13:25–14:40'."""
+    ranges: list[list[int]] = []
+    for s in module_segments(v, key):
+        if ranges and ranges[-1][1] == s["start"]:
+            ranges[-1][1] = s["end"]
+        else:
+            ranges.append([s["start"], s["end"]])
+    return " · ".join(f"{clock(a)}–{clock(b)}" for a, b in ranges)
+
+
+def part_times(v: dict, key: str) -> str:
+    """'11:30 briefing · 13:25 lab · 14:20 debrief': when each part (or piece) starts."""
+    return " · ".join(f"{clock(s['start'])} {s['kind']}" for s in module_segments(v, key))
 
 
 def module_number(key: str) -> int:
@@ -292,7 +351,7 @@ def segment_cells(v: dict, s: dict) -> tuple[str, str]:
     """(session cell, module cell) for one timetable row."""
     if "module" in s:
         m = v["modules"][s["module"]]
-        name = PART_NAMES[s["kind"]]
+        name = PART_NAMES[s["kind"]] + (f" · {s['title']}" if s.get("title") else "")
         title = f"[{module_number(s['module'])} · {m['title']}]({module_link(s['module'], m)})"
         return f"[{name}]{{.slot-{s['kind']}}}", title
     css = BLOCK_CLASS.get(s["kind"], "slot-break")
@@ -322,10 +381,13 @@ def schedule(v: dict) -> str:
             continue
         segs = plan(v, dkey)
         rows = ["| Time | Session | Module |", "|---|---|---|"]
+        linked = set()
         for s in segs:
             session, module = segment_cells(v, s)
-            if s["kind"] in ("lab", "debrief"):  # the title is on the briefing row above
-                module = f"Module {module_number(s['module'])}"
+            if "module" in s:
+                if s["module"] in linked:  # the title is on the module's first row
+                    module = f"Module {module_number(s['module'])}"
+                linked.add(s["module"])
             rows.append(f"| {clock(s['start'])}–{clock(s['end'])} | {session} | {module} |")
         out += [
             f"## [{d['label']} · {d['title']}]({day_link(dkey)}) {{#day-{n}}}",
@@ -405,7 +467,7 @@ def module_header(v: dict, key: str) -> str:
     m = v["modules"][key]
     d = v["days"][m["day"]]
     n = module_number(key)
-    when = module_clock(v, key)
+    when = part_times(v, key)
     day_text = (
         f"[{d['label']}]({day_link(m['day'])}){{.eyebrow}}"
         if d.get("blocks")
@@ -427,7 +489,7 @@ def module_header(v: dict, key: str) -> str:
         else:
             data.append(str(item))
     details = [
-        ("Day", f"{d['label']} · {d['title']}" + (f" ({when})" if when else "")),
+        ("Day", f"{d['label']} · {d['title']}" + (f" ({module_clock(v, key)})" if when else "")),
         ("Time", minutes_text(m) + (" · optional" if m.get("optional") else "")),
         (
             "Languages",
@@ -492,53 +554,71 @@ def prerequisites(v: dict, key: str) -> list[str]:
     return ["::: {.prerequisites}", "## Before you start", ""] + [f"- {i}" for i in items] + [":::"]
 
 
+def alternatives(entries: list[dict]) -> bool:
+    """Notebooks with the same name in python/ and r/ are one lab in two languages: a
+    participant does one. Different names (Modules 3, 7, 11) are both done in the slot."""
+    return len(entries) > 1 and len({Path(e["path"]).stem for e in entries}) == 1
+
+
 def lab_block(v: dict, key: str) -> str:
     m = v["modules"][key]
-    out = []
-    for e in notebooks_of(v, key):
+    lab = m["minutes"]["lab"]
+    entries = notebooks_of(v, key)
+    either = alternatives(entries)
+    out, totals = [], []
+    if either:
+        langs = " and ".join(LANG[e["language"]] for e in entries)
+        out += [f"The {langs} notebooks are the same lab in two languages: do one.", ""]
+    for e in entries:
         lang = LANG[e["language"]]
         found = lab_steps.rows(e)
+        title = f"### {lang} lab · `{Path(e['path']).stem}`"
         if not found:
-            out += [f"### {lang} lab", "", f"[{lang} lab in preparation]{{.chip}}", ""]
+            out += [title, "", f"[{lang} lab in preparation]{{.chip}}", ""]
             continue
-        heading = f"### {lang} lab"
         link = f"[Open in Colab]({colab_url(v, e)}){{.btn-colab}}" if exists(e) else ""
         rows = ["| Step | Time |", "|---|---|"]
         for r in found:
             if r["kind"] == "stretch":
                 continue
-            title = f" · {r['title']}" if r["title"] else ""
+            name = f" · {r['title']}" if r["title"] else ""
             if r["kind"] == "part":
-                rows.append(f"| **{r['label']}{title}** | |")
+                rows.append(f"| **{r['label']}{name}** | |")
             else:
                 time = f"{r['minutes']} min" if r["minutes"] else "—"
-                rows.append(f"| {r['label']}{title} | {time} |")
-        total = lab_steps.minutes(found)
+                rows.append(f"| {r['label']}{name} | {time} |")
         n = len([r for r in found if r["kind"] == "exercise"])
-        lab = m["minutes"]["lab"]
-        out += [
-            heading,
-            "",
-            link,
-            "",
-            "::: {.lab-steps}",
-            "\n".join(rows),
-            ":::",
-            "",
-            f"{n} exercises, {total} minutes between them, in a {lab}-minute lab slot. Each has a"
-            " stub to complete, a folded solution and a checkpoint.",
-            "",
-        ]
+        minutes = lab_steps.minutes(found)
+        totals.append((n, minutes))
+        rows.append(f"| **{lang} subtotal: {n} exercises** | **{minutes} min** |")
+        out += [title, "", link, "", "::: {.lab-steps}", "\n".join(rows), ":::", ""]
         stretch = next((r for r in found if r["kind"] == "stretch"), None)
         if stretch:
-            title = f" · {stretch['title']}" if stretch["title"] else ""
+            name = f" · {stretch['title']}" if stretch["title"] else ""
             out += [
                 "::: {.challenge}",
-                f"**Stretch (optional){title}.** For anyone who finishes early.",
+                f"**Stretch (optional){name}.** For anyone who finishes early.",
                 ":::",
                 "",
             ]
-    return "\n".join(out).strip() or "*Lab in preparation.*"
+    if not totals:
+        return "*Lab in preparation.*"
+    stub = " Each exercise has a stub to complete, a folded solution and a checkpoint."
+    if either or len(entries) == 1:
+        n, minutes = max(totals, key=lambda t: t[1])
+        out.append(
+            f"{n} exercises, {minutes} minutes between them, in a {lab}-minute lab slot.{stub}"
+        )
+    else:
+        n = sum(t[0] for t in totals)
+        minutes = sum(t[1] for t in totals)
+        missing = len(entries) - len(totals)
+        tail = f" ({missing} notebook not written yet)" if missing else ""
+        out.append(
+            f"Both notebooks together: {n} exercises, {minutes} minutes, in a {lab}-minute lab"
+            f" slot{tail}.{stub}"
+        )
+    return "\n".join(out).strip()
 
 
 # ---- notebooks, readiness, install times -------------------------------------------------------

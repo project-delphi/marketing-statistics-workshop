@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 2](/day-2.qmd){.eyebrow} [Module 4]{.module-num} [120 minutes (55 briefing, 55 lab, 10 debrief)]{.module-time} [09:15–11:15]{.module-clock}
+[Day 2](/day-2.qmd){.eyebrow} [Module 4]{.module-num} [120 minutes (55 briefing, 55 lab, 10 debrief)]{.module-time} [09:15 briefing · 10:10 lab · 11:05 debrief]{.module-clock}
 :::
 
 ::: {.module-summary}
