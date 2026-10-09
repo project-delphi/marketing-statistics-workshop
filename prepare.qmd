@@ -1,0 +1,281 @@
+---
+title: "Before Day 1"
+subtitle: "Check the prerequisites, set up Colab, then do the pre-work"
+---
+
+<!--
+Owner: Pedagogy Expert. The first-visit journey ("Start here"), in order.
+Facts (titles, minutes, start time, repository URLs) come from _variables.yml through var shortcodes.
+Remediation links checked on 2026-10-09: each page fetched (WebFetch, or curl where WebFetch could not
+verify Penn State's certificate chain) and its section titles read; the section numbers below are the
+sources' own. The times in the remediation table are our estimates, not the sources'.
+Re-check every link before each delivery.
+What a working setup prints is written against the notebook contract in CONTRIBUTING.md; confirm the
+exact lines against Module 0's notebook once it has a Colab run record.
+-->
+
+**Who the workshop is for.** {{< var workshop.audience >}}
+
+Do these five steps at home, in the week before Day 1, in this order.
+
+1. **[Take the entry check](#entry-check)**: 15 questions, about 15 minutes.
+2. **[Read your score](#score)**: for each area where you missed two or more of the three questions, do the review listed there.
+3. **[Set up Colab](#setup)**: open the setup notebook and run it once.
+4. **[Do the Module 0 pre-work](#module-0)**: about {{< var modules.m00.minutes.lab >}} minutes.
+5. **[Check that your setup works](#working)**, then come to Day 1 at {{< var days.d1.start >}}.
+
+## 1. Take the entry check {#entry-check}
+
+The entry check tells you whether the prerequisites are in place. It is not graded, and nobody else sees your answers.
+
+**How to take it.** Allow 15 minutes, about one minute per question. Work on paper or in a scratch notebook, without searching the web or running code. Write each answer down before you open its folded answer. The data-wrangling questions show Python (pandas) and R (dplyr) side by side; answer in the language you use.
+
+The first six questions use this small table of orders, `tx`, and a table of four customers, `customers`, with one column, `customer_id`, holding A, B, C and D. Customer D has never ordered.
+
+| customer_id | order_date | amount |
+|---|---|---|
+| A | 2024-01-05 | 20 |
+| A | 2024-02-10 | 35 |
+| B | 2024-01-20 | 15 |
+| C | 2024-03-01 | 50 |
+| C | 2024-03-15 | 10 |
+| C | 2024-04-02 | 40 |
+
+: The orders table `tx` used in E1 to E6 {.striped}
+
+### A. Data wrangling (pandas or dplyr)
+
+**E1.** What does this return? Give the rows and columns.
+
+::: {.panel-tabset group="language"}
+
+#### Python
+
+```python
+tx.groupby("customer_id").agg(orders=("amount", "size"), total=("amount", "sum"))
+```
+
+#### R
+
+```r
+tx |> group_by(customer_id) |> summarise(orders = n(), total = sum(amount))
+```
+
+:::
+
+::: {.callout-tip collapse="true" title="Answer"}
+Three rows, one per customer, with columns `orders` and `total`: A, 2, 55; B, 1, 15; C, 3, 100. A grouped aggregation collapses each group to one row. (In pandas, `customer_id` becomes the index; in dplyr, it stays a column.)
+:::
+
+**E2.** You left-join `customers` to `tx` on `customer_id`. How many rows does the result have, and what is in D's `amount`? If you then count rows per customer (`size` in pandas, `n()` in dplyr), what count does D get?
+
+::: {.panel-tabset group="language"}
+
+#### Python
+
+```python
+joined = customers.merge(tx, on="customer_id", how="left")
+```
+
+#### R
+
+```r
+joined <- customers |> left_join(tx, by = "customer_id")
+```
+
+:::
+
+::: {.callout-tip collapse="true" title="Answer"}
+Seven rows: two for A, one for B, three for C and one for D. D's `amount` (and `order_date`) is missing (`NaN` in pandas, `NA` in R). Counting rows gives D **1**, not 0, because D has one row, filled with missing values. To count orders, count non-missing values instead: `count()` on `amount` in pandas, `sum(!is.na(amount))` in dplyr. This trap returns on Day 1, when customers with no repeat purchases must count as zero.
+:::
+
+**E3.** Each line below computes each customer's first order date. How many rows does each return? What would `days_since_first` be for C's order on 2024-04-02?
+
+::: {.panel-tabset group="language"}
+
+#### Python
+
+```python
+first_a = tx.groupby("customer_id")["order_date"].agg("min")
+first_b = tx.groupby("customer_id")["order_date"].transform("min")
+tx["days_since_first"] = (tx["order_date"] - first_b).dt.days
+```
+
+#### R
+
+```r
+first_a <- tx |> group_by(customer_id) |> summarise(first = min(order_date))
+first_b <- tx |> group_by(customer_id) |> mutate(first = min(order_date))
+first_b <- first_b |> mutate(days_since_first = as.numeric(order_date - first))
+```
+
+:::
+
+::: {.callout-tip collapse="true" title="Answer"}
+The first returns 3 rows, one per customer: an aggregation. The second returns 6 rows, one per order, each carrying its customer's first date: a transformation (`transform` in pandas, `mutate` on grouped data in dplyr). C's first order is 2024-03-01, and March has 31 days, so 2024-04-02 is **32** days later. (This assumes `order_date` is a date type, not a string.)
+:::
+
+### B. SQL
+
+**E4.** What does this query return?
+
+```sql
+SELECT customer_id, COUNT(*) AS orders, SUM(amount) AS total
+FROM tx
+GROUP BY customer_id
+HAVING COUNT(*) >= 2
+ORDER BY total DESC;
+```
+
+::: {.callout-tip collapse="true" title="Answer"}
+Two rows: C, 3, 100; then A, 2, 55. B is removed by `HAVING`, which filters groups after aggregation; `WHERE` filters rows before it.
+:::
+
+**E5.** In the result of this query, what is `n` for C's order on 2024-04-02? How would you keep only each customer's first order?
+
+```sql
+SELECT customer_id, order_date, amount,
+       ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date) AS n
+FROM tx;
+```
+
+::: {.callout-tip collapse="true" title="Answer"}
+`n = 3`: it is C's third order by date. You cannot write `WHERE n = 1` in the same query, because window functions are computed after `WHERE`. Wrap the query in a subquery or a `WITH` clause and filter outside it, or, in DuckDB, add `QUALIFY n = 1`.
+:::
+
+**E6.** This query is meant to count customers by the month of their *first* order (their cohort). What does it actually count, and how would you fix it?
+
+```sql
+SELECT date_trunc('month', order_date) AS cohort,
+       COUNT(DISTINCT customer_id) AS customers
+FROM tx
+GROUP BY cohort;
+```
+
+::: {.callout-tip collapse="true" title="Answer"}
+It counts customers who ordered in each month: January 2 (A and B), February 1 (A), March 1 (C), April 1 (C). A is counted twice. Find each customer's first month first, then count:
+
+```sql
+WITH firsts AS (
+  SELECT customer_id, date_trunc('month', MIN(order_date)) AS cohort
+  FROM tx
+  GROUP BY customer_id
+)
+SELECT cohort, COUNT(*) AS customers
+FROM firsts
+GROUP BY cohort;
+```
+
+Result: January 2 (A, B), March 1 (C).
+:::
+
+### C. Regression
+
+**E7.** A weekly regression of units sold gives `units = 120 + 3.2 * tv_k - 15 * price`, where `tv_k` is that week's TV spend in thousands of dollars and `price` is the average price in dollars. Interpret 3.2. Can you conclude that another $1,000 of TV causes 3.2 more units?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Weeks with $1,000 more TV spend sell 3.2 more units on average, holding price fixed. That is an association, not a causal effect: TV is often bought in weeks when demand is high anyway (holidays, launches), so the coefficient mixes TV's effect with whatever drives those weeks, and it ignores effects that carry over into later weeks. Day 3 (experiments) and Day 4 (marketing mix models) deal with both problems.
+:::
+
+**E8.** A logistic regression of purchase (1 or 0) has a coefficient of 0.4 on `opened_last_email` (1 or 0). What is the odds ratio? If a customer who did not open has a 10% purchase probability, what is the probability for one who did, all else equal?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The odds ratio is $e^{0.4} \approx 1.49$: the odds of purchase are about 49% higher. The odds at 10% are $0.1/0.9 \approx 0.111$; times 1.49 gives $0.166$; converted back, $p = 0.166/1.166 \approx 0.142$, about **14%**. Not 14.9%: the coefficient multiplies the odds, not the probability.
+:::
+
+**E9.** A model of weekly sales gives $\log(\text{sales}) = 2.0 + 0.3 \log(\text{spend})$. By about what percentage do sales change when spend doubles? Is the second million dollars of spend worth as much as the first?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Sales multiply by $2^{0.3} \approx 1.23$, about **23% more**. The coefficient 0.3 is an elasticity: 1% more spend goes with about 0.3% more sales. Because 0.3 is below 1, each extra dollar brings less than the one before (diminishing returns), so the second million is worth less than the first. Day 4 models this shape as saturation.
+:::
+
+### D. Probability
+
+**E10.** A customer buys at random times at an average rate of 2 purchases a month (a Poisson process). How many purchases do you expect in 3 months? What is the probability of no purchase in a given month?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$2 \times 3 = 6$ purchases. The number in one month is Poisson with mean 2, so $P(0) = e^{-2} \approx 0.135$, about 14%.
+:::
+
+**E11.** Match each quantity to the distribution most often used for it: **Poisson**, **Gamma**, **Beta**, **Binomial**. (i) One customer's purchase rate, a positive number; (ii) the probability that a customer drops out after a purchase; (iii) the number of purchases one customer makes in a month at a fixed rate; (iv) the number of responders among 1,000 customers emailed, each responding with probability 0.03. For (iv), give the mean and standard deviation.
+
+::: {.callout-tip collapse="true" title="Answer"}
+(i) Gamma: continuous and positive. (ii) Beta: continuous on 0 to 1, so it suits probabilities. (iii) Poisson: counts at a fixed rate. (iv) Binomial with $n = 1000$, $p = 0.03$: mean $np = 30$, standard deviation $\sqrt{np(1-p)} = \sqrt{29.1} \approx 5.4$. Day 1's models combine the first three: Poisson purchases whose rates vary across customers as a Gamma, and dropout probabilities that vary as a Beta.
+:::
+
+**E12.** Each customer's monthly purchases are Poisson with their own rate $\lambda$, and across customers $\lambda$ follows a Gamma distribution with shape 2 and rate 4 (mean $2/4 = 0.5$, variance $2/4^2 = 0.125$). What is the expected number of monthly purchases for a randomly chosen customer? Is the variance of that number larger than, equal to or smaller than 0.5?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The expected number is $E[\lambda] = 0.5$: average the Poisson mean over the customers (the law of total expectation). The variance is **larger**: $E[\lambda] + \text{Var}[\lambda] = 0.5 + 0.125 = 0.625$. Differences between customers add spread on top of the Poisson's own. This mixture is the negative binomial distribution, the "NBD" in the BG/NBD model of Module 2.
+:::
+
+### E. Inference
+
+**E13.** A 95% confidence interval for the average order value is \$41 to \$47. Which statement is correct? (a) There is a 95% probability that the true average lies between \$41 and \$47. (b) If we repeated the sampling many times, about 95% of intervals built this way would contain the true average. (c) 95% of orders are between \$41 and \$47.
+
+::: {.callout-tip collapse="true" title="Answer"}
+(b). The 95% describes the method across repeated samples. (c) confuses the uncertainty about an average with the spread of individual orders, which is much wider. Statement (a) is how you read a Bayesian 95% **credible interval**, a probability statement about the parameter given the model, prior and data. The workshop's Bayesian models report credible intervals and always name their type and probability, for example "94% HDI" (highest-density interval).
+:::
+
+**E14.** An A/B test of a new subject line gives $p = 0.03$ for the difference in conversion rate. Which statement is correct? (a) There is a 3% probability that the subject line has no effect. (b) If the subject line had no effect, a difference at least this large would occur in about 3% of tests. (c) The effect is large. And: the team checked the p-value every day and stopped on the first day it fell below 0.05. Does (b) still hold?
+
+::: {.callout-tip collapse="true" title="Answer"}
+(b). A p-value is computed assuming no effect; it is not the probability that there is no effect, and it says nothing about the size of the effect. Stopping at the first day below 0.05 ("peeking") breaks it: with many looks, the chance of crossing 0.05 by luck is well above 5%. Module 6 covers fixed-horizon and sequential designs that fix this.
+:::
+
+**E15.** Marketing sends a coupon to every customer who bought in the last 30 days, then compares their next-month spend with customers who got no coupon. Why is the difference not the coupon's effect, and what design would measure the effect?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The two groups differ before the coupon: recent buyers spend more next month anyway, so the comparison mixes the coupon's effect with recency (confounding, or selection). Randomize instead: among eligible customers, randomly hold out a group that gets no coupon, and compare the two random groups. Randomization makes the groups alike on average in everything except the coupon.
+:::
+
+## 2. Read your score {#score}
+
+Mark each answer right or wrong against its folded answer, then count your misses in each area of three questions:
+
+- **Two or three missed:** do that area's review below before Day 1.
+- **One missed:** no action needed. Re-read the answer you missed.
+
+**The workshop moves fast.** Day 1 assumes all five areas, and there is no time in the room to learn them. If three or more areas need review, plan a full day for it and tell the organizers before the workshop.
+
+Every resource below is free to read online. Section numbers are the sources' own; the times are our estimates.
+
+| Area | Questions | What to review | Time |
+|---|---|---|---|
+| A. Data wrangling | E1–E3 | **Python:** the pandas 2.2 user guide (the version Colab runs), [Group by: split-apply-combine](https://pandas.pydata.org/pandas-docs/version/2.2/user_guide/groupby.html), sections *Aggregation* (E1) and *Transformation* (E3); [Merge, join, concatenate and compare](https://pandas.pydata.org/pandas-docs/version/2.2/user_guide/merging.html), section *Merge types* (E2). For more practice, *Python for Data Analysis* (3rd ed.), [chapter 10, Data Aggregation and Group Operations](https://wesmckinney.com/book/data-aggregation), sections 10.1, 10.2 and 10.4. **R:** *R for Data Science* (2nd ed.), [chapter 3, Data transformation](https://r4ds.hadley.nz/data-transform.html), section 3.5, Groups (E1, E3); [chapter 19, Joins](https://r4ds.hadley.nz/joins.html), sections 19.2 and 19.3 (E2); [chapter 17, Dates and times](https://r4ds.hadley.nz/datetimes.html), section 17.4, Time spans (E3). The dplyr article [Grouped data](https://dplyr.tidyverse.org/articles/grouping.html) shows `summarise()` against `mutate()` on groups. | about 2 hours |
+| B. SQL | E4–E6 | The PostgreSQL tutorial, [2.7, Aggregate Functions](https://www.postgresql.org/docs/current/tutorial-agg.html): `GROUP BY`, `HAVING`, and `WHERE` against `HAVING` (E4); [3.5, Window Functions](https://www.postgresql.org/docs/current/tutorial-window.html): `PARTITION BY`, `ORDER BY` inside `OVER`, `row_number()`, and filtering a window result in a sub-select (E5). Then the DuckDB documentation, which the labs use: [Window Functions](https://duckdb.org/docs/current/sql/functions/window_functions.html) (`row_number`, `lag`), the [QUALIFY clause](https://duckdb.org/docs/current/sql/query_syntax/qualify.html) (E5), the [WITH clause](https://duckdb.org/docs/current/sql/query_syntax/with.html) (E6) and [Date Functions](https://duckdb.org/docs/current/sql/functions/date.html) (`date_trunc`, date subtraction). | about 1.5 hours |
+| C. Regression | E7–E9 | *Introduction to Modern Statistics* (2nd ed.), [chapter 7, Linear regression with a single predictor](https://openintro-ims.netlify.app/model-slr), section 7.2.3, Finding and interpreting the least squares line (E7); [chapter 8, Linear regression with multiple predictors](https://openintro-ims.netlify.app/model-mlr), section 8.2, Many predictors in a model (E7, "holding price fixed"); [chapter 9, Logistic regression](https://openintro-ims.netlify.app/model-logistic) (E8). Penn State STAT 501, [Lesson 13](https://online.stat.psu.edu/stat501/Lesson13.html), section 13.2, Logistic Regression, the part *Odds, Log Odds, and Odds Ratio* (E8); [Lesson 9, Data Transformations](https://online.stat.psu.edu/stat501/Lesson09.html), section 9.3, Log-transforming Both the Predictor and Response (E9). | about 2.5 hours |
+| D. Probability | E10–E12 | Penn State STAT 414: [Lesson 8, Mathematical Expectation](https://online.stat.psu.edu/stat414/Lesson08.html); [Lesson 10, The Binomial Distribution](https://online.stat.psu.edu/stat414/Lesson10.html), section 10.5, The Mean and Variance (E11); [Lesson 12, The Poisson Distribution](https://online.stat.psu.edu/stat414/Lesson12.html) (E10); [Lesson 15](https://online.stat.psu.edu/stat414/Lesson15.html), section 15.4, Gamma Distributions (E11, E12). *Bayes Rules!*, [chapter 3, The Beta-Binomial Bayesian Model](https://www.bayesrulesbook.com/chapter-3), sections 3.1 and 3.2 (Beta and Binomial, E11); [chapter 5, Conjugate Families](https://www.bayesrulesbook.com/chapter-5), section 5.2, Gamma-Poisson conjugate family (E12). Module 2's briefing derives the variance in E12 again. | about 2.5 hours |
+| E. Inference | E13–E15 | *OpenIntro Statistics* (4th ed., [free PDF](https://www.openintro.org/book/os/)), sections 5.2, Confidence intervals (E13), 5.3, Hypothesis testing (E14), and 1.4, Experiments (E15). Or *Introduction to Modern Statistics* (2nd ed.): [chapter 11, Hypothesis testing with randomization](https://openintro-ims.netlify.app/foundations-randomization), section 11.3.2, p-value (E14); [chapter 2, Study design](https://openintro-ims.netlify.app/data-design), sections 2.2, Experiments, and 2.3, Observational studies (E15). For the Bayesian reading in E13, *Bayes Rules!*, [chapter 8, Posterior Inference & Prediction](https://www.bayesrulesbook.com/chapter-8), section 8.1. Optional preview of Day 3: [chapter 14, Decision Errors](https://openintro-ims.netlify.app/foundations-errors), section 14.4, Power. | about 2 hours |
+
+After the review, try the questions you missed again without opening the answers.
+
+## 3. Set up Colab {#setup}
+
+All labs run in [Google Colab](https://colab.research.google.com/) in your browser, so there is nothing to install on your laptop. You need a Google account and a current browser on a laptop or desktop.
+
+The [Setup](setup.qmd) page has the steps for Python and R notebooks, the measured install times, and the local (Docker) and AWS alternatives. In short:
+
+1. Open the Module 0 notebook in Colab: [Python]({{< var repo.colab_base >}}/{{< var repo.ref >}}/labs/python/00-setup-warmup.ipynb){.btn-colab} or [R]({{< var repo.colab_base >}}/{{< var repo.ref >}}/labs/r/00-setup-warmup.ipynb){.btn-colab}. Some labs use R notebooks (the [Notebooks](notebooks.qmd) page lists them), so set up both if you can.
+2. If Colab warns that the notebook was not authored by Google, choose **Run anyway**. The notebook comes from the workshop's public repository.
+3. Choose **Runtime → Run all**. The first cell installs the workshop's pinned packages; let it finish.
+4. For the R notebook, check **Runtime → Change runtime type**: the runtime type must be **R**. If it says Python, switch it to R and run all again.
+
+## 4. Do the Module 0 pre-work {#module-0}
+
+[Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd) takes about {{< var modules.m00.minutes.lab >}} minutes. It has no briefing: you work through its page and notebook on your own. Its warm-up exercises turn a transaction log into a customer table in DuckDB SQL and pandas, or in dplyr, which is where Day 1 starts. It also introduces coding agents.<!-- check against the Module 0 page once written -->
+
+Module 0 is optional, but do at least its setup check (step 3 above): Day 1 has no slot for installing anything. If something fails, see [step 5](#working).
+
+## 5. Check that your setup works {#working}
+
+A working setup looks like this when **Run all** has finished:
+
+- **The install cell** ends without an error. If it asks you to **restart the session and Run all**, do exactly that once: Colab had already loaded an older version of a package.
+- **The harness cell** sets the notebook's two switches. Leave them as they are: `WORKED_EXAMPLE` off, so your own code runs, and `QUICK` off, unless your instructor says otherwise.
+- **Each checkpoint** prints a line saying it **passed on your code**. If an exercise is not written yet, Run all stops there with a message saying what to do. That is expected in a lab; in Module 0, write the exercise or follow the message.
+- **The last cells** print a summary of which checkpoints passed and a run record between two marker lines. You do not need to send the run record anywhere.
+
+If a cell stops with an error you cannot fix from its message, read the [Setup](setup.qmd) page and the [FAQ](faq.qmd), then send the error text to the organizers before Day 1.
+
+**Day 1** starts at {{< var days.d1.start >}} with a 15-minute warm-up on the pre-work, then Module 1. The [Day 1 page](day-1.qmd) and the [schedule](schedule.qmd) have the times.

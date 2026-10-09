@@ -1,0 +1,197 @@
+---
+title: "Teach this workshop"
+subtitle: "The instructor guide: the kit, the rhythm, pacing, debriefs and what goes wrong"
+---
+
+<!--
+Owner: Pedagogy Expert; reviewer: Academic Director. Written 2026-10-09.
+Module titles, minutes and the readiness age limit come from _variables.yml through var shortcodes.
+This page states no run times: measured ones are on readiness.qmd, generated from runs/.
+Files that are not rendered pages (briefs/, knowledge-checks.md) are linked on GitHub so the
+offline link check passes.
+Debrief prompts marked "check against _variables.yml decision" were written before the Academic
+Director's final decision wording; re-read them against modules.mNN.decision.
+-->
+
+This page is for the person running the room. It says what is in the kit, how a module and a day run, when to cut, what to ask in each debrief, and what to do when Colab, an install or a model fit goes wrong.
+
+## Read this first: what has run {#readiness}
+
+The [readiness page](readiness.qmd) is generated from the run records in `runs/`. For every notebook it shows where it has run (Colab, the CI runner, the workshop's Docker image), when, with which settings, how long it took, and whether that evidence is still current: a run counts for teaching only if it was on Colab, in worked mode, FULL, for the whole notebook, on the current code and dependencies, and no more than {{< var readiness.max_run_age_days >}} days old. **Every run time you plan with comes from that page.** This guide gives no run times. A notebook that has not run is "written, not run", and you should run it yourself before you teach it.
+
+## The instructor kit {#kit}
+
+- **Module pages** (`modules/`): each is the briefing for its module, with the objectives, the derivations, the decision, and a link to the lab. Teach from the page.
+- **Notebooks** ([Notebooks](notebooks.qmd)): one or two per module, Python or R, each opening in Colab from its badge at the release the workshop is pinned to. Notebooks are built from `labs/src/` and never edited by hand.
+- **Solutions live in the notebooks**, folded under each exercise. In Python notebooks on Colab, the solution cell shows as a collapsed form titled "Solution N — try it yourself first". Colab's R runtime has no forms; the build marks R solution cells as hidden, and whether Colab honors that is being checked (spike S3). If R solutions show, tell the room to scroll past them.
+- **Solutions never replace a learner's code unless asked.** Each reference is stored, not used, unless one of two switches is set:
+  - **`WORKED_EXAMPLE`** in the harness cell at the top (or the environment variable `MKTSTATS_WORKED=1`): every exercise uses its reference, so **Run all** runs the whole lab. Use it to demonstrate, to prepare outputs before a session, and to make the capstone answer key. A worked run shows the lab works, not that anyone did it.
+  - **`workshop.use_reference(n)`** in Python, `use_reference(n)` in R: exercise *n* only uses its reference, and the learner carries on.
+- **Every checkpoint says whose code it checked:** "passed on your code" or "passed on the REFERENCE solution". `workshop.summary()` (R: `workshop_summary()`) lists both at the end. Run all stops at the first unwritten exercise with a message that says how to continue.
+- **`QUICK`** (switch in the harness cell, or `MKTSTATS_QUICK=1`) shortens sampling and subsamples data. It never skips a checkpoint. Intervals get wider and may not match the module page.
+- **Lab briefs** ([`briefs/` on GitHub]({{< var repo.url >}}/tree/{{< var repo.ref >}}/briefs)): for each lab, what each exercise asks for, the truth each checkpoint compares against, the data, and the decision. The [lab standard]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/_lab-standard.md) says how every lab is built (Predict, Run, Explain, Check; checkpoint messages; the Decision cell).
+- **Knowledge checks** ([`knowledge-checks.md` on GitHub]({{< var repo.url >}}/blob/{{< var repo.ref >}}/knowledge-checks.md)): three to five questions per module with answers, for warm-ups, debriefs and an evening self-check.
+- **Day pages** ([Day 1](day-1.qmd), [Day 2](day-2.qmd), [Day 3](day-3.qmd), [Day 4](day-4.qmd), [Day 5](day-5.qmd)): the timetable, the warm-up questions with answers, the clinics on Days 2 and 3, the capstone run of show on Day 5, and the wrap-up with the running results table.
+- **Capstone task and rubric** ([on GitHub]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/12-capstone-rubric.md)): the task for pairs, the five-slide brief, timing checkpoints, a rubric scored in 5 minutes per pair, and a score sheet.
+- **Before Day 1** ([Before Day 1](prepare.qmd)): the entry check and remediation you send participants a week ahead.
+
+## The shape of a day {#day-shape}
+
+Every teaching day answers one question and runs on the same frame; the [schedule](schedule.qmd) has the clock times.
+
+- **Warm-up (15 minutes).** Four questions on the previous day, on the day page with folded answers. Participants answer alone for 5 minutes with notes closed and compare with a neighbor for 4. In your 5 minutes, ask for a show of hands on each question and explain the most-missed from its folded answer; do not reteach the module. Use the last minute for the day page's "Why today". Nothing is collected or graded.
+- **Modules.** Three a day on Days 1 and 4; two on Days 2 and 3, which then have a 60-minute **clinic** after lunch (Day 2: the CFO memo clinic; Day 3: the geo-test design review). Day 5 is Module 11 in the morning and the capstone from late morning to the end of the day.
+- **Wrap-up (20 minutes).** On the day page: what each module fixed and left open; the running results table, which you keep on the board or a shared sheet all week; and one decision claim each participant writes. Day 5's wrap-up closes the week.
+
+## The shape of a module {#module-shape}
+
+Each module is a **briefing** (45 to 55 minutes), a **lab** (50 to 55 minutes) and a **debrief** (10 minutes); the exact minutes per module are on the [schedule](schedule.qmd).
+
+**The lab's first 5 minutes** are for opening the notebook from the module page and running the install and harness cells. While the install runs, everyone reads the header and Exercise 1's Predict prompt.
+
+**Every exercise runs Predict → Run → Explain → Check.** Your moves:
+
+1. **Predict.** Say "write your guess down" and mean it: on paper or in the cell. Ask two people for their guess before anyone runs anything. Do not correct predictions.
+2. **Run.** The learner writes the function and runs it.
+3. **Explain.** Ask someone whose prediction was wrong to explain the result. That is where the learning is. The folded "Why this solution works" is the answer to check against.
+4. **Check.** The checkpoint passes or fails. When it fails, ask the learner to read the message aloud: it says what failed, what to check and how to recover.
+
+**While the lab runs,** circulate. Do not type on a learner's keyboard; point at the message. Say at the start of every lab that `use_reference(n)` is normal: it keeps people with the room, and the summary shows what they wrote themselves.
+
+**Each lab ends with a Decision cell** (number → rule → recommendation with uncertainty) and then an optional stretch. Everyone reaches the Decision cell; nobody needs the stretch.
+
+## Pacing rules {#pacing}
+
+Apply these in order. A module's own notes in its brief come first.
+
+1. **Start the lab on time.** If the briefing runs long, cut its last section to the main result and send the room to the module page for the rest. Keep any demo that sets up the lab's predictions.
+2. **The stated minutes plus 3.** A learner stuck on one exercise for its stated minutes plus 3 runs `use_reference(n)` and moves on. They can come back to it in the stretch time or that evening.
+3. **The first checkpoint is a room check.** If fewer than half the room has passed Checkpoint 1 by the end of Exercise 1's stated minutes, stop the room for 2 minutes: show the key line of the solution, or ask everyone to use the reference for Exercise 1.
+4. **Long fits.** While a model fits, learners read the next Predict prompt. If a fit takes more than twice the time the readiness page records for it, interrupt it, switch on `QUICK` and run the fit cell again; or use the reference for that exercise.
+5. **Ten minutes before the lab ends,** call "Decision cell in five minutes". Anyone not yet on the last core exercise uses the reference for what is left. At five minutes before the end, everyone is in the Decision cell.
+6. **The stretch is for individuals, never the room,** and only for those who have passed every core checkpoint and written their decision sentence.
+7. **Shrink the debrief; never drop it.** If the lab runs over, give it 5 minutes: the numbers on the board and the bridge to the next module.
+8. **Breaks and lunch keep their length.** A module that runs over ends at its break; the next starts on time.
+9. **Warm-up stops at 15 minutes; wrap-up starts on time.** If the last module ran over, skip the pair discussion in the wrap-up and go straight to the results table.
+10. **On any day, the stretch is the first thing dropped.**
+
+## Debriefs (10 minutes per module) {#debriefs}
+
+Every debrief has three parts:
+
+- **The room's numbers (4 minutes).** Ask three or four people for the headline number from their Decision cell. Write each on the board with its interval (type and probability) and whether it was FULL or QUICK, own code or reference. The day's wrap-up table is filled from these.
+- **Two or three questions (4 minutes)** from the list below, tied to the module's decision.
+- **The bridge (2 minutes).** What this module could not do, and which module takes it up next. The day pages' "Fixed and left open" lists them.
+
+Do not reteach the briefing and do not debug code in front of the room.
+
+### Module 1 · {{< var modules.m01.title >}}
+
+1. What share of customers bought only once? What does that do to any average taken over "customers"?
+2. Which "recency" did you compute: time since the last purchase, or age at the last purchase? Where would mixing them up go wrong tomorrow?
+3. Which customers would you treat as active for a retention campaign, and by what rule? What does the rule ignore? <!-- check against _variables.yml decision -->
+
+### Module 2 · {{< var modules.m02.title >}}
+
+1. Where did the BG/NBD parameters land against the truth, and which had the widest interval relative to its value? Why that one?
+2. Two customers with the same number of repeat purchases have very different P(alive). What drives the difference?
+3. Your stop-retargeting rule: which cost and margin set its threshold? Is a low P(alive) the same as "retargeting would not bring them back"? (Module 11 answers that.) <!-- check against _variables.yml decision -->
+
+### Module 3 · {{< var modules.m03.title >}}
+
+1. Which acquisition channel's customers buy more often or leave sooner, and how sure are you? Is that the channel's effect, or who the channel reaches?
+2. Did gradient boosting beat the BTYD model on the holdout period, on which metric? What does the BTYD model give you that the machine-learning model does not?
+3. Would you change acquisition spend by channel on this evidence alone? What else do you need? (Day 2 brings in cost per customer.) <!-- check against _variables.yml decision -->
+
+### Module 4 · {{< var modules.m04.title >}}
+
+1. Did the check that spend per transaction is unrelated to purchase frequency pass? What would you do if heavy buyers spent less per order?
+2. How far does average customer value move when you change the discount rate or the horizon? Which assumption matters most for your number?
+3. Which value would you put in front of finance, with which interval, and why that one? <!-- check against _variables.yml decision -->
+
+### Module 5 · {{< var modules.m05.title >}}
+
+1. What acquisition cost cap did you set per channel, and from which quantile of customer value? Why not the mean?
+2. Two segments' intervals overlap. Does that mean their values are not different? How did you check?
+3. Does the retention offer pay? Which number in that calculation has nobody measured yet? (Day 3 measures it.) <!-- check against _variables.yml decision -->
+
+### Module 6 · {{< var modules.m06.title >}}
+
+1. How many customers per arm did you need for the effect you care about? What did halving the detectable effect do?
+2. What did peeking do to the false-positive rate in the simulation, and what fixes it?
+3. Would you ship the treatment on this result? What do you check before reading the effect at all? <!-- check against _variables.yml decision -->
+
+### Module 7 · {{< var modules.m07.title >}}
+
+1. Did your interval contain the true lift? Where did synthetic control and difference-in-differences disagree, and why?
+2. What did the placebo tests show? How large an effect could this design have detected?
+3. Would you scale the campaign? Compare the interval for the lift with the break-even lift. <!-- check against _variables.yml decision -->
+
+### Module 8 · {{< var modules.m08.title >}}
+
+1. Which channels' true ROAS fell inside their interval? Which channel had the widest interval, and what in its spend history explains it?
+2. Were there divergences? What do they mean, and what did you do about them?
+3. Which channels are credibly above break-even ROAS, and which can the data not decide? <!-- check against _variables.yml decision -->
+
+### Module 9 · {{< var modules.m09.title >}}
+
+1. How did the lift test change the tested channel's ROAS: did the interval narrow, move, or both?
+2. How did the model do on weeks it had not seen, and were its parameters stable across time windows?
+3. Is the model good enough to allocate a budget on? Which channel would you test next, and why that one? <!-- check against _variables.yml decision -->
+
+### Module 10 · {{< var modules.m10.title >}}
+
+1. How far did the optimizer move from the current split, and which constraint stopped it?
+2. How did the allocation that accounts for risk differ from the one computed at the posterior mean? Why?
+3. Which split would you recommend, with what probability of beating the current one, and how did valuing customers by lifetime value change it? <!-- check against _variables.yml decision -->
+
+### Module 11 · {{< var modules.m11.title >}}
+
+1. Are the customers with the highest predicted uplift the ones most likely to buy? Why not?
+2. On held-out customers, did targeting by predicted uplift beat random targeting? What did the RATE estimate say about whether the differences are real?
+3. Whom would you send the offer to, at the given margin and offer cost? What happens to the rule if the offer costs twice as much? <!-- check against _variables.yml decision -->
+
+### Module 12 · {{< var modules.m12.title >}}
+
+The presentations are the debrief. After the last pair, ask the room:
+
+1. Which stage's uncertainty mattered most for the final recommendation?
+2. Which assumption in your pipeline would you test first at your company?
+
+## Clinics and the capstone {#clinics}
+
+- **Day 2, CFO memo clinic.** Print one CFO card and one Analyst checklist (both on the [Day 2 page](day-2.qmd#clinic)) per person. Groups of three; you keep time and call each step aloud. Write down the gaps you hear for the wrap-up.
+- **Day 3, geo-test design review.** Before the session, run Module 7's R notebook on a Colab R runtime with `WORKED_EXAMPLE` on and keep its market-selection output open for the demo; do not run market selection live. The plan and checklist are on the [Day 3 page](day-3.qmd#clinic).
+- **Day 5, capstone.** Announce the pairs at the end of Day 4. Pair people whose strengths differ (one at ease with the code, one with the business logic), and avoid pairing two people who both needed the reference through most of Day 4. Before presentations, prepare the answer key (the rubric says how) and decide who scores. With more than 12 pairs, split into two rooms with one scorer each. The run of show is on the [Day 5 page](day-5.qmd#capstone).
+
+## What goes wrong, and what to do {#failures}
+
+| Symptom | Likely cause | What to do |
+|---|---|---|
+| The install cell says to **restart the session, then Run all**. | Colab had already loaded an older version of a package the labs pin (for example PyMC or ArviZ), and the runtime guard refuses to continue with it. | **Runtime → Restart session**, then **Runtime → Run all**, once. If it asks again, **Runtime → Disconnect and delete runtime**, reconnect and Run all. |
+| The install is slow or `pip` fails. | Network load in the room, or Colab's image changed since the last recorded run. | Re-run the install cell once. Check the readiness page: if the last Colab run is older than the age limit, Colab may have moved; note the `COLAB_RELEASE_TAG` the run record prints and tell the Technical Expert. For a demo, use the workshop's Docker image. |
+| An R notebook fails at once with errors such as `SyntaxError` on `<-`. | The notebook is running on a Python runtime. | **Runtime → Change runtime type → R**, then Run all. Opening the notebook from its badge should select R; check it anyway at the start of each R lab. |
+| R packages install slowly or fail. | R packages come as binaries from a dated Posit Package Manager snapshot, which serves binaries only when R identifies itself correctly; the install cell sets this. A restart in the middle of the install leaves it half done. CLVTools needs the GSL system library, which the install cell installs. GeoLift and augsynth are not on CRAN; the install cell fetches them from pinned GitHub archives. | Re-run the install cell from the top, not from the middle. Never `install.packages("GeoLift")`. If GitHub is unreachable from the room, use the reference outputs prepared in advance for the GeoLift demo. |
+| A model fit runs far past its expected time. | A slow shared runtime, FULL settings, or a model that is struggling (see divergences). | Learners read the next Predict prompt while it runs. Past twice the recorded time: **Runtime → Interrupt execution**, switch on `QUICK` in the harness cell, re-run the fit cell; or use the reference for that exercise. Do not edit sampler settings by hand: `QUICK` is the short setting the checkpoints were tested with. |
+| The sampler warns of **divergences**. | The sampler could not explore part of the posterior; estimates may be biased. | Do not ignore it, and do not just draw more samples. Follow the lab: its checkpoint states how many divergences it accepts and which setting to change (for example, a higher target acceptance rate). In Module 8 the warning may be part of the lesson. |
+| A data download fails. | The source site is down or slow, or the room's network blocks it. | The workshop's loaders check each file's hash and try fallback URLs; read the message, which names the file. If every source fails, one person downloads the file and shares it, and learners upload it in Colab's **Files** panel to the folder the message names. <!-- confirm against src/mktstats/data.py once built --> |
+| Colab disconnected, and variables are gone. | Idle timeout or a runtime reset (for example over lunch). | Re-run from the top; switch on `QUICK` if the clock is short. For the capstone, keep the tab open during a fit. |
+| Colab warns that the notebook was not authored by Google. | Any notebook opened from GitHub. | **Run anyway**: the notebooks come from the workshop's public repository. |
+| The runtime runs out of memory. | Several large objects, or several Colab tabs each holding a runtime. | Close other Colab tabs; **Runtime → Restart session**; switch on `QUICK`, which subsamples the data. |
+| A checkpoint fails on the **reference** solution. | A bug, or a package that changed. | Not the learner's fault. Note the notebook, the checkpoint, the full message and the run's `COLAB_RELEASE_TAG`, and report it. Tell the room to run the following cells one at a time instead of Run all. |
+
+## Before the workshop {#before}
+
+- [ ] **Three weeks before**, check that `repo.ref` in `_variables.yml` is the release tag you will teach from; the Colab badges and installs point at it.
+- [ ] **Within {{< var readiness.max_run_age_days >}} days of Day 1**, run every notebook on a fresh Colab runtime in worked mode, FULL, whole notebook. Record each run with `scripts/add_run_record.py` (its `--help` lists the arguments) so the readiness page shows it.
+- [ ] **Check the [readiness page](readiness.qmd).** Every notebook should be ready to teach: a current Colab run, CI passing on the current commit. Rerun anything marked stale (code or dependencies changed since its run, or older than the age limit).
+- [ ] **Check the data URLs**: run each lab's data-loading cells once, or read the latest result of the weekly external link check.
+- [ ] **A week before**, send participants the [Before Day 1](prepare.qmd) page: entry check, review, setup, Module 0.
+- [ ] **The day before**, remind them to check their setup and to send any error they cannot fix.
+- [ ] **Prepare**: the GeoLift demo output (Day 3), printed CFO cards and Analyst checklists (Day 2), the capstone pairs and answer key (Day 5).
+- [ ] **The room**: Wi-Fi that can take the whole room installing packages at once at the start of each lab, and power at every table.
+- [ ] **First delivery only**: pilot each lab with two or three people and note where they stall. A run record measures compute time, not how long a person takes.
+
+## Reuse and license {#reuse}
+
+The teaching text, slides, figures and notebook Markdown are licensed [CC BY 4.0]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE-content); the code is licensed [MIT]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE). You may teach, adapt and share the workshop with attribution. Datasets keep their own licenses; the [References](references.qmd) page lists their sources. The source is on [GitHub]({{< var repo.url >}}).
