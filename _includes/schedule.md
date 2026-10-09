@@ -31,7 +31,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 
 ## [Day 2 · What is a customer worth?](/day-2.qmd) {#day-2}
 
-*What is a customer worth, in money, with uncertainty?* 09:00–15:50
+*What is a customer worth, in money, with uncertainty?* 09:00–16:00
 
 ::: {.timetable}
 | Time | Session | Module |
@@ -42,16 +42,17 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 11:05–11:15 | [Debrief]{.slot-debrief} | Module 4 |
 | 11:15–11:30 | [Break]{.slot-break} |  |
 | 11:30–12:25 | [Briefing]{.slot-briefing} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd) |
-| 12:25–13:20 | [Lab]{.slot-lab} | Module 5 |
-| 13:20–13:30 | [Debrief]{.slot-debrief} | Module 5 |
-| 13:30–14:30 | [Lunch]{.slot-break} |  |
+| 12:25–13:25 | [Lunch]{.slot-break} |  |
+| 13:25–14:20 | [Lab]{.slot-lab} | Module 5 |
+| 14:20–14:30 | [Debrief]{.slot-debrief} | Module 5 |
 | 14:30–15:30 | [CFO memo clinic: peer review of the Module 5 decision memo]{.slot-lab} |  |
-| 15:30–15:50 | [Wrap-up]{.slot-debrief} |  |
+| 15:30–15:40 | [Break]{.slot-break} |  |
+| 15:40–16:00 | [Wrap-up]{.slot-debrief} |  |
 :::
 
 ## [Day 3 · Did the marketing cause the sales?](/day-3.qmd) {#day-3}
 
-*Did the marketing cause the sales?* 09:00–15:50
+*Did the marketing cause the sales?* 09:00–16:00
 
 ::: {.timetable}
 | Time | Session | Module |
@@ -62,11 +63,12 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 11:05–11:15 | [Debrief]{.slot-debrief} | Module 6 |
 | 11:15–11:30 | [Break]{.slot-break} |  |
 | 11:30–12:25 | [Briefing]{.slot-briefing} | [7 · Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd) |
-| 12:25–13:20 | [Lab]{.slot-lab} | Module 7 |
-| 13:20–13:30 | [Debrief]{.slot-debrief} | Module 7 |
-| 13:30–14:30 | [Lunch]{.slot-break} |  |
+| 12:25–13:25 | [Lunch]{.slot-break} |  |
+| 13:25–14:20 | [Lab]{.slot-lab} | Module 7 |
+| 14:20–14:30 | [Debrief]{.slot-debrief} | Module 7 |
 | 14:30–15:30 | [Geo-test design review, with the GeoLift market-selection demo]{.slot-lab} |  |
-| 15:30–15:50 | [Wrap-up]{.slot-debrief} |  |
+| 15:30–15:40 | [Break]{.slot-break} |  |
+| 15:40–16:00 | [Wrap-up]{.slot-debrief} |  |
 :::
 
 ## [Day 4 · Where should the next dollar go?](/day-4.qmd) {#day-4}
@@ -105,7 +107,10 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 11:00–11:10 | [Debrief]{.slot-debrief} | Module 11 |
 | 11:10–11:25 | [Break]{.slot-break} |  |
 | 11:25–11:40 | [Briefing]{.slot-briefing} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd) |
-| 11:40–15:40 | [Lab]{.slot-lab} | Module 12 |
-| 15:40–16:40 | [Debrief]{.slot-debrief} | Module 12 |
+| 11:40–13:00 | [Lab · Pair work: CLV forecasts and the geo test]{.slot-lab} | Module 12 |
+| 13:00–13:50 | [Lunch]{.slot-break} |  |
+| 13:50–15:30 | [Lab · Pair work: calibrated MMM, allocation, targeting, the 5-slide brief]{.slot-lab} | Module 12 |
+| 15:30–15:40 | [Break]{.slot-break} |  |
+| 15:40–16:40 | [Debrief · Presentations and scoring]{.slot-debrief} | Module 12 |
 | 16:40–17:00 | [Wrap-up]{.slot-debrief} |  |
 :::

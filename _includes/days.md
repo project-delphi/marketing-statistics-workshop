@@ -26,7 +26,7 @@
 
 [What is a customer worth, in money, with uncertainty?]{.day-card-question}
 
-[Modules 4–5 · 09:00–15:50]{.day-card-span}
+[Modules 4–5 · 09:00–16:00]{.day-card-span}
 :::
 ::: {.day-card}
 [Day 3]{.eyebrow}
@@ -35,7 +35,7 @@
 
 [Did the marketing cause the sales?]{.day-card-question}
 
-[Modules 6–7 · 09:00–15:50]{.day-card-span}
+[Modules 6–7 · 09:00–16:00]{.day-card-span}
 :::
 ::: {.day-card}
 [Day 4]{.eyebrow}

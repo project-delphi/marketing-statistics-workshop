@@ -40,7 +40,7 @@ What the labs run, and the docs or source each pin was checked against. Python p
 
 ## Other key Python pins
 
-`environment/requirements.txt` pins 164 packages; these matter most:
+`environment/requirements.txt` pins 168 packages; these matter most:
 
 | Package | Version |
 |---|---|

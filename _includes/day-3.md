@@ -17,7 +17,7 @@
 :::
 :::
 ::: {.module-card}
-[11:30–13:30]{.module-clock}
+[11:30–12:25 · 13:25–14:30]{.module-clock}
 
 [Module 7]{.eyebrow}
 

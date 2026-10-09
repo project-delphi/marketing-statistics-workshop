@@ -9,9 +9,10 @@
 | 11:05–11:15 | [Debrief]{.slot-debrief} | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd): debrief on the decision. *Decision to be written.* |
 | 11:15–11:30 | [Break]{.slot-break} |  |
 | 11:30–12:25 | [Briefing]{.slot-briefing} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): the briefing. |
-| 12:25–13:20 | [Lab]{.slot-lab} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
-| 13:20–13:30 | [Debrief]{.slot-debrief} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): debrief on the decision. *Decision to be written.* |
-| 13:30–14:30 | [Lunch]{.slot-break} |  |
+| 12:25–13:25 | [Lunch]{.slot-break} |  |
+| 13:25–14:20 | [Lab]{.slot-lab} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 14:20–14:30 | [Debrief]{.slot-debrief} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): debrief on the decision. *Decision to be written.* |
 | 14:30–15:30 | [CFO memo clinic: peer review of the Module 5 decision memo]{.slot-lab} |  |
-| 15:30–15:50 | [Wrap-up]{.slot-debrief} |  |
+| 15:30–15:40 | [Break]{.slot-break} |  |
+| 15:40–16:00 | [Wrap-up]{.slot-debrief} |  |
 :::

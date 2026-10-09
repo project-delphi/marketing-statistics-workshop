@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 5](/day-5.qmd){.eyebrow} [Module 12]{.module-num} [315 minutes (15 briefing, 240 lab, 60 debrief)]{.module-time} [11:25 briefing · 11:40 lab · 15:40 debrief]{.module-clock}
+[Day 5](/day-5.qmd){.eyebrow} [Module 12]{.module-num} [255 minutes (15 briefing, 180 lab, 60 debrief)]{.module-time} [11:25 briefing · 11:40 lab · 13:50 lab · 15:40 debrief]{.module-clock}
 :::
 
 ::: {.module-summary}
@@ -20,10 +20,10 @@
 
 ::: {.module-details}
 Day
-:   Day 5 · Whom should we target? (11:25–16:40)
+:   Day 5 · Whom should we target? (11:25–13:00 · 13:50–15:30 · 15:40–16:40)
 
 Time
-:   315 minutes (15 briefing, 240 lab, 60 debrief)
+:   255 minutes (15 briefing, 180 lab, 60 debrief)
 
 Languages
 :   Python

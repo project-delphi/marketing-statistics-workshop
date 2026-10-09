@@ -9,7 +9,10 @@
 | 11:00–11:10 | [Debrief]{.slot-debrief} | [11 · Uplift and heterogeneous treatment effects](/modules/11-uplift.qmd): debrief on the decision. *Decision to be written.* |
 | 11:10–11:25 | [Break]{.slot-break} |  |
 | 11:25–11:40 | [Briefing]{.slot-briefing} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): the briefing. |
-| 11:40–15:40 | [Lab]{.slot-lab} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
-| 15:40–16:40 | [Debrief]{.slot-debrief} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): debrief on the decision. *Decision to be written.* |
+| 11:40–13:00 | [Lab · Pair work: CLV forecasts and the geo test]{.slot-lab} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 13:00–13:50 | [Lunch]{.slot-break} |  |
+| 13:50–15:30 | [Lab · Pair work: calibrated MMM, allocation, targeting, the 5-slide brief]{.slot-lab} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 15:30–15:40 | [Break]{.slot-break} |  |
+| 15:40–16:40 | [Debrief · Presentations and scoring]{.slot-debrief} | [12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd): debrief on the decision. *Decision to be written.* |
 | 16:40–17:00 | [Wrap-up]{.slot-debrief} |  |
 :::
