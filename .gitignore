@@ -38,3 +38,6 @@ renv/staging/
 .vscode/
 .idea/
 .claude/worktrees/
+
+# Quarto 1.10 writes these intermediate files during render
+**/*.quarto_ipynb

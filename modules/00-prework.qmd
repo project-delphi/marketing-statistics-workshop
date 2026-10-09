@@ -1,0 +1,13 @@
+---
+title: "{{< var modules.m00.title >}}"
+---
+
+{{< include /_includes/module-00.md >}}
+
+## The lab {#lab}
+
+{{< include /_includes/lab-00.md >}}
+
+::: {.callout-note appearance="simple" title="Briefing in preparation"}
+The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+:::

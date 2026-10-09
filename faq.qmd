@@ -1,0 +1,8 @@
+<!-- STUB created by the UI Expert; the owner's file replaces it -->
+
+---
+title: "FAQ"
+subtitle: "Frequently asked questions"
+---
+
+This page is written by the Academic Director.

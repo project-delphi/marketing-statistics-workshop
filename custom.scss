@@ -1,0 +1,2308 @@
+/*-- scss:defaults --*/
+
+// The light palette over cosmo: deep teal for structure, raspberry for actions, amber
+// for decisions. Every color is a token below; custom-dark.scss overrides the tokens and
+// nothing else, so a rule written here works in both themes. A literal color in a rule
+// will be wrong in one of the two themes: use a token.
+//
+// WCAG 2.x contrast ratios (computed from these hex values; light / dark):
+//   text on bg 14.80 / 13.44 · muted on bg 6.64 / 7.55 · muted on surface 6.17 / 6.81
+//   link on bg 6.98 / 9.66 · on-ink on ink (navbar, hero) 12.30 / 12.26
+//   on-ink-muted on ink 7.94 / 7.79 · on-accent on accent (.btn-colab) 6.67 / 7.89
+//   accent on accent-soft 5.95 / 6.94 · on-briefing on briefing 7.08 / 8.57
+//   briefing on briefing-soft 6.29 / 7.53 · good on good-soft 5.79 / 8.31
+//   decision on decision-soft 5.83 / 8.50 · code on code-bg 7.61 / 9.06
+//   line on bg (diagram arrows, non-text) 4.40 / 5.59
+// Every text pair is at least AA (4.5:1); most are AAA (7:1). Recompute after a change.
+$ms-bg: #ffffff !default; // page
+$ms-surface: #f4f7f7 !default; // cards, table heads, boxes
+$ms-raised: #ffffff !default; // cards that sit on a surface
+$ms-border: #dce4e5 !default;
+$ms-border-strong: #b6c4c7 !default;
+$ms-text: #1b2a2f !default;
+$ms-heading: #0f252c !default;
+$ms-muted: #4f5f66 !default;
+$ms-link: #0a6273 !default;
+$ms-ink: #0e3a44 !default; // the hero band and structural accents
+$ms-on-ink: #ffffff !default;
+$ms-on-ink-muted: #bcd4d9 !default;
+$ms-accent: #a6304c !default; // labs, calls to action
+$ms-accent-hover: #8e2640 !default;
+$ms-accent-soft: #fbeff2 !default;
+$ms-on-accent: #ffffff !default;
+$ms-briefing: #33598f !default; // briefing time, recaps
+$ms-briefing-soft: #edf2f9 !default;
+$ms-on-briefing: #ffffff !default;
+$ms-good: #2c6a47 !default; // debriefs, self-checks, outcomes
+$ms-good-soft: #ecf5ef !default;
+$ms-on-good: #ffffff !default;
+$ms-decision: #8a5300 !default; // the business decision each module ends in
+$ms-decision-soft: #fcf5e6 !default;
+$ms-code: #8c2b43 !default; // inline code
+$ms-code-bg: #f3f6f7 !default;
+$ms-line: #6b7b81 !default; // connectors in diagrams
+$ms-navbar-bg: #0e3a44 !default;
+$ms-navbar-fg: #ffffff !default;
+$ms-shadow: 0 1px 2px rgba(15, 37, 44, 0.06), 0 4px 14px rgba(15, 37, 44, 0.05) !default;
+$ms-on-ink-rule: rgba(255, 255, 255, 0.2) !default; // hairlines on the hero band
+
+$primary: $ms-ink !default;
+$body-bg: $ms-bg !default;
+$body-color: $ms-text !default;
+$link-color: $ms-link !default;
+$border-color: $ms-border !default;
+$headings-color: $ms-heading !default;
+$navbar-bg: $ms-navbar-bg !default;
+$navbar-fg: $ms-navbar-fg !default;
+$code-color: $ms-code !default;
+$code-bg: $ms-code-bg !default;
+$code-block-bg: $ms-code-bg !default;
+$footer-bg: $ms-surface !default;
+$footer-fg: $ms-muted !default;
+
+$font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$font-family-monospace: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+$headings-font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+$headings-font-weight: 600;
+$font-size-root: 17px;
+
+/*-- scss:rules --*/
+
+// ---------------------------------------------------------------------------
+// Tokens for inline SVG figures (images/*.svg inlined by filters/inline-svg.lua).
+// The figures read these custom properties, with light fallbacks of their own, so
+// they follow the light/dark toggle without a second file.
+// ---------------------------------------------------------------------------
+
+:root {
+  --ms-fig-bg: #{$ms-bg};
+  --ms-fig-surface: #{$ms-surface};
+  --ms-fig-heading: #{$ms-heading};
+  --ms-fig-text: #{$ms-text};
+  --ms-fig-muted: #{$ms-muted};
+  --ms-fig-line: #{$ms-line};
+  --ms-fig-border: #{$ms-border-strong};
+  --ms-fig-media: #{$ms-briefing};
+  --ms-fig-customer: #{$ms-link};
+  --ms-fig-target: #{$ms-accent};
+  --ms-fig-decision: #{$ms-decision};
+  --ms-fig-decision-soft: #{$ms-decision-soft};
+  --ms-fig-font: #{inspect($font-family-sans-serif)};
+}
+
+// ---------------------------------------------------------------------------
+// Reading experience
+// ---------------------------------------------------------------------------
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip; // the landing hero bleeds to the viewport edge
+}
+
+main.content {
+  overflow-wrap: break-word; // long URLs and identifiers never push the page sideways
+}
+
+main.content p,
+main.content li {
+  line-height: 1.65;
+}
+
+main.content li + li {
+  margin-top: 0.2rem;
+}
+
+h1.title {
+  font-size: 2.4rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+h2 {
+  margin-top: 2.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid $ms-border;
+  font-size: 1.6rem;
+  letter-spacing: -0.005em;
+}
+
+h3 {
+  margin-top: 1.8rem;
+  font-size: 1.25rem;
+}
+
+h4 {
+  font-family: $font-family-sans-serif;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.subtitle,
+.lead {
+  color: $ms-muted;
+}
+
+main.content a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: rgba($ms-link, 0.45);
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+// Keyboard focus is always visible: the accent on the page, white on the dark bands.
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid $ms-accent;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.navbar a:focus-visible,
+.navbar button:focus-visible,
+.hero a:focus-visible {
+  outline-color: $ms-on-ink;
+}
+
+@media (max-width: 575.98px) {
+  h1.title {
+    font-size: 1.9rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+  }
+}
+
+// Small-caps label used above card titles and in headers.
+.eyebrow {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $ms-muted;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.08rem 0.55rem;
+  border: 1px solid $ms-border;
+  border-radius: 999px;
+  background: $ms-surface;
+  color: $ms-muted;
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+// Buttons. `.btn-colab` opens a lab (it leaves the site); `.btn-quiet` is every
+// secondary action.
+main.content a.btn-colab,
+main.content a.btn-quiet {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+main.content a.btn-colab {
+  border: 1px solid $ms-accent;
+  background: $ms-accent;
+  color: $ms-on-accent;
+
+  &::after {
+    content: " \2197"; // north-east arrow: leaves the site
+    font-weight: 400;
+  }
+
+  &:hover {
+    border-color: $ms-accent-hover;
+    background: $ms-accent-hover;
+  }
+}
+
+main.content a.btn-quiet {
+  border: 1px solid $ms-border-strong;
+  background: $ms-raised;
+  color: $ms-heading;
+
+  &:hover {
+    border-color: $ms-link;
+    color: $ms-link;
+  }
+}
+
+.lab-note {
+  color: $ms-muted;
+  font-size: 0.84rem;
+}
+
+// Tables: light rules, no heavy borders, comfortable padding.
+main.content table {
+  font-size: 0.92rem;
+  border-color: $ms-border;
+
+  thead th {
+    border-bottom: 1.5px solid $ms-border-strong;
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    color: $ms-muted;
+    vertical-align: bottom;
+  }
+
+  td,
+  th {
+    padding: 0.5rem 0.75rem;
+    vertical-align: top;
+  }
+
+  > :not(caption) > * > * {
+    background-color: transparent;
+    color: inherit;
+  }
+
+  tbody tr:last-child td {
+    border-bottom-color: $ms-border-strong;
+  }
+}
+
+// A table wider than the text column scrolls inside its own box, never the page.
+// filters/table-scroll.lua wraps every table in .table-scroll; .table-wide is the same
+// box for authors who wrap a block by hand.
+.table-wide,
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll {
+  margin-bottom: 1rem;
+
+  > table {
+    margin-bottom: 0;
+    // Wrap cells at spaces only: a narrow screen scrolls the box rather than splitting
+    // a word or a file name mid-way (Quarto gives links word-break: break-word).
+    overflow-wrap: normal;
+
+    a {
+      word-break: normal;
+    }
+  }
+}
+
+// Code. Inline code is tinted; blocks sit on a bordered surface.
+code {
+  font-size: 0.875em;
+}
+
+p code:not(.sourceCode),
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
+  padding: 0.1em 0.32em;
+  border-radius: 4px;
+}
+
+div.sourceCode,
+pre:not(.sourceCode) {
+  border: 1px solid $ms-border;
+  border-radius: 7px;
+  background: $ms-code-bg;
+}
+
+// Unhighlighted blocks (printed output, shell sessions): theme text, wrapped.
+pre:not(.sourceCode) {
+  padding: 0.75rem 0.9rem;
+  color: $ms-text;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  code {
+    color: inherit;
+    font-size: inherit;
+  }
+}
+
+div.sourceCode pre.sourceCode {
+  padding: 0.75rem 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.code-copy-button {
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Folded code (code-fold: true) reads as a quiet disclosure.
+details.code-fold > summary {
+  color: $ms-muted;
+  font-size: 0.86rem;
+}
+
+// Equations: display math gets air and scrolls sideways inside itself if it must.
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1.1rem 0;
+  padding: 0.15rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+// Figures.
+main.content figcaption,
+main.content .figure-caption,
+main.content caption {
+  margin-top: 0.6rem;
+  color: $ms-muted;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+main.content .quarto-figure {
+  margin: 1.6rem 0;
+}
+
+main.content img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Tab sets (Python / R tabs).
+.panel-tabset {
+  .nav-tabs {
+    border-bottom-color: $ms-border-strong;
+  }
+
+  .nav-tabs .nav-link {
+    color: $ms-muted;
+    font-size: 0.92rem;
+    font-weight: 600;
+
+    &:hover {
+      border-color: transparent;
+      color: $ms-link;
+    }
+
+    &.active {
+      border-color: $ms-border-strong $ms-border-strong $ms-bg;
+      background: $ms-bg;
+      color: $ms-heading;
+      box-shadow: inset 0 2px 0 $ms-accent;
+    }
+  }
+
+  .tab-content {
+    border-color: $ms-border-strong;
+    border-radius: 0 0 7px 7px;
+  }
+}
+
+blockquote {
+  border-left: 3px solid $ms-border-strong;
+  color: $ms-muted;
+}
+
+// Callouts keep Quarto's colors per type; only the frame is tuned.
+.callout {
+  border-radius: 7px;
+
+  &.callout-style-simple,
+  &.callout-style-default {
+    border-color: $ms-border;
+    border-left-width: 4px;
+  }
+
+  .callout-body {
+    font-size: 0.94rem;
+  }
+}
+
+// Callout titles at full strength. Quarto dims them (opacity 75-85%, a grey summary
+// color), which puts the title under 4.5:1 on the tinted headers.
+div.callout.callout-titled > div.callout-header,
+div.callout.callout-disclosure > details > summary {
+  color: $ms-heading;
+  opacity: 1;
+}
+
+// A collapsed callout titled "Optional: ..." sits outside the briefing's time.
+// filters/pedagogy.lua adds the attribute; authors change nothing.
+.callout[data-optional] {
+  // !important: Quarto colors the frame and header per callout type.
+  border: 1px dashed $ms-border-strong !important;
+  border-left: 4px solid $ms-border-strong !important;
+  background: transparent;
+
+  > .callout-header,
+  > details > .callout-header {
+    background: transparent !important;
+    color: $ms-muted;
+
+    .callout-icon-container {
+      display: none;
+    }
+
+    .callout-title-container {
+      font-weight: 600;
+    }
+
+    .callout-title-container::after {
+      content: "outside the briefing time";
+      margin-left: 0.7rem;
+      padding: 0.05rem 0.5rem;
+      border: 1px solid $ms-border;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Collapsed callouts as native disclosures (filters/disclosure.lua): a <details> with a
+// <summary> header, so the header is a keyboard stop that opens with Enter or Space and
+// announces its title and state. Quarto colors its own headers with direct-child rules,
+// which cannot reach a <summary>; these rules restore the look.
+.callout.callout-disclosure {
+  > details {
+    margin: 0; // the page's default details margin would leave a gap under a closed one
+  }
+
+  > details > summary {
+    display: block;
+    list-style: none;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  > details[open] > summary {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .callout-header-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .callout-icon-container {
+    padding-right: 0.35em;
+    line-height: 1;
+  }
+
+  .callout-title-container {
+    flex: 1 1 auto;
+  }
+
+  .callout-btn-toggle {
+    line-height: 1;
+  }
+
+  > details:not([open]) .callout-toggle::before {
+    transform: rotate(-90deg);
+  }
+
+  &.callout-style-simple > details > summary {
+    padding-left: 0;
+  }
+
+  // A link into a closed callout opens it (the filter's script); land the target below
+  // the fixed navbar, whether the script or the browser does the scrolling.
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+}
+
+// The header color of each callout type, as Quarto gives its own headers.
+@each $name, $info in $callouts {
+  .callout-disclosure.callout-#{$name}.callout-style-default > details > summary {
+    @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+      background-color: shift-color(quarto-map.get($info, "color"), 70%);
+    } @else {
+      background-color: shift-color(quarto-map.get($info, "color"), -90%);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Site chrome: navbar, sidebar, table of contents, page navigation, footer
+// ---------------------------------------------------------------------------
+
+.navbar {
+  border-bottom: 1px solid $ms-on-ink-rule;
+}
+
+.navbar-brand {
+  font-family: $headings-font-family;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.navbar .nav-link {
+  font-size: 0.92rem;
+}
+
+.navbar .nav-link.active {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: $ms-on-ink-muted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.5em;
+}
+
+// The Days menu: comfortable rows, the day label in the theme's text color.
+.navbar .dropdown-menu {
+  border-color: $ms-border;
+  box-shadow: $ms-shadow;
+
+  .dropdown-item {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    font-size: 0.92rem;
+  }
+}
+
+// The module sidebar (generated: _includes/sidebar.yml).
+#quarto-sidebar {
+  font-size: 0.88rem;
+
+  .sidebar-title {
+    @extend .eyebrow;
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-item-section > .sidebar-item-container .sidebar-item-text {
+    font-family: $headings-font-family;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: $ms-heading;
+  }
+
+  .sidebar-item-section {
+    margin-top: 0.9rem;
+  }
+
+  ul.sidebar-section .sidebar-item {
+    margin: 0;
+  }
+
+  ul.sidebar-section .sidebar-link {
+    display: block;
+    padding: 0.22rem 0.6rem;
+    border-left: 2px solid $ms-border;
+    color: $ms-muted;
+    line-height: 1.35;
+
+    &:hover {
+      color: $ms-link;
+      border-left-color: $ms-border-strong;
+    }
+
+    &.active {
+      border-left-color: $ms-accent;
+      color: $ms-heading;
+      font-weight: 600;
+    }
+  }
+}
+
+// "On this page".
+#TOC,
+.sidebar nav[role="doc-toc"] {
+  font-size: 0.84rem;
+
+  > h2,
+  #toc-title {
+    @extend .eyebrow;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+  }
+
+  ul a {
+    border-left: 2px solid $ms-border;
+    color: $ms-muted;
+    line-height: 1.35;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+  }
+
+  ul a.active,
+  ul a:hover {
+    border-left-color: $ms-accent;
+    color: $ms-heading;
+  }
+}
+
+// Previous / next module at the foot of a module page.
+.page-navigation {
+  gap: 1rem;
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $ms-border;
+
+  .nav-page {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .nav-page a.pagination-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    height: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid $ms-border;
+    border-radius: 9px;
+    background: $ms-raised;
+    color: $ms-heading;
+    text-decoration: none;
+    transition: border-color 0.12s, box-shadow 0.12s;
+
+    &:hover {
+      border-color: $ms-link;
+      box-shadow: $ms-shadow;
+    }
+
+    i {
+      display: none;
+    }
+
+    &::before {
+      @extend .eyebrow;
+    }
+
+    .nav-page-text {
+      font-family: $headings-font-family;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+  }
+
+  .nav-page-previous a.pagination-link::before {
+    content: "\2190\00a0 Previous";
+  }
+
+  .nav-page-next a.pagination-link {
+    align-items: flex-end;
+    text-align: right;
+
+    &::before {
+      content: "Next \00a0\2192";
+    }
+  }
+}
+
+.nav-footer {
+  border-top: 1px solid $ms-border;
+  color: $ms-muted;
+  font-size: 0.82rem;
+
+  a {
+    color: $ms-link;
+  }
+}
+
+// A thin reading-progress line under the navbar on module pages. Pure CSS; a browser
+// without scroll-driven animations shows nothing.
+@supports (animation-timeline: scroll()) {
+  body.module-page::before {
+    content: "";
+    position: fixed;
+    z-index: 1040;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: $ms-accent;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: ms-progress linear both;
+    animation-timeline: scroll(root);
+    pointer-events: none;
+  }
+
+  @keyframes ms-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module pages: the header, details panel, outcomes, decision and prerequisites
+// (generated: _includes/module-NN.md), and the lab's task list (lab-NN.md).
+// ---------------------------------------------------------------------------
+
+.module-header {
+  margin: 0.4rem 0 1.4rem;
+  padding: 1.1rem 1.25rem 1.15rem;
+  border: 1px solid $ms-border;
+  border-top: 3px solid $ms-ink;
+  border-radius: 9px;
+  background: $ms-surface;
+
+  p {
+    margin: 0;
+  }
+
+  .module-meta p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $ms-muted;
+  }
+
+  .module-num {
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    background: $ms-ink;
+    color: $ms-on-ink;
+  }
+
+  .module-time,
+  .module-clock {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .module-summary {
+    margin: 0.7rem 0 0.9rem;
+    font-family: $headings-font-family;
+    font-size: 1.18rem;
+    line-height: 1.45;
+    color: $ms-heading;
+  }
+
+  .module-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.5rem;
+  }
+
+  .module-actions .btn-colab {
+    margin-right: 0.5rem;
+    padding: 0.42rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+// The details panel under a module's header: a definition list laid out as label/value
+// rows (duration, language and why, data, runtime), answerable at a glance.
+.module-details {
+  margin: -0.9rem 0 1.6rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid $ms-border;
+  border-radius: 9px;
+  background: $ms-raised;
+  font-size: 0.93rem;
+
+  dl {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, max-content) 1fr;
+    gap: 0.35rem 1.25rem;
+    margin: 0;
+  }
+
+  dt {
+    font-family: $font-family-sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $ms-muted;
+    padding-top: 0.17rem; // align the label with the first line of its value
+  }
+
+  dd {
+    margin: 0;
+    color: $ms-heading;
+  }
+
+  @media (max-width: 575.98px) {
+    dl {
+      grid-template-columns: 1fr;
+      gap: 0.1rem;
+    }
+
+    dd + dt {
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+.module-outcomes {
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem 0.85rem;
+  border: 1px solid $ms-border;
+  border-left: 4px solid $ms-good;
+  border-radius: 9px;
+  background: $ms-good-soft;
+
+  h2 {
+    @extend .eyebrow;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+    color: $ms-good;
+  }
+
+  p {
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    color: $ms-heading;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    padding-left: 1.6rem;
+  }
+
+  li::before {
+    content: "";
+    position: absolute;
+    left: 0.15rem;
+    top: 0.5em;
+    width: 0.8rem;
+    height: 0.45rem;
+    border-left: 2px solid $ms-good;
+    border-bottom: 2px solid $ms-good;
+    transform: rotate(-45deg);
+  }
+}
+
+// ::: {.module-decision}  the business decision the module ends in (who to retain, what a
+// customer is worth, what to spend where, whom to discount). Generated from
+// modules.mNN.decision. The label comes from the stylesheet; an opening bold run
+// ("**Decision.**") is kept for screen readers and hidden on screen.
+.module-decision {
+  position: relative;
+  margin: 1.4rem 0 2rem;
+  padding: 2.1rem 1.25rem 0.95rem;
+  border: 1px solid $ms-border;
+  border-left: 4px solid $ms-decision;
+  border-radius: 9px;
+  background: $ms-decision-soft;
+  color: $ms-heading;
+
+  &::before {
+    @extend .eyebrow;
+    content: "The business decision";
+    position: absolute;
+    top: 0.75rem;
+    left: 1.25rem;
+    color: $ms-decision;
+  }
+
+  > p:first-child > strong:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  h2,
+  h3 {
+    margin: 0 0 0.4rem;
+    padding: 0;
+    border: 0;
+    font-size: 1.1rem;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+// What a participant needs in place before the module (generated with the header).
+.prerequisites {
+  margin: 0 0 2rem;
+  padding: 0.9rem 1.25rem 0.95rem;
+  border: 1px solid $ms-border;
+  border-left: 4px solid $ms-border-strong;
+  border-radius: 9px;
+  background: $ms-surface;
+
+  h2 {
+    @extend .eyebrow;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+    color: $ms-muted;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  li + li {
+    margin-top: 0.25rem;
+  }
+}
+
+// The lab's task list (generated: _includes/lab-NN.md), read from the notebook's own
+// part, exercise, stretch and decision headings. A part is a bold row; its tasks follow.
+main.content .lab-steps {
+  margin-bottom: 1.4rem;
+  max-width: 100%;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    font-size: 0.93rem;
+  }
+
+  // Pandoc gives a long pipe table equal column widths; the task column takes the rest.
+  colgroup col {
+    width: auto !important;
+  }
+
+  td:last-child,
+  th:last-child {
+    width: 5.5rem;
+    white-space: nowrap;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: $ms-muted;
+  }
+
+  // A part row carries only its bold title; it opens a group, so it gets the rule.
+  td strong {
+    font-family: $headings-font-family;
+    color: $ms-heading;
+  }
+
+  tr:has(td strong) td {
+    padding-top: 0.75rem;
+    border-top: 1px solid $ms-border-strong;
+  }
+
+  // The decision row, marked by the generator with [Decision · ...]{.lab-step-decision}.
+  .lab-step-decision {
+    color: $ms-decision;
+    font-weight: 600;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pedagogy components. Authors write the div; these rules do the rest.
+// ---------------------------------------------------------------------------
+
+// **Objective for this section:** under a numbered heading (filters/pedagogy.lua).
+.section-objective {
+  margin: 0.2rem 0 1.3rem;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid $ms-briefing;
+  border-radius: 0 6px 6px 0;
+  background: $ms-briefing-soft;
+  font-size: 0.93rem;
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  p > strong:first-child {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $ms-briefing;
+  }
+}
+
+// Shared frame for the labelled boxes.
+.recap,
+.self-check,
+.worked-example {
+  position: relative;
+  margin: 1.6rem 0;
+  padding: 2.1rem 1.15rem 0.9rem;
+  border: 1px solid $ms-border;
+  border-radius: 9px;
+  background: $ms-surface;
+
+  &::before {
+    @extend .eyebrow;
+    position: absolute;
+    top: 0.75rem;
+    left: 1.15rem;
+  }
+
+  > :last-child,
+  > p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ::: {.recap}  "Where we are": what earlier modules established, and the question
+// this module asks because of what they could not do.
+.recap {
+  border-left: 4px solid $ms-briefing;
+  background: $ms-briefing-soft;
+  font-size: 0.95rem;
+
+  &::before {
+    content: "Where we are";
+    color: $ms-briefing;
+  }
+}
+
+// The label above the box already says it: a bold run that opens a recap ("Where we
+// are.") or a self-check ("Check yourself.") is kept for screen readers and hidden on
+// screen. Do not open these boxes with other bold text.
+.recap,
+.self-check {
+  > p:first-child > strong:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+// ::: {.self-check}  a question, then a collapsed "Answer" callout.
+.self-check {
+  border-left: 4px solid $ms-good;
+  background: $ms-good-soft;
+
+  &::before {
+    content: "Check yourself";
+    color: $ms-good;
+  }
+
+  .callout {
+    margin: 0.8rem 0 0.2rem;
+    border: 1px solid $ms-border !important;
+    border-radius: 7px;
+    background: $ms-raised;
+
+    > .callout-header,
+    > details > .callout-header {
+      padding: 0.15rem 0.5rem;
+      background: transparent !important;
+      color: $ms-good;
+      font-size: 0.88rem;
+
+      .callout-icon-container {
+        display: none;
+      }
+    }
+  }
+}
+
+// ::: {.worked-example}  a calculation carried through with numbers.
+.worked-example {
+  border-left: 4px solid $ms-border-strong;
+  background: $ms-raised;
+
+  &::before {
+    content: "Worked example";
+  }
+
+  .katex-display {
+    margin: 0.7rem 0;
+  }
+}
+
+// ::: {.predict}  a question asked before the exposition (or before a cell runs).
+.predict {
+  margin: 1.2rem 0;
+  padding: 0.8rem 1rem 0.7rem;
+  border-left: 4px solid $ms-accent;
+  border-radius: 0 7px 7px 0;
+  background: $ms-accent-soft;
+
+  &::before {
+    content: "Predict";
+    display: block;
+    margin-bottom: 0.3rem;
+    color: $ms-accent;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+// The lab's optional stretch (generated: _includes/lab-NN.md), named from the
+// notebook's stretch section. Quieter than a callout: it is work, not a warning.
+.challenge {
+  margin: 1.1rem 0 1.4rem;
+  padding: 0.9rem 1.25rem 1rem;
+  border: 1px dashed $ms-border-strong;
+  border-radius: 9px;
+  background: $ms-surface;
+
+  h3 {
+    margin: 0 0 0.4rem;
+    padding: 0;
+    border: 0;
+    font-size: 1.02rem;
+    color: $ms-accent;
+  }
+
+  p {
+    margin: 0;
+    color: $ms-muted;
+  }
+
+  ul {
+    margin: 0.55rem 0 0;
+    padding-left: 1.1rem;
+  }
+
+  li {
+    color: $ms-heading;
+  }
+}
+
+// The question a day answers, at the top of its page (day-N.qmd).
+.day-question {
+  margin: 0.4rem 0 1.6rem;
+  padding: 0.2rem 0 0.2rem 1rem;
+  border-left: 3px solid $ms-accent;
+  font-family: $headings-font-family;
+  font-size: 1.3rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: $ms-heading;
+
+  p {
+    margin: 0;
+  }
+}
+
+// The day's run sheet (generated: _includes/run-N.md): one block per module.
+.run-sheet {
+  margin: 1rem 0 1.2rem;
+
+  > p {
+    margin: 1.2rem 0 0.35rem;
+    padding-left: 0.7rem;
+    border-left: 3px solid $ms-briefing;
+  }
+
+  > ul {
+    margin-bottom: 0.4rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module cards: day pages and the top of the notebooks page (generated)
+// ---------------------------------------------------------------------------
+
+.module-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 1.6rem 0;
+}
+
+// Two markups are supported. The generator's (scripts/gen_tables.py): a flat card with
+// [time]{.module-clock}, an eyebrow, **[title](link)**, .module-summary and
+// .module-actions. The nlp-llms one: .module-card-time beside .module-card-body.
+.module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1.15rem 1rem;
+  border: 1px solid $ms-border;
+  border-left: 4px solid $ms-ink;
+  border-radius: 10px;
+  background: $ms-raised;
+  overflow: hidden;
+  transition: border-color 0.12s, box-shadow 0.12s;
+
+  &:hover {
+    border-color: $ms-border-strong;
+    box-shadow: $ms-shadow;
+  }
+
+  &:has(> .module-card-time) {
+    display: grid;
+    grid-template-columns: 7.2rem minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    border-left-width: 1px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  // The generator's markup.
+  .module-clock {
+    display: inline-block;
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    background: $ms-surface;
+    color: $ms-heading;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  > p > strong > a,
+  > p > strong:only-child {
+    font-family: $headings-font-family;
+    font-size: 1.24rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $ms-heading;
+    text-decoration: none;
+  }
+
+  > p > strong > a:hover {
+    color: $ms-link;
+    text-decoration: underline;
+  }
+
+  > .module-summary {
+    color: $ms-muted;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  > .module-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.45rem;
+    margin-top: 0.35rem;
+  }
+
+  .module-card-time {
+    display: flex;
+    padding: 1rem 0.5rem 1rem 1rem;
+    border-right: 1px solid $ms-border;
+    background: $ms-surface;
+    color: $ms-heading;
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+  }
+
+  .module-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1.1rem 1rem;
+    min-width: 0;
+  }
+
+  a.module-card-title,
+  .module-card-title {
+    font-family: $headings-font-family;
+    font-size: 1.24rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $ms-heading;
+    text-decoration: none;
+  }
+
+  a.module-card-title:hover {
+    color: $ms-link;
+    text-decoration: underline;
+  }
+
+  // The summary: the paragraph after the eyebrow and the title (nlp-llms markup), or a
+  // span with the class.
+  .module-card-body > p:nth-of-type(3),
+  .module-card-summary {
+    color: $ms-muted;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .module-card-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.45rem;
+    margin-top: 0.45rem;
+  }
+
+  .module-card-actions .btn-colab {
+    margin-right: 0.4rem;
+  }
+
+  // Module 0 (optional pre-work) and the applied clinics: dashed, outside the modules.
+  &.module-card-optional,
+  &.module-card-clinic {
+    border-style: dashed;
+  }
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .module-card-time {
+      padding: 0.45rem 1.1rem;
+      border-right: 0;
+      border-bottom: 1px solid $ms-border;
+    }
+  }
+}
+
+// The per-day tables on the notebooks page.
+main.content .notebook-table {
+  max-width: 100%;
+  overflow-x: auto;
+
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 3rem;
+    color: $ms-muted;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 7.5rem;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 10rem;
+    text-align: right;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  td strong {
+    display: block;
+    font-family: $headings-font-family;
+    font-size: 1.04rem;
+    color: $ms-heading;
+  }
+
+  .notebook-summary {
+    color: $ms-muted;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+
+  // Tablet width: let the columns size to their content and the notebook text wrap.
+  @media (max-width: 767.98px) {
+    table {
+      table-layout: auto;
+    }
+
+    th:nth-child(n),
+    td:nth-child(n) {
+      width: auto;
+    }
+
+    td,
+    th {
+      padding-left: 0.4rem;
+      padding-right: 0.4rem;
+    }
+  }
+
+  // Phone width: each row becomes a small card. The number sits on the left, the
+  // notebook and its summary on top, the "Read" link and the Colab button below.
+  @media (max-width: 575.98px) {
+    thead {
+      display: none;
+    }
+
+    table,
+    tbody {
+      display: block;
+    }
+
+    tr {
+      display: grid;
+      grid-template-columns: 1.6rem auto minmax(0, 1fr);
+      column-gap: 0.7rem;
+      align-items: center;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid $ms-border;
+    }
+
+    td {
+      display: block;
+      padding: 0.1rem 0;
+      border: 0;
+      text-align: left;
+    }
+
+    td:nth-child(1) {
+      grid-row: 1 / span 2;
+      align-self: start;
+    }
+
+    td:nth-child(2) {
+      grid-column: 2 / span 2;
+    }
+
+    td:nth-child(3) {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    td:nth-child(4) {
+      grid-column: 3;
+      grid-row: 2;
+      text-align: left;
+    }
+  }
+}
+
+// The readiness page: dense columns on a full-width page, read on a laptop.
+main.content .readiness-table {
+  max-width: 100%;
+  overflow-x: auto;
+
+  table {
+    font-size: 0.85rem;
+    min-width: 40rem; // scrolls inside .table-scroll below that
+  }
+
+  td {
+    vertical-align: top;
+  }
+
+  td:first-child {
+    min-width: 11rem;
+  }
+
+  // Status words the generator may mark: [ready]{.status-ready}, [not run]{.status-missing}.
+  .status-ready {
+    color: $ms-good;
+    font-weight: 600;
+  }
+
+  .status-stale,
+  .status-missing {
+    color: $ms-accent;
+    font-weight: 600;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Schedule (generated: _includes/schedule.md; one table per clock, with class spans)
+// ---------------------------------------------------------------------------
+
+// A page that needs more than the text measure (front matter: page-layout: full,
+// body-classes: wide). Prose keeps its measure; the table takes the full width.
+body.wide main.content {
+  max-width: 1180px;
+  margin-inline: auto;
+
+  > p,
+  > header {
+    max-width: 46rem;
+  }
+}
+
+.timetable-legend p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  margin: 1.2rem 0 2rem;
+  font-size: 0.84rem;
+  color: $ms-muted;
+}
+
+.legend-briefing,
+.legend-lab,
+.legend-debrief,
+.legend-break,
+.legend-clinic {
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 1.6rem;
+    height: 0.7rem;
+    margin-right: 0.45rem;
+    border-radius: 3px;
+    vertical-align: -0.05rem;
+  }
+}
+
+.legend-briefing::before {
+  background: $ms-briefing;
+}
+
+.legend-lab::before {
+  background: $ms-accent;
+}
+
+.legend-debrief::before {
+  background: $ms-good;
+}
+
+.legend-break::before {
+  border: 1px solid $ms-border-strong;
+  background: repeating-linear-gradient(-45deg, $ms-surface 0 4px, $ms-border 4px 5px);
+}
+
+.legend-clinic::before {
+  border: 1px dashed $ms-decision;
+  background: $ms-decision-soft;
+}
+
+// Two markups. The generator's (scripts/gen_tables.py): one table per day, columns Time,
+// Session, Module (or "What happens" on a run sheet), the session as a colored label
+// ([Briefing]{.slot-briefing}, [Lab · title]{.slot-lab}, [Debrief]{.slot-debrief},
+// [Break]{.slot-break}; warm-up and wrap-up share .slot-debrief, clinics .slot-lab).
+// The nlp-llms one: several days side by side, each module with a .slot-split bar.
+main.content .timetable table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  &:has(.slot-split) {
+    table-layout: fixed;
+    min-width: 860px; // scrolls inside .table-scroll
+  }
+
+  th,
+  td {
+    border: 0;
+    border-bottom: 1px solid $ms-border;
+    padding: 0.5rem 0.7rem;
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: $font-family-sans-serif;
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $ms-muted;
+
+    a {
+      @extend .eyebrow;
+      text-decoration: none;
+      color: $ms-accent;
+    }
+  }
+
+  th:first-child,
+  td:first-child {
+    width: 6.6rem;
+    color: $ms-muted;
+    font-size: 0.84rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  td + td {
+    border-left: 1px solid $ms-border;
+  }
+
+  // The session label of the generator's markup: a colored tag that wraps cleanly.
+  td > .slot-briefing,
+  td > .slot-lab,
+  td > .slot-debrief {
+    display: inline;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.75;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  td > .slot-break {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $ms-muted;
+  }
+
+  a.slot-module,
+  a.slot-clinic {
+    display: block;
+    font-weight: 600;
+    line-height: 1.35;
+    color: $ms-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $ms-link;
+      text-decoration: underline;
+    }
+  }
+
+  // The bar under a module: briefing, lab and debrief, each as wide as its minutes (the
+  // generator sets flex-grow inline from the minutes).
+  .slot-split {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .slot-split > .slot-briefing,
+  .slot-split > .slot-lab,
+  .slot-split > .slot-debrief {
+    flex: 1 1 0;
+    padding: 0.1rem 0.4rem;
+    overflow: hidden;
+  }
+
+  .slot-split > span:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .slot-split > span:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  // Ten minutes is too narrow for a label in the bar: the color carries it (see the
+  // legend), and the text is visually hidden for screen readers, with a tooltip.
+  .slot-split > .slot-debrief {
+    padding-inline: 0;
+  }
+
+  .slot-briefing {
+    background: $ms-briefing;
+    color: $ms-on-briefing;
+  }
+
+  .slot-lab {
+    background: $ms-accent;
+    color: $ms-on-accent;
+  }
+
+  .slot-debrief {
+    background: $ms-good;
+    color: $ms-on-good;
+  }
+
+  // Rows without teaching: breaks and lunch, hatched; the nlp-llms opening and closing.
+  tr:has(.slot-break) > td,
+  tr:has(.slot-opening) > td,
+  tr:has(.slot-closing) > td {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.82rem;
+    color: $ms-muted;
+  }
+
+  tr:has(.slot-break) > td {
+    background: repeating-linear-gradient(-45deg, $ms-surface 0 6px, $ms-bg 6px 12px);
+  }
+
+  td:has(.slot-closing) {
+    background: $ms-good-soft;
+  }
+
+  td:has(.slot-clinic) {
+    background: $ms-decision-soft;
+    box-shadow: inset 3px 0 0 $ms-decision;
+  }
+
+  a.slot-clinic {
+    font-weight: 500;
+  }
+
+  // Laptop width: the session column is wide enough that long lab titles wrap little.
+  @media (min-width: 768px) {
+    &:not(:has(.slot-split)) td:nth-child(2) {
+      min-width: 13rem;
+    }
+  }
+
+  // Phone width: tighter cells, so the module column keeps a readable measure.
+  @media (max-width: 575.98px) {
+    th,
+    td {
+      padding: 0.4rem 0.35rem;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: auto;
+      font-size: 0.76rem;
+    }
+
+    td > .slot-briefing,
+    td > .slot-lab,
+    td > .slot-debrief {
+      padding: 0.05rem 0.35rem;
+      font-size: 0.76rem;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Landing page (index.qmd; body class `landing`)
+// ---------------------------------------------------------------------------
+
+body.landing {
+  #title-block-header {
+    display: none; // the hero carries the title
+  }
+
+  // The id selector outranks Quarto's `#quarto-content > *` top padding, so the hero
+  // meets the navbar.
+  #quarto-content > main.content {
+    max-width: 1080px;
+    margin-inline: auto;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  main.content > section > h2,
+  main.content > h2,
+  main.content section.level2 > h2 {
+    margin-top: 3.4rem;
+    border: 0;
+    font-size: 1.9rem;
+  }
+
+  @media (max-width: 575.98px) {
+    main.content section.level2 > h2 {
+      margin-top: 2.6rem;
+      font-size: 1.55rem;
+    }
+  }
+}
+
+.section-lede {
+  max-width: 44rem;
+  color: $ms-muted;
+  font-size: 1.05rem;
+}
+
+.prose {
+  max-width: 46rem;
+}
+
+.hero {
+  // Full-bleed band: stretch to the viewport edges, keep the text aligned.
+  margin: 0 calc(50% - 50vw) 2.2rem;
+  padding: 4rem calc(50vw - 50%) 2.6rem;
+  background: $ms-ink;
+  color: $ms-on-ink;
+
+  .eyebrow {
+    color: $ms-on-ink-muted;
+  }
+
+  h1 {
+    max-width: 18em;
+    margin: 0.6rem 0 0.5rem;
+    border: 0;
+    color: $ms-on-ink;
+    font-size: 3.2rem;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    display: block;
+    font-family: $headings-font-family;
+    font-size: 1.45rem;
+    font-style: italic;
+    line-height: 1.35;
+    color: $ms-on-ink-muted;
+  }
+
+  .hero-lead {
+    max-width: 42rem;
+    margin-top: 1.4rem;
+    font-size: 1.1rem;
+    color: $ms-on-ink;
+
+    p {
+      line-height: 1.6;
+    }
+  }
+
+  .hero-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin: 1.7rem 0 0;
+  }
+
+  .hero-actions a {
+    padding: 0.62rem 1.25rem;
+    border: 1px solid $ms-on-ink-muted;
+    border-radius: 7px;
+    color: $ms-on-ink;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.12s, border-color 0.12s;
+
+    &:hover {
+      border-color: $ms-on-ink;
+      background: $ms-on-ink-rule;
+    }
+  }
+
+  .hero-actions a.btn-primary-action {
+    border-color: $ms-accent;
+    background: $ms-accent;
+    color: $ms-on-accent;
+
+    &:hover {
+      border-color: $ms-accent-hover;
+      background: $ms-accent-hover;
+    }
+  }
+
+  // The counts (generated: _includes/facts.md).
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 2.4rem;
+    margin-top: 2.4rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid $ms-on-ink-rule;
+    color: $ms-on-ink-muted;
+    font-size: 0.92rem;
+
+    p {
+      display: contents;
+    }
+
+    strong {
+      margin-right: 0.15rem;
+      color: $ms-on-ink;
+      font-family: $headings-font-family;
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    padding-top: 2.4rem;
+
+    h1 {
+      font-size: 2.2rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+    }
+
+    .hero-lead {
+      font-size: 1rem;
+    }
+
+    .facts {
+      gap: 0.3rem 1.4rem;
+    }
+  }
+}
+
+// The days, one card each (generated: _includes/days.md).
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 1rem;
+  margin: 1.4rem 0 1.2rem;
+}
+
+.day-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.15rem 1rem;
+  border: 1px solid $ms-border;
+  border-top: 3px solid $ms-ink;
+  border-radius: 10px;
+  background: $ms-raised;
+  transition: box-shadow 0.12s, border-color 0.12s;
+
+  &:hover {
+    box-shadow: $ms-shadow;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .eyebrow {
+    color: $ms-accent;
+  }
+
+  a.day-card-title {
+    display: block;
+    margin: 0.3rem 0 0.7rem;
+    font-family: $headings-font-family;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $ms-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $ms-link;
+      text-decoration: underline;
+    }
+  }
+
+  // The guiding question takes the remaining height, so the spans line up.
+  p:has(.day-card-question) {
+    flex: 1;
+  }
+
+  .day-card-question {
+    display: block;
+    font-family: $headings-font-family;
+    font-style: italic;
+    font-size: 1.02rem;
+    line-height: 1.45;
+    color: $ms-text;
+  }
+
+  .day-card-span {
+    display: block;
+    margin-top: 0.9rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid $ms-border;
+    color: $ms-muted;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+// The module arc: one rail, a numbered node per module, grouped by day
+// (generated: _includes/path.md).
+.path {
+  margin: 1.6rem 0 1rem;
+}
+
+.path-day {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  column-gap: 1.5rem;
+  padding: 0.3rem 0;
+
+  > p {
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    margin: 0;
+    padding-top: 0.55rem;
+  }
+
+  a.path-day-label,
+  .path-day-label {
+    position: sticky;
+    top: 5rem;
+    font-family: $headings-font-family;
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: $ms-heading;
+    text-decoration: none;
+  }
+
+  a.path-day-label:hover {
+    color: $ms-link;
+    text-decoration: underline;
+  }
+
+  & + .path-day {
+    margin-top: 0.4rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid $ms-border;
+  }
+
+  // Narrow screens: the day label sits above its steps.
+  @media (max-width: 767.98px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    > p {
+      grid-row: auto;
+      padding: 0 0 0.6rem;
+    }
+
+    a.path-day-label,
+    .path-day-label {
+      position: static;
+    }
+  }
+}
+
+.path-step {
+  grid-column: 2;
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-bottom: 1.05rem;
+
+  @media (max-width: 767.98px) {
+    grid-column: 1;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  // The rail: from this node down to the next one.
+  &::before {
+    content: "";
+    position: absolute;
+    left: calc(1.15rem - 1px);
+    top: 2.3rem;
+    bottom: -0.3rem;
+    width: 2px;
+    background: $ms-border-strong;
+  }
+
+  .path-day:last-child &:last-child::before {
+    display: none;
+  }
+
+  .path-num {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border: 2px solid $ms-ink;
+    border-radius: 50%;
+    background: $ms-ink;
+    color: $ms-on-ink;
+    font-size: 0.9rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.path-step-optional .path-num {
+    border-style: dashed;
+    border-color: $ms-border-strong;
+    background: $ms-bg;
+    color: $ms-muted;
+  }
+
+  .path-body {
+    padding-top: 0.25rem;
+  }
+
+  a.path-title {
+    margin-right: 0.5rem;
+    font-family: $headings-font-family;
+    font-size: 1.14rem;
+    font-weight: 600;
+    color: $ms-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $ms-link;
+      text-decoration: underline;
+    }
+  }
+
+  .path-body > p:last-child {
+    margin-top: 0.1rem;
+    max-width: 40rem;
+    color: $ms-muted;
+    font-size: 0.93rem;
+    line-height: 1.5;
+  }
+}
+
+// How the parts connect: the integration diagram (images/integration.svg, inlined)
+// beside a short reading guide; stacked on narrow screens.
+.integration {
+  display: grid;
+  grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+  gap: 1.5rem 2.5rem;
+  align-items: start;
+  margin: 1.4rem 0 1rem;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .integration-guide {
+    font-size: 0.95rem;
+
+    ol {
+      padding-left: 1.2rem;
+    }
+
+    li + li {
+      margin-top: 0.6rem;
+    }
+  }
+
+  @media (max-width: 899.98px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .integration-figure {
+      max-width: 30rem;
+    }
+  }
+
+  // Phone width: the figure takes the viewport less a hairline margin, so its 12 px
+  // labels stay close to 12 px.
+  @media (max-width: 575.98px) {
+    .integration-figure {
+      max-width: none;
+      margin-inline: calc(50% - 50vw + 4px);
+    }
+  }
+}
+
+// "What you will be able to do": two columns of outcomes.
+.outcomes ul {
+  columns: 2;
+  column-gap: 2.5rem;
+  padding-left: 1.1rem;
+
+  li {
+    break-inside: avoid;
+    margin-bottom: 0.45rem;
+  }
+
+  @media (max-width: 767.98px) {
+    columns: 1;
+  }
+}
+
+// Predict, Run, Explain, Check: four numbered cards from an ordered list.
+.rhythm ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rhythm;
+
+  li {
+    counter-increment: rhythm;
+    margin: 0;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid $ms-border;
+    border-radius: 10px;
+    background: $ms-surface;
+    font-size: 0.93rem;
+    line-height: 1.5;
+
+    &::before {
+      content: counter(rhythm);
+      display: block;
+      margin-bottom: 0.3rem;
+      font-family: $headings-font-family;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $ms-accent;
+    }
+
+    strong {
+      color: $ms-heading;
+    }
+  }
+
+  li + li {
+    margin-top: 0;
+  }
+}
+
+// Where to start: three linked steps in a row, stacked on narrow screens.
+.start-steps ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid $ms-border;
+    border-top: 3px solid $ms-accent;
+    border-radius: 10px;
+    background: $ms-raised;
+    font-size: 0.93rem;
+  }
+
+  li + li {
+    margin-top: 0;
+  }
+}
+
+// The 404 page.
+.not-found {
+  max-width: 36rem;
+  margin: 3rem 0;
+}

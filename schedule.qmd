@@ -1,0 +1,18 @@
+---
+title: "Schedule"
+subtitle: "Five days, one question each"
+toc: false
+# The timetable needs more than the text measure (custom.scss, body.wide).
+page-layout: full
+body-classes: wide
+---
+
+Each day opens with a warm-up and closes with a wrap-up. A module is a briefing, a lab and a debrief; on Days 2 and 3 the afternoon is an applied clinic tied to that day's decision. The [intro slides](slides/welcome.qmd) open Day 1.
+
+[Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd) is optional pre-work, done on your own before Day 1.
+
+::: {.timetable-legend}
+[Briefing]{.legend-briefing} [Lab or clinic: hands-on]{.legend-lab} [Debrief, warm-up, wrap-up: the whole room]{.legend-debrief} [Break or lunch]{.legend-break}
+:::
+
+{{< include /_includes/schedule.md >}}

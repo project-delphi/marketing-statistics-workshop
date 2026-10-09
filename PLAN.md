@@ -145,9 +145,9 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [TE] `scripts/run_records.py`, `readiness.py`, `add_run_record.py`, `release_check.py` (content_sha + deps_sha staleness; Colab authenticity fields)
 - [x] [TE] `scripts/gen_tables.py` (includes: facts, days, path, module headers, lab steps, schedule, notebooks table, readiness, VERSIONS.md, README status region)
 - [x] [TE] tests: structure of notebooks, variables, runs/readiness rules, checks-can-fail
-- [ ] [UI] `_quarto.yml`, theme tokens (light/dark), filters, page shells for every navbar/footer page, landing layout
-- [ ] [TE] `.github/workflows/publish.yml` (drift gates, ruff, pytest, evidence checkout, render, lychee offline, deploy-pages) + Pages enabled
-- [ ] [TE] `.github/workflows/notebooks.yml` (matrix from `_variables.yml`, image container, collect → `evidence` branch) + `image.yml`
+- [x] [UI] `_quarto.yml`, theme tokens (light/dark), filters, page shells for every navbar/footer page, landing layout
+- [x] [Lead] `.github/workflows/publish.yml` (drift gates, ruff, pytest, evidence checkout, render, lychee offline, deploy-pages) + Pages enabled
+- [x] [Lead] `.github/workflows/notebooks.yml` (matrix from `_variables.yml`, image container, collect → `evidence` branch) + `image.yml`
 - [x] [TE] M0 Python + R notebooks (written; worked+verify and learner runs recorded on macOS and in Docker, full settings)
 - [ ] [Lead] M0 Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks
 
@@ -174,8 +174,8 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`
 - [ ] [AD] `references.qmd` (every entry fetched; Verified + date + claim supported)
 - [x] [PE] `prepare.qmd` entry check; `teach.qmd`; day warm-ups/wrap-ups; knowledge checks (also `days/_day-0-notes.md`…`_day-5-notes.md` with the Day 2/3 clinics and Day 5 run of show, and the lab standard `briefs/_lab-standard.md`)
-- [ ] [UI] landing page (hero, counts, day cards, path, integration diagram SVG), slides/welcome.qmd, browser check both themes
-- [ ] [TE] `setup.qmd` (Colab Python/R, local Docker/uv, AWS) with measured install times from records
+- [x] [UI] landing page (hero, counts, day cards, path, integration diagram SVG), slides/welcome.qmd, browser check both themes (headless Chrome, 1280 and 375 px, against the generator's includes; the lead's check in Chrome still to do)
+- [x] [Lead] `setup.qmd` (Colab Python/R, local Docker/uv, AWS) with measured install times from records
 - [ ] [TE] `environment/aws/` (SageMaker BYOI, lifecycle config, EC2, IAM, S3, teardown) — documented, not run
 - [ ] [AD] `faq.qmd`
 

@@ -1,0 +1,42 @@
+---
+title: "Notebooks"
+subtitle: "One lab per module, each opens in Google Colab"
+toc: false
+---
+
+Start with the Module 0 notebook, then follow the modules in order. Most labs are in Python; where R has the reference implementation (CLVTools, CausalImpact and GeoLift, grf) the module has an R notebook too, and its page says why. Each notebook installs what it needs and loads its own data, so any lab opens cold, without the labs before it.
+
+{{< include /_includes/notebooks.md >}}
+
+::: {.callout-important appearance="simple"}
+Notebooks are stored without outputs. Work through the cells one at a time. **Runtime → Run all** stops at the first exercise you have not written, which is the point; to see a whole lab run, turn `WORKED_EXAMPLE` on in the harness cell first.
+:::
+
+## How the labs are laid out {#layout}
+
+Every notebook has the same cells, in this order:
+
+1. **Header.** The lab's goals, its day and its time, and the Colab button.
+2. **Install.** Detects where it runs (Colab or a local machine) and installs the pinned package versions the workshop was tested with. If it asks you to restart the session, do so, then choose Run all again.
+3. **Harness.** Two switches. `WORKED_EXAMPLE` off (the default) keeps your own code; on, it runs every reference solution in place of your code. `QUICK` shortens sampling and uses a sample of the data; it never skips a checkpoint. In Python notebooks these are checkboxes; in R notebooks, plain variables (`WORKED_EXAMPLE <- FALSE`).
+4. **Exercises**, grouped in parts. Each exercise follows the rhythm:
+    - **Predict.** A question to answer before you run anything.
+    - **Your code.** A function stub that stops with `TODO N` until you write it.
+    - **Solution.** Folded under the stub. Try the exercise first. Running the solution cell stores the reference; it does not overwrite your function.
+    - **Explain.** Compare the result with your prediction, with a folded "why" underneath.
+    - **Checkpoint.** Passes or fails, and says whose code it checked: yours or the reference. Where the data are synthetic, it compares your estimate with the known truth, using a named interval (for example a 94% highest density interval).
+5. **Decision.** The business decision the lab ends in, made from your own results.
+6. **Stretch.** An optional final section for those who finish early. Nothing later depends on it.
+7. **Record.** Lists which checkpoints passed on your own code and prints a run record: what ran, where, how long it took, and with which package versions.
+
+## When a checkpoint fails {#checkpoints}
+
+| The checkpoint says | What it means | What to do |
+|---|---|---|
+| TODO N is not written yet | Your function still stops at its `TODO`, or you have not run its cell. | Write the exercise, run its cell, then rerun the checkpoint. |
+| A check failed on your code | Your function ran but returned something wrong. | Read the message above it: it names what to look at. Fix the function and rerun both cells. |
+| It failed on the reference solution | A problem with the lab or the runtime, not with your code. | Tell the instructor. |
+
+Stuck on exercise N? Run its folded solution cell, then `workshop.use_reference(N)` in Python or `use_reference(N)` in R, and carry on with the reference. Rerun your own cell to switch back.
+
+An error in the install or harness cell is a setup problem, not an unfinished exercise: see [Setup](setup.qmd) and the [FAQ](faq.qmd).

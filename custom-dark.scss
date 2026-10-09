@@ -1,0 +1,36 @@
+/*-- scss:defaults --*/
+
+// The dark palette. This file overrides the tokens of custom.scss and holds no rules:
+// change how something looks in custom.scss, change its dark color here. The contrast
+// ratios of both palettes are listed at the top of custom.scss; recompute after a change.
+$ms-bg: #0e1517;
+$ms-surface: #152023;
+$ms-raised: #121b1e;
+$ms-border: #263539;
+$ms-border-strong: #3c5056;
+$ms-text: #d3dee0;
+$ms-heading: #eef4f5;
+$ms-muted: #97a9ad;
+$ms-link: #7cc7d6;
+$ms-ink: #12343c;
+$ms-on-ink: #f1f7f8;
+$ms-on-ink-muted: #b1cbd1;
+$ms-accent: #f1899f;
+$ms-accent-hover: #f5a3b4;
+$ms-accent-soft: #2b1a1f;
+$ms-on-accent: #23090f;
+$ms-briefing: #93b4e6;
+$ms-briefing-soft: #172235;
+$ms-on-briefing: #0b1626;
+$ms-good: #86c9a0;
+$ms-good-soft: #13251b;
+$ms-on-good: #0b1f13;
+$ms-decision: #e8b75e;
+$ms-decision-soft: #2a2213;
+$ms-code: #f2a7b8;
+$ms-code-bg: #131c1f;
+$ms-line: #7d9196;
+$ms-navbar-bg: #0a1113;
+$ms-navbar-fg: #f1f7f8;
+$ms-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.3);
+$ms-on-ink-rule: rgba(255, 255, 255, 0.16);

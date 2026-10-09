@@ -1,0 +1,3 @@
+# Applies to every page in modules/. Styling hooks only; see custom.scss
+# (body.module-page: the reading-progress line under the navbar).
+body-classes: module-page

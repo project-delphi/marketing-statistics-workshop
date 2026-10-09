@@ -1,0 +1,17 @@
+---
+title: "{{< var modules.m06.title >}}"
+---
+
+{{< include /_includes/module-06.md >}}
+
+::: {.recap}
+**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-06.md >}}
+
+::: {.callout-note appearance="simple" title="Briefing in preparation"}
+The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+:::
