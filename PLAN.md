@@ -159,7 +159,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
 - [ ] M8 Bayesian MMM
 - [ ] M2 BTYD
-- [ ] M11 uplift (EconML + grf)
+- [x] M11 uplift (EconML + grf): built + Docker run; Colab pending (worked+verify and learner runs recorded in Docker with 2 CPUs for both notebooks and on macOS for Python, `runs/2026-10-09-day5-*.json`)
 - [ ] M7 geo (Python SC/DiD + R CausalImpact/GeoLift)
 - [ ] M1 customer base (DuckDB)
 - [ ] M4 monetary value and CLV
