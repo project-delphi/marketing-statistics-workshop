@@ -24,7 +24,7 @@ a channel whose spend follows demand looks effective because sales and spend ris
 
 | Source | Loader | Use |
 |---|---|---|
-| Synthetic MMM with a demand-following channel | `mktstats.synth.mmm(seed=<default>, confounded=True)` (proposed option): the same four channels as Module 8, with `search` spend responding to an unobserved demand shock that also raises sales; truth as in Module 8 plus `lift_tests` (the results a geo test on `search` would have produced: weekly spend level, spend change, incremental sales per week, its standard error, test dates) | everything in Python |
+| Synthetic MMM with a demand-following channel | `mktstats.synth.mmm(seed=<default>, confounded=True)` (proposed option): the same four channels as Module 8, with `search` spend responding to an unobserved demand shock that also raises sales; truth as in Module 8 plus lift tests. On main, `mmm_lift_tests.csv` already holds one row per channel in the model's weekly units (`channel, x, delta_x, delta_y, sigma, true_delta_y`); the confounded option itself is **not yet on main** | everything in Python |
 | Robyn `dt_simulated_weekly` (documented by Robyn as "Simulated MMM data") with `dt_prophet_holidays` | bundled with Robyn | R notebook |
 
 ## Model fits
@@ -34,8 +34,8 @@ Python (each once; QUICK draws=tune=300, FULL 1000; chains=2; nutpie; `progressb
 2. Calibrated MMM: `mmm_cal.build_model(X, y)`, then `mmm_cal.add_lift_test_measurements(df_lift_test)`,
    then `mmm_cal.fit(...)`. (The lift test must be added after `build_model`; the method raises otherwise.)
 3. Time-slice cross-validation: `cv = TimeSliceCrossValidator(n_init=..., forecast_horizon=8,
-   date_column="date", step_size=...)` and `cv.run(X, y, mmm=<unfitted MMM with the calibrated spec>,
-   df_lift_test=df_lift_test, lift_test_date_column="date")`, which fits one model per fold. QUICK: 3 folds,
+   date_column="date_week", step_size=...)` and `cv.run(X, y, mmm=<unfitted MMM with the calibrated spec>,
+   df_lift_test=df_lift_test, lift_test_date_column=<date column of the lift tests>)`, which fits one model per fold. QUICK: 3 folds,
    draws=tune=200; FULL: 4 folds, draws=tune=500. This is the longest cell; the Technical Expert measures it
    on Colab and reduces folds before draws if it exceeds 4 minutes. Estimated 2–3 minutes FULL until a run
    record exists (the lead measured a 2-channel fit at 9.7 s for 2×500 after compile; four channels and four
@@ -175,6 +175,8 @@ only, not in a lab: Google's Meridian (DECISIONS.md: package conflicts and a GPU
 
 ## Open items for the Technical Expert
 
-- `mmm(..., confounded=True)` with a demand shock shared by `search` spend and sales, and `lift_tests` in the
-  truth.
+- `mmm(..., confounded=True)` with a demand shock shared by `search` spend and sales (not on main yet; the
+  lift tests are). Add a test date column to `mmm_lift_tests.csv` so cross-validation can filter tests by
+  fold. Exercise 1's reference: rebuild each CSV row from test totals (weekly values × test weeks) and check
+  the function returns the row.
 - Add the R notebook to `modules.m09.notebooks` once the Colab R run is recorded.

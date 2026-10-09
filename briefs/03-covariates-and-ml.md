@@ -32,8 +32,12 @@ forecaster.
 Covariate parameterization (Fader & Hardie note 019, cited by CLVTools' `pnbd` documentation and used by
 PyMC-Marketing's `ParetoNBDModel`): α_i = α·exp(−γ_trans·z_i) and β_i = β·exp(−γ_life·z_i), so a positive
 coefficient raises the purchase or dropout rate. The generator's `truth.covariates` must use this sign
-convention and dummy coding with the first channel as the reference level (CLVTools names the
-coefficients `trans.channelB`, `life.channelB`, … for a character column `channel`).
+convention. On main the channels are `search` (reference), `social` and `referral`, with 0/1 indicator
+columns `channel_social` and `channel_referral` in `retailer_customers.csv`, and `truth.retailer.covariates`
+states this convention. Pass the two indicators to CLVTools as numeric covariates so `search` stays the
+reference; the coefficients are then named `trans.channel_social`, `life.channel_social`, and so on. (Passing
+the character column instead would make CLVTools dummy-code with the first level alphabetically,
+`referral`, as the reference.)
 
 ## Model fits
 
@@ -84,11 +88,12 @@ Python Pareto/NBD MAP seconds, gradient boosting seconds, bootstrap seconds. Est
   For the channel with the highest share, will its dropout coefficient be positive (customers leave sooner)
   or negative?
 - **Function.** `fit_channel_pnbd(clv, customers)`: `SetStaticCovariates(clv, data.cov.life = cov,
-  data.cov.trans = cov, names.cov.life = "channel", names.cov.trans = "channel", name.id = "Id")` with
-  `cov` holding `Id` and `channel`, then `pnbd()`. Return the fitted object.
-- **Checkpoint.** For the 2(K − 1) channel coefficients, the truth lies inside `confint(fit, level = 0.9)`
-  for at least 2(K − 1) − 1 of them (one miss allowed: six 90% intervals all cover only about 53% of the
-  time). The Technical Expert confirms on the committed seed. Also: no NA coefficients (recovery message
+  data.cov.trans = cov, names.cov.life = c("channel_social", "channel_referral"), names.cov.trans =
+  c("channel_social", "channel_referral"), name.id = "Id")` with `cov` holding `Id` and the two indicators,
+  then `pnbd()`. Return the fitted object.
+- **Checkpoint.** For the four channel coefficients (purchase and dropout, social and referral), the truth
+  lies inside `confint(fit, level = 0.9)` for at least 3 of them (one miss allowed: four 90% intervals all
+  cover only about 66% of the time). The Technical Expert confirms on the committed seed. Also: no NA coefficients (recovery message
   suggests Nelder-Mead).
 - **Explain.** A covariate explains part of the heterogeneity that the gamma distributions otherwise
   absorb; the population parameters (r, α, s, β) now describe the reference channel.

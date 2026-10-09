@@ -24,11 +24,11 @@ returns) or who is still a customer.
 | Source | Loader (contract) | Use |
 |---|---|---|
 | UCI Online Retail II (real; CC BY 4.0; 1,067,371 rows, 2009-12-01 to 2011-12-09) | `mktstats.data.load_online_retail_ii()` | cleaning, cohorts |
-| CDNOW 1/10th sample (real; 2,357 customers, 1997-01 to 1998-06) | `mktstats.data.load_cdnow()` | RFM checkpoint, cohorts |
+| CDNOW 1/10th sample (real; 2,357 customers, 1997-01 to 1998-06) | `mktstats.data.load_cdnow()` (on main: columns `id, date, cds_bought, spent`, the copy pymc-marketing distributes) | RFM checkpoint, cohorts |
 | Synthetic retailer | `mktstats.synth.retailer(seed=<default>)` → `.data["transactions"]`, `.data["customers"]` (with `true_alive_at_cal_end`), `.truth["calibration_end"]` | unobserved churn |
 
 Register all three in one DuckDB connection (`con.register(...)` or `CREATE TABLE ... AS SELECT * FROM df`).
-QUICK: Online Retail II restricted to the 2010-12-01 to 2011-12-09 year (about half the rows); CDNOW and the
+QUICK: Online Retail II subsampled through the loader's `sample=` argument (on main: `load_online_retail_ii(sample=None, seed=0)`) or restricted to its second year; CDNOW and the
 synthetic data in full (small).
 
 ## Model fits
@@ -87,8 +87,8 @@ are one purchase occasion." This is the pattern Exercise 2 reuses.
 - **Checkpoint (two).**
   1. `checks.rfm_table(rfm)`: 0 ≤ recency ≤ T, frequency ≥ 0, recency = 0 exactly when frequency = 0.
   2. On CDNOW with `cutoff = "1997-09-30"` (the 39-week calibration period of Fader, Hardie & Lee's
-     BG/NBD note 004): equal to `pymc_marketing.clv.rfm_summary(tx, "customer_id", "date",
-     monetary_value_col="amount", observation_period_end="1997-09-30", time_unit="D", time_scaler=7)`
+     BG/NBD note 004): equal to `pymc_marketing.clv.rfm_summary(tx, "id", "date",
+     monetary_value_col="spent", observation_period_end="1997-09-30", time_unit="D", time_scaler=7)`
      to 1e-9, and exactly **1,411** customers have frequency 0 (the note reports 1,411 of 2,357 made no
      repeat purchase). Recovery message: "check that same-day purchases are merged and that times are
      in weeks as days/7, not whole weeks."
@@ -163,5 +163,9 @@ compare them with Exercise 4's truth.
 ## Open items for the Technical Expert
 
 - `load_online_retail_ii()`: one table, original column names or snake_case (state which), parquet mirror
-  allowed by CC BY 4.0; `load_cdnow()`: columns `customer_id, date, n_cds, amount`.
+  allowed by CC BY 4.0. `load_cdnow()` on main returns `id, date, cds_bought, spent`; the lab renames to
+  `customer_id`, `amount` in a provided cell or uses the original names consistently.
+- `mktstats.data.cdnow_rfm()` on main defaults to `time_unit="W"`, which merges same-week purchases
+  (1,428 non-repeaters instead of 1,411; measured 2026-10-09). Change its default to `time_unit="D"` with
+  `time_scaler=7`, as `retailer_rfm()` already does.
 - Embed reference counts (Exercise 1 rows, Exercise 4 confusion) from the committed data snapshot.

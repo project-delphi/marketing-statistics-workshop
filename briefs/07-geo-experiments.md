@@ -24,14 +24,15 @@ regions.
 
 | Source | Loader | Use |
 |---|---|---|
-| Synthetic geo panel (the retailer's regional campaign) | Python `mktstats.synth.geo_panel(seed=<default>)`; R: committed CSV via `R/mktstats.R`; columns `geo, week, sales`; truth `lift_pct`, `incremental_sales`, `treated_geos`, `test_start`, `test_end`, campaign cost | everything |
+| Synthetic geo panel (the retailer's regional campaign) | Python `mktstats.synth.geo_panel(seed=<default>)`; R: committed CSV via `R/mktstats.R`; on main: columns `date, geo, region, sales, treated, post`; truth `lift_pct` (5.0), `incremental_sales`, `treated_geos` (8), `test_start`, `test_end`, `test_weeks` (10), `pre_weeks` (94); campaign cost still to add | everything |
 | Proposition 99 panel (real; California and 38 control states, 1970–2000) | `mktstats.data.load_prop99()`, from the tidysynth `smoking` data: `state, year, cigsale` (+ predictors) | synthetic control on real data (provided cell) |
 | GeoLift's bundled example (`data(GeoLift_PreTest)`: 40 locations × 90 days) | GeoLift package | clinic only |
 
 Geo panel requirements (from GeoLift's DESCRIPTION: at least 25 pre-treatment periods and more than 20
-geos): at least 40 geos and at least 52 pre-period weeks, about 6 treated geos, an 8-week test. The
-generator should make parallel trends hold up to noise, so difference-in-differences is unbiased by
-construction, and include one geo-specific trend so synthetic control has something to fix.
+geos): met on main with 40 geos, 94 pre-period weeks, 8 treated geos and a 10-week test. Its generator uses
+shared seasonality plus national and regional AR(1) shocks, and multiplies treated geos' counterfactual sales
+by 1 + lift in the test window. Regional shocks mean parallel trends hold only approximately, which is the
+point of comparing difference-in-differences with synthetic control.
 
 ## Model fits
 
@@ -63,8 +64,10 @@ construction, and include one geo-specific trend so synthetic control has someth
   before/after change in treated geos be larger or smaller than the difference-in-differences estimate?
 - **Function.** `did(panel, treated_geos, test_start, test_end) -> dict` with the effect per treated geo per
   week, the total incremental sales over the test, and the naive before/after change.
-- **Checkpoint.** Total incremental sales within 10% of `truth.incremental_sales` (parallel trends hold by
-  construction; the Technical Expert confirms the reference passes on the committed seed in both modes).
+- **Checkpoint.** The implied lift (incremental sales ÷ counterfactual sales in the test window) within 2.5
+  percentage points of `truth.lift_pct`: the truth's `tolerances.geo_did`, measured over 41 seeds for a
+  log-scale two-way fixed-effects difference-in-differences. The Technical Expert confirms it holds for this
+  levels version on the committed seed, or switches the exercise to log sales.
   First checkpoint; runs in milliseconds.
 - **Explain.** The control geos' change is the counterfactual change for the treated geos; that only works
   if both would have moved in parallel without the campaign. Point to the pre-period lines.
@@ -76,7 +79,8 @@ construction, and include one geo-specific trend so synthetic control has someth
   Σw = 1 minimizing ‖y_pre − X_pre·w‖² over the pre-period, with `scipy.optimize.minimize(method="SLSQP")`,
   bounds (0, 1) and an equality constraint. `y_pre` is the treated geos' total, `X_pre` the control geos.
 - **Checkpoint.** Weights non-negative and summing to 1 (to 1e-6); pre-period RMSPE no worse than 1.05 ×
-  the reference; incremental sales from the provided `sc_effect(weights, ...)` within 10% of truth.
+  the reference; the lift implied by the provided `sc_effect(weights, ...)` within 2.5 percentage points of
+  `truth.lift_pct` (same basis as Exercise 1; tighten if the reference run supports it).
 - **Explain.** The weights build a comparison unit that tracks the treated geos before the campaign
   (Abadie, Diamond & Hainmueller 2010). Sparse weights are normal: a few similar geos explain the treated
   series.
@@ -101,10 +105,10 @@ negative.
 
 ### Exercise 4 · Power by simulation (6 minutes)
 
-- **Predict.** With these geos and an 8-week test, what is the chance of detecting a true 5% lift: under
+- **Predict.** With these geos and a 10-week test, what is the chance of detecting a true 5% lift: under
   50%, 50 to 80%, or over 80%?
 - **Function.** `geo_power(pre_panel, treated_geos, lift_pct, n_sims, rng) -> float`: in the pre-period only,
-  pick random 8-week windows, inject `lift_pct` into the treated geos, estimate with `did`, and return the
+  pick random 10-week windows, inject `lift_pct` into the treated geos, estimate with `did`, and return the
   share of windows whose estimate exceeds the 95th percentile of estimates with no injected lift (computed
   in the same function from the same windows).
 - **Checkpoint.** Power at lift 0 is between 0 and 0.15 (should be about 0.05); power increases with lift

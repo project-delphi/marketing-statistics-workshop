@@ -97,10 +97,13 @@ Gamma-Gamma seconds; the CLV grid (9 cells × monthly steps over all customers) 
 ### Run · CLV with PyMC-Marketing (provided)
 
 A provided cell computes `clv_lib = gg.expected_customer_lifetime_value(transaction_model=bgnbd, data=rfm,
-future_t=12, discount_rate=0.01, time_unit="W")` (dims `(chain, draw, customer_id)`; `rfm` has
+future_t=12, discount_rate=0.008, time_unit="W")` (dims `(chain, draw, customer_id)`; `rfm` has
 `customer_id, frequency, recency, T, monetary_value`; zero-repeat customers get the population mean spend)
 and prints the total with its 94% HDI next to the true expected total from
-`mktstats.synth.true_clv(customers, months=12, monthly_rate=0.01)` (proposed helper). Markdown before it
+the truth: the sum over channels of `truth.retailer.value_by_channel.existing_customers_at_cal_end[c].total_discounted_clv`
+(revenue over 52 weeks from the true λ_i, μ_i, alive status and mean spend, discounted continuously at 10% a
+year; 0.8% a month in the library call is the matching monthly rate, and 12 months versus 52 weeks is a small
+convention difference the notebook states). Markdown before it
 names the two easy mistakes: `future_t` is always in **months**, whatever `time_unit` is, and
 `discount_rate` is **monthly**. It also says what the source shows: the library multiplies by the
 posterior **mean** spend, so its interval reflects only the purchase model's uncertainty
@@ -117,7 +120,7 @@ posterior **mean** spend, so its interval reflects only the purchase model's unc
   `gg.expected_customer_spend(data=rfm)`. Return Σ_k spend × purchases_k / (1 + d)^k.
 - **Checkpoint (three).** (1) With `spend` replaced by its posterior mean, matches `clv_lib` to a relative
   1e-6. (2) The 94% HDI of total CLV is at least as wide as the library's. (3) The total 12-month posterior
-  mean is within a tolerance of `true_clv`; the Technical Expert sets the tolerance from the reference run
+  mean is within a tolerance of the truth total; the Technical Expert sets the tolerance from the reference run
   in both QUICK and FULL and states it, no looser than 20%, because the transaction model is a BG/NBD fitted
   to Pareto/NBD data.
 - **Explain.** Pairing draws from two separately fitted posteriors assumes the two posteriors are
@@ -127,14 +130,14 @@ posterior **mean** spend, so its interval reflects only the purchase model's unc
 
 ### Exercise 4 · Horizon and discount-rate sensitivity (7 minutes)
 
-- **Predict.** Which moves total CLV more: going from 12 to 36 months at 1% a month, or from 0% to 2% a
+- **Predict.** Which moves total CLV more: going from 12 to 36 months at 0.8% a month, or from 0% to 2% a
   month at 36 months? Pick one.
-- **Function.** `clv_grid(clv_fn, horizons=(12, 24, 36), rates=(0.0, 0.01, 0.02)) -> pd.DataFrame` with
+- **Function.** `clv_grid(clv_fn, horizons=(12, 24, 36), rates=(0.0, 0.008, 0.02)) -> pd.DataFrame` with
   total CLV posterior mean and 94% HDI for each cell, where `clv_fn(months, rate)` is Exercise 3's function
   with its inputs bound (provided as a partial).
 - **Checkpoint.** Total CLV increases with horizon at each rate and decreases with rate at each horizon
-  (`checks.monotone`); the (12, 0.01) cell equals Exercise 3's result.
-- **Explain.** 1% a month is about 12.7% a year. The horizon is a business choice (how long the plan is,
+  (`checks.monotone`); the (12, 0.008) cell equals Exercise 3's result.
+- **Explain.** 0.8% a month is about 10% a year; 2% a month is about 27% a year. The horizon is a business choice (how long the plan is,
   how far you trust the model); P(alive) decays, so the increase from 24 to 36 months is smaller than from
   12 to 24.
 
@@ -158,7 +161,7 @@ posterior **mean** spend, so its interval reflects only the purchase model's unc
 ### Decision · What is a customer worth? (5 minutes)
 
 Provided cell, in the standard order:
-- **Number:** average-customer and total-base CLV for 12 and 36 months at 1% a month, posterior mean and
+- **Number:** average-customer and total-base CLV for 12 and 36 months at 0.8% a month, posterior mean and
   94% HDI (Exercise 3), and the largest change in the Exercise 4 grid.
 - **Rule:** "Quote CLV as an expected value with its interval, horizon and monthly rate; when two
   assumptions are uncertain, report the one that moves the total most."
@@ -196,8 +199,8 @@ Installed source, pymc-marketing 1.2.0, 2026-10-09:
 
 ## Open items for the Technical Expert
 
-- `mktstats.synth.true_clv(customers, months, monthly_rate)`: expected discounted CLV from the true
-  individual λ_i, μ_i, alive status at calibration end and true mean spend, using the same monthly
-  convention as the library (purchases in month k discounted by (1 + d)^k, 30.4375 days a month). Test it
-  against simulation.
+- Resolved on main: `truth.retailer.value_by_channel` gives the true 52-week discounted CLV (revenue) per
+  channel for existing customers, so no `true_clv` helper is needed. The checkpoint tolerance must absorb the
+  convention gap (continuous weekly discounting over 52 weeks in the truth, monthly steps over 12 months in
+  the library) as well as BG/NBD's misspecification; state both.
 - `mktstats.data.load_sbg_retention()` as described above.

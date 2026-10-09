@@ -29,14 +29,18 @@ subject to Σ s_c = B and bounds, every channel not at a bound has the same marg
 
 ## Data
 
-- Synthetic MMM with lift tests: `mktstats.synth.mmm(seed=<default>, confounded=True)` as in Module 9 (same
-  data, so the calibrated model carries over), truth per channel and a proposed helper
-  `mktstats.synth.true_response(weekly_spend: dict, truth) -> float` (steady-state weekly incremental sales
-  under the true parameters).
-- Bounds per channel (provided assumption table): 50% to 150% of current weekly spend; total weekly budget =
-  current total.
+- Synthetic MMM with lift tests: `mktstats.synth.mmm(seed=<default>, confounded=True)` as in Module 9 (or the
+  default `mmm()` on main until the confounded option exists; same
+  data, so the calibrated model carries over), truth per channel. The true steady-state weekly response can be computed from the truth on main:
+  `saturation_beta_sales_units × logistic(saturation_lam × s / channel_scale)` per channel (a small
+  `true_response` helper in `mktstats` would keep notebooks short).
+- Budget and bounds from `truth.mmm.true_optimal_allocation` on main: weekly budget $72,000 (mean weekly
+  total over the last 52 weeks, rounded), bounds 0.5 to 2.0 times each channel's mean weekly spend over the
+  last 52 weeks, the current allocation, the optimal allocation, weekly contribution at both, marginal ROAS at
+  the optimum and which channels sit at a bound.
 - For Exercise 6: new customers acquired per dollar per channel and new-customer CLV per channel (proposed:
-  `truth.new_customers_per_dollar` in the MMM truth, and `true_new_customer_clv` from Module 5 with the
+  `truth.new_customers_per_dollar` in the MMM truth, not on main yet; and the new-customer CLV from
+  `truth.retailer.value_by_channel.new_customer`, with the
   channel names mapped; see open items).
 
 ## Model fits
@@ -90,8 +94,9 @@ measured.
   -> pd.Series`: maximize Σ_c curves[c](s_c) subject to Σ s_c = total and the bounds, with
   `scipy.optimize.minimize(method="SLSQP")` (minimize the negative), starting from equal shares.
 - **Checkpoint (three).** (1) Sum equals `total` to 1e-6 relative and bounds hold. (2) With the true curves,
-  the plan's true response is within 0.5% of the true optimum (`mktstats.synth.true_optimal_allocation`,
-  proposed helper solved with many starts). (3) Channels strictly inside their bounds have marginal ROAS
+  the plan's true response is within 0.5% of `truth.mmm.true_optimal_allocation.weekly_contribution_optimal`
+  (on main the optimum has tv and search interior with equal marginal ROAS, and social and display at their
+  lower bounds). (3) Channels strictly inside their bounds have marginal ROAS
   within 2% of each other.
 - **Explain.** Compare with your guess. The optimum equalizes marginal, not average, ROAS: a channel with a
   high average ROAS may already be saturated.
@@ -176,7 +181,7 @@ constraints: SciPy docs (references.qmd). The optimizer was not run in this chec
 
 ## Open items for the Technical Expert
 
-- `true_response` and `true_optimal_allocation` helpers.
+- Resolved on main: `truth.mmm.true_optimal_allocation`. Optional: a `true_response` helper.
 - One channel vocabulary across `retailer` (acquisition channels) and `mmm` (media channels), or an explicit
   mapping table in the truth, so Exercise 6 can join CLV to media spend.
 - Check the output dims of `evaluate_response_distribution` and the time to compile the optimizer on Colab.

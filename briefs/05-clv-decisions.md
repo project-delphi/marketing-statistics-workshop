@@ -20,8 +20,9 @@ Module 4 produced CLV with an interval, but a number on its own does not say wha
 
 ## Assumptions stated in one cell
 
-Gross margin rate 30% of spend (an assumption, shown as a parameter); monthly discount rate 1%; horizon 36
-months for acquisition decisions; retention campaign cost $2 per targeted customer. Learners may change
+Gross margin rate 30% of spend (an assumption, shown as a parameter); monthly discount rate 0.8% (about 10%
+a year, the rate in `truth.retailer.value_by_channel`); horizon 12 months (the truth's 52 weeks) for
+acquisition decisions; retention campaign cost $2 per targeted customer. Learners may change
 them; checkpoints use the defaults.
 
 ## Data
@@ -42,7 +43,7 @@ the decisions need a known answer to score against, and CDNOW has no acquisition
    lead measured BG/NBD 2×500 without covariates at 13.7 s on Colab).
 2. `GammaGammaModel` on repeat buyers, MCMC nutpie (seconds; 1.9 s for 2×300 on CDNOW on a laptop).
 
-Then provided: per-customer P(alive) and 36-month CLV draws (Module 4's `discounted_clv`, imported from
+Then provided: per-customer P(alive) and 12-month CLV draws (Module 4's `discounted_clv`, imported from
 `mktstats` or redefined in a provided cell).
 
 ## Parts and exercises
@@ -60,7 +61,7 @@ Then provided: per-customer P(alive) and 36-month CLV draws (Module 4's `discoun
 
 ### Exercise 1 · New-customer CLV by channel (10 minutes)
 
-- **Predict.** Rank the channels by the 36-month value of a new customer, highest first. Is the top channel
+- **Predict.** Rank the channels by the 12-month value of a new customer, highest first. Is the top channel
   worth less than 1.5 times, 1.5 to 3 times, or more than 3 times the bottom one?
 - **Function.** `new_customer_clv(model, gg_idata, channel_rows, months, monthly_rate, margin) ->
   xr.DataArray` with dims `(chain, draw, channel)`: the margin on the acquisition purchase (month 0, not
@@ -69,8 +70,9 @@ Then provided: per-customer P(alive) and 36-month CLV draws (Module 4's `discoun
   t=k × 30.4375 / 7)` and spend is the population mean spend per draw, p·v / (q − 1). `channel_rows` has one
   row per channel with `customer_id` = channel name and the covariate dummies.
 - **Checkpoint.** For each channel, the posterior mean is within a tolerance of
-  `mktstats.synth.true_new_customer_clv(truth, channel, months=36, monthly_rate=0.01, margin=0.30)`
-  (proposed helper, same convention), the tolerance set from the reference run in QUICK and FULL and
+  the truth `truth.retailer.value_by_channel.new_customer[c].discounted_clv_including_first_purchase` × margin
+  (revenue over 52 weeks at 10% a year, continuous discounting; the notebook states the small convention
+  gap), the tolerance set from the reference run in QUICK and FULL and
   stated (no looser than 20%, since BG/NBD approximates the Pareto/NBD generator); and the channel with the
   highest true value has the highest posterior mean.
 - **Explain.** BTYD models count **repeat** purchases; the acquisition purchase must be added separately.
@@ -175,7 +177,7 @@ are standard in DuckDB 1.3.
 
 ## Open items for the Technical Expert
 
-- `mktstats.synth.true_new_customer_clv(truth, channel, months, monthly_rate, margin)` with the convention
-  above (acquisition purchase at month 0 plus discounted repeat purchases).
+- Resolved on main: `truth.retailer.value_by_channel.new_customer` gives new-customer CLV per channel with
+  and without the first purchase (revenue), so no helper is needed; multiply by the margin in the notebook.
 - Confirm that `BetaGeoModel` with channel covariates samples within the 4-minute cell target on Colab
   (FULL); if not, reduce draws before reducing customers, and record the setting used.

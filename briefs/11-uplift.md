@@ -132,8 +132,10 @@ profit) uses the held-out half only.
 - **Function.** `targeting_profit(cate_hat, true_cate, margin, cost) -> dict` with the share targeted
   (margin × cate_hat > cost), the expected profit from the model's view (Σ margin × cate_hat − cost over
   targeted) and the true profit (Σ margin × true_cate − cost over targeted).
-- **Checkpoint.** True profit when targeting by the true CATE is at least the true profit of every model's
-  rule; "mail none" is 0; arithmetic on a toy input.
+- **Checkpoint.** The true profit per customer equals `mktstats.uplift.policy_value_true(true_cate, policy,
+  margin, cost)` for the same policy; targeting by the true CATE reproduces `truth.policy_value_per_customer.oracle`
+  (0.740 on main, with `treat_all` 0.498 and `treat_none` 0) and is at least every model's true profit;
+  arithmetic on a toy input. Margin 0.35 and offer cost $0.50 come from the truth.
 - **Explain.** A model can rank well and still misjudge the effect's size, which moves the cutoff; the gap
   between the model's expected profit and the true profit is that error.
 
@@ -176,12 +178,13 @@ Python: the same Part B on Hillstrom (no truth; compare Qini only).
   `subforest_size=4`, `random_state`), `.fit(Y, T, *, X, W)`, `.effect`, `.effect_interval(X, alpha)`,
   `.ate_interval(X, alpha)`; `SLearner(overall_model=)`, `TLearner(models=)`, `XLearner(models=,
   propensity_model=)`.
-- `mktstats.uplift.qini_curve` and `qini_coefficient` are proposed names (PLAN.md lists Qini curves and AUUC
-  in `mktstats.uplift`); the Technical Expert fixes the API.
+- `mktstats.uplift` on main has `qini_curve(y, treatment, score)`, `qini_coefficient(y, treatment, score,
+  normalize=False)`, `auuc`, `uplift_curve`, `uplift_at_k`, `targeting_rule(cate, margin, cost)`,
+  `policy_value(...)` and `policy_value_true(true_cate, policy, margin, cost)` (function names read on main;
+  not run here).
 
 ## Open items for the Technical Expert
 
-- `mktstats.uplift` API as above, with a test that a random score's Qini is near 0 and the true CATE's is
-  maximal.
-- `email_experiment` features rich enough that effects vary (for example by recency and past spend) and a
-  `true_cate` on the spend scale.
+- Resolved on main: the uplift API above and an `email_experiment` with Hillstrom-like features and
+  `true_cate` on the spend scale (truth `tolerances.email_uplift` checks the true CATE's Qini beats a random
+  score). Confirm `qini_coefficient`'s sign and scale for Exercise 5's random-score tolerance.

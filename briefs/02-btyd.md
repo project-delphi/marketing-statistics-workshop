@@ -146,7 +146,7 @@ Pareto/NBD).*
   `retarget_flags(p_alive: pd.Series, tau: float) -> pd.Series[bool]` (True = keep retargeting).
 - **Checkpoint.** τ arithmetic on three cases; on the synthetic data, customers flagged "stop" have a
   lower true-alive share than those kept, and the share of truly alive customers among "stop" equals the
-  reference (needs per-customer `true_alive` in `btyd_bgnbd`, see open items).
+  reference (`data/synthetic/bgnbd_rfm.csv` on main has `true_alive_at_cal_end` and `true_alive_at_end`).
 - **Explain.** u is an assumption, not a measurement; Day 3 measures it with an experiment. For CDNOW the
   decision uses the **Pareto/NBD** P(alive), because BG/NBD gives P(alive) = 1 to every customer with no
   repeat purchase (checked 2026-10-09 with `expected_probability_alive`), which would never stop them.
@@ -196,6 +196,9 @@ Installed source, pymc-marketing 1.2.0, on 2026-10-09:
 
 ## Open items for the Technical Expert
 
-- `btyd_bgnbd` should also return per-customer `true_alive` at the end of observation (for Exercise 5).
+- Resolved on main: `bgnbd_rfm.csv` carries per-customer true alive status; the synthetic holdout is 26 weeks
+  (`truth.btyd_bgnbd.holdout_weeks`). The truth's `tolerances.btyd_bgnbd_map` (relative bounds from 30 seeds)
+  can back the MAP column of the recovery table.
+- `mktstats.data.cdnow_rfm()` defaults to weekly periods; use days/7 (see brief 01).
 - Helper for the Exercise 1 closed form, tested against a 100,000-customer simulation.
 - Confirm the `checks.k_of_K_in_interval` signature used in Exercise 3.

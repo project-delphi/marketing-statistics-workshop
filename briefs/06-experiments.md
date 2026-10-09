@@ -24,7 +24,7 @@ Nothing so far measured causation.
 
 | Source | Loader | Use |
 |---|---|---|
-| Synthetic email experiment (randomized; the retailer's story) | `mktstats.synth.email_experiment(seed=<default>)`: one row per customer with `treatment` (0/1), `pre_spend` (spend in the 12 weeks before), `visits`, `spend`, `converted`, `clicked` (treated only), features, `true_cate`; truth `ate`, `offer_cost`, `margin` | power check, CUPED against truth, attribution, decision |
+| Synthetic email experiment (randomized; the retailer's story) | `mktstats.synth.email_experiment(seed=<default>)` (on main: 20,000 rows, Hillstrom-like columns `recency, history_segment, history, mens, womens, zip_code, newbie, channel, treatment, conversion, spend, true_cate`; `history` is pre-period spend); truth `ate` (spend scale), `offer_cost`, `margin`, `base_conversion_control`, `conversion_treated` | power check, CUPED against truth, attribution, decision |
 | Hillstrom e-mail experiment (real; 64,000 customers randomized to Mens e-mail, Womens e-mail, No e-mail; two-week outcomes) | `mktstats.data.load_hillstrom()`: `recency, history_segment, history, mens, womens, zip_code, newbie, channel, segment, visit, conversion, spend` | SRM, CUPED on real data (`history` = past-year spend), delta method |
 
 ## Model fits
@@ -87,8 +87,8 @@ None. Everything is closed-form or simulation; each simulation is vectorized and
 
 ### Exercise 4 · CUPED (7 minutes)
 
-- **Predict.** The correlation between pre-period spend and outcome spend in the synthetic experiment is
-  shown above (about ρ). Will CUPED cut the variance of the estimate by about ρ, by about ρ², or not at all?
+- **Predict.** The correlation ρ between pre-period spend (`history`) and outcome spend in the synthetic
+  experiment is shown above. Will CUPED cut the variance of the estimate by about ρ, by about ρ², or not at all?
 - **Function.** `cuped(y, x, treatment) -> dict` with θ = cov(y, x) / var(x) on pooled data, adjusted outcome
   y − θ(x − x̄), and for raw and adjusted: effect (difference in means), standard error, 95% CI, plus the
   variance reduction 1 − var(y_adj)/var(y).
@@ -114,16 +114,18 @@ None. Everything is closed-form or simulation; each simulation is vectorized and
 
 ### Exercise 6 · Attribution is not incrementality (5 minutes)
 
-- **Predict.** Will last-click attribution credit the email with more conversions than it caused, fewer, or
-  about the same?
+- **Predict.** A last-touch report credits every conversion by an emailed customer to the email. Will that
+  be more than, fewer than, or about the conversions the email caused?
 - **Function.** `attributed_vs_incremental(df) -> dict` with `attributed` = conversions among treated
-  customers who clicked, and `incremental` = (conversion rate treated − conversion rate control) × number
-  treated, with a 95% CI for `incremental`.
-- **Checkpoint.** The true incremental conversions (Σ `true_cate` over treated rows, conversion scale) lie
-  inside the CI; `attributed` exceeds the upper CI bound on the committed seed (the generator makes clickers
-  likely buyers anyway; the Technical Expert confirms).
-- **Explain.** Clicks come disproportionately from customers who would have bought anyway, so click-based
-  credit overstates the effect. Large field experiments found observational methods often miss the
+  customers (each was last touched by the email), and `incremental` = (conversion rate treated − conversion
+  rate control) × number treated, with a 95% CI for `incremental`.
+- **Checkpoint.** (`truth.conversion_treated` − `truth.base_conversion_control`) × number treated lies inside
+  the CI; `attributed` exceeds the CI's upper bound (on main's truth the treated conversion rate is 0.063
+  against 0.036 without the email, so more than half of the credited conversions would have happened
+  anyway).
+- **Explain.** Attribution counts who was touched before converting; incrementality counts who converted
+  because of the touch. Customers who would have bought anyway still get touched, so touch-based credit
+  overstates the effect. Large field experiments found observational methods often miss the
   experimental lift (Gordon et al. 2019).
 
 ### Decision · Roll out the email? (5 minutes)
@@ -160,6 +162,7 @@ the MineThatData post (references.qmd, 2026-10-09).
 
 ## Open items for the Technical Expert
 
-- `email_experiment` needs `pre_spend`, `visits`, `clicked` and conversion-scale `true_cate` (or a second
-  truth column for revenue), with clicks more likely among customers with high baseline conversion.
+- Resolved on main: `email_experiment` uses `history` as the pre-period covariate; there is no `visits` or
+  `clicked` column, so the delta method uses Hillstrom (`visit`) and attribution uses last touch by the
+  email.
 - `load_hillstrom()` with lower-case column names as above.

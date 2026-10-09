@@ -73,7 +73,8 @@ the scenario, choose settings and discuss).
 - **Function.** `clv_by_channel(model, gg_idata, channel_rows, months=36, monthly_rate=0.01, margin=0.30)
   -> xr.DataArray` (chain, draw, channel), as in Module 5 Exercise 1 (acquisition purchase plus discounted
   repeat purchases).
-- **Checkpoint.** Each channel's posterior mean within 20% of `true_new_customer_clv` (BG/NBD approximates
+- **Checkpoint.** Each channel's posterior mean within 20% of the truth's `value_by_channel.new_customer` CLV including the first purchase, times the margin
+  (BG/NBD approximates
   the Pareto/NBD generator; the Technical Expert confirms on the capstone seed) and the top channel is right.
 
 ### Stage 2 · Was the regional campaign incremental? (30 minutes)

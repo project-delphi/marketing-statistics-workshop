@@ -32,7 +32,7 @@ and keeps carryover). PyMC-Marketing scales y and x internally, so priors are on
 
 | Source | Loader | Use |
 |---|---|---|
-| Synthetic weekly MMM (the retailer's media) | `mktstats.synth.mmm(seed=<default>)`: `date, y, tv, search, social, display` + controls; truth per channel `adstock_alpha`, `saturation_lam`, `beta`, `roas`, `contribution_share`, and the ROAS window | everything with truth |
+| Synthetic weekly MMM (the retailer's media) | `mktstats.synth.mmm(seed=<default>)` (on main: 156 weeks, columns `date_week, tv, search, social, display, price_index, holiday, t, y`); truth per channel `adstock_alpha`, `saturation_lam`, `saturation_beta_model_units`, `roas`, `roas_with_carryover`, `contribution_share`, the ROAS window (all weeks) and `tolerances.mmm_mcmc` (true ROAS inside the 94% HDI for at least 3 of 4 channels with nutpie 2×500 and default priors) | everything with truth |
 | PyMC-Marketing `mmm_example.csv` (demo data in the PyMC-Marketing repository; the pages that use it point to a "simulated example", no real source is given; we treat it as simulated demo data with unknown true parameters) | `mktstats.data.load_mmm_example()`: `date_week, y, x1, x2, event_1, event_2, dayofyear, t` (179 weeks) | a dataset without truth (Exercise 6) |
 
 The truth's ROAS must use the same definition as `mmm.incrementality.contribution_over_spend(frequency=
@@ -42,8 +42,8 @@ Technical Expert checks this on noiseless data.
 ## Model fits (once each, provided cells)
 
 ```python
-mmm = MMM(date_column="date", channel_columns=["tv", "search", "social", "display"],
-          control_columns=[...], target_column="y",
+mmm = MMM(date_column="date_week", channel_columns=["tv", "search", "social", "display"],
+          control_columns=["price_index", "holiday", "t"], target_column="y",
           adstock=GeometricAdstock(l_max=8), saturation=LogisticSaturation(), yearly_seasonality=2,
           model_config={"saturation_beta": Prior("HalfNormal", sigma=sigma_from_ex3, dims="channel")})
 mmm.build_model(X, y)
