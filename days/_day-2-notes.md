@@ -2,8 +2,8 @@
 Partial, included by day-2.qmd (UI Expert). Owner: Pedagogy Expert.
 Sections: #warm-up, #clinic, #wrap-up. Durations match _variables.yml days.d2.blocks
 (warmup 15, clinic 60, wrapup 20); clock times are on the generated timetable.
-The memo the clinic reviews is the one Lab 5's Decision section asks for; check the memo's
-required parts against briefs/05-*.md once it is final.
+Lab 5's Decision section prints a memo template filled with the learner's numbers; the memo
+itself is written in the first minutes of this clinic (Academic Director's cut, 2026-10-09).
 -->
 
 ## Warm-up: what carried over from Day 1 (15 minutes) {#warm-up}
@@ -34,22 +34,23 @@ A forecast is only tested on data it has not seen: both models are fitted on the
 Not from this alone. The coefficient says that channel's customers bought more often than the reference channel's customers, holding the model's other inputs fixed. They may differ for reasons the channel did not cause (who the channel reaches), and more budget may bring in different, marginal customers. A budget decision also needs each channel's acquisition cost, which Module 5 brings in.
 :::
 
-**Why today.** Today's question is *{{< var days.d2.question >}}* Module 4 adds money to the purchase forecasts: spend per transaction, discounting and the horizon. Module 5 turns customer value into decisions (how much to pay to acquire a customer, when retention pays) and into a one-page memo, which the afternoon clinic reviews.
+**Why today.** Today's question is *{{< var days.d2.question >}}* Module 4 adds money to the purchase forecasts: spend per transaction, discounting and the horizon. Module 5 turns customer value into decisions (how much to pay to acquire a customer, when retention pays) and the afternoon clinic starts by writing them into a one-page memo for a finance review.
 
 ## CFO memo clinic (60 minutes) {#clinic}
 
 **Goal.** Make your Module 5 decision memo survive a finance review: one clear recommendation, in money, with its uncertainty and the assumptions that would change it.
 
-**What you bring.** The memo you wrote in Lab 5's Decision section: at most one page (about 250 words), headed by a one-sentence recommendation.
+**What you bring.** The memo template that Lab 5's Decision section printed with your numbers. You write the memo here, in the first part of the clinic: at most one page (about 250 words), headed by a one-sentence recommendation.
 
 **Format.** Groups of three. Each round, one person is the **Author**, one the **CFO** and one the **Analyst**; roles rotate, so everyone plays each role once and every memo is reviewed. In a group of four, the fourth person is a second Analyst; in a pair, the CFO also uses the Analyst's checklist.
 
 | Minutes | What happens |
 |---|---|
-| 0–5 | The facilitator explains the two roles, hands out the CFO card and the Analyst checklist below, and forms groups. |
-| 5–44 | **Three rounds of 13 minutes**, one memo each: 2 minutes for the CFO and Analyst to read in silence; 4 for the CFO's questions; 3 for the Analyst's checklist; 2 for the Author to note what to change (no defending); 2 to rotate. |
-| 44–54 | **Revise.** Each Author rewrites the headline sentence and the "what would change my mind" sentence, then swaps with one group member for a one-minute read. |
-| 54–60 | **The room.** Two volunteers read their headline before and after. The facilitator names the most common gap they heard. |
+| 0–3 | The facilitator explains the two roles, hands out the CFO card and the Analyst checklist below, and forms groups. |
+| 3–15 | **Write.** Everyone writes their memo from the template Lab 5 printed: the recommendation first, then the numbers with their intervals, the assumptions, and what would change your mind. |
+| 15–51 | **Three rounds of 12 minutes**, one memo each: 2 minutes for the CFO and Analyst to read in silence; 4 for the CFO's questions; 3 for the Analyst's checklist; 2 for the Author to note what to change (no defending); 1 to rotate. |
+| 51–57 | **Revise.** Each Author rewrites the headline sentence and the "what would change my mind" sentence. |
+| 57–60 | **The room.** Two volunteers read their headline before and after. The facilitator names the most common gap they heard. |
 
 **The CFO's card.** Ask up to four, and only from this card. The Author answers briefly; no slides, no notebook.
 

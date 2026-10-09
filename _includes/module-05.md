@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO.
+Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign and scores written to a warehouse table, with the numbers for a one-page CFO memo that you write in the afternoon clinic.
 :::
 
 ::: {.module-actions}
@@ -42,13 +42,13 @@ Data
 - Report segment value with 94% credible intervals and say which differences between segments are supported by the data.
 - Find the retention improvement a campaign needs to break even, and judge whether it is plausible.
 - Write customer scores (P(alive), CLV mean and interval, segment, model version, date) to a DuckDB table with a fixed schema.
-- Write a one-page decision memo that states the numbers, their uncertainty and the assumptions behind them.
+- Collect the numbers, intervals and assumptions a one-page decision memo needs; the memo itself is written and peer-reviewed in the Day 2 clinic.
 
 **You leave with:**
 
 - A CAC-cap table by acquisition channel, compared with the true new-customer CLV
 - A customer_scores table in a DuckDB 'warehouse' file
-- A one-page CFO memo, peer-reviewed in the afternoon clinic
+- A memo template filled with the lab's numbers, from which you write the one-page CFO memo in the afternoon clinic
 :::
 
 ::: {.prerequisites}
