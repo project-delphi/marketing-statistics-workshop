@@ -77,11 +77,11 @@ load_cdnow <- function(url = CDNOW_URL, sha256 = CDNOW_SHA256) {
            "Check the network and rerun; if it fails again, tell the instructor.", call. = FALSE)
     }
   }
-  utils::read.csv(path)
+  utils::read.csv(path, check.names = FALSE)  # keep the column name `_id`
 }
 
 tx_raw <- load_cdnow()
-con <- dbConnect(duckdb::duckdb())
+con <- suppressMessages(dbConnect(duckdb::duckdb()))  # quiet the storage notice
 duckdb::duckdb_register(con, "transactions", tx_raw)
 cat(format(nrow(tx_raw), big.mark = ","), "transactions,",
     format(length(unique(tx_raw$id)), big.mark = ","), "customers\n")
@@ -118,7 +118,11 @@ customer_table_sql <- function(con) {
   stop("TODO 1")
 }
 
+# %% [markdown]
+# **Solution 1 — try it yourself first.** The next cell is the reference solution.
+
 # %% tags=["solution"]
+#@title Solution 1 — try it yourself first { display-mode: "form" }
 solution(1, "customer_table_sql", function(con) {
   dbGetQuery(con, "
     SELECT
@@ -186,7 +190,11 @@ customer_table_dplyr <- function(tx) {
   stop("TODO 2")
 }
 
+# %% [markdown]
+# **Solution 2 — try it yourself first.** The next cell is the reference solution.
+
 # %% tags=["solution"]
+#@title Solution 2 — try it yourself first { display-mode: "form" }
 solution(2, "customer_table_dplyr", function(tx) {
   tx |>
     mutate(date = as.Date(as.character(date), format = "%Y%m%d")) |>
@@ -238,7 +246,11 @@ repeat_purchases <- function(tx) {
   stop("TODO 3")
 }
 
+# %% [markdown]
+# **Solution 3 — try it yourself first.** The next cell is the reference solution.
+
 # %% tags=["solution"]
+#@title Solution 3 — try it yourself first { display-mode: "form" }
 solution(3, "repeat_purchases", function(tx) {
   tx |>
     group_by(customer_id = id) |>
