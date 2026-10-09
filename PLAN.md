@@ -176,7 +176,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [PE] `prepare.qmd` entry check; `teach.qmd`; day warm-ups/wrap-ups; knowledge checks (also `days/_day-0-notes.md`…`_day-5-notes.md` with the Day 2/3 clinics and Day 5 run of show, and the lab standard `briefs/_lab-standard.md`)
 - [x] [UI] landing page (hero, counts, day cards, path, integration diagram SVG), slides/welcome.qmd, browser check both themes (headless Chrome, 1280 and 375 px, against the generator's includes; the lead's check in Chrome still to do)
 - [x] [Lead] `setup.qmd` (Colab Python/R, local Docker/uv, AWS) with measured install times from records
-- [ ] [TE] `environment/aws/` (SageMaker BYOI, lifecycle config, EC2, IAM, S3, teardown) — documented, not run
+- [x] [TE] `environment/aws/` (SageMaker BYOI, lifecycle config, EC2, IAM, S3, teardown) — documented, not run
 - [x] [AD] `faq.qmd`
 
 ### Phase 7 — release

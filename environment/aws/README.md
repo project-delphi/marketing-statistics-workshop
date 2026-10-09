@@ -422,9 +422,9 @@ To also restrict instance types, add a statement with the `ec2:InstanceType` con
 ## S3 data bucket (optional)
 
 Use this when data must stay inside your company's AWS account. **mktstats does not read S3.**
-Its loaders download files and cache them in the directory named by `MKTSTATS_CACHE`; the R
-helpers do this today, and the Python loaders (`src/mktstats/data.py`) are still to be written,
-so check that they honor `MKTSTATS_CACHE` before relying on this. The approach: fill the cache
+Its loaders download files and cache them in the directory named by `MKTSTATS_CACHE` (the
+Python loaders in `src/mktstats/data.py` and the R helpers both honor it; set `MKTSTATS_OFFLINE=1`
+to forbid downloads once the cache is filled). The approach: fill the cache
 once where downloads are allowed, copy it to S3, and copy it back into `MKTSTATS_CACHE` wherever
 the labs run. That mirrors whatever layout the loaders use. With `MKTSTATS_REPO_ROOT` set, the
 synthetic datasets come from the clone's `data/` and need no cache.
