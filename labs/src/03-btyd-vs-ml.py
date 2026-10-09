@@ -17,7 +17,11 @@
 # %% [markdown]
 # # Part C · BTYD versus gradient boosting
 #
-# The two exercises here follow Exercises 1 to 3 of the R notebook (`03-clvtools-covariates`).
+# **Order of work.** This is the second of the lab's two notebooks. Do it after Exercises 1 to
+# 3 and the decision of the R notebook (`03-clvtools-covariates`), about 30 minutes into the
+# lab. Its two exercises take about 18 minutes, which leaves 5 for the decision. If you are
+# here at the start of the lab, run the install cell above and go to the R notebook.
+#
 # The question: for next quarter's purchases per customer, does a flexible machine-learning
 # model forecast better than a buy-till-you-die (BTYD) model? We measure it on held-out data
 # instead of assuming an answer, on two datasets: the synthetic retailer and CDNOW.
@@ -57,7 +61,7 @@ print(f"Retailer: {len(tx):,} purchases, cutoff {CUTOFFS['retailer']:%Y-%m-%d};"
 # %% [markdown]
 # ## Exercise 1 · Features and a target without leakage (9 minutes)
 #
-# A machine-learning model needs labelled examples. The design: build each customer's
+# A machine-learning model needs labeled examples. The design: build each customer's
 # features at the date `cutoff - H`, and use the purchases in the following $H$ weeks, up to
 # `cutoff`, as the target. Train on those. Then build the same features at `cutoff` and
 # predict the $H$ weeks after it, which the model has never seen. *Leakage* is any
