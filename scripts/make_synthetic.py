@@ -71,6 +71,31 @@ TOLERANCES = {
     "email_uplift": {
         "check": "Qini coefficient of true_cate as the score exceeds that of a random score",
     },
+    "mmm_confounded_mcmc": {
+        "sampler": "nutpie, 2 chains, draws = tune = 300 (QUICK) and 1000 (FULL), random_seed=1, "
+                   "default priors, mktstats.recovery.fit_mmm",
+        "interval": "94% HDI",
+        "uncalibrated": {"search_hdi_above_truth": True, "other_channels_inside_min": 2},
+        "calibrated": {"lift_rows": "both search rows of mmm_confounded_lift_tests.csv",
+                       "search_inside": True, "search_hdi_narrower": True},
+        "measured_2026_10_09": {
+            "search_roas_truth": 3.0,
+            "uncalibrated_search_mean_hdi": {"300": [5.418, 4.135, 6.719],
+                                             "1000": [5.354, 4.013, 6.530]},
+            "calibrated_search_mean_hdi": {"300": [3.055, 2.783, 3.344],
+                                           "1000": [3.056, 2.772, 3.368]},
+            "other_channels_inside": "3 of 3 in all four fits; calibration raises the social and "
+                                     "display means (to about 2.8 and 1.4) with wide HDIs",
+            "other_lift_rows_500_draws": {
+                "search_plus_30pct_test_only": [3.241, 2.694, 4.025],
+                "search_switch_off_test_only": [3.507, 3.128, 3.813],
+                "all_five_rows": [3.070, 2.800, 3.383],
+                "note": "search ROAS mean and 94% HDI; the switch-off test alone leaves the "
+                        "truth outside, the +30% test alone or both search tests bring it "
+                        "inside",
+            },
+        },
+    },
 }
 
 
@@ -79,6 +104,7 @@ def build() -> tuple[dict[str, object], dict]:
     retail = synth.retailer()
     bg = synth.btyd_bgnbd()
     mm = synth.mmm()
+    mmc = synth.mmm_confounded()
     geo = synth.geo_panel()
     email = synth.email_experiment()
     frames = {
@@ -90,6 +116,9 @@ def build() -> tuple[dict[str, object], dict]:
         "mmm_lift_tests.csv": mm.lift_tests,
         "geo_panel.csv": geo.panel,
         "email_experiment.csv": email.experiment,
+        "mmm_confounded_weekly.csv": mmc.weekly,
+        "mmm_confounded_lift_tests.csv": mmc.lift_tests,
+        "mmm_confounded_latent.csv": mmc.latent,
     }
     truth = {
         "about": (
@@ -102,6 +131,8 @@ def build() -> tuple[dict[str, object], dict]:
             "mmm": ["mmm_weekly.csv", "mmm_lift_tests.csv"],
             "geo_panel": ["geo_panel.csv"],
             "email_experiment": ["email_experiment.csv"],
+            "mmm_confounded": ["mmm_confounded_weekly.csv", "mmm_confounded_lift_tests.csv",
+                               "mmm_confounded_latent.csv"],
         },
         "retailer": retail.truth,
         "btyd_bgnbd": bg.truth,
@@ -109,6 +140,9 @@ def build() -> tuple[dict[str, object], dict]:
         "geo_panel": geo.truth,
         "email_experiment": email.truth,
         "tolerances": TOLERANCES,
+        "mmm_confounded": mmc.truth,
+        "channel_value": synth.channel_value(retail.truth, {"mmm": mm.truth,
+                                                            "mmm_confounded": mmc.truth}),
     }
     return frames, truth
 
