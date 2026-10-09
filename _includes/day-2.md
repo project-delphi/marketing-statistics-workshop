@@ -13,7 +13,7 @@ Add a Gamma-Gamma spend model after checking that spend is independent of purcha
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/04-monetary-clv.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/04-monetary-clv.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/04-monetary-clv.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -28,7 +28,7 @@ Turn posterior CLV into decisions: the most we can pay to acquire a customer in 
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/05-clv-decisions.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/05-clv-decisions.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/05-clv-decisions.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::

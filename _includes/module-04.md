@@ -10,7 +10,7 @@ Add a Gamma-Gamma spend model after checking that spend is independent of purcha
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/04-monetary-clv.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python. Python. PyMC-Marketing's GammaGammaModel and ShiftedBetaGeoModel sit on the same posterior machinery as the Module 2 transaction models, so uncertainty can flow from purchases to dollars.
 
 Labs
-:   Python: `labs/python/04-monetary-clv.ipynb` (in preparation)
+:   Python: `labs/python/04-monetary-clv.ipynb`
 
 Data
-:   *To be written.*
+:   [CDNOW transaction log](https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/cdnow_transactions.csv), [Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)](https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf)
 :::
 
 ::: {.module-outcomes}
