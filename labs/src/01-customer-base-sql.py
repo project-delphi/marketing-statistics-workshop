@@ -163,8 +163,8 @@ with workshop.checkpoint(1):
 # ### Run · Load Online Retail II
 #
 # The first time, the next cell downloads a 45 MB file from the UCI repository, checks its
-# SHA-256 hash and converts it (one to three minutes); after that it reads a cached copy in
-# seconds. While it runs, read Exercise 2 below. With QUICK on, the lab keeps the second year
+# SHA-256 hash and converts it (an estimate: one to three minutes, depending on the network);
+# after that it reads a cached copy in seconds. While it runs, read Exercise 2 below. With QUICK on, the lab keeps the second year
 # only (December 2010 to December 2011), so counts are about half.
 
 # %%
@@ -259,7 +259,8 @@ print(f"{(gap_days < 7).mean():.1%} of {len(gap_days):,} gaps are under 7 days")
 # - **recency** $t_x$: the time from the first purchase day to the last one;
 # - **age** $T$: the time from the first purchase day to the cutoff.
 #
-# With mean spend per repeat purchase day, this is the *RFM table*.
+# With mean spend per repeat purchase day (*monetary value*), this is the *RFM table*: recency,
+# frequency, monetary value.
 #
 # ## Exercise 2 · Frequency, recency, age and spend with window functions (12 minutes)
 #
@@ -631,10 +632,12 @@ print("Mode:", "QUICK (Online Retail II was cut; this table uses the full synthe
 table
 
 # %% [markdown]
-# **Recommendation.** Write one sentence: which $N$ (if any) you would use, how many customers
-# and dollars it concerns, and what would change your answer. Two things would: a different
-# margin or cost, and a model that tells alive customers from lapsed ones better than recency
-# alone (Module 2).
+# **Recommendation.** Read the table row by row: `net ($)` is the retargeting cost saved minus
+# the margin lost, and the rule says use $N$ only where it is positive. Write one sentence:
+# which $N$ (if any) you would use, how many customers and dollars it concerns, and what would
+# change your answer. There is no interval here, so say instead how sure you are: how far the
+# assumed margin or cost would have to move to flip the sign of `net ($)`. A model that tells
+# alive customers from lapsed ones better than recency alone (Module 2) would change it too.
 #
 # Your sentence: ________________________________________________
 
