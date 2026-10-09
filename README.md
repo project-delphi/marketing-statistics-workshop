@@ -14,6 +14,7 @@ repository at the workshop's pinned ref, so this file must exist for the package
 ## Status
 
 <!-- BEGIN status -->
+> **No runs are recorded yet: not yet ready to teach.** 0 of 17 notebooks have a current, passing, worked, full-settings run of the whole notebook on Colab (15 are not written yet). 0 have passed on another machine (0 with full settings), and 0 on CI. [What has run, where](https://project-delphi.github.io/marketing-statistics-workshop/readiness.html).
 <!-- END status -->
 
 ## Licences
