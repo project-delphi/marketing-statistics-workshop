@@ -33,8 +33,9 @@ extend-exclude = ["labs/python", "spikes"]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-# Jupytext percent sources: notebook-style imports and top-level expressions.
-"labs/src/*.py" = ["E402", "F821", "B018", "E501"]
+# Jupytext percent sources: notebook-style imports and top-level expressions, names the
+# harness defines (F821), and the exercise pattern: a stub, then its reference (F811).
+"labs/src/*.py" = ["E402", "F821", "F811", "B018", "E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
