@@ -8,8 +8,10 @@
 #   window_start, window_end, ...) and robyn_inputs(InputCollect =, hyperparameters =).
 # - robyn_run(InputCollect, cores, iterations, trials, ts_validation, add_penalty_factor,
 #   seed = 123L, quiet = FALSE): quiet = TRUE fails in 3.12.1 ("object 'pb' not found"), so the
-#   notebook hides the progress bar with capture.output instead. The demo recommends
-#   iterations = 2000, trials = 5 for dt_simulated_weekly.
+#   notebook hides the progress bar with capture.output instead. robyn_mmm seeds numpy, and so
+#   Nevergrad, only `if (is.integer(seed))`: seed = 123 (a double) leaves the search unseeded
+#   and the results change between runs; 123L gave identical runs (checked twice in the image).
+#   The demo recommends iterations = 2000, trials = 5 for dt_simulated_weekly.
 # - robyn_outputs(InputCollect, OutputModels, pareto_fronts = "auto", min_candidates, csv_out =
 #   NULL, clusters = FALSE, export = FALSE, plot_pareto = FALSE, quiet): writes no files with
 #   these settings (checked); $resultHypParam has solID, nrmse, decomp.rssd, robynPareto;
@@ -48,7 +50,7 @@
 #
 # - **Settings.** This notebook runs 500 iterations × 1 trial (200 with QUICK). Robyn's demo
 #   recommends 2,000 iterations × 5 trials for this dataset, so the results show how Robyn
-#   works, not reliable estimates; Robyn itself will say the search has not converged.
+#   works, not reliable estimates; Robyn itself warns that it is too few.
 # - **Maintenance.** Robyn is effectively unmaintained: the last commit on its GitHub main
 #   branch is from 2025-06-27 and the CRAN release 3.12.1 from 2025-07-02 (checked 2026-10-09).
 #
@@ -161,9 +163,10 @@ InputCollect <- robyn_inputs(InputCollect = InputCollect, hyperparameters = hype
 
 # %% [markdown]
 # **Run.** The search: 500 candidate models (200 with QUICK) in one trial, far below the
-# 2,000 × 5 that Robyn's demo recommends; Robyn warns about it and reports that the search has
-# not converged. About a minute (an estimate for Colab; measured in the workshop image on 2 CPUs:
-# see the run record). While it runs, read Exercise 1's Predict prompt.
+# 2,000 × 5 that Robyn's demo recommends; Robyn warns about it and reports, for each of its two
+# errors, whether the search has converged. About a minute (an estimate for Colab; measured in
+# the workshop image on 2 CPUs: see the run record). While it runs, read Exercise 1's Predict
+# prompt.
 
 # %%
 ITERATIONS <- if (QUICK) 200 else 500
@@ -172,7 +175,8 @@ started <- Sys.time()
 invisible(capture.output({  # hides the text progress bars; quiet = TRUE fails in Robyn 3.12.1
   OutputModels <- robyn_run(InputCollect = InputCollect, cores = ROBYN_CORES,
                             iterations = ITERATIONS, trials = 1, ts_validation = FALSE,
-                            add_penalty_factor = FALSE, seed = 123)
+                            add_penalty_factor = FALSE,
+                            seed = 123L)  # an integer: Robyn seeds Nevergrad only then
   OutputCollect <- robyn_outputs(InputCollect, OutputModels, pareto_fronts = "auto",
                                  min_candidates = 5, csv_out = NULL, clusters = FALSE,
                                  export = FALSE, plot_pareto = FALSE, quiet = TRUE)
@@ -401,7 +405,7 @@ decision
 # invisible(capture.output(
 #   OutputModels_full <- robyn_run(InputCollect = InputCollect, cores = ROBYN_CORES,
 #                                  iterations = 2000, trials = 5, ts_validation = FALSE,
-#                                  add_penalty_factor = FALSE, seed = 123)
+#                                  add_penalty_factor = FALSE, seed = 123L)
 # ))
 # OutputCollect_full <- robyn_outputs(InputCollect, OutputModels_full, pareto_fronts = "auto",
 #                                     csv_out = NULL, clusters = FALSE, export = FALSE,
