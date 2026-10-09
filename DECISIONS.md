@@ -56,6 +56,13 @@ Newest first within each section.
   in the R runtime they render collapsed with "Show code", like Python. (The S3 spike cell without a
   `#@title` line was shown in full; that question is now closed.)
 
+### Online Retail II is mirrored as a release asset (2026-10-09)
+- The UCI download stalled for two agents during the build (one parse after download took ~196 s in
+  total). UCI's licence is CC BY 4.0, so the original zip and the parsed parquet are attached to release
+  `data-2026-10-09` with attribution. `load_online_retail_ii()` now tries the 7 MB parquet first
+  (sha256-checked, cold load measured 11.6 s on the laptop), then UCI, then the zip mirror.
+  CDNOW and Hillstrom have no explicit licence and are not mirrored.
+
 ## Spikes
 
 (Results are added below as each spike runs.)

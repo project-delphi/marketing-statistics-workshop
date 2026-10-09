@@ -22,6 +22,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 import time
 import urllib.request
 import zipfile
@@ -33,6 +34,7 @@ from mktstats.synth._rfm import rfm_core, swap_recency_frequency
 
 REPO_RAW = "https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop"
 _PMM = "https://raw.githubusercontent.com/pymc-labs/pymc-marketing"
+_MIRROR = "https://github.com/project-delphi/marketing-statistics-workshop/releases/download/data-2026-10-09"
 
 DATASETS: dict[str, dict] = {
     "cdnow": {
@@ -59,6 +61,20 @@ DATASETS: dict[str, dict] = {
             {"url": "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip",
              "file": "online_retail_ii.zip",
              "sha256": "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb"},
+            # The same archive, unchanged, mirrored as a release asset of this repository
+            # (CC BY 4.0 allows redistribution with attribution; see the release notes).
+            {"url": f"{_MIRROR}/online_retail_ii.zip",
+             "file": "online_retail_ii.zip",
+             "sha256": "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb"},
+        ],
+    },
+    "online_retail_ii_parquet": {
+        "description": "Online Retail II as load_online_retail_ii() returns it (both sheets, "
+                       "overlap removed, snake_case), mirrored as parquet; CC BY 4.0, from UCI 502",
+        "sources": [
+            {"url": f"{_MIRROR}/online_retail_ii.parquet",
+             "file": "online_retail_ii.parquet",
+             "sha256": "ae7d5f4552906134bdf016819aaa3bb93d1a626c6f3c56ea99d55a74210437b3"},
         ],
     },
     "hillstrom": {
@@ -336,12 +352,20 @@ def load_online_retail_ii(sample: int | float | None = None, seed: int = 0) -> p
     int keeps that many randomly chosen customers, a float in (0, 1) that fraction of customers
     (rows without a customer id are dropped when sampling); ``seed`` fixes the choice.
     """
-    zpath = fetch("online_retail_ii")
     tag = DATASETS["online_retail_ii"]["sources"][0]["sha256"][:12]
     cached = cache_dir() / f"online_retail_ii-{tag}.parquet"
+    if not cached.exists():
+        # Fast path: the parsed table, mirrored (7 MB, sha256-checked), instead of downloading the
+        # 45 MB workbook and parsing it with openpyxl. Falls back to the original on any failure.
+        try:
+            fast = fetch("online_retail_ii_parquet", timeout=30, retries=2)
+            shutil.copyfile(fast, cached)
+        except OSError:
+            pass
     if cached.exists():
         df = pd.read_parquet(cached)
     else:
+        zpath = fetch("online_retail_ii")
         with zipfile.ZipFile(zpath) as z, z.open("online_retail_II.xlsx") as f:
             sheets = pd.read_excel(io.BytesIO(f.read()), sheet_name=None, engine="openpyxl")
         first, second = (s.assign(Invoice=s["Invoice"].astype(str)) for s in sheets.values())
