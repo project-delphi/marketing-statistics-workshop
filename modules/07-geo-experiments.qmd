@@ -5,13 +5,251 @@ title: "{{< var modules.m07.title >}}"
 {{< include /_includes/module-07.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 6 measured the email's effect cleanly because a coin decided, customer by customer, who got it. Many campaigns cannot be assigned that way: TV, radio, outdoor and regional promotions switch on for whole regions at once, and a region cannot be split into a treated half and a control half. This module asks how to measure the lift of a regional campaign when the units are a few dozen regions, not twenty thousand customers, and when only some of those regions got the campaign.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-07.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. Geo tests and the missing counterfactual
+
+The retailer ran a regional campaign in 8 of its 40 sales regions, called **geos**, for ten weeks in late 2025. The other 32 geos did not get it. The data are a panel of weekly sales: 40 geos by 104 weeks, with a 94-week **pre-period** before the **test window** of 2025-10-20 to 2025-12-22.
+
+The quantity we want is **incremental sales**: what the treated geos sold in the test window minus what they would have sold without the campaign. That second number, the **counterfactual**, is never observed. Every method in this module is a way of estimating it from the geos that did not get the campaign:
+
+| Method | Counterfactual built from | Key assumption |
+|---|---|---|
+| Difference-in-differences | the control geos' change over the same weeks | parallel trends |
+| Synthetic control | a weighted average of control geos that tracked the treated geos before the test | the weights keep working in the test window |
+| CausalImpact | a time-series model of the treated geos on the controls, forecast into the test window | controls unaffected by the campaign, and a stable relationship |
+
+When geos are assigned to treatment at random (a **geo experiment**; Vaver and Koehler 2011), these estimates have the same footing as Module 6's. When they are chosen by someone (the regions with the best stores, the ones the sales team asked for), the comparison is a **quasi-experiment**, and the assumptions in the third column carry the weight. This panel is synthetic with a **true lift of 5%**, so every method can be scored. The lab then runs one method on a real case, California's Proposition 99.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $y_{gt}$ | sales of geo $g$ in week $t$ |
+| $\mathcal{T}$, $\mathcal{C}$ | treated and control geos ($|\mathcal{T}| = 8$, $|\mathcal{C}| = 32$) |
+| pre, test | the 94 pre-period weeks and the 10 test weeks |
+| $\bar L_{\text{group, period}}$ | mean of $\log y_{gt}$ over the geo-weeks of a group and period |
+| $\delta$ | difference-in-differences on the log scale |
+| $\tilde y_t$, $\tilde x_{jt}$ | treated total and control geo $j$, each divided by its own pre-period mean (an index, 1.0 = a normal pre-period week) |
+| $w_j$ | synthetic-control weight on control geo $j$ |
+| RMSPE | root mean squared prediction error: the size of the gap between a series and its synthetic control |
+| $m$, $C$ | gross margin rate (30%) and campaign cost |
+
+## 2. Difference-in-differences
+
+**Objective for this section:** estimate a campaign effect with a two-period difference-in-differences and state the parallel-trends assumption it needs.
+
+The **naive** estimate compares the treated geos' sales in the test window with their own pre-period. It mixes the campaign with everything else that changed: two years of growth, and the season of the test weeks (late autumn into December). **Difference-in-differences (DiD)** subtracts the control geos' change over the same weeks, which carries the same growth and season but no campaign.
+
+The geos differ in size by a factor of ten or more, and the campaign multiplies sales, so the lab works on the log scale, where a 5% lift adds the same amount to a small geo and a large one:
+
+$$
+\delta = \big(\bar L_{\mathcal{T},\text{test}} - \bar L_{\mathcal{T},\text{pre}}\big) - \big(\bar L_{\mathcal{C},\text{test}} - \bar L_{\mathcal{C},\text{pre}}\big),
+\qquad
+\text{lift} = e^{\delta} - 1,
+$$ {#eq-did}
+
+and incremental sales $= Y_{\mathcal{T},\text{test}}\,(1 - e^{-\delta})$, where $Y_{\mathcal{T},\text{test}}$ is the treated geos' actual sales in the test window: actual minus counterfactual, with counterfactual $= \text{actual} / (1 + \text{lift})$.
+
+DiD is unbiased under **parallel trends**: without the campaign, the treated geos' mean log sales would have changed by the same amount as the controls'. The assumption is about a counterfactual, so it can never be tested directly, only made plausible: the pre-period lines move together, and an event-study plot (the stretch) shows no trend in the weeks before the test (Cunningham, *Causal Inference: The Remix*).
+
+FULL run:
+
+| Estimate | Lift | Incremental sales |
+|---|---|---|
+| Naive before/after (treated geos only) | +7.71% | — |
+| Difference-in-differences | +4.35% | 88,926 |
+| Truth | 5.0% | 101,679 |
+
+DiD removes most of the naive estimate's bias and lands within the tolerance the workshop measured over 41 independently generated panels (±2.5 percentage points). It is still low, because trends are only approximately parallel: each region has its own shocks, and the treated geos are not spread over the regions in the same proportions as the controls (4 of the 8 treated geos are in region R4, against 6 of the 32 controls).
+
+::: {.self-check}
+**Check yourself.** The naive estimate was +7.7% and DiD +4.35%. What accounts for the difference, and what would happen to DiD if the campaign had run in the same weeks as a national promotion that reached every geo?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The controls' own change from the pre-period to the test window, about +3.2% (0.032 on the log scale): growth and season, which DiD takes as what would have happened to the treated geos anyway and subtracts. A national promotion that reached every geo raises treated and control sales alike, so it appears in both changes and cancels: DiD is protected against shocks shared by all geos. It is not protected against a promotion that ran only in the treated geos, or mostly in them, which would be counted as campaign effect.
 :::
+:::
+
+## 3. Synthetic control
+
+**Objective for this section:** fit synthetic-control weights by constrained least squares with SciPy and estimate incremental sales.
+
+DiD gives every control geo the same weight. **Synthetic control** (Abadie, Diamond and Hainmueller 2010) chooses the weights so that a weighted average of control geos tracks the treated series in the pre-period, then uses the same weights in the test window as the counterfactual:
+
+$$
+\hat w = \arg\min_{w} \sum_{t \in \text{pre}} \Big(\tilde y_t - \sum_{j \in \mathcal{C}} w_j \tilde x_{jt}\Big)^2
+\quad \text{subject to} \quad w_j \ge 0,\ \ \sum_{j} w_j = 1 ,
+$$ {#eq-sc}
+
+and the counterfactual index in test week $t$ is $\sum_j \hat w_j \tilde x_{jt}$. The constraints make the synthetic control an **interpolation** between real geos, never an extrapolation: it cannot invent a geo bigger than all of them or a trend steeper than any of them. No weighted average of single geos can reach the total of eight treated geos, so the lab matches **shapes**: the treated total and each control are divided by their own pre-period mean before fitting, and the gap is converted back to sales afterwards.
+
+@eq-sc is a quadratic objective with bounds and one equality constraint. The lab solves it with SciPy's `minimize(method="SLSQP", bounds=..., constraints=[{"type": "eq", ...}])`, the same optimizer Module 10 uses for budgets, and the checkpoint solves it a second way (non-negative least squares with a heavily weighted extra row for the sum) to confirm the fit.
+
+FULL run: the synthetic control estimates a lift of **+4.18%**, 85,586 incremental sales (truth 101,679), with a pre-period fit error (RMSPE) of 0.018 in index units. It puts more than 1% of weight on 20 of the 32 control geos, from all four regions. A single treated geo is usually matched by a few similar geos; a total of eight geos from four regions, each with its own seasonal amplitude and shocks, needs controls from every region. Weights are often exactly zero for many geos, because the optimum sits on the boundary of the allowed region.
+
+A poor pre-period fit is the warning sign. If no combination of controls tracks the treated series before the test, the method's estimate in the test window is not trustworthy; the **augmented** synthetic control (Ben-Michael, Feller and Rothstein 2021) corrects for part of that misfit with an outcome model, and GeoLift is built on it.
+
+### The same estimator on real data: Proposition 99
+
+In 1988 California passed Proposition 99, a tobacco-control program. Abadie et al. (2010) built a synthetic California from 38 states without such a program and estimated its effect on cigarette sales. The question is the one a geo test asks: what would have happened without the intervention? The lab fits @eq-sc to per-capita cigarette sales, 1970–1988 as the pre-period, matching the outcome only (FULL run):
+
+- the gap between California and its synthetic version is **−26.6 packs per capita in 2000**, and −19.5 on average over 1989–2000;
+- the pre-1989 fit error is 1.7 packs;
+- the donors with more than 1% weight are Utah (0.39), Montana (0.23), Nevada (0.20), Connecticut (0.11), New Hampshire (0.05) and Colorado (0.01).
+
+Abadie et al. report about 26 fewer packs per capita by 2000, with weights that also match covariates such as income and the retail price. The outcome-only version reproduces the published gap closely, which is a check on the method and on your code.
+
+## 4. Is it real? In-space placebos
+
+**Objective for this section:** run in-space placebo tests and compute a permutation p-value.
+
+With one treated unit there is no sampling distribution to compute a standard error from. An **in-space placebo test** makes one: pretend each control geo was treated, fit its synthetic control from the other controls, and see how often a fake treatment looks as large as the real one. The statistic for unit $u$ is the **RMSPE ratio**,
+
+$$
+\text{ratio}_u = \frac{\text{RMSPE}_u(\text{test})}{\text{RMSPE}_u(\text{pre})},
+\qquad
+p = \frac{1 + \#\{\text{placebos with ratio} \ge \text{ratio}_{\text{treated}}\}}{1 + \#\{\text{placebos}\}},
+$$ {#eq-placebo}
+
+where RMSPE is the root mean squared gap between a series and its synthetic control over the weeks named. A large ratio means the fit was good before and broke in the test window. Dividing by the pre-period error keeps placebo geos that are hard to fit everywhere from looking like effects.
+
+The logic is a permutation test. If the campaign had no effect anywhere, the treated unit would be one more draw from the same process as the placebos, and its rank among the 33 ratios would be equally likely to be any of 1 to 33. FULL run: the treated total's ratio is 2.61, and the 32 placebo ratios range from 0.77 to 1.76, so the treated total ranks first and **p = 1/33 = 0.030**. On a copy of the panel with the campaign removed (the treated geos' test-window sales divided by 1.05), the same test gives p = 0.82.
+
+The smallest p-value this test can ever give is $1/(1 + \text{number of controls})$: 0.030 here. More weeks do not help; more control units do.
+
+::: {.self-check}
+**Check yourself.** A regional manager wants "p < 0.01" before believing any geo test. With in-space placebos, how many control geos would that need, and what does that say about the request?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$1/(1 + J) < 0.01$ needs $J \ge 100$ control units. With 32 controls the best possible p-value is 0.030, however large the effect. The request cannot be met by any campaign in this design. Agree the threshold before the test from the design (here, the lab uses p < 0.1), or use a method whose uncertainty does not rest only on the number of controls, and report the size of the effect with an interval, not only a p-value.
+:::
+:::
+
+## 5. Could we have seen it? Power by simulation
+
+**Objective for this section:** estimate the power of a geo test by simulation, injecting a known lift into pre-period data.
+
+Power can be estimated before spending anything. Take only pre-period data, where there was no campaign. Pick a random 10-week window as a pretend test. Run DiD twice: on the data as they are (true lift 0) and with the treated geos' sales in the window multiplied by $1 + \text{lift}$. Over many windows, the no-lift estimates show what noise alone produces; their 95th percentile is the threshold, and power is the share of with-lift estimates above it.
+
+FULL run, 200 windows per lift:
+
+| True lift | 0% | 2% | 5% | 10% |
+|---|---|---|---|---|
+| Power | 0.05 | 0.40 | 1.00 | 1.00 |
+
+With these eight geos and ten weeks, a 5% lift is detected essentially always and a 2% lift less than half the time; on a finer grid, 5% was the smallest lift reaching 80% power. A test sized for a 5% lift will usually miss a 2% one, so "not significant" after such a test would say little about a small effect. Power rises with a longer test (regional noise averages out over more weeks), more treated geos spread over all regions, and controls that track the treated geos better. Choosing treated markets to maximize power for a budget is what GeoLift's market selection does (section 7).
+
+## 6. A Bayesian view: CausalImpact
+
+**Objective for this section:** run CausalImpact on the same panel and compare its interval with the truth and with your synthetic control.
+
+**CausalImpact** (Brodersen et al. 2015) is a Bayesian structural time-series model: in effect, a synthetic control over time with an explicit model of drift. It describes the treated total as
+
+$$
+y_t = \mu_t + \boldsymbol\beta^{\top}\mathbf{x}_t + \varepsilon_t,
+\qquad
+\mu_{t+1} = \mu_t + \eta_t,
+$$ {#eq-bsts}
+
+a **local level** $\mu_t$ (a baseline that drifts slowly from week to week) plus a regression on the control series $\mathbf{x}_t$, with noise terms $\varepsilon_t$ and $\eta_t$. The regression uses a **spike-and-slab** prior: each control geo is either in the model or out, and the posterior says how often each is in. The model is fitted on the pre-period by MCMC and forecast through the test window; the forecast is the counterfactual. Because the forecast is a posterior, the effect comes with a **95% posterior interval**: given the model and the data, the effect lies inside it with probability 0.95.
+
+The CausalImpact documentation states two assumptions: the controls are not affected by the intervention, and their relationship with the outcome stays stable after it.
+
+FULL run, R notebook (5,000 MCMC draws):
+
+| Method | Incremental sales | Lift | Interval |
+|---|---|---|---|
+| CausalImpact | 97,242 | 4.8% | 48,472 to 142,588 (95% posterior) |
+| Synthetic control | 85,586 | 4.2% | 70,931 to 140,603 (90% placebo-in-time, section 8) |
+| Difference-in-differences | 88,926 | 4.35% | — |
+| Truth | 101,679 | 5.0% | |
+
+All three point estimates are below the truth and both intervals contain it. CausalImpact's interval is wide (its half-width is 48% of the estimate) for three reasons: it is a 95% rather than a 90% interval, it includes the uncertainty about which controls belong in the regression, and the local level can drift during the ten weeks, so the forecast's uncertainty grows with every week it runs past the data.
+
+### What contaminated controls do
+
+Exercise 2 of the R notebook breaks the first assumption on purpose: one treated geo (G02) is left among the controls. FULL run, for the same seven treated geos:
+
+| Analysis | Incremental sales | Lift |
+|---|---|---|
+| G02 removed from the data (clean) | 84,728 | 4.74% |
+| G02 among the controls (contaminated) | 74,885 | 4.17% |
+
+The contaminated geo got the campaign, so its sales rise in the test window. The model includes it as a predictor in 61% of its draws, so part of that rise flows into the counterfactual, which is then too high, and the estimated effect is too small. **Spillover does the same damage without any mistake in the analysis**: shoppers crossing into a treated region, a national ad buy that reaches the controls, or a competitor reacting in the control regions. It always biases the estimate toward zero.
+
+## 7. Designing the next test: GeoLift market selection
+
+Before a geo test, **market selection** asks which markets to treat. GeoLift, Meta's open-source geo-testing package built on augmented synthetic control, simulates the test on historical data for candidate sets of markets, and reports for each set its power by effect size, its minimum detectable effect, how well the other markets reproduce it before the test, and the budget the effect would need. The R notebook's Part D runs it on GeoLift's bundled example data (40 US cities, 90 days) as the demo for the afternoon clinic; it is not part of the lab minutes. Its top-ranked set in the recorded run is Atlanta, Las Vegas and Saint Paul, with an average MDE of about 5%.
+
+One limitation found while building the lab: at the pinned versions, GeoLift's post-test analysis function `GeoLift()` failed with two or more test markets (recorded in [DECISIONS.md](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/DECISIONS.md)). Market selection and power are not affected. For a multi-market analysis, aggregate the treated markets into one series, as this module does, or use CausalImpact.
+
+## 8. The decision
+
+Synthetic control gives no standard error, so the lab measures how wrong it is where the answer is known. In every 10-week window of the pre-period (no campaign, true lift 0), it fits the synthetic control on the weeks before the window and records the estimated lift; those 59 estimates are its errors. The **90% placebo-in-time interval** is the estimate minus the 95th and 5th percentiles of those errors.
+
+The money: incremental margin $= m \times \text{incremental sales}$, and the campaign pays back when that exceeds its cost $C$, equivalently when its incremental return on ad spend (incremental sales $\div\, C$) exceeds the break-even $1/m$.
+
+::: {.module-decision}
+**Decision.** The rule, fixed before reading the numbers: the campaign is **incremental** if the in-space placebo p-value is below 0.1 (and the CausalImpact interval, if entered, excludes 0); it is **profitable** if the incremental margin at the lower end of the 90% interval exceeds the campaign cost. The lab assumes a 30% margin and a $20,000 cost.
+
+FULL run:
+
+- **Incremental:** yes. Placebo p = 0.030; CausalImpact's 95% interval (48,472 to 142,588) excludes 0.
+- **How much:** synthetic control 85,586 incremental sales (4.2%), 90% interval 70,931 to 140,603; difference-in-differences 88,926; CausalImpact 97,242.
+- **Profitable at the lower end:** incremental margin $25,676 (90% interval $21,279 to $42,181) against $20,000: yes, by a thin margin. A return of 1.28 times the cost (1.06 to 2.11).
+
+The profitability call is fragile, and the honest sentence says so. With CausalImpact's 95% interval the lower end of margin is $14,542, below the cost. The synthetic data's truth file records the campaign's actual cost as $25,000 (each treated geo spent 1.25% of its mean weekly pre-period sales in every test week), and at that cost the lower end of the 90% interval ($21,279) also falls short. The revealed truth: incremental margin $30,504, so at $25,000 the campaign earned a net $5,504. Recommendation: the campaign was incremental and probably paid back modestly; roll it out to similar regions only with a follow-up test sized to detect the lift that would make it profitable, and watch for spillover, which biases every estimate here downward.
+:::
+
+## Summary
+
+- A geo test estimates a counterfactual for the treated regions from the untreated ones. Each method rests on an assumption about that counterfactual.
+- Difference-in-differences (@eq-did) removes shared growth and season; it needs parallel trends. Here it cut the naive +7.7% to +4.35% (truth 5%).
+- Synthetic control (@eq-sc) weights the controls to track the treated series before the test; it gave +4.2% here and reproduced the published Proposition 99 gap (−26.6 packs per capita in 2000).
+- In-space placebos (@eq-placebo) give a permutation p-value whose floor is $1/(1 + \text{controls})$: 0.030 with 32 controls, which is what the campaign achieved.
+- Power by simulation on pre-period data says what a design can detect before it runs: 5% reliably, 2% less than half the time, for this panel.
+- CausalImpact (@eq-bsts) gave 4.8% with a wide 95% interval; contaminated controls and spillover bias every method toward zero.
+- The campaign was incremental. Whether it paid back depends on the interval and the cost you use, so the decision says so.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 7 |
+|---|---|---|
+| @eq-did | log-scale difference-in-differences | **Python Exercise 1**: `did(panel, treated_geos, test_start, test_end)`; Checkpoint 1 checks the lift within ±2.5 points of the truth |
+| @eq-sc | synthetic-control weights | **Python Exercise 2**: `sc_weights(y_pre, X_pre)` with SLSQP; Checkpoint 2 compares the fit with an NNLS solution; the Prop 99 check reproduces the published gap |
+| @eq-placebo | RMSPE ratio and permutation p-value | **Python Exercise 3**: `permutation_pvalue(treated_stat, placebo_stats)`; Checkpoint 3 also runs the panel with the campaign removed |
+| Power by simulation | detection rate for an injected lift | **Python Exercise 4**: `geo_power(pre_panel, treated_geos, lift_pct, n_sims, rng)`; Checkpoint 4 checks about 5% at no lift and a rising curve |
+| @eq-bsts | CausalImpact | **R Exercise 1**: `run_causal_impact(panel, treated_geos, test_start, test_end, niter)`; Checkpoint 1 checks the truth inside the 95% interval |
+| Contaminated controls | the first CausalImpact assumption, broken | **R Exercise 2**: `contaminated_effect(...)`; Checkpoint 2 checks the contaminated estimate is lower than the clean one |
+| Placebo-in-time interval, margin and return | the decision | Provided: the Python Decision cell |
+
+## Gotchas
+
+- **Parallel trends cannot be proved.** Look at the pre-period lines and an event-study plot; a test that "passes" makes the assumption plausible, not true.
+- **Log scale for multiplicative effects.** On raw sales, DiD weights large geos far more than small ones and mixes a percentage effect with geo size.
+- **A poor pre-period fit** means the synthetic control is extrapolating. Check the pre-period RMSPE before reading the test window.
+- **The placebo p-value has a floor** of $1/(1 + \text{controls})$. Agree the threshold with the design.
+- **Contamination and spillover** (a treated geo among the controls, shoppers or media crossing borders) bias the estimate toward zero.
+- **Another campaign in the same weeks**, only in the treated geos, biases the estimate up.
+- **Intervals from different methods are not interchangeable.** A 90% placebo-in-time interval and a 95% posterior interval can lead to different calls at the margin. Say which one the decision uses.
+- **`GeoLift()` with two or more test markets** failed at the pinned versions; aggregate the treated markets first.
+
+## Next steps
+
+A geo test measures one campaign, in one channel, in one window. It cannot compare TV with search, say what next month's budget will return, or tell how fast each channel's effect decays and saturates. For that we need a model of how every channel drives sales, week by week, over years of history: a **marketing mix model**. Module 8 builds a Bayesian one with adstock and saturation, checks it against known truth, and reports the return on each channel with an interval. Module 9 then brings this module's geo-test results back in, to calibrate it.
+
+## Further reading
+
+1. Abadie, A., Diamond, A., & Hainmueller, J. (2010). [Synthetic control methods for comparative case studies: Estimating the effect of California's tobacco control program](https://doi.org/10.1198/jasa.2009.ap08746). *Journal of the American Statistical Association*, 105(490), 493–505. The method and the Proposition 99 case.
+2. Vaver, J., & Koehler, J. (2011). [*Measuring ad effectiveness using geo experiments*](https://research.google/pubs/measuring-ad-effectiveness-using-geo-experiments/). Google. Randomized geo experiments for advertising.
+3. Brodersen, K. H., Gallusser, F., Koehler, J., Remy, N., & Scott, S. L. (2015). [Inferring causal impact using Bayesian structural time-series models](https://doi.org/10.1214/14-AOAS788). *The Annals of Applied Statistics*, 9(1), 247–274. CausalImpact.
+4. Ben-Michael, E., Feller, A., & Rothstein, J. (2021). [The augmented synthetic control method](https://doi.org/10.1080/01621459.2021.1929245). *Journal of the American Statistical Association*, 116(536), 1789–1803. What to do when the pre-period fit is poor; the basis of GeoLift.
+5. Cunningham, S. *Causal inference: The remix*, chapter ["Difference-in-differences fundamentals"](https://mixtape.scunning.com/09-difference_in_differences). Parallel trends and how to probe it.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.
