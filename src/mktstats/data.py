@@ -200,6 +200,16 @@ SYNTHETIC_TABLES = {
     "mmm_lift_tests": [],
     "geo_panel": ["date"],
     "email_experiment": [],
+    # Module 9: confounded MMM (the latent file is truth only; never give it to a model)
+    "mmm_confounded_weekly": ["date_week"],
+    "mmm_confounded_lift_tests": ["date", "test_start"],
+    "mmm_confounded_latent": ["date_week"],
+    # Module 12: the capstone scenario
+    "capstone_transactions": ["date"],
+    "capstone_customers": ["first_date"],
+    "capstone_geo_panel": ["date"],
+    "capstone_mmm_weekly": ["date_week"],
+    "capstone_email_experiment": [],
 }
 
 
