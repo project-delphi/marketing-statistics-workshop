@@ -138,7 +138,7 @@ format:
     link-external-newwindow: true
     # pedagogy.lua adds classes (section objectives, optional callouts); disclosure.lua
     # writes collapsed callouts as native <details>; inline-svg.lua inlines figures so
-    # they follow the theme.
+    # they follow the theme; table-scroll.lua puts each table in its own scroll box.
     filters:
       - at: pre-ast
         path: filters/pedagogy.lua
@@ -146,6 +146,8 @@ format:
         path: filters/disclosure.lua
       - at: pre-ast
         path: filters/inline-svg.lua
+      - at: pre-ast
+        path: filters/table-scroll.lua
 
 execute:
   freeze: auto

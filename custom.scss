@@ -280,10 +280,28 @@ main.content table {
 }
 
 // A table wider than the text column scrolls inside its own box, never the page.
-.table-wide {
+// filters/table-scroll.lua wraps every table in .table-scroll; .table-wide is the same
+// box for authors who wrap a block by hand.
+.table-wide,
+.table-scroll {
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll {
+  margin-bottom: 1rem;
+
+  > table {
+    margin-bottom: 0;
+    // Wrap cells at spaces only: a narrow screen scrolls the box rather than splitting
+    // a word or a file name mid-way (Quarto gives links word-break: break-word).
+    overflow-wrap: normal;
+
+    a {
+      word-break: normal;
+    }
+  }
 }
 
 // Code. Inline code is tinted; blocks sit on a bordered surface.
@@ -1234,10 +1252,16 @@ main.content .lab-steps {
   margin: 1.6rem 0;
 }
 
+// Two markups are supported. The generator's (scripts/gen_tables.py): a flat card with
+// [time]{.module-clock}, an eyebrow, **[title](link)**, .module-summary and
+// .module-actions. The nlp-llms one: .module-card-time beside .module-card-body.
 .module-card {
-  display: grid;
-  grid-template-columns: 7.2rem minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1.15rem 1rem;
   border: 1px solid $ms-border;
+  border-left: 4px solid $ms-ink;
   border-radius: 10px;
   background: $ms-raised;
   overflow: hidden;
@@ -1248,8 +1272,57 @@ main.content .lab-steps {
     box-shadow: $ms-shadow;
   }
 
+  &:has(> .module-card-time) {
+    display: grid;
+    grid-template-columns: 7.2rem minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    border-left-width: 1px;
+  }
+
   p {
     margin: 0;
+  }
+
+  // The generator's markup.
+  .module-clock {
+    display: inline-block;
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    background: $ms-surface;
+    color: $ms-heading;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  > p > strong > a,
+  > p > strong:only-child {
+    font-family: $headings-font-family;
+    font-size: 1.24rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $ms-heading;
+    text-decoration: none;
+  }
+
+  > p > strong > a:hover {
+    color: $ms-link;
+    text-decoration: underline;
+  }
+
+  > .module-summary {
+    color: $ms-muted;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  > .module-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.45rem;
+    margin-top: 0.35rem;
   }
 
   .module-card-time {
@@ -1445,7 +1518,7 @@ main.content .readiness-table {
 
   table {
     font-size: 0.85rem;
-    min-width: 52rem;
+    min-width: 40rem; // scrolls inside .table-scroll below that
   }
 
   td {
@@ -1489,7 +1562,7 @@ body.wide main.content {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.2rem;
-  margin: 1.2rem 0 0.4rem;
+  margin: 1.2rem 0 2rem;
   font-size: 0.84rem;
   color: $ms-muted;
 }
@@ -1534,26 +1607,36 @@ body.wide main.content {
   background: $ms-decision-soft;
 }
 
+// Two markups. The generator's (scripts/gen_tables.py): one table per day, columns Time,
+// Session, Module (or "What happens" on a run sheet), the session as a colored label
+// ([Briefing]{.slot-briefing}, [Lab · title]{.slot-lab}, [Debrief]{.slot-debrief},
+// [Break]{.slot-break}; warm-up and wrap-up share .slot-debrief, clinics .slot-lab).
+// The nlp-llms one: several days side by side, each module with a .slot-split bar.
 main.content .timetable table {
-  table-layout: fixed;
   width: 100%;
-  min-width: 860px;
   border-collapse: separate;
   border-spacing: 0;
+
+  &:has(.slot-split) {
+    table-layout: fixed;
+    min-width: 860px; // scrolls inside .table-scroll
+  }
 
   th,
   td {
     border: 0;
     border-bottom: 1px solid $ms-border;
-    padding: 0.6rem 0.7rem;
+    padding: 0.5rem 0.7rem;
+    vertical-align: top;
   }
 
   thead th {
-    font-family: $headings-font-family;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    color: $ms-heading;
+    font-family: $font-family-sans-serif;
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $ms-muted;
 
     a {
       @extend .eyebrow;
@@ -1566,7 +1649,7 @@ main.content .timetable table {
   td:first-child {
     width: 6.6rem;
     color: $ms-muted;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -1574,6 +1657,28 @@ main.content .timetable table {
 
   td + td {
     border-left: 1px solid $ms-border;
+  }
+
+  // The session label of the generator's markup: a colored tag that wraps cleanly.
+  td > .slot-briefing,
+  td > .slot-lab,
+  td > .slot-debrief {
+    display: inline;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.75;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  td > .slot-break {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $ms-muted;
   }
 
   a.slot-module,
@@ -1590,8 +1695,8 @@ main.content .timetable table {
     }
   }
 
-  // The bar under a module: briefing, lab and debrief, each as wide as its minutes
-  // (the generator sets flex-grow inline from the minutes).
+  // The bar under a module: briefing, lab and debrief, each as wide as its minutes (the
+  // generator sets flex-grow inline from the minutes).
   .slot-split {
     display: flex;
     gap: 2px;
@@ -1603,9 +1708,9 @@ main.content .timetable table {
     white-space: nowrap;
   }
 
-  .slot-briefing,
-  .slot-lab,
-  .slot-debrief {
+  .slot-split > .slot-briefing,
+  .slot-split > .slot-lab,
+  .slot-split > .slot-debrief {
     flex: 1 1 0;
     padding: 0.1rem 0.4rem;
     overflow: hidden;
@@ -1621,6 +1726,12 @@ main.content .timetable table {
     border-bottom-right-radius: 4px;
   }
 
+  // Ten minutes is too narrow for a label in the bar: the color carries it (see the
+  // legend), and the text is visually hidden for screen readers, with a tooltip.
+  .slot-split > .slot-debrief {
+    padding-inline: 0;
+  }
+
   .slot-briefing {
     background: $ms-briefing;
     color: $ms-on-briefing;
@@ -1631,37 +1742,29 @@ main.content .timetable table {
     color: $ms-on-accent;
   }
 
-  // Ten minutes is too narrow for a label: the color carries it (see the legend), and
-  // the text is visually hidden for screen readers, with a tooltip.
   .slot-debrief {
-    padding-inline: 0;
     background: $ms-good;
     color: $ms-on-good;
   }
 
-  // Rows without teaching: the warm-up, the wrap-up and the breaks.
-  tr:has(.slot-opening) td,
-  tr:has(.slot-closing) td,
-  tr:has(.slot-break) td {
+  // Rows without teaching: breaks and lunch, hatched; the nlp-llms opening and closing.
+  tr:has(.slot-break) > td,
+  tr:has(.slot-opening) > td,
+  tr:has(.slot-closing) > td {
     padding-top: 0.3rem;
     padding-bottom: 0.3rem;
     font-size: 0.82rem;
     color: $ms-muted;
   }
 
-  td:has(.slot-break) {
+  tr:has(.slot-break) > td {
     background: repeating-linear-gradient(-45deg, $ms-surface 0 6px, $ms-bg 6px 12px);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-size: 0.72rem;
   }
 
   td:has(.slot-closing) {
     background: $ms-good-soft;
   }
 
-  // The applied clinics of Days 2 and 3.
   td:has(.slot-clinic) {
     background: $ms-decision-soft;
     box-shadow: inset 3px 0 0 $ms-decision;
@@ -1669,6 +1772,34 @@ main.content .timetable table {
 
   a.slot-clinic {
     font-weight: 500;
+  }
+
+  // Laptop width: the session column is wide enough that long lab titles wrap little.
+  @media (min-width: 768px) {
+    &:not(:has(.slot-split)) td:nth-child(2) {
+      min-width: 13rem;
+    }
+  }
+
+  // Phone width: tighter cells, so the module column keeps a readable measure.
+  @media (max-width: 575.98px) {
+    th,
+    td {
+      padding: 0.4rem 0.35rem;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: auto;
+      font-size: 0.76rem;
+    }
+
+    td > .slot-briefing,
+    td > .slot-lab,
+    td > .slot-debrief {
+      padding: 0.05rem 0.35rem;
+      font-size: 0.76rem;
+    }
   }
 }
 
