@@ -18,7 +18,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     UV_LINK_MODE=copy \
     VIRTUAL_ENV=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
-    MPLBACKEND=Agg
+    MPLBACKEND=Agg \
+    RETICULATE_PYTHON=/opt/venv/bin/python
 
 # System libraries: GSL for CLVTools, ZeroMQ for IRkernel, git for pip installs from GitHub.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -54,6 +55,15 @@ RUN Rscript -e 'options(timeout = 900); \
         missing <- setdiff(unique(c(pk, deps)), rownames(installed.packages())); \
         if (length(missing)) stop("Not installed: ", paste(missing, collapse = ", "))' \
     && Rscript -e 'IRkernel::installspec(user = FALSE, name = "ir", displayname = "R")'
+
+# GitHub-only packages from archive tarballs at the commits pinned in _variables.yml
+# (github_packages); no GitHub API call, the same way the Colab R notebooks install them.
+ARG AUGSYNTH_SHA=7e70072232fe75057aa8b5d7af08c7e1aef53ae8
+ARG GEOLIFT_SHA=db34ea4299ff0e28515ebac502b78c076c93c905
+RUN Rscript -e 'options(timeout = 900); \
+        install.packages(sprintf("https://github.com/ebenmichael/augsynth/archive/%s.tar.gz", Sys.getenv("AUGSYNTH_SHA")), repos = NULL, type = "source"); \
+        install.packages(sprintf("https://github.com/facebookincubator/GeoLift/archive/%s.tar.gz", Sys.getenv("GEOLIFT_SHA")), repos = NULL, type = "source"); \
+        stopifnot(requireNamespace("augsynth"), requireNamespace("GeoLift"))'
 
 # SageMaker Studio custom images expect UID 1000 / GID 100 and port 8888 (environment/aws/README.md).
 RUN useradd -m -u 1000 -g 100 -s /bin/bash sagemaker-user

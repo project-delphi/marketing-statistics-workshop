@@ -1,0 +1,125 @@
+# Executes every notebook in QUICK mode inside the workshop image: worked run with
+# verify-checkpoints (every checkpoint must fail on its stub), then learner mode (Run all must
+# stop at the first unwritten exercise). One job per notebook, from _variables.yml.
+# On main, run records are appended to the orphan `evidence` branch, which publish.yml reads
+# for the readiness page (no bot commits on main, no artifact expiry).
+name: notebooks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - labs/**
+      - src/**
+      - R/**
+      - data/**
+      - scripts/**
+      - environment/**
+      - _variables.yml
+      - .github/workflows/notebooks.yml
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1" # weekly: catches data URL rot and upstream breakage
+  workflow_dispatch:
+
+concurrency:
+  group: notebooks-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    uses: ./.github/workflows/image.yml
+
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      notebooks: ${{ steps.list.outputs.notebooks }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - id: list
+        run: echo "notebooks=$(uv run --no-project --with pyyaml --with nbformat python scripts/test_notebooks.py --list-matrix)" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: [image, matrix]
+    if: needs.matrix.outputs.notebooks != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        nb: ${{ fromJson(needs.matrix.outputs.notebooks) }}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root
+    env:
+      MKTSTATS_QUICK: "1"
+      MPLBACKEND: Agg
+      OMP_NUM_THREADS: "2"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Worked run with verify-checkpoints (QUICK)
+        run: |
+          export PYTHONPATH="$GITHUB_WORKSPACE/src" MKTSTATS_REPO_ROOT="$GITHUB_WORKSPACE"
+          python scripts/test_notebooks.py --notebooks "${{ matrix.nb.id }}" --verify-checkpoints \
+            --save executed --record "records/${{ matrix.nb.slug }}.json" --env ci-amd64
+      - name: Learner mode (Run all must stop at the first unwritten exercise)
+        run: |
+          export PYTHONPATH="$GITHUB_WORKSPACE/src" MKTSTATS_REPO_ROOT="$GITHUB_WORKSPACE"
+          python scripts/test_notebooks.py --notebooks "${{ matrix.nb.id }}" --learner
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: executed-${{ matrix.nb.slug }}
+          path: executed/
+          retention-days: 14
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: record-${{ matrix.nb.slug }}
+          path: records/
+          if-no-files-found: ignore
+
+  collect:
+    needs: [matrix, run]
+    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.matrix.outputs.notebooks != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: record-*
+          path: incoming
+          merge-multiple: true
+      - name: Append run records to the evidence branch
+        run: |
+          shopt -s nullglob
+          files=(incoming/*.json)
+          if [ ${#files[@]} -eq 0 ]; then echo "No run records produced."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code origin evidence > /dev/null; then
+            git fetch origin evidence
+            git worktree add ev -B evidence origin/evidence
+          else
+            git worktree add --orphan -b evidence ev
+          fi
+          dest="ev/runs/ci/$(date -u +%Y-%m-%d)-${GITHUB_SHA::7}-${GITHUB_RUN_ID}"
+          mkdir -p "$dest"
+          cp "${files[@]}" "$dest/"
+          cd ev
+          git add runs
+          git commit -m "CI run records for ${GITHUB_SHA::7} (run ${GITHUB_RUN_ID})"
+          git push origin evidence

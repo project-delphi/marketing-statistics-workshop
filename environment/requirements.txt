@@ -63,6 +63,8 @@ backcall==0.2.0
     # via
     #   -c environment/colab-constraints.txt
     #   ipython
+bayesian-optimization==1.4.0
+    # via nevergrad
 beautifulsoup4==4.13.5
     # via
     #   -c environment/colab-constraints.txt
@@ -98,6 +100,8 @@ cloudpickle==3.1.2
     #   joblib
     #   pymc
     #   shap
+cma==4.5.0
+    # via nevergrad
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   ipython
@@ -123,6 +127,8 @@ defusedxml==0.7.1
     # via
     #   -c environment/colab-constraints.txt
     #   nbconvert
+directsearch==1.1
+    # via nevergrad
 donfig==0.8.1.post1
     # via zarr
 duckdb==1.3.2
@@ -367,6 +373,8 @@ nest-asyncio==1.6.0
     #   -c environment/colab-constraints.txt
     #   ipykernel
     #   jupyter-client
+nevergrad==1.0.12
+    # via -r environment/requirements.in
 notebook-shim==0.2.4
     # via
     #   -c environment/colab-constraints.txt
@@ -386,12 +394,16 @@ numpy==2.1.3
     #   -r environment/requirements.in
     #   arviz-base
     #   arviz-stats
+    #   bayesian-optimization
     #   better-optimize
+    #   cma
     #   contourpy
+    #   directsearch
     #   econml
     #   formulaic
     #   lightgbm
     #   matplotlib
+    #   nevergrad
     #   numba
     #   numcodecs
     #   pandas
@@ -444,6 +456,7 @@ pandas==2.2.3
     #   better-optimize
     #   econml
     #   formulaic
+    #   nevergrad
     #   nutpie
     #   pymc
     #   pymc-marketing
@@ -630,6 +643,7 @@ scikit-learn==1.6.1
     # via
     #   -c environment/colab-constraints.txt
     #   -r environment/requirements.in
+    #   bayesian-optimization
     #   econml
     #   pymc-marketing
     #   shap
@@ -638,7 +652,9 @@ scipy==1.16.3
     #   -c environment/colab-constraints.txt
     #   -r environment/requirements.in
     #   arviz-stats
+    #   bayesian-optimization
     #   better-optimize
+    #   directsearch
     #   econml
     #   formulaic
     #   lightgbm
@@ -660,6 +676,7 @@ send2trash==2.1.0
 setuptools==80.10.2
     # via
     #   -c environment/colab-constraints.txt
+    #   directsearch
     #   ipython
     #   pytensor
 shap==0.52.0
@@ -736,6 +753,7 @@ typing-extensions==4.16.0
     #   arviz-base
     #   beautifulsoup4
     #   formulaic
+    #   nevergrad
     #   numcodecs
     #   pydantic
     #   pydantic-core

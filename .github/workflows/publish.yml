@@ -1,0 +1,123 @@
+# Builds and deploys the site. Gates: generated files have not drifted, lint, unit tests,
+# render, internal link check. The readiness page includes CI run records from the `evidence`
+# branch (written by notebooks.yml), so this also runs after each notebooks run on main.
+name: publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_run:
+    workflows: [notebooks]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "41 5 * * 1" # weekly: external link check
+  workflow_dispatch:
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    uses: ./.github/workflows/image.yml
+
+  build:
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || '' }}
+      - name: Trust the workspace (container runs as root)
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Generated files have not drifted
+        run: |
+          python scripts/gen_notebooks.py --check
+          python scripts/gen_tables.py --check
+          if [ -f scripts/make_synthetic.py ]; then python scripts/make_synthetic.py --check; fi
+      - name: Lint
+        run: ruff check src scripts tests
+      - name: Unit tests
+        run: pytest -q
+      - name: Readiness with CI evidence
+        run: |
+          if git ls-remote --exit-code origin evidence > /dev/null; then
+            git fetch --depth=1 origin evidence
+            git archive FETCH_HEAD runs/ci | tar -x
+          else
+            echo "No evidence branch yet: the readiness page shows no CI runs."
+          fi
+          python scripts/gen_tables.py
+      - name: Render
+        run: quarto render
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  links:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: github-pages
+      - run: mkdir _site && tar -xf artifact.tar -C _site
+      - name: Internal links (blocking)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress '_site/**/*.html'
+          fail: true
+
+  links-external:
+    needs: build
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: github-pages
+      - run: mkdir _site && tar -xf artifact.tar -C _site
+      - name: External links (weekly, non-blocking)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
+            --accept 200,203,206,429
+            --exclude '^https://colab\.research\.google\.com/'
+            '_site/**/*.html'
+          fail: true
+
+  deploy:
+    needs: [build, links]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,68 @@
+# The workshop image (environment/Dockerfile) for CI: R 4.6.1 + Python 3.13 + Quarto 1.10.19.
+# Tagged by a hash of the files that define it, so a tag always means one environment.
+# Called by notebooks.yml and publish.yml before they need the image; builds only if the tag
+# is not in GHCR yet. linux/amd64 only (local Apple Silicon builds are arm64, see DECISIONS.md).
+name: image
+
+on:
+  workflow_call:
+    outputs:
+      image:
+        description: "Full image reference with tag"
+        value: ${{ jobs.image.outputs.image }}
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - environment/Dockerfile
+      - environment/requirements.txt
+      - environment/r-packages.txt
+      - .github/workflows/image.yml
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      image: ${{ steps.ref.outputs.image }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Image reference from the environment files
+        id: ref
+        run: |
+          tag=$(cat environment/Dockerfile environment/requirements.txt environment/r-packages.txt | sha256sum | cut -c1-12)
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}/env"
+          echo "image=${repo}:${tag}" >> "$GITHUB_OUTPUT"
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+          echo "Image: ${repo}:${tag}"
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Does the image exist already?
+        id: exists
+        run: |
+          if docker manifest inspect "${{ steps.ref.outputs.image }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"; echo "Image exists; not rebuilding."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"; echo "Image missing; building."
+          fi
+      - uses: docker/setup-buildx-action@v4
+        if: steps.exists.outputs.exists == 'false'
+      - uses: docker/build-push-action@v7
+        if: steps.exists.outputs.exists == 'false'
+        with:
+          context: .
+          file: environment/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.ref.outputs.image }}
+            ${{ steps.ref.outputs.repo }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
