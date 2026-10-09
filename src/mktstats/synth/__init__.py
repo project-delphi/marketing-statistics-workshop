@@ -13,6 +13,7 @@ default-seed outputs written by ``scripts/make_synthetic.py``; R reads only thos
 
 from mktstats.synth._common import SynthResult, make_rng
 from mktstats.synth.btyd import btyd_bgnbd, retailer
+from mktstats.synth.capstone import capstone
 from mktstats.synth.channels import channel_value
 from mktstats.synth.email import email_experiment
 from mktstats.synth.geo import geo_panel
@@ -27,6 +28,7 @@ from mktstats.synth.mmm import (
 __all__ = [
     "SynthResult",
     "btyd_bgnbd",
+    "capstone",
     "channel_value",
     "email_experiment",
     "geo_panel",

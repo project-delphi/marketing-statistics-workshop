@@ -96,6 +96,44 @@ TOLERANCES = {
             },
         },
     },
+    "capstone": {
+        "note": "Checkpoint tolerances are in capstone.answers.*.checkpoint; these are the "
+                "reference results measured on the committed capstone data (2026-10-09), so "
+                "each tolerance can be read against a correct pipeline.",
+        "stage1_bgnbd_map": {
+            "method": "BetaGeoModel MAP with channel_social and channel_referral on purchase and "
+                      "dropout; GammaGamma MAP with WEAK_GAMMA_GAMMA_PRIORS; Module 5's monthly "
+                      "value from expected_purchases_new_customer",
+            "relative_error": {"search": 0.086, "social": 0.148, "referral": -0.007},
+            "top_channel_right": True,
+        },
+        "stage2_synthetic_control": {
+            "method": "mktstats.recovery.synthetic_control on the treated mean, 32 placebos",
+            "relative_error": 0.018, "p_value": 0.030,
+            "sigma_relative_to_effect": 0.086,
+            "sigma_rule": "sd of placebo relative effects (placebos with pre-RMSPE at most twice "
+                          "the median) times the treated synthetic total",
+        },
+        "stage3_mcmc": {
+            "sampler": "nutpie, 2 chains, random_seed=1, default priors, lift row from stage 2",
+            "search_truth": 2.6,
+            "uncalibrated_search_mean_hdi": {"300": [4.058, 2.738, 5.465],
+                                             "1000": [3.928, 2.514, 5.426]},
+            "calibrated_search_mean_hdi": {"300": [2.875, 2.510, 3.186],
+                                           "1000": [2.863, 2.536, 3.202]},
+            "calibrated_inside": "4 of 4 at 300 and 1000 draws",
+            "spend_increase_instead": "with a +100% search test (spend doubled) in place of the "
+                                      "switch-off, calibration moved search ROAS up, away from "
+                                      "the truth (500 draws: 3.92 -> 4.71 with a milder shock, "
+                                      "5.63 -> 7.82 with Module 9's), because the test probes "
+                                      "the curve above the observed spend, not its level",
+        },
+        "stage5_targeting": {
+            "test_split_true_value": {"t_learner_hist_gb_200_iter": 0.316,
+                                      "causal_forest_dml_200_trees": 0.383,
+                                      "treat_all": 0.126, "oracle": 0.512},
+        },
+    },
 }
 
 
@@ -107,6 +145,7 @@ def build() -> tuple[dict[str, object], dict]:
     mmc = synth.mmm_confounded()
     geo = synth.geo_panel()
     email = synth.email_experiment()
+    cap = synth.capstone()
     frames = {
         "retailer_transactions.csv": retail.transactions,
         "retailer_customers.csv": retail.customers,
@@ -119,6 +158,11 @@ def build() -> tuple[dict[str, object], dict]:
         "mmm_confounded_weekly.csv": mmc.weekly,
         "mmm_confounded_lift_tests.csv": mmc.lift_tests,
         "mmm_confounded_latent.csv": mmc.latent,
+        "capstone_transactions.csv": cap.transactions,
+        "capstone_customers.csv": cap.customers,
+        "capstone_mmm_weekly.csv": cap.weekly,
+        "capstone_geo_panel.csv": cap.panel,
+        "capstone_email_experiment.csv": cap.experiment,
     }
     truth = {
         "about": (
@@ -133,6 +177,9 @@ def build() -> tuple[dict[str, object], dict]:
             "email_experiment": ["email_experiment.csv"],
             "mmm_confounded": ["mmm_confounded_weekly.csv", "mmm_confounded_lift_tests.csv",
                                "mmm_confounded_latent.csv"],
+            "capstone": ["capstone_transactions.csv", "capstone_customers.csv",
+                         "capstone_mmm_weekly.csv", "capstone_geo_panel.csv",
+                         "capstone_email_experiment.csv"],
         },
         "retailer": retail.truth,
         "btyd_bgnbd": bg.truth,
@@ -143,6 +190,7 @@ def build() -> tuple[dict[str, object], dict]:
         "mmm_confounded": mmc.truth,
         "channel_value": synth.channel_value(retail.truth, {"mmm": mm.truth,
                                                             "mmm_confounded": mmc.truth}),
+        "capstone": cap.truth,
     }
     return frames, truth
 

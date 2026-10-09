@@ -10,13 +10,17 @@ answers cannot be copied) and ties them together:
   search spend following a hidden demand shock (Module 9's mechanism), so an uncalibrated MMM
   overcredits search. Its window ends the week before the geo test starts.
 * **geo test** on the MMM's **search** channel: in ``n_treated`` of ``n_geos`` regions search spend
-  was raised by ``spend_increase`` (e.g. +100%) for ``test_weeks`` weeks. Each region's sales
-  respond as a scaled copy of the national curve (region g with share w_g of national sales has
-  response ``w_g * B * logistic(lam * x_g / (w_g * S))``, and spend is proportional to sales), so
-  the treated regions gain ``f * (r(x * (1 + rho)) - r(x))`` per week, where ``f`` is their share
-  of sales, ``x`` the national weekly search spend and ``r`` the MMM's true response curve. The
-  national-equivalent lift test is therefore ``(x, rho * x, r(x (1 + rho)) - r(x))``: what
-  ``add_lift_test_measurements`` needs, and exactly on the MMM's true curve.
+  changed by ``search_spend_change`` (default -1: switched off, a regional holdout) for
+  ``test_weeks`` weeks. Each region's sales respond as a scaled copy of the national curve (region
+  g with share w_g of national sales has response ``w_g * B * logistic(lam * x_g / (w_g * S))``,
+  and spend is proportional to sales), so the treated regions' sales change by
+  ``f * (r(x * (1 + rho)) - r(x))`` per week, where ``f`` is their share of sales, ``x`` the
+  national weekly search spend, ``rho`` the spend change and ``r`` the MMM's true response curve.
+  The national-equivalent lift test is therefore ``(x, rho * x, r(x (1 + rho)) - r(x))``: what
+  ``add_lift_test_measurements`` needs, and exactly on the MMM's true curve. A holdout measures
+  the level of the curve (the average return of the current spend), which is what the hidden demand
+  shock inflates; a spend increase of +100% was measured to leave the confounded MMM's search ROAS
+  as high or higher after calibration (data/README.md), so the default is the holdout.
 * **CLV-weighted budget** (``channels``): the shared vocabulary maps media channels to acquisition
   channels and gives the cost per new customer; the true long-run optimal weekly plan uses the
   MMM's true curves and Stage 1's true CLV (excluding the first purchase, which the MMM counts).
@@ -46,7 +50,7 @@ from mktstats.synth.channels import (
 )
 from mktstats.synth.email import email_experiment
 from mktstats.synth.geo import _ar1, campaign_economics
-from mktstats.synth.mmm import logistic_saturation, mmm
+from mktstats.synth.mmm import logistic_saturation, long_run_value, mmm
 
 CAPSTONE_RETAILER = {
     "r": 0.9, "alpha": 5.5, "s": 0.6, "beta": 12.0,
@@ -54,8 +58,9 @@ CAPSTONE_RETAILER = {
     "gamma_dropout": {"search": 0.0, "social": 0.5, "referral": -0.7},
     "p": 6.0, "q": 4.0, "v": 16.0,
 }
-CAPSTONE_ROAS = {"tv": 1.8, "search": 2.6, "social": 1.2, "display": 0.8}
-CAPSTONE_MMM = {"confounded": True, "lift_test_plan": ()}
+CAPSTONE_ROAS = {"tv": 1.8, "search": 2.6, "social": 1.2, "display": 0.5}
+CAPSTONE_MMM = {"confounded": True, "lift_test_plan": (), "roas": CAPSTONE_ROAS,
+                "demand_sales_effect": 4_000.0}
 
 
 def _geo_panel_additive(seed, *, dates, n_geos, n_regions, n_treated, test_weeks, base_median,
@@ -110,15 +115,15 @@ def capstone(
     geo_weeks: int = 104,
     test_weeks: int = 10,
     test_end: str = "2025-12-22",
-    spend_increase: float = 1.0,
+    search_spend_change: float = -1.0,
     mmm_weeks: int = 156,
     margin: float = GROSS_MARGIN,
     clv_months: int = 36,
     monthly_rate: float = 0.01,
     email_n: int = 20_000,
     offer_cost: float = 0.75,
-    geo_noise_sd: float = 0.02,
-    geo_regional_sd: float = 0.01,
+    geo_noise_sd: float = 0.015,
+    geo_regional_sd: float = 0.0075,
     geo_national_sd: float = 0.015,
     mmm_options: dict | None = None,
 ) -> SynthResult:
@@ -160,14 +165,14 @@ def capstone(
     ranking = sorted(value, key=lambda c: -value[c]["margin_including_first_purchase"])
 
     # Stage 3 data: the national MMM -------------------------------------------------------
-    mm = mmm(seed + 1, n_weeks=mmm_weeks, start=str(mmm_start.date()), roas=CAPSTONE_ROAS,
+    mm = mmm(seed + 1, n_weeks=mmm_weeks, start=str(mmm_start.date()),
              **{**CAPSTONE_MMM, **(mmm_options or {})})
     mt = mm.truth
     sch = mt["channels"]["search"]
     big_b, lam, scale = (sch["saturation_beta_sales_units"], sch["saturation_lam"],
                          sch["channel_scale"])
     x_base = float(np.round(mm.weekly["search"].iloc[-8:].mean(), -2))
-    dx = spend_increase * x_base
+    dx = search_spend_change * x_base
     lift_nat = float(big_b * (logistic_saturation((x_base + dx) / scale, lam)
                               - logistic_saturation(x_base / scale, lam)))
 
@@ -193,6 +198,20 @@ def capstone(
     clv_acq = {c: value[c]["margin_excluding_first_purchase"] for c in RETAILER_CHANNELS}
     clv_media = media_clv(clv_acq)
     alloc = long_run_allocation(mt, clv_media, margin=margin)
+    # the plan a pair gets if it plugs in Stage 1's CLV *including* the first purchase (which the
+    # MMM's short-run response already counts), valued under the correct objective
+    clv_incl = media_clv({c: value[c]["margin_including_first_purchase"]
+                          for c in RETAILER_CHANNELS})
+    plan_incl = long_run_allocation(mt, clv_incl, margin=margin)["optimal_allocation"]
+    chs = list(mt["channels"])
+    lin = np.array([alloc["long_run_value_per_dollar_of_new_customers"][c] for c in chs])
+    curve = [np.array([mt["channels"][c][k] for c in chs])
+             for k in ("saturation_beta_sales_units", "saturation_lam", "channel_scale")]
+    v_incl = float(long_run_value(np.array([plan_incl[c] for c in chs]), *curve, margin=margin,
+                                  linear=lin).sum())
+    alloc["value_sensitivity"]["plan_if_clv_includes_first_purchase"] = plan_incl
+    alloc["value_sensitivity"]["that_plan_share_of_optimal_value"] = sig(
+        v_incl / alloc["weekly_value_optimal"])
 
     # Stage 5: retention offer -------------------------------------------------------------
     em = email_experiment(seed + 3, n=email_n, margin=margin, offer_cost=offer_cost)
@@ -210,11 +229,22 @@ def capstone(
                 "n": int(mask.sum())}
 
     # truth ---------------------------------------------------------------------------------
+    if search_spend_change == -1.0:
+        test_text = "switched paid search off"
+    else:
+        test_text = f"changed search spend by {search_spend_change:+.0%}"
+    if search_spend_change < 0:
+        camp["reading"] = (
+            "A spend cut: incremental_sales and cost are negative (sales lost, spend saved). "
+            "incremental_roas = sales lost / spend saved is the average return of the spend that "
+            "was cut; below break_even_roas the cut spend was not paying back in short-run "
+            "margin (net_return > 0 means the cut saved more than the margin it lost)."
+        )
     scenario = {
         "story": (
             "One retailer. Its customers arrive through search, social or referral (acquisition "
             "channels); it spends on tv, search, social and display (media channels). Last "
-            f"autumn it doubled search spend in {n_treated} of its {n_geos} regions for "
+            f"autumn it {test_text} in {n_treated} of its {n_geos} regions for "
             f"{test_weeks} weeks. Next quarter's weekly media budget must be split, and a "
             "retention e-mail offer can be sent to some customers."
         ),
@@ -227,16 +257,22 @@ def capstone(
         "geo_test": {
             "channel": "search", "treated_geos": geo["geos"][tidx].tolist(),
             "test_start": str(test_start_ts.date()), "test_end": str(test_end_ts.date()),
-            "test_weeks": test_weeks, "spend_increase": spend_increase,
+            "test_weeks": test_weeks, "spend_change": search_spend_change,
+            "spend_change_description": test_text,
             "base_weekly_spend_national": x_base,
-            "extra_spend_total": cost,
+            "spend_change_total": cost,
+            "spend_change_total_definition": (
+                "change in search spend in the treated geos over the test (negative = saved); "
+                "the treated geos' spend was proportional to their sales"
+            ),
             "treated_share_of_sales_rule": "treated geos' share of all geos' sales in the weeks "
                                            "before test_start (computable from the panel)",
             "national_equivalent_rule": (
                 "lift-test row for the national MMM: x = base_weekly_spend_national, delta_x = "
-                "spend_increase * x = extra_spend_total / (treated_share * test_weeks), delta_y = "
-                "incremental sales in the treated geos / (treated_share * test_weeks), sigma = "
-                "its standard error on the same scale"
+                "spend_change * x = spend_change_total / (treated_share * test_weeks), delta_y = "
+                "sales change in the treated geos / (treated_share * test_weeks), sigma = its "
+                "standard error on the same scale; delta_x and delta_y are negative for a cut, "
+                "which add_lift_test_measurements accepts (delta_x * delta_y >= 0)"
             ),
         },
         "mmm": {"window_start": mt["start_date"], "window_end": mt["end_date"],
@@ -264,6 +300,9 @@ def capstone(
                            "also": "the top channel is the true top channel"},
         },
         "stage2_geo_test": {
+            "definition": "incremental_sales = change in the treated geos' sales over the test "
+                          "window caused by the test (negative for a spend cut: the sales the "
+                          "cut spend was driving); exact, from the generator's increments",
             "incremental_sales": sig(incremental),
             "incremental_sales_per_week": sig(incremental / test_weeks),
             "lift_pct": sig(100 * incremental / cf_window),
@@ -280,8 +319,7 @@ def capstone(
         },
         "stage3_mmm": {
             "true_roas": {c: v["roas"] for c, v in mt["channels"].items()},
-            "confounded_channel": "search",
-            "naive_ols_search_roas": mt["confounding"]["roas"]["search"]["naive_ols"],
+            "confounding": mt.get("confounding", {}).get("roas", {}).get("search"),
             "checkpoint": {"k_of_K_inside": [3, 4], "interval": "94% HDI"},
         },
         "stage4_allocation": {
