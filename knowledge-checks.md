@@ -79,7 +79,7 @@ A. At about one purchase every 10 weeks, B's 32-week silence would be unusual fo
 [**2.3**]{#q2-3} In the BG/NBD model, what is P(alive) for a customer with no repeat purchases, and why? Is that a sensible answer?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Exactly 1. In the BG/NBD, dropout can only happen right after a repeat purchase, so a customer who has never repeated cannot have dropped out. That is a modelling convenience, not a belief: a one-time buyer from two years ago is probably gone. Pareto/NBD, where dropout can happen at any time, gives such customers a P(alive) below 1. Check which model a P(alive) came from before acting on it for one-time buyers.
+Exactly 1. In the BG/NBD, dropout can only happen right after a repeat purchase, so a customer who has never repeated cannot have dropped out. That is a modeling convenience, not a belief: a one-time buyer from two years ago is probably gone. Pareto/NBD, where dropout can happen at any time, gives such customers a P(alive) below 1. Check which model a P(alive) came from before acting on it for one-time buyers.
 :::
 
 [**2.4**]{#q2-4} How do you check a BTYD model before trusting its forecasts?
@@ -138,7 +138,7 @@ That a customer's average spend per transaction is unrelated to how often they b
 **Used in:** Day 3 warm-up (W1).
 :::
 
-[**4.2**]{#q4-2} Why is a customer's estimated average spend pulled towards the population average, and more so for customers with few purchases?
+[**4.2**]{#q4-2} Why is a customer's estimated average spend pulled toward the population average, and more so for customers with few purchases?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 The estimate combines the population distribution with the customer's own transactions (partial pooling, or shrinkage). With few transactions, the customer's own average is noisy, so the population carries more weight; with many, their own average dominates.
@@ -317,7 +317,7 @@ It adds a term to the likelihood that ties the model's predicted effect of the t
 [**9.2**]{#q9-2} Why validate an MMM on later weeks (time-slice cross-validation) rather than random folds?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Adstock, trend and seasonality connect neighbouring weeks, so a random fold lets the model see the weeks around each test week: leakage. Fit on weeks up to a cut-off and forecast the weeks after it, then move the cut-off forward.
+Adstock, trend and seasonality connect neighboring weeks, so a random fold lets the model see the weeks around each test week: leakage. Fit on weeks up to a cut-off and forecast the weeks after it, then move the cut-off forward.
 :::
 
 [**9.3**]{#q9-3} Two MMMs fit past sales equally well but give different ROAS for social. How is that possible?
@@ -376,7 +376,7 @@ Channels that bring customers who keep buying gain budget, and channels that bri
 Persuadables (buy only with the offer), sure things (buy anyway), lost causes (never buy) and sleeping dogs (buy less because of the offer). Uplift targeting aims at persuadables. A response model, which targets those most likely to buy, mostly finds sure things and wastes the offer on them.
 :::
 
-[**11.2**]{#q11-2} Why does uplift modelling need data from a randomized experiment, such as the Hillstrom email test?
+[**11.2**]{#q11-2} Why does uplift modeling need data from a randomized experiment, such as the Hillstrom email test?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 Uplift is the difference between a customer's outcome with and without the offer, and only one is ever observed. Randomization makes the treated and control customers comparable, so differences in outcome between similar customers in the two groups estimate the effect. In Hillstrom, 64,000 customers were split at random into a men's email, a women's email and no email.
@@ -402,7 +402,7 @@ There is no evidence that the ranking finds customers with larger effects than a
 
 ## Module 12 · {{< var modules.m12.title >}}
 
-[**12.1**]{#q12-1} Why analyse the geo test before fitting the final MMM in the capstone?
+[**12.1**]{#q12-1} Why analyze the geo test before fitting the final MMM in the capstone?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 The geo test's lift, with its uncertainty, calibrates the MMM for the tested channel. Without it, the model's split of credit between correlated channels rests on priors and fit alone, and the allocation inherits that weakness.

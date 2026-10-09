@@ -11,7 +11,7 @@ The task, deliverables and rubric are in briefs/12-capstone-rubric.md.
 
 ## Warm-up: what carried over from Day 4 (15 minutes) {#warm-up}
 
-Answer alone on paper for 5 minutes, notes closed. Compare with a neighbour for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
+Answer alone on paper for 5 minutes, notes closed. Compare with a neighbor for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
 
 **W1.** A channel has geometric adstock with retention rate 0.6, normalized so that the weights add up to 1. What share of a week's spend effect lands in that same week? And in the following week?
 
@@ -47,7 +47,7 @@ You work in **pairs** on one notebook (one person types, both decide; swap at lu
 |---|---|---|---|
 | 11:25–11:40 | 15 | **Briefing.** The task, the data, the rubric, the checkpoints. Sit with your pair (announced at the end of Day 4), open the notebook, run the setup cells. | — |
 | 11:40–12:10 | 30 | **1. What each customer is worth.** Customer value forecasts by acquisition channel, with intervals. | A: values by channel, with named intervals |
-| 12:10–12:40 | 30 | **2. Did the campaign work?** Analyse the geo test you designed on Day 3. | B: lift estimate with its interval |
+| 12:10–12:40 | 30 | **2. Did the campaign work?** Analyze the geo test you designed on Day 3. | B: lift estimate with its interval |
 | 12:40–13:30 | 50 | **Lunch.** Pairs that passed B may start the calibrated MMM fit before leaving, with the Colab tab kept open. | — |
 | 13:30–14:10 | 40 | **3. A calibrated MMM.** Add the geo lift to the marketing mix model; check the fit (divergences, intervals). | C: calibrated ROAS by channel |
 | 14:10–14:35 | 25 | **4a. Where the next dollar goes.** Allocate next quarter's budget, valuing customers by Stage 1, with uncertainty. | D: allocation and the probability it beats the current split |

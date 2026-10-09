@@ -8,7 +8,7 @@ required parts against briefs/05-*.md once it is final.
 
 ## Warm-up: what carried over from Day 1 (15 minutes) {#warm-up}
 
-Answer alone on paper for 5 minutes, notes closed. Compare with a neighbour for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
+Answer alone on paper for 5 minutes, notes closed. Compare with a neighbor for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
 
 **W1.** Two customers each made 4 repeat purchases in a 52-week calibration period. A's last purchase was in week 50, B's in week 20. Which has the higher P(alive) at week 52, and why?
 

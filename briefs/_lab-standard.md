@@ -40,7 +40,7 @@ estimate and the brief says so.
 
 - **One exercise, one task, one function.** The learner writes one function with a stated signature,
   inputs and output (column names, shapes, units). If the task needs the word "and" twice, split it.
-- **5 to 12 minutes.** Under 5, merge it with a neighbour or make it a provided Run cell. Over 12, split it.
+- **5 to 12 minutes.** Under 5, merge it with a neighbor or make it a provided Run cell. Over 12, split it.
 - **One new idea per exercise.** A new library call, a new statistical idea or a new piece of business
   logic, not all three at once. Scaffolding (loading data, plotting, printing tables) lives in provided Run
   cells, never in the learner's function.
@@ -216,7 +216,7 @@ The final "Your sentence" line is the learner's one decision claim. The day wrap
   falls inside each channel's bar." The sentence names the feature, not the plot type.
 - **One message per plot.** Axes labelled with units; intervals labelled with type and probability in the
   legend or title; truth marked distinctly when shown.
-- **Readable on a laptop screen** and in both light and dark notebook themes; do not rely on colour alone
+- **Readable on a laptop screen** and in both light and dark notebook themes; do not rely on color alone
   (use shape or a label as well).
 
 ## 11. Reviewer checklist

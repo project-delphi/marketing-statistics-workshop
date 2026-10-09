@@ -271,7 +271,7 @@ Module 0 is optional, but do at least its setup check (step 3 above): Day 1 has 
 
 A working setup looks like this when **Run all** has finished:
 
-- **The install cell** ends without an error and prints the versions it installed. They should match the [Setup](setup.qmd) page. If it asks you to **restart the session and Run all**, do exactly that once: Colab had already loaded an older version of a package.
+- **The install cell** ends without an error. If it asks you to **restart the session and Run all**, do exactly that once: Colab had already loaded an older version of a package.
 - **The harness cell** sets the notebook's two switches. Leave them as they are: `WORKED_EXAMPLE` off, so your own code runs, and `QUICK` off, unless your instructor says otherwise.
 - **Each checkpoint** prints a line saying it **passed on your code**. If an exercise is not written yet, Run all stops there with a message saying what to do. That is expected in a lab; in Module 0, write the exercise or follow the message.
 - **The last cells** print a summary of which checkpoints passed and a run record between two marker lines. You do not need to send the run record anywhere.

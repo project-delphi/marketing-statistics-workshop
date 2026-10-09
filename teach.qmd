@@ -23,7 +23,7 @@ The [readiness page](readiness.qmd) is generated from the run records in `runs/`
 
 - **Module pages** (`modules/`): each is the briefing for its module, with the objectives, the derivations, the decision, and a link to the lab. Teach from the page.
 - **Notebooks** ([Notebooks](notebooks.qmd)): one or two per module, Python or R, each opening in Colab from its badge at the release the workshop is pinned to. Notebooks are built from `labs/src/` and never edited by hand.
-- **Solutions live in the notebooks**, folded under each exercise. In Python notebooks on Colab, the solution cell shows as a collapsed form titled "Solution N — try it yourself first". Colab's R runtime has no forms; the build marks R solution cells as hidden, and whether Colab honours that is being checked (spike S3). If R solutions show, tell the room to scroll past them.
+- **Solutions live in the notebooks**, folded under each exercise. In Python notebooks on Colab, the solution cell shows as a collapsed form titled "Solution N — try it yourself first". Colab's R runtime has no forms; the build marks R solution cells as hidden, and whether Colab honors that is being checked (spike S3). If R solutions show, tell the room to scroll past them.
 - **Solutions never replace a learner's code unless asked.** Each reference is stored, not used, unless one of two switches is set:
   - **`WORKED_EXAMPLE`** in the harness cell at the top (or the environment variable `MKTSTATS_WORKED=1`): every exercise uses its reference, so **Run all** runs the whole lab. Use it to demonstrate, to prepare outputs before a session, and to make the capstone answer key. A worked run shows the lab works, not that anyone did it.
   - **`workshop.use_reference(n)`** in Python, `use_reference(n)` in R: exercise *n* only uses its reference, and the learner carries on.
@@ -39,7 +39,7 @@ The [readiness page](readiness.qmd) is generated from the run records in `runs/`
 
 Every teaching day answers one question and runs on the same frame; the [schedule](schedule.qmd) has the clock times.
 
-- **Warm-up (15 minutes).** Four questions on the previous day, on the day page with folded answers. Participants answer alone for 5 minutes with notes closed and compare with a neighbour for 4. In your 5 minutes, ask for a show of hands on each question and explain the most-missed from its folded answer; do not reteach the module. Use the last minute for the day page's "Why today". Nothing is collected or graded.
+- **Warm-up (15 minutes).** Four questions on the previous day, on the day page with folded answers. Participants answer alone for 5 minutes with notes closed and compare with a neighbor for 4. In your 5 minutes, ask for a show of hands on each question and explain the most-missed from its folded answer; do not reteach the module. Use the last minute for the day page's "Why today". Nothing is collected or graded.
 - **Modules.** Three a day on Days 1 and 4; two on Days 2 and 3, which then have a 60-minute **clinic** after lunch (Day 2: the CFO memo clinic; Day 3: the geo-test design review). Day 5 is Module 11 in the morning and the capstone from late morning to the end of the day.
 - **Wrap-up (20 minutes).** On the day page: what each module fixed and left open; the running results table, which you keep on the board or a shared sheet all week; and one decision claim each participant writes. Day 5's wrap-up closes the week.
 
@@ -192,6 +192,6 @@ The presentations are the debrief. After the last pair, ask the room:
 - [ ] **The room**: Wi-Fi that can take the whole room installing packages at once at the start of each lab, and power at every table.
 - [ ] **First delivery only**: pilot each lab with two or three people and note where they stall. A run record measures compute time, not how long a person takes.
 
-## Reuse and licence {#reuse}
+## Reuse and license {#reuse}
 
-The teaching text, slides, figures and notebook Markdown are licensed [CC BY 4.0]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE-content); the code is licensed [MIT]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE). You may teach, adapt and share the workshop with attribution. Datasets keep their own licences; the [References](references.qmd) page lists their sources. The source is on [GitHub]({{< var repo.url >}}).
+The teaching text, slides, figures and notebook Markdown are licensed [CC BY 4.0]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE-content); the code is licensed [MIT]({{< var repo.url >}}/blob/{{< var repo.ref >}}/LICENSE). You may teach, adapt and share the workshop with attribution. Datasets keep their own licenses; the [References](references.qmd) page lists their sources. The source is on [GitHub]({{< var repo.url >}}).

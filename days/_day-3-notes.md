@@ -8,7 +8,7 @@ its run time on Colab comes from the readiness page, never from this file.
 
 ## Warm-up: what carried over from Day 2 (15 minutes) {#warm-up}
 
-Answer alone on paper for 5 minutes, notes closed. Compare with a neighbour for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
+Answer alone on paper for 5 minutes, notes closed. Compare with a neighbor for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
 
 **W1.** The Gamma-Gamma model of spend per transaction rests on one assumption you should check before using it. What is it, and how do you check it?
 
@@ -40,7 +40,7 @@ From a randomized experiment: offer it to a random part of the eligible customer
 
 **Goal.** Design a geo-test that can answer a budget question before any money is spent on it, and have another team try to break the design.
 
-**The scenario.** The retailer wants to know whether a regional campaign raises sales enough to roll it out nationally. You have the weekly sales history of the same geo panel as Lab 7 and a fixed test budget. Your design must say which regions get the campaign, for how long, how you will analyse the result, and what result would make you scale, stop or redesign.
+**The scenario.** The retailer wants to know whether a regional campaign raises sales enough to roll it out nationally. You have the weekly sales history of the same geo panel as Lab 7 and a fixed test budget. Your design must say which regions get the campaign, for how long, how you will analyze the result, and what result would make you scale, stop or redesign.
 
 **Format.** Teams of three or four. One person in each team is the **timekeeper**; one is the **scribe** who fills the template; all review. During the review, each team is the **red team** for another.
 
@@ -61,7 +61,7 @@ From a randomized experiment: offer it to a random part of the eligible customer
 4. **Treated and control regions.** How they were chosen (the market-selection output, a pre-period fit) and how many are treated.
 5. **Duration and power.** Test length, and the smallest lift the design can detect (from simulation). Is it below the break-even lift?
 6. **Analysis plan, fixed before the test.** The estimator (synthetic control, difference-in-differences or CausalImpact), the length of the pre-period, and the interval you will report (type and probability).
-7. **Threats and checks.** Spillover between neighbouring regions, other campaigns or holidays in the window, placebo tests (in time and across regions), and what you will do if the pre-period fit is poor.
+7. **Threats and checks.** Spillover between neighboring regions, other campaigns or holidays in the window, placebo tests (in time and across regions), and what you will do if the pre-period fit is poor.
 8. **Decision rule.** For example: "Scale if the lower end of the 90% interval for incremental margin is above the campaign cost; stop if the upper end is below; otherwise extend the test or redesign it."
 
 **The red team's checklist.**

@@ -9,7 +9,7 @@ once briefs/01-*.md to briefs/03-*.md are final.
 
 ## Warm-up: from the pre-work to Day 1 (15 minutes) {#warm-up}
 
-Answer alone on paper for 5 minutes, notes closed. Compare with a neighbour for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
+Answer alone on paper for 5 minutes, notes closed. Compare with a neighbor for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
 
 **W1.** You choose Run all in a lab and it stops at Exercise 2 with the message "TODO 2 is not written yet". What are your two options, and how will the checkpoint tell them apart?
 

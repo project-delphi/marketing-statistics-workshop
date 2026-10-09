@@ -6,7 +6,7 @@ clock times are on the generated timetable.
 
 ## Warm-up: what carried over from Day 3 (15 minutes) {#warm-up}
 
-Answer alone on paper for 5 minutes, notes closed. Compare with a neighbour for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
+Answer alone on paper for 5 minutes, notes closed. Compare with a neighbor for 4 minutes. The facilitator takes the most-missed questions for 5 minutes, then says in one minute where today starts.
 
 **W1.** An email test has a baseline conversion rate of 5%. You want to detect an increase of 0.5 percentage points with a two-sided test at the 5% level and 80% power. Using the rule of thumb $n \approx 16\,p(1-p)/\delta^2$ per arm, about how many customers per arm do you need? What happens if you want to detect 0.25 points instead?
 

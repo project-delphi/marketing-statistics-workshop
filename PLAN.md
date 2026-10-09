@@ -167,12 +167,12 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
 - [ ] M10 budget allocation
-- [ ] M12 capstone + rubric [PE]
+- [ ] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`; lab still to build)
 
 ### Phase 6 — site and docs
 - [ ] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`
 - [ ] [AD] `references.qmd` (every entry fetched; Verified + date + claim supported)
-- [ ] [PE] `prepare.qmd` entry check; `teach.qmd`; day warm-ups/wrap-ups; knowledge checks
+- [x] [PE] `prepare.qmd` entry check; `teach.qmd`; day warm-ups/wrap-ups; knowledge checks (also `days/_day-0-notes.md`…`_day-5-notes.md` with the Day 2/3 clinics and Day 5 run of show, and the lab standard `briefs/_lab-standard.md`)
 - [ ] [UI] landing page (hero, counts, day cards, path, integration diagram SVG), slides/welcome.qmd, browser check both themes
 - [ ] [TE] `setup.qmd` (Colab Python/R, local Docker/uv, AWS) with measured install times from records
 - [ ] [TE] `environment/aws/` (SageMaker BYOI, lifecycle config, EC2, IAM, S3, teardown) — documented, not run

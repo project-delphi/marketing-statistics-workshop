@@ -17,7 +17,7 @@ Pre-work takes about an hour and a half if the entry check goes well, and longer
 | A few days before | [Module 0](modules/00-prework.qmd): the transaction-log warm-up in SQL and pandas or dplyr | about {{< var modules.m00.minutes.lab >}} minutes |
 | The day before | [Check that your setup works](prepare.qmd#working); send any error you cannot fix to the organizers | 5 minutes |
 
-**Why it matters.** Day 1 starts with a transaction log and turns it into a customer table within the first hour. Joins, group-bys, window functions, Poisson counts and the reading of an interval are used from the first lab onward and are not taught in the room. The entry check tells you which of these to brush up; Module 0 has you practise the first two on data like Day 1's.
+**Why it matters.** Day 1 starts with a transaction log and turns it into a customer table within the first hour. Joins, group-bys, window functions, Poisson counts and the reading of an interval are used from the first lab onward and are not taught in the room. The entry check tells you which of these to brush up; Module 0 has you practice the first two on data like Day 1's.
 
 **If you get stuck.** Read the [Setup](setup.qmd) page and the [FAQ](faq.qmd) first. If a cell still fails, copy the full error message and send it to the organizers before Day 1, not on the morning itself.
 
