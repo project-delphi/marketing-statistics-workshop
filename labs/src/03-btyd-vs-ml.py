@@ -124,7 +124,7 @@ def make_features(tx, customers, cutoff):
 # reach a feature, which is what the checkpoint tests by deleting and scrambling everything
 # after the cutoff. With features from the whole log, the holdout error would look better
 # but the model would be using the answer: in real use, the future is not in the log. A
-# BTYD model needs no labelled training window; it extrapolates from each customer's $x$,
+# BTYD model needs no labeled training window; it extrapolates from each customer's $x$,
 # $t_x$ and $T$. The machine-learning model learns the mapping from features to the next
 # $H$ weeks from an earlier window, which costs $H$ weeks of history and fixes the horizon.
 # </details>
