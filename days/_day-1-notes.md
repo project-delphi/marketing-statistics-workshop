@@ -3,8 +3,8 @@ Partial, included by day-1.qmd (UI Expert). Owner: Pedagogy Expert.
 Sections: #warm-up (start of the day) and #wrap-up (end of the day); the day page places them.
 Durations match _variables.yml days.d1.blocks (warmup 15, wrapup 20); clock times are on the
 generated timetable, so they are not repeated here.
-Rows of the results table follow PLAN.md's curriculum; align them with each lab's Decision cell
-once briefs/01-*.md to briefs/03-*.md are final.
+Rows of the results table follow each lab's Decision cell (aligned with the built Labs 1 to 3 on
+2026-10-09).
 -->
 
 ## Warm-up: from the pre-work to Day 1 (15 minutes) {#warm-up}
@@ -53,10 +53,12 @@ The facilitator keeps the results table on the board (or a shared sheet) all wee
 | Lab | Quantity | Your number | Interval (type, probability) | Truth (synthetic data) | Run (FULL or QUICK; yours or reference) |
 |---|---|---|---|---|---|
 | 1 | Customers in the base; share with no repeat purchase (CDNOW) |  |  | real data |  |
+| 1 | Inactivity rule: your N, customers it drops, and how many of them are still alive |  | none (counts) | the alive count uses the truth |  |
 | 2 | BG/NBD parameters r, α, a, b against the truth |  |  |  |  |
 | 2 | Holdout repeat purchases: forecast against actual (CDNOW) |  |  | actual: |  |
 | 2 | Customers below the stop-retargeting threshold |  |  |  |  |
 | 3 | Effect of acquisition channel on the purchase rate |  |  |  |  |
+| 3 | Channels you would treat differently (rate ratio to search) |  |  |  |  |
 | 3 | Holdout error: BTYD against gradient boosting (same metric) |  |  | real data |  |
 
 : Day 1 rows of the running results table (BTYD: buy-till-you-die models) {.striped}
