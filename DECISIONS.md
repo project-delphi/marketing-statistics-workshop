@@ -45,6 +45,17 @@ Newest first within each section.
   affected (unverified on Colab). Run records also report the host's core count (`os.cpu_count()`)
   under `--cpus 2`; their notes say so.
 
+### Colab allows only a few concurrent sessions (2026-10-09)
+- Opening a fourth notebook while three runtimes were alive showed "Too many sessions" on this account.
+  Runtime > Manage sessions lists them; ending finished ones frees a slot. The Colab sweep runs at most
+  three notebooks at a time and ends each session after its record is saved. Learners should close
+  finished labs' runtimes (Runtime > Disconnect and delete runtime) before opening the next lab.
+
+### `#@title` folds solution cells in Colab's R runtime too (2026-10-09, Module 0 R on Colab)
+- The generated R solution cells start with `#@title Solution N — try it yourself first {display-mode: "form"}`;
+  in the R runtime they render collapsed with "Show code", like Python. (The S3 spike cell without a
+  `#@title` line was shown in full; that question is now closed.)
+
 ## Spikes
 
 (Results are added below as each spike runs.)
