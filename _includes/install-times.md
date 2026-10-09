@@ -3,6 +3,6 @@
 | Runtime | Notebook | Install and setup | Measured |
 |---|---|---|---|
 | Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-09 |
-| Colab (R runtime, CPU) | — | not yet measured | — |
+| Colab (R runtime, CPU) | `r/00-setup-warmup` | 5 s | 2026-10-09 |
 
 Measured by each notebook's install cell on a fresh runtime and read from its run record. On your own machine or in the workshop's Docker image nothing is installed.
