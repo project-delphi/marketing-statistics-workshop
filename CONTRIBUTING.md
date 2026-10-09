@@ -76,7 +76,25 @@ Rules: every exercise is a **function** (bindable to a reference, testable). The
 `mktstats.checks` functions (or plain asserts with messages that say how to recover). The first
 checkpoint comes before any model fit or long download. Fit each model once per lab; later checkpoints
 test pure functions or that single fit. `QUICK` shortens sampling and subsamples data; it never skips a
-checkpoint. Provided "Run" cells (no tag) carry the scaffolding.
+checkpoint. Provided "Run" cells (no tag) carry the scaffolding. A Python solution cell starts
+with `# @title Solution N — try it yourself first { display-mode: "form" }`; an R solution cell
+with `#@title Solution N — try it yourself first { display-mode: "form" }`, under a markdown line
+"**Solution N — try it yourself first.**" (Colab's R runtime may not fold it).
+
+Colab moves the output of a cell that shows rich or JavaScript output (a progress bar,
+`google.colab.files.download`) into a sandboxed frame that a script cannot read. So pass
+`progressbar=False` to every fit or sampler call that accepts it, never call `files.download`,
+and keep the record cell plain text (it prints the record and writes `run_record.json`).
+
+A module with two notebooks of the same name (`labs/python/00-setup-warmup.ipynb` and
+`labs/r/00-setup-warmup.ipynb`) offers one lab in two languages: a participant does one. Two
+notebooks with different names (Modules 3, 7, 11) are both done in the lab slot, and the lab
+step table adds up both against the slot.
+
+Each notebook entry in `_variables.yml` has `install:`, the packages its install cell makes
+sure of (Python: versions from `packages`, else `environment/requirements.txt`; R: CRAN
+packages from the P3M snapshot and `github_packages` from their pinned archives). A notebook's
+id in run records is its path under `labs/` without `.ipynb`: `python/00-setup-warmup`.
 
 ### One exercise, R
 
@@ -87,7 +105,11 @@ build_rfm <- function(transactions) {
   stop("TODO 1")
 }
 
+# %% [markdown]
+# **Solution 1 — try it yourself first.** The next cell is the reference solution.
+
 # %% tags=["solution"]
+#@title Solution 1 — try it yourself first { display-mode: "form" }
 solution(1, "build_rfm", function(transactions) {
   ...
 })
@@ -109,14 +131,36 @@ Python (`src/mktstats/harness.py`; the generated harness cell calls `start(...)`
 - `with workshop.checkpoint(n):` — runs the checks; prints "passed on your code" / "passed on the
   REFERENCE solution" / a recovery message (`NotImplementedError` → "TODO n is not written yet …
   workshop.use_reference(n)"), then re-raises so Run all stops.
+- `with workshop.checkpoint(label="..."):` — the same for checks of provided code (no exercise).
 - `workshop.use_reference(n)`, `workshop.summary()`, `workshop.run_record()`.
 - Test hooks used by `scripts/test_notebooks.py`: `workshop._verify_begin(n)`, `workshop._verify_end(n)`.
-- Settings read from the environment: `MKTSTATS_QUICK`, `MKTSTATS_WORKED`, `MKTSTATS_SABOTAGE`.
+- Settings read from the environment: `MKTSTATS_QUICK`, `MKTSTATS_WORKED` (`1` forces worked mode,
+  `0` forces learner mode), `MKTSTATS_SABOTAGE` (`"2,3"`: those exercises keep their stubs even in
+  worked mode, so a whole run must stop at their checkpoints). The harness cell also imports
+  `checks` (`mktstats.checks`) for the lab's checkpoints.
+- IPython hooks only time cells; rerunning the harness removes only its own hooks.
 
 R (`R/mktstats.R`, sourced by the install cell): `solution(n, name, fn)`, `checkpoint(n, expr)`,
 `use_reference(n)`, `workshop_summary()`, `run_record()`, `.ws_verify_begin(n)`, `.ws_verify_end(n)`;
 `WORKED_EXAMPLE <- FALSE` and `QUICK <- FALSE` are plain variables overridden by the same env vars.
-No Colab forms in R.
+No Colab forms in R. The generated harness cell calls `.ws_start(notebook, content_sha, deps_sha,
+ref, exercises)`. Checks: `check_columns`, `check_rfm_table`, `check_in_interval`, `check_close`,
+`check_frames_agree`. `mkt_data(path)` reads a committed file under `data/` (the checkout when
+`MKTSTATS_REPO_ROOT` is set, else raw GitHub at the ref).
+
+### Running and recording
+
+```
+python scripts/test_notebooks.py --notebooks python/00-setup-warmup            # worked + verify
+python scripts/test_notebooks.py --notebooks 00-setup-warmup --mode both       # both languages, both modes
+python scripts/test_notebooks.py --notebooks ID --learner                      # must stop at checkpoint 1
+python scripts/test_notebooks.py --notebooks ID --full --record runs/FILE.json --env docker-arm64
+python scripts/test_notebooks.py --list-matrix                                 # [{id, slug, kernel, path}]
+```
+
+Worked mode runs, after the first checkpoint of each exercise, a copy of it on the stub that
+must fail (verify mode). `MKTSTATS_QUICK=1` unless `--full`. The R notebooks need the `ir`
+kernel (the workshop image).
 
 ## Run record (printed between markers by the record cell; schema in `runs/README.md`)
 
@@ -125,6 +169,9 @@ the files listed in `modules.mNN.deps` plus the pins, embedded by the generator)
 (from `direct_url.json` when installed from git), `mode` (worked/learner), `settings` (QUICK etc.),
 `status`, `seconds`, `install_seconds`, `cell_seconds` (Python), `python`/`r` version, `colab_release`
 (`COLAB_RELEASE_TAG`), `cpus`, `packages` (key versions), `checkpoints` (label → passed, whose).
+Also `date`, `kernel`, `runtime` (colab/sagemaker/local), `platform`, `memory_gb`, `cell_errors`
+(Python) and `verified` (verify mode). `install_seconds` comes from `MKTSTATS_INSTALL_SECONDS`, which
+the install cell sets.
 
 ## Synthetic data API (`mktstats.synth`)
 
@@ -153,7 +200,9 @@ written by `scripts/make_synthetic.py`. R reads only the committed files.
 
 Examples: `rfm_table(rfm)`, `in_interval(truth, draws, prob=0.94, kind="hdi", name=...)`,
 `k_of_K_in_interval(...)`, `close(estimate, truth, rel=..., abs=..., name=...)`,
-`probability(x)`, `monotone(x, increasing=True)`. Every check has a pytest test that feeds it a broken
+`probability(x)`, `monotone(x, increasing=True)`, `columns(df, required)`,
+`frames_agree(left, right, on=..., names=(...))`, and `interval(draws, prob, kind)` (HDI or ETI
+computed with numpy). Every check has a pytest test that feeds it a broken
 input and expects failure.
 
 ## Markup classes used by generated includes (styled in `custom.scss`)
