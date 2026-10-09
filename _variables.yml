@@ -138,11 +138,17 @@ modules:
     summary: ""
     objectives: []
     decision: ""
+    # install: what the install cell makes sure of. Python: versions from `packages`, else
+    # environment/requirements.txt. R: CRAN packages from the P3M snapshot, `github_packages`
+    # from their pinned archives (jsonlite is always added for R/mktstats.R).
     notebooks:
-      - {path: labs/python/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.py, kernel: python3}
-      - {path: labs/r/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.R, kernel: ir}
-    deps: []
-    data: []
+      - {path: labs/python/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.py, kernel: python3, install: [duckdb, pandas]}
+      - {path: labs/r/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.R, kernel: ir, install: [duckdb, DBI, dplyr]}
+    # deps: files whose change makes a run record stale (with the pins and repo.ref).
+    # R files count only for R notebooks, src/ only for Python notebooks.
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, R/mktstats.R]
+    data:
+      - {name: "CDNOW transaction log", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/main/data/cdnow_transactions.csv", sha256: 7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac}
   m01:
     slug: 01-customer-base
     title: "Transaction logs to customer-base analysis"
@@ -322,8 +328,8 @@ modules:
 readiness:
   max_run_age_days: 21
   envs:
-    colab-py: {label: "Colab (Python runtime, CPU)", teaching: true}
-    colab-r: {label: "Colab (R runtime, CPU)", teaching: true}
+    colab-py: {label: "Colab (Python runtime, CPU)", teaching: true, kernel: python3}
+    colab-r: {label: "Colab (R runtime, CPU)", teaching: true, kernel: ir}
     ci-amd64: {label: "GitHub Actions runner in the workshop image (linux/amd64, 4 vCPU)", ci: true}
     docker-arm64: {label: "Workshop image on an Apple Silicon laptop (linux/arm64, Docker)"}
     macos-arm64: {label: "Apple Silicon laptop, native uv environment (not Linux)"}
