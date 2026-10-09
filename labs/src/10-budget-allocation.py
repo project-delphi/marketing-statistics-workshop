@@ -166,7 +166,10 @@ with workshop.checkpoint(1):
         f"Three draws of beta (shape (3, 1)) and five spend levels should give a (3, 5) array;"
         f" got shape {np.shape(many)}. Use NumPy operations (np.exp), not math.exp or a loop."
     )
-    assert np.allclose(many[:, 0], 0.0), "Zero spend must give zero response."
+    assert np.allclose(many[:, 0], 0.0), (
+        f"Zero spend should give zero response; yours gives {np.round(many[:, 0], 4).tolist()}."
+        " (1 - exp(-z)) / (1 + exp(-z)) is 0 at z = 0."
+    )
     checks.monotone(many[1], increasing=True, strict=True, name="the response as spend grows")
 
 # %%
@@ -694,7 +697,9 @@ show(fig)
 # new customer comes from attribution in the CRM and the CLV from Module 5's model, both with
 # uncertainty.
 #
-# **Predict.** When the long-run value of new customers counts, which channel gains budget?
+# **Predict.** Run the next cell first: it prints the long-run margin per dollar of spend for
+# each channel. When that value counts, which channel gains the most budget: tv, search, social
+# or display? Write one name down.
 #
 # **Task.** Write `long_run_value(plan, curves, margin, new_customers_per_dollar, clv)`: $V$ for a
 # `plan` (a `pd.Series` of weekly spend by channel), summing over the channels in `plan`.
@@ -865,7 +870,7 @@ decision.assign(**{"true weekly sales": [sum(true_response(candidates[p][c], c) 
 #    `allocate` and PyMC-Marketing's optimizer. What does the contract cost in expected weekly
 #    sales, with a 94% HDI?
 #
-# Each new optimizer compiles the model again (a few seconds to a minute).
+# Each new optimizer compiles the model again (an estimate: a few seconds to a minute).
 #
 # <details><summary>Code for both</summary>
 #

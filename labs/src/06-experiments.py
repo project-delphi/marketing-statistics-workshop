@@ -1,8 +1,10 @@
 # %% [markdown]
+# <!--
 # APIs checked for this lab (2026-10-09) against the installed source of SciPy 1.16.3 in the
 # workshop's environment: `scipy.stats.chisquare(f_obs, f_exp, ddof=0, axis=0, *, sum_check=True)`
 # (counts, not shares; `sum_check` requires the expected counts to add up to the observed total)
 # and `scipy.stats.norm.ppf` / `norm.sf`. Everything else is NumPy and pandas.
+# -->
 #
 # **How this lab runs.** Nothing here fits a model: every method is a formula or a small
 # simulation, so every cell runs in seconds. `QUICK` (in the harness cell) shrinks the
@@ -268,8 +270,9 @@ print(f"Intact synthetic split:     SRM p-value {srm_pvalue(arm_counts(experimen
 # <details><summary>Why this solution works</summary>
 #
 # The chi-square statistic adds up (observed − expected)² / expected over the arms. Hillstrom's
-# three counts differ from a third of the total by well under 1%, well within chance. The SRM check is itself a test with limited power: losing 10% of one arm in
-# 20,000 customers is obvious, while losing 2% is not distinguishable from chance at this size.
+# three counts differ from a third of the total by well under 1%, well within chance. The SRM
+# check is itself a test with limited power: losing 10% of one arm in 20,000 customers is
+# obvious, while losing 2% is not distinguishable from chance at this size.
 # Large platforms with millions of users per test detect much smaller losses. Run the check before
 # reading any effect: a passing check does not prove the logging is perfect, but a failing one
 # means the comparison cannot be trusted.
@@ -528,7 +531,9 @@ print(f"Naive standard error (every session independent): {naive_se:.4f}")
 #
 # **Task.** Write `ratio_delta_se(num, den)` returning a tuple `(R, se)`: the ratio
 # R = Σnum / Σden and its **delta-method** standard error from per-customer numerators (revenue)
-# and denominators (sessions). With n customers, means $\bar{n}$ and $\bar{d}$, and
+# and denominators (sessions). The *delta method* approximates the variance of a function of
+# averages, here a ratio, by replacing the function with a straight line around the means.
+# With n customers, means $\bar{n}$ and $\bar{d}$, and
 # Var($\bar{n}$) = var(num)/n, Var($\bar{d}$) = var(den)/n, Cov($\bar{n}$, $\bar{d}$) = cov(num, den)/n:
 #
 # $$ \operatorname{Var}(R) \approx \frac{\operatorname{Var}(\bar{n}) - 2R\,\operatorname{Cov}(\bar{n}, \bar{d})
@@ -733,8 +738,8 @@ print(f"  Mode: {'QUICK run: treat this as a rough answer' if QUICK else 'FULL r
 
 # %% [markdown]
 # **Decide.** Write one sentence: roll out or not, the money per 100,000 emails with its range,
-# and what would change your mind (a cheaper or dearer offer; a segment where the effect is much
-# larger or negative, which Module 11 finds).
+# and what would change your mind (a cheaper or more expensive offer; a segment where the effect
+# is much larger or negative, which Module 11 finds).
 #
 # Then run the next cell, which reveals the truth the data were generated from.
 

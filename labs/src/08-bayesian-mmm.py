@@ -203,14 +203,14 @@ def logistic_saturation(x, lam):
 
 
 # %% [markdown]
-# **Explain.** $s = 0.462$ at $\lambda a = 1$: just under half. Each extra dollar returns less
-# than the one before. Why does that make "the ROAS of a channel" depend on how much you
-# already spend on it?
+# **Explain.** Compare with your guess: $s = 0.462$ at $\lambda a = 1$, just under half. Each
+# extra dollar returns less than the one before. Why does that make "the ROAS of a channel"
+# depend on how much you already spend on it?
 #
 # <details><summary>Why this solution works</summary>
 #
 # The formula is $\tanh(\lambda a / 2)$: zero at zero spend, rising steeply at first and
-# flattening towards 1. Its slope (the return on the next dollar) falls as spend grows, so the
+# flattening toward 1. Its slope (the return on the next dollar) falls as spend grows, so the
 # average return over all dollars is higher than the return on the last one. Adstock followed by
 # saturation gives the *response curve* that Module 10 uses to divide a budget.
 # </details>
@@ -269,9 +269,9 @@ def beta_prior_sigma(spend):
 
 
 # %% [markdown]
-# **Explain.** tv gets the widest prior and display the narrowest. Compare with the default
-# (scale 2 for every channel): what does the default say about how much display, a fifth of
-# tv's spend, could add to sales?
+# **Explain.** Compare with your guess: tv, the largest spender, gets the widest prior and
+# display the narrowest. Now compare with the default (scale 2 for every channel): what does
+# the default say about how much display, a fifth of tv's spend, could add to sales?
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -367,7 +367,8 @@ show(fig)
 #
 # **Run.** Fit the model by MCMC with the nutpie sampler: two chains. `target_accept=0.9` makes
 # the sampler take smaller steps than the default 0.8, which left an occasional divergence in
-# the workshop's test fits of this model (what a divergence is: Exercise 4). Read the next
+# the workshop's test fits of this model (what a divergence is: Exercise 4). This is the
+# notebook's longest cell: about two minutes in the recorded Colab FULL run. Read the next
 # exercise's Predict prompt while it runs.
 #
 # With QUICK on, the sampler draws 300 instead of 2,000 values per chain: intervals are rougher
@@ -654,7 +655,8 @@ pd.DataFrame({c: {"truth": true_alpha[c], "mean": alpha_draws[c].mean(),
 # (they run between 0 and 1), so we use default priors and look at shares of the media effect,
 # not ROAS.
 #
-# **Run.** Fit it with the same settings (about as long as the first fit).
+# **Run.** Fit it with the same settings. In the recorded Colab FULL run it took about a quarter
+# of the first fit's time; read Exercise 6 while it runs.
 
 # %%
 example = load_mmm_example()
@@ -681,7 +683,9 @@ print(f"mmm_example: fitted in {fit_ex_seconds:.1f} s; divergences {diag_ex['div
 # %% [markdown]
 # ## Exercise 6 · Contribution shares on `mmm_example` (5 minutes)
 #
-# **Predict.** Which channel contributes more to sales in `mmm_example`, `x1` or `x2`?
+# **Predict.** There is no truth to check against here. Will one channel carry more than two
+# thirds of the media contribution in `mmm_example`, or will `x1` and `x2` split it more evenly?
+# Pick one, and if one channel dominates, name it.
 #
 # **Task.** Write `contribution_share(idata)` returning a DataFrame indexed by channel with
 # columns `mean`, `hdi_low`, `hdi_high` (94% HDI): each channel's share of the total media
@@ -797,7 +801,7 @@ decision.assign(true_roas=[true_roas[c] for c in CHANNELS],
 # 2. Replace `LogisticSaturation()` with `HillSaturation()` and compare the posterior predictive
 #    fit and the ROAS table.
 #
-# Each refit takes about as long as the first fit.
+# Each refit takes about as long as the first fit (an estimate; not measured).
 #
 # <details><summary>Code for the first one</summary>
 #

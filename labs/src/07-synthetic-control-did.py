@@ -1,15 +1,23 @@
 # %% [markdown]
+# <!--
 # APIs checked for this lab (2026-10-09) against the installed source of SciPy 1.16.3 in the
 # workshop's environment: `scipy.optimize.minimize(fun, x0, jac=..., method="SLSQP", bounds=...,
 # constraints=[{"type": "eq", "fun": ...}], options={"maxiter": ..., "ftol": ...})` (constraints as
 # a list of dicts; "eq" means the function must equal zero) and `scipy.optimize.nnls(A, b)`, which
 # returns `(x, rnorm)`. Everything else is NumPy, pandas and Matplotlib.
+# -->
 #
-# **Two notebooks, one lab.** Module 7's lab has this Python notebook and an R notebook,
-# `labs/r/07-causalimpact-geolift.ipynb`. Open the **R notebook first** and run its install cell:
-# it installs CausalImpact and GeoLift, which takes a minute or two on Colab. While it installs,
-# work through Parts A and B here; then do the R notebook's Part C; then come back here for the
-# decision.
+# **Order of work.** Module 7's lab has two notebooks in one 55-minute slot: this Python
+# notebook, which you work first and finish with, and an R notebook,
+# `labs/r/07-causalimpact-geolift.ipynb`.
+#
+# 1. Open the R notebook and run only its install cell: CausalImpact and GeoLift are the
+#    slowest installs of the lab, so start them now and let them run.
+# 2. Work Parts A and B here: Exercises 1 to 4, about 28 minutes.
+# 3. About 33 minutes into the lab, switch to the R notebook even if Part B is unfinished
+#    (`workshop.use_reference(n)` gets you past it): Part C there, Exercises 1 and 2, about 12
+#    minutes, and its short decision cell.
+# 4. Come back here for the Decision (5 minutes) and type CausalImpact's interval into it.
 #
 # **How this lab runs.** No sampler: every fit is a small least-squares problem that takes
 # milliseconds. `QUICK` only shrinks the power simulation of Exercise 4 (counts printed below);
@@ -236,7 +244,8 @@ print(f"y_index: {y_index.shape}, X_index: {X_index.shape} ({len(CONTROLS)} cont
 # **Task.** Write `sc_weights(y_pre, X_pre)` returning the weights w (one per column of `X_pre`)
 # that minimize ‖y_pre − X_pre·w‖² subject to w ≥ 0 and Σw = 1. Use
 # `minimize(loss, x0, method="SLSQP", bounds=[(0, 1)] * J, constraints=[{"type": "eq", "fun": ...}])`
-# with equal starting weights `x0 = np.full(J, 1 / J)`. Passing the gradient
+# with equal starting weights `x0 = np.full(J, 1 / J)`. SLSQP (sequential least-squares
+# programming) is SciPy's optimizer for smooth problems with bounds and equality constraints. Passing the gradient
 # `jac=lambda w: -2 * X_pre.T @ (y_pre - X_pre @ w)` makes it faster and more precise.
 
 # %% tags=["exercise"]
@@ -305,7 +314,9 @@ print(pd.DataFrame({"weight": top.head(8).round(3), "region": geo_region[top.hea
 
 # %% [markdown]
 # Look at how closely the dashed synthetic control follows the treated total before the test
-# window, and at the gap that opens inside it.
+# window, and at the gap that opens inside it. The *RMSPE* printed above (root mean squared
+# prediction error) is the typical size of that gap per pre-period week, in index units: the
+# smaller, the closer the fit.
 
 # %%
 fig, ax = plt.subplots(figsize=(8, 3.5))
@@ -338,7 +349,7 @@ fig.tight_layout()
 # %% [markdown]
 # **The same estimator on real data: California's Proposition 99.** Synthetic control was made
 # famous by a tobacco-control program, not a marketing campaign: in 1988 California passed
-# Proposition 99, a tobacco-control program, and Abadie, Diamond & Hainmueller (2010) estimated
+# Proposition 99, and Abadie, Diamond & Hainmueller (2010) estimated
 # its effect on cigarette sales by building a synthetic California from 38 states without such a
 # program. It is the canonical synthetic-control dataset, and the question is the one a geo test
 # asks: what would have happened without the intervention? The outcome is per-capita cigarette
@@ -464,7 +475,7 @@ with workshop.checkpoint(3):
           f" {1 / (len(placebo_ratios) + 1):.3f}); with the campaign removed: {p_no_lift:.3f}")
 
 # %% [markdown]
-# Look at whether the colored treated gap leaves the grey band of placebo gaps inside the test
+# Look at whether the colored treated gap leaves the gray band of placebo gaps inside the test
 # window, and stays inside it before.
 
 # %%
@@ -609,8 +620,8 @@ print(f"Smallest lift on this grid with power >= 0.8: {min(detectable) if detect
 # **Optional: CausalImpact from the R notebook.** Type its cumulative 95% interval for incremental
 # sales below, for example `causalimpact_interval = (48_000, 144_000)`.
 #
-# **Assumptions** (stated, not estimated): gross margin 30% of sales; campaign cost \$20,000. The
-# synthetic data's truth file does not record a campaign cost yet; change it if yours differs.
+# **Assumptions** (stated, not estimated): gross margin 30% of sales; campaign cost \$20,000.
+# Change `CAMPAIGN_COST` in the next cell if your campaign cost differs.
 #
 # **The rule**, fixed before reading the numbers: call the campaign **incremental** if the
 # in-space placebo p-value is below 0.1 and, if entered, the CausalImpact interval excludes 0.

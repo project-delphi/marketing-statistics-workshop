@@ -19,13 +19,22 @@
 # %% [markdown]
 # # Part A · CLVTools on the Day 1 data
 #
-# **Before you start:** open the Python notebook of this lab (`03-btyd-vs-ml`) and run its
-# install cell, so it is ready when you get there. Then work through this R notebook.
+# **Order of work.** This lab has two notebooks in one 55-minute slot, and this R notebook
+# comes first.
+#
+# 1. Open the Python notebook `03-btyd-vs-ml` and run only its install cell, so it is ready
+#    when you get there.
+# 2. Work through this notebook: Exercises 1 to 3 (about 22 minutes) and its decision.
+# 3. About 30 minutes into the lab, switch to the Python notebook even if an exercise here is
+#    unfinished (`use_reference(n)` gets you past it): Exercises 1 and 2 there (about 18
+#    minutes) and the lab's second decision.
 #
 # CLVTools is an R package for buy-till-you-die models. It fits the same Pareto/NBD as
-# Module 2 by maximum likelihood, and it can add customer characteristics (*covariates*) to
-# the purchase and dropout processes. The flow is always: a `clvdata()` object (the
-# transaction log plus the calibration/holdout split), then a model such as `pnbd()`.
+# Module 2 by *maximum likelihood* (the parameter values under which the observed purchases
+# are most probable; with flat priors, Module 2's MAP is the same estimate), and it can add
+# customer characteristics (*covariates*) to the purchase and dropout processes. The flow is
+# always: a `clvdata()` object (the transaction log plus the calibration/holdout split), then a
+# model such as `pnbd()`.
 #
 # The next cell loads the CDNOW log that ships with CLVTools (2,357 customers; transactions
 # on the same day are already combined) and the workshop's synthetic retailer, whose

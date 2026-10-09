@@ -25,11 +25,13 @@
 # %% [markdown]
 # # Part B · Uplift models against the truth
 #
-# **Order of work.** This lab has two notebooks. You have just run the install cell above.
-# Now open the R notebook `11-grf-causal-forest` (from the
+# **Order of work.** This lab has two notebooks in one 55-minute slot, and this Python notebook
+# comes second. You have just run the install cell above. Now open the R notebook
+# `11-grf-causal-forest` (from the
 # [notebooks page](https://project-delphi.github.io/marketing-statistics-workshop/notebooks.html))
-# and work Part A there: Exercises 1 to 3, 20 minutes. Then come back here for Part B
-# (Exercises 1 to 3 of this notebook, 20 minutes) and the decision.
+# and work Part A there: Exercises 1 to 3, about 20 minutes. About 28 minutes into the lab,
+# come back here for Part B (Exercises 1 to 3 of this notebook, about 20 minutes) and the
+# decision (5 minutes).
 #
 # **The experiment.** Our retailer e-mailed an offer to a random half of 20,000 customers and
 # recorded what each spent over the next two weeks. The customers look like Hillstrom's
@@ -183,8 +185,9 @@ print(f"Margin {MARGIN:.0%}, offer cost ${OFFER_COST:.2f}: worth sending when th
       f" ${OFFER_COST / MARGIN:.2f}. Truly worth it for {truth['share_should_treat']:.1%} of customers.")
 
 # %% [markdown]
-# **Run.** The next cell fits the four models on the training half (about a minute on Colab
-# with 1,000 trees; QUICK grows 200). While it runs, look at your prediction for Exercise 1.
+# **Run.** The next cell fits the four models on the training half (about 40 seconds in the
+# recorded Colab FULL run, with 1,000 trees; QUICK grows 200). While it runs, look at your
+# prediction for Exercise 1.
 
 # %%
 from econml.dml import CausalForestDML
@@ -230,7 +233,8 @@ cf = models["causal forest"]
 # %% [markdown]
 # Now grade the four models against the true effects of the held-out customers, and compare the
 # causal forest's average effect with the truth. `ate__inference()` is its doubly robust
-# estimate of the ATE (computed on the training half from out-of-bag predictions);
+# estimate of the ATE (computed on the training half from *out-of-bag* predictions: each
+# customer's prediction comes only from trees that did not see that customer);
 # `ate_interval(X_eval)` averages the forest's predictions over the evaluation half, with a
 # deliberately conservative interval (EconML's documentation calls it an upper bound).
 
@@ -288,7 +292,8 @@ with workshop.checkpoint(1, label="1 on the four models"):
 # differences between customers. The T-learner fits a separate model to each arm, so the noise
 # of both lands in their difference; the S-learner shares one model across the arms and is less
 # noisy. The X-learner and the DML causal forest target the difference itself (Künzel et al.
-# 2019; Chernozhukov et al. 2018), and the forest's honest splits, averaged over many trees,
+# 2019; Chernozhukov et al. 2018), and the forest's *honest* splits (each tree chooses its
+# splits on one part of its sample and estimates effects on another), averaged over many trees,
 # damp the noise most, which is why its RMSE is the lowest here. More customers, or an outcome
 # with less noise than spend, would improve all four.
 # </details>
@@ -625,7 +630,8 @@ print(f"The list really earns {usd(10_000 * (true_forest - everyone))} more than
 # compare their Qini coefficients on the held-out half. There is no truth here: only the Qini
 # table and the random score's noise band tell you whether a model ranks better than chance.
 # The cell downloads Hillstrom once (checked with SHA-256, cached) and grows 200 trees in the
-# causal forest; QUICK keeps a random half of the customers. It takes about a minute on Colab.
+# causal forest; QUICK keeps a random half of the customers. It took about 15 seconds in the
+# recorded Colab FULL run.
 
 # %%
 from mktstats.data import load_hillstrom

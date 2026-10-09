@@ -60,7 +60,7 @@ chart saying what to look at.
    assumptions your recommendation depends on most; which stages used the reference or QUICK; and the
    next experiment you would run.
 
-## Deliverables (hand in by 15:40)
+## Deliverables (hand in by 15:30)
 
 - [ ] **The notebook**, run top to bottom, with checkpoints A to E passed on your code or on the reference.
   Its summary cell shows which.
@@ -73,12 +73,12 @@ chart saying what to look at.
 | Time | Checkpoint | You should have |
 |---|---|---|
 | 11:40 | Start | The notebook open, setup cells run, pair roles agreed (one types, both decide; swap at lunch). |
-| 12:10 | **A** | Customer value by channel, with named intervals. |
-| 12:40 | **B** | The geo test's lift and its interval, in the form the MMM calibration needs. Then lunch until 13:30. |
-| 14:10 | **C** | Calibrated ROAS by channel; the fit checked. If the fit is still running at 14:00, stop it and use `QUICK` or the reference. |
-| 14:35 | **D** | The allocation, its expected incremental margin and the probability it beats the current split. |
-| 15:00 | **E** | The targeting rule and its expected profit on held-out customers. Then a 10-minute break. |
-| 15:40 | Hand-in | Slides and notebook handed in. Presentations start. |
+| 12:20 | **A** | Customer value by channel, with named intervals. |
+| 13:00 | **B** | The geo test's lift and its interval, in the form the MMM calibration needs. Then lunch until 13:50. |
+| 14:25 | **C** | Calibrated ROAS by channel; the fit checked. If the fit is still running at 14:15, stop it and use `QUICK` or the reference. |
+| 14:45 | **D** | The allocation, its expected incremental margin and the probability it beats the current split. |
+| 15:05 | **E** | The targeting rule and its expected profit on held-out customers. |
+| 15:30 | Hand-in | Slides and notebook handed in. Then a 10-minute break; presentations start at 15:40. |
 
 ## Rubric (for instructors: score a pair in 5 minutes)
 

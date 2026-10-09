@@ -74,7 +74,7 @@ From a randomized experiment: offer it to a random part of the eligible customer
 - [ ] Placebo tests are planned.
 - [ ] The reported interval is named (type and probability).
 
-**Roles of the facilitators.** Prepare the demo output before the session. Do not run market selection live: it runs many simulations and the room should not wait on it. Its measured run time, once recorded, is on the [readiness page](readiness.qmd). During design and review, circulate and ask the checklist questions; do not hand out a design.
+**Roles of the facilitators.** Prepare the demo output before the session. Do not run market selection live: it runs many simulations and the room should not wait on it. Its measured run time, once recorded, is on the [readiness page](readiness.qmd). If a team plans to analyze several treated markets with GeoLift, point them to aggregating the markets into one series (as Lab 7 does) or to CausalImpact: GeoLift's analysis function, `GeoLift()`, fails with two or more test markets at the version the workshop pins, while market selection and power, used in the demo, work. During design and review, circulate and ask the checklist questions; do not hand out a design.
 
 **Deliverable.** One completed template per team, photographed or pasted into a Markdown cell of your Lab 7 notebook. It is the plan you will follow in Stage 2 of the capstone on Day 5.
 
@@ -93,7 +93,9 @@ From a randomized experiment: offer it to a random part of the eligible customer
 | 6 | Sample size per arm for the planned detectable effect |  |  |  |  |
 | 6 | Sample-ratio check on the split: p-value |  |  |  |  |
 | 6 | Interval width for the lift, without and with CUPED |  |  |  |  |
+| 6 | Incremental margin per email: roll out or not? |  |  |  |  |
 | 7 | Geo-panel lift estimate against the true lift |  |  |  |  |
+| 7 | Incremental sales and the return on the campaign spend |  |  |  |  |
 | 7 | Placebo tests: how many were as large as the real estimate |  |  | real or synthetic: |  |
 | 7 | Proposition 99 effect estimate (real data) |  |  | real data |  |
 | Clinic | Your design's detectable lift and break-even lift |  |  |  |  |

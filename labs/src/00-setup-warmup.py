@@ -6,8 +6,8 @@
 # lasts only for the session. The cell above installed what this lab needs (on Colab) and
 # printed where you are running.
 #
-# **Predict.** How many CPUs does this runtime have, and how much memory? Write your guess
-# down before you run the next cell.
+# **Predict.** How many CPUs does this runtime have: 1, 2, 4 or 8? And how much memory: under
+# 8 GB, 8 to 16 GB, or more? Write both guesses down before you run the next cell.
 
 # %%
 import duckdb
@@ -22,10 +22,11 @@ print(f"{'duckdb':>14}: {duckdb.__version__}")
 print(f"{'QUICK':>14}: {QUICK} (it has no effect in this lab)")
 
 # %% [markdown]
-# **Explain.** The CPU count and memory depend on the runtime type you choose (on Colab:
-# Runtime > Change runtime type), so keep a note of them: later labs report run times, and a
-# time means little without the machine it ran on. Google publishes the software each Colab
-# runtime ships with (operating system, Python and R versions, preinstalled packages) in the
+# **Explain.** Compare with your guesses. The CPU count and memory depend on the runtime type
+# you choose (on Colab: Runtime > Change runtime type), so keep a note of them: later labs
+# report run times, and a time means little without the machine it ran on. Google publishes
+# the software each Colab runtime ships with (operating system, Python and R versions,
+# preinstalled packages) in the
 # [googlecolab/backend-info](https://github.com/googlecolab/backend-info) repository. The
 # workshop pins its Python packages to that list, so the versions tested in CI and in the
 # workshop's Docker image are the versions you run here.
@@ -105,8 +106,9 @@ con.sql("SELECT COUNT(*) AS n_transactions, SUM(spent) AS total_spend FROM trans
 # %% [markdown]
 # ## Exercise 1 · The customer table in SQL (12 minutes)
 #
-# **Predict.** The log has one row per transaction. How many rows will a table with one row
-# per customer have? Roughly what share of customers do you expect bought only once?
+# **Predict.** The log has one row per transaction, and the cell above printed how many
+# customers it covers. What share of those customers bought only once: under 25%, 25 to 50%,
+# or over 50%? Write your guess down; the cell after Exercise 3 prints the answer.
 #
 # **Task.** Write `customer_table_sql(con)`: a DuckDB query on `transactions` that returns one
 # row per customer with these columns:
@@ -144,10 +146,11 @@ def customer_table_sql(con):
 
 
 # %% [markdown]
-# **Explain.** `GROUP BY id` collapses each customer's rows into one, and every other column
-# must then be an aggregate (`MIN`, `MAX`, `COUNT`, `SUM`). Converting the date before taking
-# `MIN` and `MAX` matters little here (`YYYYMMDD` integers sort in date order) but matters as
-# soon as you subtract dates.
+# **Explain.** The table has exactly one row per customer, the count printed above, because
+# `GROUP BY id` collapses each customer's rows into one; every other column must then be an
+# aggregate (`MIN`, `MAX`, `COUNT`, `SUM`). Converting the date before taking `MIN` and `MAX`
+# matters little here (`YYYYMMDD` integers sort in date order) but matters as soon as you
+# subtract dates. Your guess about one-time buyers is checked after Exercise 3.
 #
 # <details><summary>Why convert the dates at all?</summary>
 #
@@ -186,7 +189,8 @@ with workshop.checkpoint(1):
 #
 # Two independent implementations that agree are the cheapest test you will ever write.
 #
-# **Predict.** Which step is most likely to make a pandas version disagree with the SQL one?
+# **Predict.** Which step is most likely to make a pandas version disagree with the SQL one:
+# the date conversion, the purchase count, or the spend total? Pick one and write it down.
 #
 # **Task.** Write `customer_table_pandas(tx)` returning the same columns as Exercise 1, from
 # the DataFrame `tx` (the raw log). `pd.to_datetime(tx["date"].astype(str), format="%Y%m%d")`
@@ -219,9 +223,10 @@ def customer_table_pandas(tx):
 
 
 # %% [markdown]
-# **Explain.** Named aggregation (`first_purchase=("date", "min")`) mirrors the SQL `SELECT`
-# list one to one, which makes the two easy to compare by eye. `size` counts rows, as
-# `COUNT(*)` does.
+# **Explain.** Compare with your pick. If the checkpoint failed on your first try, which column
+# did its message name, and what made that step differ from SQL? Named aggregation
+# (`first_purchase=("date", "min")`) mirrors the SQL `SELECT` list one to one, which makes the
+# two easy to compare by eye. `size` counts rows, as `COUNT(*)` does.
 #
 # <details><summary>What the checkpoint compares</summary>
 #
@@ -247,8 +252,9 @@ with workshop.checkpoint(2):
 # count purchase occasions, not rows, so two transactions by the same customer on the same day
 # are one occasion. Then `repeat_purchases = (number of distinct purchase days) - 1`.
 #
-# **Predict.** Do any CDNOW customers have two transactions on the same day? If so, does
-# counting rows instead of days change the count for many customers?
+# **Predict.** Do any CDNOW customers have two transactions on the same day? For how many
+# customers will counting rows instead of days change the number of repeat purchases: none,
+# under 100, or 100 or more? Write your guess down.
 #
 # **Task.** Write `repeat_purchases(tx)` in pandas, returning one row per customer with
 # `customer_id`, `purchase_days` (distinct dates) and `repeat_purchases`.
@@ -313,7 +319,11 @@ with workshop.checkpoint(3):
     )
 
 # %% [markdown]
-# Compare with your prediction:
+# Compare with both predictions: the share of customers who bought only once (Exercise 1) and
+# the number whose count changes (Exercise 3). Counting rows would give those customers extra
+# "repeat purchases" on days they already bought: which input of the Module 2 models
+# (frequency, recency or age) would that inflate, and would it make them look more or less
+# loyal than they are?
 
 # %%
 repeats = repeat_purchases(tx_raw)
@@ -351,9 +361,19 @@ print(f"Customers whose count changes if you count rows instead of days: {(by_ro
 # %% [markdown]
 # ## Decision · Sign off the customer table
 #
-# Module 1 starts from this table. Before anyone builds on it, decide whether it is fit to
-# hand over: the SQL and pandas versions agree, the totals match the raw log, and repeat
-# purchases follow the definition the models use.
+# The pre-work ends in two decisions, both taken from evidence this notebook produced: is the
+# customer table fit to hand to Module 1, and where will you run the labs?
+#
+# **Number.** The runtime report in Part A (CPUs, memory, versions) and the printout below:
+# whether the table's purchases and spend match the raw log, and which checkpoints passed.
+#
+# **Rule.** Hand the table on only if every checkpoint passed and the totals match the log.
+# Run the labs on Colab if this notebook ran here with every checkpoint passing; use the
+# workshop's Docker image (see the Setup page of the workshop site; the site is linked at the
+# end of this notebook) if the Colab install failed twice or your organization blocks Colab. Do the R
+# notebooks of Modules 3, 7 and 11 if the R version of this notebook
+# (`labs/r/00-setup-warmup.ipynb`) ran too; if it failed and you have no Docker, follow those
+# modules in Python and from the module pages.
 
 # %%
 signoff = customers_sql.merge(repeats, on="customer_id")
@@ -364,8 +384,12 @@ print(f"Window: {signoff['first_purchase'].min():%Y-%m-%d} to {signoff['last_pur
 print("Checkpoints passed:", ", ".join(k for k, (ok, _) in workshop.results.items() if ok) or "none")
 
 # %% [markdown]
-# **Decide.** Would you hand this table to the modelling team? Write one sentence: yes or no,
-# and which checks your answer rests on.
+# **Recommendation.** Write two sentences. First: would you hand this table to the modeling
+# team, yes or no, and which checks your answer rests on? Second: where will you run the labs
+# (Colab, Docker or AWS), will you do the R notebooks, and which result above does that rest
+# on? The site's FAQ covers the usual setup problems.
+#
+# Your sentences: ________________________________________________
 
 # %% [markdown]
 # ## Stretch (optional) · Customers by first-purchase month
