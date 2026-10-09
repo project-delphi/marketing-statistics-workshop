@@ -10,7 +10,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip} [R lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python, R. Python for difference-in-differences and synthetic control written from scratch with SciPy; R because CausalImpact (bsts) and GeoLift are R packages and the reference implementations (the Python port of CausalImpact has had no release since 2023).
 
 Labs
-:   Python: `labs/python/07-synthetic-control-did.ipynb` (in preparation)<br>R: `labs/r/07-causalimpact-geolift.ipynb` (in preparation)
+:   Python: `labs/python/07-synthetic-control-did.ipynb`<br>R: `labs/r/07-causalimpact-geolift.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic geo panel (40 geos x 104 weeks, known lift)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md), [Proposition 99 panel (tidysynth smoking data)](https://cran.r-project.org/src/contrib/tidysynth_0.2.1.tar.gz)
 :::
 
 ::: {.module-outcomes}

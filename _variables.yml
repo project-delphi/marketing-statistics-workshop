@@ -354,9 +354,11 @@ modules:
     recap: "Module 5 set CAC caps assuming channels cause the customers credited to them, but nothing so far measured causation."
     next: "Individuals cannot always be randomized: TV, outdoor and regional campaigns switch on for whole regions. Module 7 measures lift from geo-level tests and quasi-experiments."
     notebooks:
-      - {path: labs/python/06-experiments.ipynb, source: labs/src/06-experiments.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/06-experiments.ipynb, source: labs/src/06-experiments.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, data/synthetic/email_experiment.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Synthetic email experiment (20,000 customers, known effect)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md"}
+      - {name: "Hillstrom MineThatData e-mail experiment (64,000 customers)", url: "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv", sha256: 0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece}
   m07:
     slug: 07-geo-experiments
     title: "Geo-experiments and quasi-experiments"
@@ -381,11 +383,15 @@ modules:
     decision: "Was the campaign incremental, and by how much? Report incremental sales with an interval and the implied return on the campaign spend."
     recap: "Module 6 needs randomization of individuals, which is impossible for regional or broadcast campaigns."
     next: "A geo test measures one channel, once, in one window. To compare all channels continuously and plan budgets we need a model of how every channel drives sales over time: the marketing mix model in Module 8."
+    # R install: GeoLift and augsynth come from their pinned archives (github_packages) after
+    # their CRAN imports, which install.packages(repos = NULL) does not fetch by itself.
     notebooks:
-      - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3}
-      - {path: labs/r/07-causalimpact-geolift.ipynb, source: labs/src/07-causalimpact-geolift.R, kernel: ir}
-    deps: []
-    data: []
+      - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib, threadpoolctl]}
+      - {path: labs/r/07-causalimpact-geolift.ipynb, source: labs/src/07-causalimpact-geolift.R, kernel: ir, install: [CausalImpact, bsts, ggplot2, dplyr, tidyr, knitr, gsynth, MarketMatching, panelView, directlabels, doParallel, foreach, gridExtra, progress, lifecycle, osqp, FNN, Formula, augsynth, GeoLift]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, R/mktstats.R, data/synthetic/geo_panel.csv, data/synthetic/truth.json, data/real/prop99.csv]
+    data:
+      - {name: "Synthetic geo panel (40 geos x 104 weeks, known lift)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md"}
+      - {name: "Proposition 99 panel (tidysynth smoking data)", url: "https://cran.r-project.org/src/contrib/tidysynth_0.2.1.tar.gz", sha256: 046b416b437dd2f3d5610ac6a594db1c941c3cf9c208becfdfed0a76ce553281}
   m08:
     slug: 08-bayesian-mmm
     title: "Bayesian marketing mix models"
