@@ -40,7 +40,9 @@
 # reuses the latest version. An existing app image config or space is reused, not changed.
 #
 # Docs checked on 2026-10-09:
-#   https://docs.aws.amazon.com/sagemaker/latest/dg/studio.html (only the new Studio is documented here)
+#   https://docs.aws.amazon.com/sagemaker/latest/dg/studio.html (Studio Classic: "no longer available
+#     for onboarding", so only the new Studio is covered here)
+#   https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated.html (the new Studio)
 #   https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated-byoi.html
 #   https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated-byoi-specs.html (UID 1000, GID 100,
 #     EBS volume mounted at /home/sagemaker-user)
