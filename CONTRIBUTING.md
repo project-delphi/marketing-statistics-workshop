@@ -207,11 +207,65 @@ and `load_truth()`.
   spend over all weeks, raw units) and `roas_with_carryover`, `contribution_share`, `share_of_sales`;
   the window and definitions; `true_optimal_allocation` (steady-state weekly split of a stated budget
   within stated bounds).
+  `true_response(spend, truth["mmm"]["channels"][c])` gives a channel's true steady-state weekly
+  response.
+- `mmm(seed, confounded=True)` = `mmm_confounded(seed=2028)` (Module 9; files
+  `mmm_confounded_weekly.csv`, `mmm_confounded_lift_tests.csv`, `mmm_confounded_latent.csv`, truth
+  `mmm_confounded`) → the same `weekly` columns, with an unobserved AR(1) demand shock that
+  multiplies `search` spend by `exp(0.15 d_t)` and adds `9,000 * d_t` to sales; tv, social,
+  display, price and holiday equal `mmm()`'s. True ROAS stays causal (search 3.0); measured with
+  `recovery.fit_mmm` (nutpie, 2 chains, 300 and 1000 draws) the uncalibrated 94% HDI for search
+  lies above 3.0 and calibrating on the two search rows brings it inside a narrower HDI
+  (`tolerances.mmm_confounded_mcmc`). Tables:
+  `lift_tests` (channel, x, delta_x, delta_y, sigma, **date** = last week of the test, test_start,
+  test_weeks, true_delta_y; one +30% test per channel plus a second search test that switches search
+  off, `delta_x = -x`; sigma 8% of the lift; sorted by date) and `latent` (date_week, demand_shock,
+  demand_effect, media_contribution_<channel>). Use `date` as `lift_test_date_column` in
+  `TimeSliceCrossValidator.run`; both search tests end by week 101, so `n_init >= 101` keeps them in
+  every fold. Truth adds `confounding` (mechanism; naive vs oracle OLS ROAS with the true transforms
+  and the omitted-variable-bias identity) and `lift_tests.rows`.
 - `geo_panel(seed=2029, ...)` → table `panel` (date, geo, region, sales, treated, post). Truth:
-  `lift_pct`, `log_lift`, `incremental_sales`, `treated_geos`, test window.
+  `lift_pct`, `log_lift`, `incremental_sales`, `treated_geos`, test window, and `campaign` (cost =
+  1.25% of each treated geo's mean weekly pre-period sales per test week, $25,000; incremental ROAS,
+  break-even ROAS at 30% margin, incremental margin, net return).
 - `email_experiment(seed=2030, n=20000, ...)` → table `experiment` (Hillstrom-like covariates,
   treatment, conversion, spend, per-row `true_cate`). Truth: `ate`, `margin`, `offer_cost`, decision
   rule, policy values (treat none / all / oracle).
+- `channel_value(retailer_truth, {name: mmm_truth})` → truth block `channel_value`, the **shared
+  channel vocabulary** (`mktstats.synth.channels`). Media channels (tv, search, social, display:
+  where money is spent) and acquisition channels (search, social, referral: how a customer first
+  arrived) are different lists; the e-mail `channel` column (Phone/Web/Multichannel) is a third
+  thing. `media_to_acquisition` (tv → 30% search, 70% referral; search → search; social → 90%
+  social, 10% referral; display → 60% search, 40% social), `cost_per_new_customer` (tv 150, search
+  150, social 100, display 300 dollars; `new_customers_per_dollar` = 1 / cost, constant within the
+  bounds), new-customer value in margin **excluding the first purchase** (the MMM's short-run sales
+  already count it), and `long_run_optimal_allocation` for `mmm` and `mmm_confounded`: the steady
+  weekly plan maximizing `margin * Σ r_c(x_c) + Σ x_c / cost_c * clv_c` within the same budget and
+  bounds as `true_optimal_allocation` (concave plus linear, solved exactly by
+  `mmm.optimal_allocation_value`), with `value_sensitivity` (how flat the objective is: a value
+  tolerance of a few percent cannot tell the short-run and long-run plans apart).
+- `capstone(seed=2032)` (Module 12; files `capstone_transactions.csv`, `capstone_customers.csv`,
+  `capstone_mmm_weekly.csv`, `capstone_geo_panel.csv`, `capstone_email_experiment.csv`; truth
+  `capstone`) → tables `transactions`, `customers` (retailer format, 4,000 customers), `weekly`
+  (MMM format, confounded search, ends the week before the geo test), `panel` (geo format; in 8 of
+  40 regions paid search was **switched off** for the last 10 weeks; each region responds as a
+  scaled copy of the national curve, so the national-equivalent lift row `x, -x, r(0) - r(x)` lies
+  on the MMM's true curve), `experiment` (e-mail format plus `split`, train/test halves; margin
+  30%, offer cost $0.75). Truth: `scenario` (what pairs are told: dates, treated geos, base and
+  changed spend, the share rule and national-equivalent rule, budget, bounds, current plan,
+  channel link, offer economics) and `answers` per stage, each with its `checkpoint` tolerance:
+  `stage1_customer_value` (36 months, 1% a month, Module 5's discrete convention, margin, by
+  acquisition channel), `stage2_geo_test` (true sales change, lift, treated share, campaign
+  economics, national-equivalent lift row), `stage3_mmm` (true ROAS), `stage4_allocation`
+  (long-run optimal plan), `stage5_targeting` (policy values on all rows and on the test split);
+  plus the full `retailer`, `mmm`, `geo_panel` and `email_experiment` truths. Measured reference
+  results for each checkpoint are in `tolerances.capstone`.
+
+Recovery helpers added for these: `recovery.sc_weights(y_pre, x_pre)` and
+`recovery.synthetic_control(panel, treated_geos, test_start)` (treated mean vs controls, in-space
+placebos, RMSPE-ratio p-value, relative placebo effects). The committed new CSVs are not yet in
+`mktstats.data.SYNTHETIC_TABLES`, so `load_synthetic` does not know them: call the generator in
+Python (identical output) or read the CSV directly until `data.py` lists them.
 
 Data loaders (`mktstats.data`) read env `MKTSTATS_CACHE` (download cache, default
 `~/.cache/mktstats`), `MKTSTATS_OFFLINE` (no downloads), `MKTSTATS_REF` (git ref for committed files
