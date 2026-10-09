@@ -128,26 +128,48 @@ the files listed in `modules.mNN.deps` plus the pins, embedded by the generator)
 
 ## Synthetic data API (`mktstats.synth`)
 
-All generators are seeded and return a result with `.data` (DataFrame(s)) and `.truth` (dict). Committed
-copies with default seeds live in `data/synthetic/` (CSV) with all truths in `data/synthetic/truth.json`,
-written by `scripts/make_synthetic.py`. R reads only the committed files.
+All generators are seeded (numpy `Generator(PCG64(seed))`) and return a `SynthResult` with `.data`
+(a dict of named DataFrames, also reachable as attributes: `res.transactions`) and `.truth` (a
+JSON-serialisable dict). Committed copies with default seeds live in `data/synthetic/` (CSV) with all
+truths in `data/synthetic/truth.json`, written by `scripts/make_synthetic.py` (`--check` is the drift
+gate). R reads only the committed files. `truth.json` also holds a `tolerances` block: how close a
+correct fit gets, measured over independent seeds; checkpoints and pages cite it. Fit-and-compare
+helpers are in `mktstats.recovery`; loaders for committed files are `mktstats.data.load_synthetic(name)`
+and `load_truth()`.
 
-- `retailer(seed, ...)` — the running retailer story. Customers acquired over time through acquisition
-  channels; purchases and dropout from a **Pareto/NBD** process with static covariate effects of the
-  acquisition channel on purchase and dropout rates (CLVTools' parameterization), Gamma-Gamma spend.
-  Data: `transactions` (customer_id, date, amount), `customers` (customer_id, acquisition_channel,
-  first_date, and truth columns `true_alive_at_cal_end`, `true_alive_at_end`, `true_lambda`, `true_mu`,
-  `true_mean_spend`). Truth: `pnbd` {r, alpha, s, beta}, `covariates` {gamma_purchase, gamma_dropout per
-  channel}, `gamma_gamma` {p, q, v}, calibration/holdout dates.
-- `btyd_bgnbd(seed, ...)` — plain **BG/NBD** customers for the recovery exercise. Truth: {r, alpha, a, b}.
-- `mmm(seed, ...)` — weekly sales with channel spend (`tv`, `search`, `social`, `display`), geometric
-  adstock, logistic saturation, trend, yearly seasonality, controls. Truth: per channel `adstock_alpha`,
-  `saturation_lam`, `beta`, `roas` (noiseless incremental sales ÷ spend over the stated window, raw units),
-  `contribution_share`; the window; the lift-test results a geo experiment would have produced.
-- `geo_panel(seed, ...)` — weekly sales for ~40 geos with a campaign in treated geos from a known week.
-  Truth: `lift_pct`, `incremental_sales`, treated geos, test window.
-- `email_experiment(seed, ...)` — Hillstrom-like randomized email offer with heterogeneous effects.
-  Truth: per-row `true_cate` column, `ate`, offer cost and margin assumptions.
+- `retailer(seed=2026, ...)` → tables `transactions` (customer_id, date, amount; every purchase,
+  first included) and `customers` (customer_id, acquisition_channel, first_date, 0/1 indicators
+  `channel_social`, `channel_referral`, truth columns `true_lambda`, `true_mu` (per week),
+  `true_mean_spend`, `true_alive_at_cal_end`, `true_alive_at_end`). Pareto/NBD purchases and dropout
+  with static covariates in the CLVTools / pymc-marketing parameterization
+  (`alpha_i = alpha * exp(-gamma_purchase' x_i)`, `beta_i = beta * exp(-gamma_dropout' x_i)`; `search`
+  is the reference level), Gamma-Gamma spend. Rates are per week; summarize with `time_unit="D",
+  time_scaler=7`. Truth: `pnbd` {r, alpha, s, beta}, `covariates` {gamma_purchase, gamma_dropout per
+  channel, columns}, `gamma_gamma` {p, q, v}, `population_mean_spend`, calibration/holdout dates,
+  `value_by_channel` (true expected purchases, spend per transaction and discounted CLV per channel,
+  for existing customers at the calibration end and for a new customer; horizon and discount rate
+  stated).
+- `btyd_bgnbd(seed=2027, ...)` → tables `transactions` (customer_id, date) and `rfm` (frequency,
+  recency, T in weeks exactly as pymc-marketing's `rfm_summary(..., time_unit="D", time_scaler=7)`,
+  test_frequency, test_T, true_lambda, true_p, true alive flags). Truth: `bgnbd` {r, alpha, a, b}.
+- `mmm(seed=2028, ...)` → tables `weekly` (date_week, tv, search, social, display, price_index,
+  holiday, t, y) and `lift_tests` (channel, x, delta_x, delta_y, sigma — the
+  `MMM.add_lift_test_measurements` format — plus true_delta_y). Truth per channel: `adstock_alpha`,
+  `saturation_lam` (scale-free), `saturation_beta_model_units` (what a default-scaled pymc-marketing
+  MMM fitted on all rows reports) and `saturation_beta_sales_units`, `roas` (noiseless contribution ÷
+  spend over all weeks, raw units) and `roas_with_carryover`, `contribution_share`, `share_of_sales`;
+  the window and definitions; `true_optimal_allocation` (steady-state weekly split of a stated budget
+  within stated bounds).
+- `geo_panel(seed=2029, ...)` → table `panel` (date, geo, region, sales, treated, post). Truth:
+  `lift_pct`, `log_lift`, `incremental_sales`, `treated_geos`, test window.
+- `email_experiment(seed=2030, n=20000, ...)` → table `experiment` (Hillstrom-like covariates,
+  treatment, conversion, spend, per-row `true_cate`). Truth: `ate`, `margin`, `offer_cost`, decision
+  rule, policy values (treat none / all / oracle).
+
+Data loaders (`mktstats.data`) read env `MKTSTATS_CACHE` (download cache, default
+`~/.cache/mktstats`), `MKTSTATS_OFFLINE` (no downloads), `MKTSTATS_REF` (git ref for committed files
+when not in a checkout), `MKTSTATS_DATA_DIR` (override the local `data/` folder) and
+`MKTSTATS_SABOTAGE=swap_rf` (the RFM helpers swap recency and frequency).
 
 ## Checks (`mktstats.checks`) — raise `AssertionError` with a message that says what to look at
 
