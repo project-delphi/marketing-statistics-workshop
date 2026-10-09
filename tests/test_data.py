@@ -27,7 +27,9 @@ def fake_cdnow(tmp_path, monkeypatch):
     f = src / "cdnow_transactions.csv"
     f.write_text("_id,id,date,cds_bought,spent\n"
                  "4,1,19970101,2,29.33\n4,1,19970118,2,29.73\n4,1,19970802,1,14.96\n"
-                 "18,2,19970101,1,11.77\n21,3,19970101,2,26.48\n21,3,19970113,3,40.00\n")
+                 "18,2,19970101,1,11.77\n21,3,19970101,2,26.48\n21,3,19970113,3,40.00\n"
+                 # customer 4 buys on Monday 6 and Wednesday 8 January 1997: one calendar week
+                 "30,4,19970106,1,10.00\n30,4,19970108,1,12.00\n")
     sha = hashlib.sha256(f.read_bytes()).hexdigest()
     entry = {"description": "fake", "sources": [
         {"url": (src / "missing.csv").as_uri(), "file": "cdnow_transactions.csv", "sha256": sha},
@@ -70,7 +72,7 @@ def test_unknown_dataset():
 def test_load_cdnow_and_rfm(cache, fake_cdnow):
     tx = data.load_cdnow()
     assert pd.api.types.is_datetime64_any_dtype(tx["date"])
-    rfm = data.cdnow_rfm(time_unit="D").set_index("customer_id")
+    rfm = data.cdnow_rfm(time_unit="D", time_scaler=1).set_index("customer_id")
     # customer 1: purchases on day 0, 17, 213 of 1997; observation ends at the last date (213)
     assert rfm.loc[1, "frequency"] == 2
     assert rfm.loc[1, "recency"] == 213 and rfm.loc[1, "T"] == 213
@@ -78,14 +80,29 @@ def test_load_cdnow_and_rfm(cache, fake_cdnow):
     assert rfm.loc[2, "frequency"] == 0 and rfm.loc[2, "monetary_value"] == 0
 
 
+def test_cdnow_rfm_defaults_to_days_over_seven(cache, fake_cdnow):
+    """The default counts purchase days and reports weeks as days / 7, like
+    rfm_summary(time_unit="D", time_scaler=7); weekly periods merge same-week purchases."""
+    rfm = data.cdnow_rfm().set_index("customer_id")
+    assert rfm.loc[1, "frequency"] == 2
+    assert rfm.loc[1, "recency"] == pytest.approx(213 / 7)
+    assert rfm.loc[1, "T"] == pytest.approx(213 / 7)
+    # customer 4: Monday and Wednesday of one week are two purchase days, 2 days apart
+    assert rfm.loc[4, "frequency"] == 1
+    assert rfm.loc[4, "recency"] == pytest.approx(2 / 7)
+    weekly = data.cdnow_rfm(time_unit="W").set_index("customer_id")
+    assert weekly.loc[4, "frequency"] == 0 and weekly.loc[4, "recency"] == 0
+    pd.testing.assert_frame_equal(data.cdnow_rfm(), data.cdnow_rfm("D", None, 7))
+
+
 def test_sabotage_swaps_recency_and_frequency(cache, fake_cdnow, monkeypatch):
-    clean = data.cdnow_rfm(time_unit="D")
+    clean = data.cdnow_rfm(time_unit="D", time_scaler=1)
     monkeypatch.setenv("MKTSTATS_SABOTAGE", "swap_rf")
-    bad = data.cdnow_rfm(time_unit="D")
+    bad = data.cdnow_rfm(time_unit="D", time_scaler=1)
     np.testing.assert_array_equal(bad["recency"], clean["frequency"])
     np.testing.assert_array_equal(bad["frequency"], clean["recency"])
     monkeypatch.setenv("MKTSTATS_SABOTAGE", "something_else")
-    pd.testing.assert_frame_equal(data.cdnow_rfm(time_unit="D"), clean)
+    pd.testing.assert_frame_equal(data.cdnow_rfm(time_unit="D", time_scaler=1), clean)
 
 
 @pytest.mark.parametrize("unit,scaler", [("D", 7), ("W", 1)])

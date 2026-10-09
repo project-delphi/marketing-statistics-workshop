@@ -158,13 +158,13 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
 - [x] M8 Bayesian MMM (built + Docker run; Colab pending)
-- [ ] M2 BTYD
+- [x] M2 BTYD — built + Docker run; Colab pending
 - [x] M11 uplift (EconML + grf): built + Docker run + Colab worked/full runs recorded for both notebooks (2026-10-09); module page pending
 - [x] M7 geo (Python SC/DiD + R CausalImpact/GeoLift) — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
-- [ ] M1 customer base (DuckDB)
+- [x] M1 customer base (DuckDB) — built + Docker run; Colab pending
 - [ ] M4 monetary value and CLV
 - [x] M6 experiments — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
-- [ ] M3 covariates (CLVTools) + BTYD vs ML
+- [x] M3 covariates (CLVTools) + BTYD vs ML — built + Docker run (R and Python); Colab pending
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
 - [x] M10 budget allocation (built + Docker run; Colab pending)

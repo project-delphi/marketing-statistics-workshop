@@ -237,13 +237,23 @@ def rfm_summary(
     return _sabotage(rfm)
 
 
-def cdnow_rfm(time_unit: str = "W", observation_period_end: str | None = None) -> pd.DataFrame:
-    """CDNOW RFM table (frequency, recency, T, monetary_value) in ``time_unit`` periods.
+def cdnow_rfm(time_unit: str = "D", observation_period_end: str | None = None,
+              time_scaler: float | None = None) -> pd.DataFrame:
+    """CDNOW RFM table (frequency, recency, T, monetary_value).
+
+    The default counts purchase **days** and reports recency and T in weeks as days / 7, the
+    convention of the workshop's BTYD labs (``rfm_summary(..., time_unit="D", time_scaler=7)``):
+    ``time_scaler`` defaults to 7 for ``time_unit="D"`` and to 1 otherwise. Weekly periods
+    (``time_unit="W"``) are not the same: they merge purchases made in the same calendar week and
+    floor the times (1,422 customers without a repeat purchase at 1997-09-30 instead of the
+    1,411 that Fader, Hardie & Lee report; measured 2026-10-09).
 
     ``observation_period_end`` defaults to the last transaction date (1998-06-30).
     """
+    if time_scaler is None:
+        time_scaler = 7 if time_unit == "D" else 1
     tx = load_cdnow()
-    rfm = rfm_core(tx, "id", "date", "spent", observation_period_end, time_unit, 1)
+    rfm = rfm_core(tx, "id", "date", "spent", observation_period_end, time_unit, time_scaler)
     return _sabotage(rfm)
 
 
