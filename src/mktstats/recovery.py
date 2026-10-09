@@ -164,6 +164,74 @@ def did_log_lift(panel: pd.DataFrame, outcome: str = "sales", treated: str = "tr
             "incremental_sales": float(window * (1 - 1 / (1 + lift)))}
 
 
+def sc_weights(y_pre, x_pre) -> np.ndarray:
+    """Synthetic-control weights: ``w >= 0``, ``sum(w) = 1``, minimizing ``||y_pre - x_pre @ w||^2``
+    (``scipy.optimize.minimize(method="SLSQP")``, start at equal weights). ``y_pre`` has one value
+    per pre-period week, ``x_pre`` one column per control unit."""
+    from scipy.optimize import minimize
+
+    y = np.asarray(y_pre, dtype=float)
+    x = np.asarray(x_pre, dtype=float)
+    scale = float(np.abs(y).mean()) or 1.0  # conditioning only; the solution does not change
+    y, x = y / scale, x / scale
+    k = x.shape[1]
+    res = minimize(lambda w: float(((y - x @ w) ** 2).sum()), np.full(k, 1.0 / k),
+                   jac=lambda w: -2.0 * x.T @ (y - x @ w), method="SLSQP",
+                   bounds=[(0.0, 1.0)] * k,
+                   constraints=[{"type": "eq", "fun": lambda w: w.sum() - 1.0,
+                                 "jac": lambda w: np.ones_like(w)}],
+                   options={"maxiter": 500, "ftol": 1e-12})
+    w = np.clip(res.x, 0.0, None)
+    return w / w.sum()
+
+
+def synthetic_control(panel: pd.DataFrame, treated_geos, test_start, *, outcome: str = "sales",
+                      unit: str = "geo", time: str = "date", placebos: bool = True) -> dict:
+    """Synthetic control for the mean of the treated geos, with in-space placebos.
+
+    Weights fit the treated geos' mean ``outcome`` in the weeks before ``test_start`` with the
+    control geos (:func:`sc_weights`). ``incremental`` = sum over test weeks of (treated mean -
+    synthetic) times the number of treated geos. Placebos refit each control geo against the other
+    controls; ``p_value`` = (1 + #{placebo post/pre RMSPE ratio >= treated ratio}) / (1 +
+    #placebos). ``relative_effect`` is the summed test-window gap over the summed synthetic
+    outcome; ``placebo_relative_effects`` the same for each placebo, with ``placebo_pre_rmspe``
+    (pre-period RMSPE over the unit's pre-period mean) to drop placebos that fit badly. Raw dollar
+    gaps of single geos are not comparable with the treated mean: synthetic control cannot match
+    the level of the largest geos, whose placebo gaps are then huge."""
+    wide = panel.pivot(index=time, columns=unit, values=outcome).sort_index()
+    treated = [g for g in wide.columns if g in set(treated_geos)]
+    controls = [g for g in wide.columns if g not in set(treated_geos)]
+    pre = wide.index < pd.Timestamp(test_start)
+    post = ~pre
+
+    def fit(y, x):
+        w = sc_weights(y[pre], x[pre])
+        synth_y = x @ w
+        gap = y - synth_y
+        rmspe_pre = float(np.sqrt((gap[pre] ** 2).mean()))
+        rmspe_post = float(np.sqrt((gap[post] ** 2).mean()))
+        return {"w": w, "gap": gap, "ratio": rmspe_post / rmspe_pre,
+                "relative": float(gap[post].sum() / synth_y[post].sum()),
+                "pre_rmspe": rmspe_pre / float(y[pre].mean())}
+
+    y_t = wide[treated].mean(axis=1).to_numpy()
+    x_c = wide[controls].to_numpy()
+    tr = fit(y_t, x_c)
+    out = {"weights": dict(zip(controls, tr["w"], strict=True)), "gap": tr["gap"],
+           "incremental": float(tr["gap"][post].sum() * len(treated)),
+           "relative_effect": tr["relative"], "rmspe_ratio": tr["ratio"],
+           "pre_rmspe": tr["pre_rmspe"], "n_treated": len(treated), "n_controls": len(controls),
+           "synthetic_post_total": float((y_t - tr["gap"])[post].sum() * len(treated))}
+    if placebos:
+        fits = [fit(x_c[:, j], np.delete(x_c, j, axis=1)) for j in range(len(controls))]
+        ratios = np.array([f["ratio"] for f in fits])
+        out["placebo_ratios"] = ratios
+        out["placebo_relative_effects"] = np.array([f["relative"] for f in fits])
+        out["placebo_pre_rmspe"] = np.array([f["pre_rmspe"] for f in fits])
+        out["p_value"] = float((1 + (ratios >= tr["ratio"]).sum()) / (1 + len(ratios)))
+    return out
+
+
 def hdi(draws, prob: float = 0.94) -> tuple[float, float]:
     """Highest-density interval: the shortest interval holding ``prob`` of the draws."""
     x = np.sort(np.asarray(draws, dtype=float).ravel())
@@ -249,4 +317,6 @@ __all__ = [
     "hdi",
     "mmm_draws",
     "mmm_recovery_table",
+    "sc_weights",
+    "synthetic_control",
 ]

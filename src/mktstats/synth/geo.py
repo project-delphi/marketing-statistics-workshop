@@ -47,6 +47,8 @@ def geo_panel(
     national_sd: float = 0.02,
     regional_sd: float = 0.015,
     noise_sd: float = 0.04,
+    campaign_spend_rate: float = 0.0125,
+    margin: float = 0.30,
 ) -> SynthResult:
     """Sales for ``n_geos`` geos over ``n_weeks`` weeks; campaign in the last ``test_weeks`` weeks.
 
@@ -54,6 +56,11 @@ def geo_panel(
     ------
     panel : date, geo, region, sales, treated (1 for the treated geos in every week),
         post (1 in the test window for every geo).
+
+    The campaign's cost (truth ``campaign``) does not change the panel: each treated geo received
+    ``campaign_spend_rate`` times its mean weekly pre-period sales (observed, rounded to $10) in
+    every test week. With the gross ``margin`` this gives the incremental ROAS, the incremental
+    margin and the net return of the campaign.
     """
     if not 0 < n_treated < n_geos:
         raise ValueError("need 0 < n_treated < n_geos")
@@ -121,4 +128,38 @@ def geo_panel(
             "unrounded counterfactual (no-campaign) sales of this realization."
         ),
     }
+    pre_mean = y[treated_idx][:, post == 0].mean(axis=1)  # observed pre-period weekly sales
+    weekly_spend = np.round(campaign_spend_rate * pre_mean, -1)
+    cost = float(weekly_spend.sum() * test_weeks)
+    truth["campaign"] = campaign_economics(incremental, cost, margin)
+    truth["campaign"].update({
+        "cost_rule": (
+            f"each treated geo spent {campaign_spend_rate:.2%} of its mean weekly pre-period "
+            "sales (observed sales, rounded to $10) in every test week"
+        ),
+        "weekly_spend_by_geo": {g: float(s) for g, s in zip(geos[treated_idx], weekly_spend,
+                                                            strict=True)},
+        "spend_rate_of_pre_period_sales": campaign_spend_rate,
+    })
     return SynthResult("geo_panel", {"panel": panel}, truth)
+
+
+def campaign_economics(incremental_sales: float, cost: float, margin: float) -> dict:
+    """Return on a campaign from its true incremental sales, its cost and the gross margin."""
+    inc_margin = margin * incremental_sales
+    return {
+        "cost": sig(cost),
+        "margin": margin,
+        "incremental_sales": sig(incremental_sales),
+        "incremental_roas": sig(incremental_sales / cost),
+        "break_even_roas": sig(1 / margin),
+        "incremental_margin": sig(inc_margin),
+        "net_return": sig(inc_margin - cost),
+        "return_on_spend": sig((inc_margin - cost) / cost),
+        "definition": (
+            "incremental_roas = true incremental sales / cost; incremental_margin = margin * "
+            "incremental sales; net_return = incremental_margin - cost; return_on_spend = "
+            "net_return / cost. The campaign pays back when incremental_roas > break_even_roas "
+            "= 1 / margin."
+        ),
+    }

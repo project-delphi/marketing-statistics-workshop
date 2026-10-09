@@ -50,6 +50,26 @@ def test_geo_incremental_sales_consistent_with_data(geo):
                                                                       rel=1e-4)
 
 
+def test_geo_campaign_cost_and_return(geo):
+    p, tr = geo.panel, geo.truth
+    camp = tr["campaign"]
+    pre = p[(p["treated"] == 1) & (p["post"] == 0)].groupby("geo")["sales"].mean()
+    rate = camp["spend_rate_of_pre_period_sales"]
+    for g, s in camp["weekly_spend_by_geo"].items():
+        assert s == pytest.approx(round(rate * pre[g], -1))
+    assert sorted(camp["weekly_spend_by_geo"]) == tr["treated_geos"]
+    assert camp["cost"] == pytest.approx(sum(camp["weekly_spend_by_geo"].values())
+                                         * tr["test_weeks"])
+    assert camp["incremental_sales"] == tr["incremental_sales"]
+    assert camp["incremental_roas"] == pytest.approx(tr["incremental_sales"] / camp["cost"],
+                                                     rel=1e-5)
+    assert camp["net_return"] == pytest.approx(
+        camp["margin"] * tr["incremental_sales"] - camp["cost"], rel=1e-5)
+    assert camp["break_even_roas"] == pytest.approx(1 / camp["margin"], rel=1e-5)
+    # a decision with tension: profitable at the truth, but not by much
+    assert camp["break_even_roas"] < camp["incremental_roas"] < 2 * camp["break_even_roas"]
+
+
 def test_email_deterministic(email):
     again = synth.email_experiment()
     pd.testing.assert_frame_equal(email.experiment, again.experiment)

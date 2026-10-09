@@ -18,6 +18,18 @@
     ],
     "email_experiment": [
       "email_experiment.csv"
+    ],
+    "mmm_confounded": [
+      "mmm_confounded_weekly.csv",
+      "mmm_confounded_lift_tests.csv",
+      "mmm_confounded_latent.csv"
+    ],
+    "capstone": [
+      "capstone_transactions.csv",
+      "capstone_customers.csv",
+      "capstone_mmm_weekly.csv",
+      "capstone_geo_panel.csv",
+      "capstone_email_experiment.csv"
     ]
   },
   "retailer": {
@@ -351,7 +363,30 @@
     "test_end": "2025-12-22",
     "test_weeks": 10,
     "pre_weeks": 94,
-    "incremental_definition": "sum over treated geos and test weeks of y0 * lift_pct / 100, where y0 is the unrounded counterfactual (no-campaign) sales of this realization."
+    "incremental_definition": "sum over treated geos and test weeks of y0 * lift_pct / 100, where y0 is the unrounded counterfactual (no-campaign) sales of this realization.",
+    "campaign": {
+      "cost": 25000.0,
+      "margin": 0.3,
+      "incremental_sales": 101679.0,
+      "incremental_roas": 4.06716,
+      "break_even_roas": 3.33333,
+      "incremental_margin": 30503.7,
+      "net_return": 5503.68,
+      "return_on_spend": 0.220147,
+      "definition": "incremental_roas = true incremental sales / cost; incremental_margin = margin * incremental sales; net_return = incremental_margin - cost; return_on_spend = net_return / cost. The campaign pays back when incremental_roas > break_even_roas = 1 / margin.",
+      "cost_rule": "each treated geo spent 1.25% of its mean weekly pre-period sales (observed sales, rounded to $10) in every test week",
+      "weekly_spend_by_geo": {
+        "G02": 310.0,
+        "G06": 760.0,
+        "G08": 310.0,
+        "G20": 150.0,
+        "G21": 170.0,
+        "G22": 430.0,
+        "G31": 100.0,
+        "G32": 270.0
+      },
+      "spend_rate_of_pre_period_sales": 0.0125
+    }
   },
   "email_experiment": {
     "description": "Randomized e-mail offer (Bernoulli treat_prob). P(buy) = expit(f(x) + T*tau(x)); spend | buy ~ Gamma(shape, mean m(x)) independent of T; true_cate = (expit(f+tau) - expit(f)) * m(x), the effect on expected spend.",
@@ -468,6 +503,1366 @@
     },
     "email_uplift": {
       "check": "Qini coefficient of true_cate as the score exceeds that of a random score"
+    },
+    "mmm_confounded_mcmc": {
+      "sampler": "nutpie, 2 chains, draws = tune = 300 (QUICK) and 1000 (FULL), random_seed=1, default priors, mktstats.recovery.fit_mmm",
+      "interval": "94% HDI",
+      "uncalibrated": {
+        "search_hdi_above_truth": true,
+        "other_channels_inside_min": 2
+      },
+      "calibrated": {
+        "lift_rows": "both search rows of mmm_confounded_lift_tests.csv",
+        "search_inside": true,
+        "search_hdi_narrower": true
+      },
+      "measured_2026_10_09": {
+        "search_roas_truth": 3.0,
+        "uncalibrated_search_mean_hdi": {
+          "300": [
+            5.418,
+            4.135,
+            6.719
+          ],
+          "1000": [
+            5.354,
+            4.013,
+            6.53
+          ]
+        },
+        "calibrated_search_mean_hdi": {
+          "300": [
+            3.055,
+            2.783,
+            3.344
+          ],
+          "1000": [
+            3.056,
+            2.772,
+            3.368
+          ]
+        },
+        "other_channels_inside": "3 of 3 in all four fits; calibration raises the social and display means (to about 2.8 and 1.4) with wide HDIs",
+        "other_lift_rows_500_draws": {
+          "search_plus_30pct_test_only": [
+            3.241,
+            2.694,
+            4.025
+          ],
+          "search_switch_off_test_only": [
+            3.507,
+            3.128,
+            3.813
+          ],
+          "all_five_rows": [
+            3.07,
+            2.8,
+            3.383
+          ],
+          "note": "search ROAS mean and 94% HDI; the switch-off test alone leaves the truth outside, the +30% test alone or both search tests bring it inside"
+        }
+      }
+    },
+    "capstone": {
+      "note": "Checkpoint tolerances are in capstone.answers.*.checkpoint; these are the reference results measured on the committed capstone data (2026-10-09), so each tolerance can be read against a correct pipeline.",
+      "stage1_bgnbd_map": {
+        "method": "BetaGeoModel MAP with channel_social and channel_referral on purchase and dropout; GammaGamma MAP with WEAK_GAMMA_GAMMA_PRIORS; Module 5's monthly value from expected_purchases_new_customer",
+        "relative_error": {
+          "search": 0.086,
+          "social": 0.148,
+          "referral": -0.007
+        },
+        "top_channel_right": true
+      },
+      "stage2_synthetic_control": {
+        "method": "mktstats.recovery.synthetic_control on the treated mean, 32 placebos",
+        "relative_error": 0.018,
+        "p_value": 0.03,
+        "sigma_relative_to_effect": 0.086,
+        "sigma_rule": "sd of placebo relative effects (placebos with pre-RMSPE at most twice the median) times the treated synthetic total"
+      },
+      "stage3_mcmc": {
+        "sampler": "nutpie, 2 chains, random_seed=1, default priors, lift row from stage 2",
+        "search_truth": 2.6,
+        "uncalibrated_search_mean_hdi": {
+          "300": [
+            4.058,
+            2.738,
+            5.465
+          ],
+          "1000": [
+            3.928,
+            2.514,
+            5.426
+          ]
+        },
+        "calibrated_search_mean_hdi": {
+          "300": [
+            2.875,
+            2.51,
+            3.186
+          ],
+          "1000": [
+            2.863,
+            2.536,
+            3.202
+          ]
+        },
+        "calibrated_inside": "4 of 4 at 300 and 1000 draws",
+        "spend_increase_instead": "with a +100% search test (spend doubled) in place of the switch-off, calibration moved search ROAS up, away from the truth (500 draws: 3.92 -> 4.71 with a milder shock, 5.63 -> 7.82 with Module 9's), because the test probes the curve above the observed spend, not its level"
+      },
+      "stage5_targeting": {
+        "test_split_true_value": {
+          "t_learner_hist_gb_200_iter": 0.316,
+          "causal_forest_dml_200_trees": 0.383,
+          "treat_all": 0.126,
+          "oracle": 0.512
+        }
+      }
+    }
+  },
+  "mmm_confounded": {
+    "description": "Weekly sales = intercept + trend + yearly seasonality + price and holiday effects + sum of channel contributions + Normal noise; channel contribution = B_c * logistic(lam_c * normalized_geometric_adstock(spend_c) / max(spend_c)). Confounded variant: an unobserved demand shock d_t (AR(1), phi = 0.7, standardized) multiplies search spend by exp(0.15 * d_t) and adds 9000 * d_t to sales. Channel contributions, and so the true ROAS, are causal and do not include the demand effect.",
+    "seed": 2028,
+    "n_weeks": 156,
+    "start_date": "2023-01-02",
+    "end_date": "2025-12-22",
+    "l_max": 8,
+    "adstock": "GeometricAdstock(l_max=8, normalize=True), zero spend before the first week",
+    "saturation": "LogisticSaturation: beta * (1 - exp(-lam x)) / (1 + exp(-lam x))",
+    "units": "adstock_alpha and saturation_lam are scale-free (lam applies to spend / max spend over all weeks); saturation_beta_model_units = B_c / max(y) is what pymc-marketing's MMM reports when fitted on all rows with default max scaling; *_sales_units are dollars.",
+    "roas_definition": "roas = sum over all weeks of the channel's noiseless contribution / sum of its spend over all weeks (zero spend before week 1; carry-over past the last week not counted). roas_with_carryover adds the contribution of in-window spend in the l_max - 1 weeks after the last week.",
+    "roas_window": {
+      "start": "2023-01-02",
+      "end": "2025-12-22"
+    },
+    "y_scale": 565875.0,
+    "channels": {
+      "tv": {
+        "adstock_alpha": 0.6,
+        "saturation_lam": 1.5,
+        "saturation_beta_model_units": 0.317373,
+        "saturation_beta_sales_units": 179593.0,
+        "channel_scale": 77841.0,
+        "roas": 1.6,
+        "roas_with_carryover": 1.62433,
+        "contribution": 7890440.0,
+        "spend": 4931520.0,
+        "contribution_share": 0.378263,
+        "share_of_sales": 0.124273
+      },
+      "search": {
+        "adstock_alpha": 0.2,
+        "saturation_lam": 2.5,
+        "saturation_beta_model_units": 0.216207,
+        "saturation_beta_sales_units": 122346.0,
+        "channel_scale": 45603.0,
+        "roas": 3.0,
+        "roas_with_carryover": 3.00564,
+        "contribution": 9514560.0,
+        "spend": 3171520.0,
+        "contribution_share": 0.456122,
+        "share_of_sales": 0.149853
+      },
+      "social": {
+        "adstock_alpha": 0.4,
+        "saturation_lam": 2.0,
+        "saturation_beta_model_units": 0.0850513,
+        "saturation_beta_sales_units": 48128.4,
+        "channel_scale": 32174.0,
+        "roas": 1.4,
+        "roas_with_carryover": 1.40548,
+        "contribution": 2890830.0,
+        "spend": 2064880.0,
+        "contribution_share": 0.138585,
+        "share_of_sales": 0.0455302
+      },
+      "display": {
+        "adstock_alpha": 0.3,
+        "saturation_lam": 3.0,
+        "saturation_beta_model_units": 0.0109458,
+        "saturation_beta_sales_units": 6193.94,
+        "channel_scale": 12883.0,
+        "roas": 0.6,
+        "roas_with_carryover": 0.603808,
+        "contribution": 563840.0,
+        "spend": 939734.0,
+        "contribution_share": 0.0270302,
+        "share_of_sales": 0.0088804
+      }
+    },
+    "media_share_of_sales": 0.328537,
+    "baseline": {
+      "intercept": 250000.0,
+      "trend_per_week": 250.0,
+      "fourier_sin1_cos1_sin2_cos2": [
+        15000.0,
+        25000.0,
+        5000.0,
+        -8000.0
+      ],
+      "price_coef_per_unit_index": -400000.0,
+      "price_effect_form": "price_coef * (price_index - 1)",
+      "holiday_effect": 40000.0,
+      "noise_sd": 8000.0
+    },
+    "lift_tests": {
+      "definition": "Randomized geo tests, each lasting test_weeks weeks and ending in the week `date`. A test changed weekly spend from x (the channel's mean positive weekly spend over the 26 weeks before the test) to x + delta_x (delta_x = -x: the channel was switched off in the test regions, scaled to the national level); true_delta_y is the steady-state weekly sales change on the true curve (saturation only, as add_lift_test_measurements models it), delta_y = true_delta_y + Normal(0, sigma), sigma = rel_sigma * |true_delta_y|. Randomized tests measure the causal effect, so the demand shock does not bias them. Use `date` as lift_test_date_column in TimeSliceCrossValidator.run: a fold may use a test only if the test ended on or before the fold's last training week.",
+      "test_weeks": 8,
+      "rel_sigma": 0.08,
+      "plan": [
+        {
+          "channel": "search",
+          "end_fraction": 0.4,
+          "spend_change": 0.3
+        },
+        {
+          "channel": "tv",
+          "end_fraction": 0.55,
+          "spend_change": 0.3
+        },
+        {
+          "channel": "social",
+          "end_fraction": 0.7,
+          "spend_change": 0.3
+        },
+        {
+          "channel": "display",
+          "end_fraction": 0.85,
+          "spend_change": 0.3
+        },
+        {
+          "channel": "search",
+          "end_fraction": 0.65,
+          "spend_change": -1.0
+        }
+      ],
+      "rows": [
+        {
+          "channel": "search",
+          "x": 18200.0,
+          "delta_x": 5500.0,
+          "delta_y": 13312.0,
+          "sigma": 1079.0,
+          "date": "2024-03-04",
+          "test_start": "2024-01-15",
+          "test_weeks": 8,
+          "true_delta_y": 13481.0
+        },
+        {
+          "channel": "tv",
+          "x": 53200.0,
+          "delta_x": 16000.0,
+          "delta_y": 20309.0,
+          "sigma": 1593.0,
+          "date": "2024-08-19",
+          "test_start": "2024-07-01",
+          "test_weeks": 8,
+          "true_delta_y": 19913.0
+        },
+        {
+          "channel": "search",
+          "x": 18300.0,
+          "delta_x": -18300.0,
+          "delta_y": -55874.0,
+          "sigma": 4535.0,
+          "date": "2024-12-02",
+          "test_start": "2024-10-14",
+          "test_weeks": 8,
+          "true_delta_y": -56693.0
+        },
+        {
+          "channel": "social",
+          "x": 13200.0,
+          "delta_x": 4000.0,
+          "delta_y": 4531.0,
+          "sigma": 386.0,
+          "date": "2025-01-27",
+          "test_start": "2024-12-09",
+          "test_weeks": 8,
+          "true_delta_y": 4822.0
+        },
+        {
+          "channel": "display",
+          "x": 7100.0,
+          "delta_x": 2100.0,
+          "delta_y": 684.0,
+          "sigma": 55.0,
+          "date": "2025-07-14",
+          "test_start": "2025-05-26",
+          "test_weeks": 8,
+          "true_delta_y": 689.0
+        }
+      ]
+    },
+    "true_roas_target": {
+      "tv": 1.6,
+      "search": 3.0,
+      "social": 1.4,
+      "display": 0.6
+    },
+    "true_optimal_allocation": {
+      "definition": "Steady-state weekly allocation (the same spend every week, so normalized adstock equals spend) maximizing the sum of true weekly channel contributions B_c * logistic(lam_c * x_c / S_c) subject to sum(x_c) = budget and per-channel bounds. The problem is concave (logistic = tanh(z/2)), so the optimum is unique; it is solved exactly by equalizing marginal returns (bisection on the Lagrange multiplier, mktstats.synth.mmm.optimal_allocation), no random starts.",
+      "weekly_budget": 72000.0,
+      "budget_rule": "mean weekly total spend over the last 52 weeks, rounded to $1,000",
+      "bounds_rule": "0.5 to 2.0 times each channel's mean weekly spend over the last 52 weeks",
+      "bounds": {
+        "tv": [
+          15716.0,
+          62864.0
+        ],
+        "search": [
+          10272.9,
+          41091.5
+        ],
+        "social": [
+          6085.84,
+          24343.3
+        ],
+        "display": [
+          3796.19,
+          15184.8
+        ]
+      },
+      "current_allocation": {
+        "tv": 31545.1,
+        "search": 20619.7,
+        "social": 12215.5,
+        "display": 7619.71
+      },
+      "optimal_allocation": {
+        "tv": 28823.1,
+        "search": 33294.9,
+        "social": 6085.84,
+        "display": 3796.19
+      },
+      "optimal_share": {
+        "tv": 0.40032,
+        "search": 0.462429,
+        "social": 0.0845255,
+        "display": 0.0527249
+      },
+      "weekly_contribution_current": 137424.0,
+      "weekly_contribution_optimal": 148582.0,
+      "weekly_gain": 11157.9,
+      "marginal_roas_at_optimum": {
+        "tv": 1.60351,
+        "search": 1.60351,
+        "social": 1.44361,
+        "display": 0.596791
+      },
+      "lagrange_multiplier": 1.60351,
+      "at_bound": {
+        "tv": "interior",
+        "search": "interior",
+        "social": "lower",
+        "display": "lower"
+      }
+    },
+    "confounding": {
+      "channel": "search",
+      "mechanism": "Unobserved demand shock d_t raises search spend (log spend + 0.15 * d_t) and sales (+ 9000 * d_t) in the same weeks. A model without d_t attributes the demand effect to search, so its ROAS is overstated; the other channels' spend does not depend on d_t.",
+      "demand_shock": {
+        "process": "AR(1), standardized to sample mean 0 and sd 1",
+        "phi": 0.7,
+        "spend_elasticity": 0.15,
+        "sales_effect_per_sd": 9000.0,
+        "observed": false,
+        "weekly_series": "table `latent`, column demand_shock"
+      },
+      "corr_demand_spend": 0.606031,
+      "corr_demand_log_spend": 0.594711,
+      "roas": {
+        "tv": {
+          "true": 1.6,
+          "naive_ols": 1.65145,
+          "oracle_ols": 1.65203,
+          "omitted_variable_bias": -0.000584111
+        },
+        "search": {
+          "true": 3.0,
+          "naive_ols": 5.25711,
+          "oracle_ols": 2.54404,
+          "omitted_variable_bias": 2.71307
+        },
+        "social": {
+          "true": 1.4,
+          "naive_ols": 1.61762,
+          "oracle_ols": 1.38768,
+          "omitted_variable_bias": 0.229943
+        },
+        "display": {
+          "true": 0.6,
+          "naive_ols": -1.35882,
+          "oracle_ols": -1.71122,
+          "omitted_variable_bias": 0.352397
+        }
+      },
+      "ols_definition": "OLS of y on intercept, t, the generator's yearly Fourier terms (order 2), price_index, holiday and each channel's true transformed spend logistic(lam_c * adstock(spend_c) / S_c) (true alpha and lam); naive omits d_t, oracle adds it. ROAS = coefficient * sum(transformed spend) / sum(spend); omitted_variable_bias = naive_ols - oracle_ols. It shows the direction and size of the bias an MMM fitted without d_t inherits; a Bayesian MMM also estimates alpha and lam and uses priors, so its posterior need not equal it. OLS values for a small channel can be far from the truth for reasons unrelated to confounding (display spend trends with t); compare naive with oracle, not with the truth.",
+      "ovb_identity": {
+        "formula": "naive_B_c = oracle_B_c + oracle_coef_d * delta_c",
+        "oracle_coef_d": 9744.19,
+        "delta": {
+          "tv": -0.00672852,
+          "search": 11.3549,
+          "social": 0.811238,
+          "display": 0.373339
+        }
+      }
+    }
+  },
+  "channel_value": {
+    "definition": "Shared channel vocabulary of the retailer story. Media channels (where money is spent, the MMM's columns) and acquisition channels (how a customer first arrived, the retailer's acquisition_channel) are different lists; media_to_acquisition gives, for each media channel, the shares of its new customers recorded under each acquisition channel. cost_per_new_customer is media dollars per new customer, constant within the allocation bounds (an assumption of the synthetic world). clv_margin = margin * retailer value_by_channel.new_customer.discounted_clv_excluding_first_purchase (52 weeks, 10% a year): the first purchase is excluded because it is already in the MMM's short-run sales. See mktstats.synth.channels.",
+    "media_channels": [
+      "tv",
+      "search",
+      "social",
+      "display"
+    ],
+    "acquisition_channels": [
+      "search",
+      "social",
+      "referral"
+    ],
+    "email_channel_column": "the e-mail experiment's `channel` (Phone / Web / Multichannel) is the shopping channel, unrelated to both lists",
+    "media_to_acquisition": {
+      "tv": {
+        "search": 0.3,
+        "social": 0.0,
+        "referral": 0.7
+      },
+      "search": {
+        "search": 1.0,
+        "social": 0.0,
+        "referral": 0.0
+      },
+      "social": {
+        "search": 0.0,
+        "social": 0.9,
+        "referral": 0.1
+      },
+      "display": {
+        "search": 0.6,
+        "social": 0.4,
+        "referral": 0.0
+      }
+    },
+    "cost_per_new_customer": {
+      "tv": 150.0,
+      "search": 150.0,
+      "social": 100.0,
+      "display": 300.0
+    },
+    "new_customers_per_dollar": {
+      "tv": 0.00666667,
+      "search": 0.00666667,
+      "social": 0.01,
+      "display": 0.00333333
+    },
+    "margin": 0.3,
+    "clv_source": "retailer.value_by_channel.new_customer.*.discounted_clv_excluding_first_purchase",
+    "clv_margin_by_acquisition_channel": {
+      "search": 41.2086,
+      "social": 22.792,
+      "referral": 65.4105
+    },
+    "clv_margin_by_media_channel": {
+      "tv": 58.1499,
+      "search": 41.2086,
+      "social": 27.0538,
+      "display": 33.842
+    },
+    "long_run_optimal_allocation": {
+      "mmm": {
+        "definition": "Steady weekly plan maximizing margin * sum_c B_c * logistic(lam_c x_c / S_c) + sum_c x_c * new_customers_per_dollar_c * clv_margin_c (one week's short-run margin plus the discounted future margin of the customers that week's spend acquires), subject to sum(x_c) = weekly_budget and the bounds of true_optimal_allocation. Concave, so unique; solved exactly by bisection on the common marginal value (mktstats.synth.mmm.optimal_allocation_value).",
+        "margin": 0.3,
+        "weekly_budget": 72000.0,
+        "bounds": {
+          "tv": [
+            15716.0,
+            62864.0
+          ],
+          "search": [
+            10232.6,
+            40930.3
+          ],
+          "social": [
+            6085.84,
+            24343.3
+          ],
+          "display": [
+            3796.19,
+            15184.8
+          ]
+        },
+        "current_allocation": {
+          "tv": 31580.6,
+          "search": 20561.9,
+          "social": 12229.2,
+          "display": 7628.28
+        },
+        "short_run_optimal_allocation": {
+          "tv": 36881.6,
+          "search": 25236.4,
+          "social": 6085.84,
+          "display": 3796.19
+        },
+        "long_run_value_per_dollar_of_new_customers": {
+          "tv": 0.387666,
+          "search": 0.274724,
+          "social": 0.270538,
+          "display": 0.112807
+        },
+        "optimal_allocation": {
+          "tv": 40335.7,
+          "search": 21782.3,
+          "social": 6085.84,
+          "display": 3796.19
+        },
+        "optimal_share": {
+          "tv": 0.560218,
+          "search": 0.302532,
+          "social": 0.0845256,
+          "display": 0.0527249
+        },
+        "change_vs_short_run_optimum": {
+          "tv": 3454.1,
+          "search": -3454.13,
+          "social": 0.0,
+          "display": 0.0
+        },
+        "weekly_value_current": 63130.9,
+        "weekly_value_short_run_optimum": 66226.3,
+        "weekly_value_optimal": 66424.8,
+        "weekly_short_run_margin_at_optimum": 42729.2,
+        "weekly_new_customers_at_optimum": 487.632,
+        "marginal_value_at_optimum": {
+          "tv": 0.835644,
+          "search": 0.835644,
+          "social": 0.703621,
+          "display": 0.291844
+        },
+        "lagrange_multiplier": 0.835644,
+        "at_bound": {
+          "tv": "interior",
+          "search": "interior",
+          "social": "lower",
+          "display": "lower"
+        },
+        "value_sensitivity": {
+          "note": "How flat the objective is near its optimum: values of other plans as a share of the optimal value, and the share of the optimal gain over the current plan that each captures. A checkpoint on value alone cannot tell these plans apart unless its tolerance is below these gaps.",
+          "short_run_optimum_share_of_optimal_value": 0.997011,
+          "current_share_of_optimal_value": 0.950411,
+          "short_run_optimum_share_of_optimal_gain": 0.939718
+        }
+      },
+      "mmm_confounded": {
+        "definition": "Steady weekly plan maximizing margin * sum_c B_c * logistic(lam_c x_c / S_c) + sum_c x_c * new_customers_per_dollar_c * clv_margin_c (one week's short-run margin plus the discounted future margin of the customers that week's spend acquires), subject to sum(x_c) = weekly_budget and the bounds of true_optimal_allocation. Concave, so unique; solved exactly by bisection on the common marginal value (mktstats.synth.mmm.optimal_allocation_value).",
+        "margin": 0.3,
+        "weekly_budget": 72000.0,
+        "bounds": {
+          "tv": [
+            15716.0,
+            62864.0
+          ],
+          "search": [
+            10272.9,
+            41091.5
+          ],
+          "social": [
+            6085.84,
+            24343.3
+          ],
+          "display": [
+            3796.19,
+            15184.8
+          ]
+        },
+        "current_allocation": {
+          "tv": 31545.1,
+          "search": 20619.7,
+          "social": 12215.5,
+          "display": 7619.71
+        },
+        "short_run_optimal_allocation": {
+          "tv": 28823.1,
+          "search": 33294.9,
+          "social": 6085.84,
+          "display": 3796.19
+        },
+        "long_run_value_per_dollar_of_new_customers": {
+          "tv": 0.387666,
+          "search": 0.274724,
+          "social": 0.270538,
+          "display": 0.112807
+        },
+        "optimal_allocation": {
+          "tv": 33815.1,
+          "search": 28302.9,
+          "social": 6085.84,
+          "display": 3796.19
+        },
+        "optimal_share": {
+          "tv": 0.469654,
+          "search": 0.393095,
+          "social": 0.0845256,
+          "display": 0.0527249
+        },
+        "change_vs_short_run_optimum": {
+          "tv": 4991.99,
+          "search": -4992.02,
+          "social": 0.0,
+          "display": 0.0
+        },
+        "weekly_value_current": 63285.2,
+        "weekly_value_short_run_optimum": 66969.9,
+        "weekly_value_optimal": 67255.9,
+        "weekly_short_run_margin_at_optimum": 44296.8,
+        "weekly_new_customers_at_optimum": 487.632,
+        "marginal_value_at_optimum": {
+          "tv": 0.855354,
+          "search": 0.855354,
+          "social": 0.703621,
+          "display": 0.291844
+        },
+        "lagrange_multiplier": 0.855354,
+        "at_bound": {
+          "tv": "interior",
+          "search": "interior",
+          "social": "lower",
+          "display": "lower"
+        },
+        "value_sensitivity": {
+          "note": "How flat the objective is near its optimum: values of other plans as a share of the optimal value, and the share of the optimal gain over the current plan that each captures. A checkpoint on value alone cannot tell these plans apart unless its tolerance is below these gaps.",
+          "short_run_optimum_share_of_optimal_value": 0.995748,
+          "current_share_of_optimal_value": 0.940961,
+          "short_run_optimum_share_of_optimal_gain": 0.927973
+        }
+      }
+    }
+  },
+  "capstone": {
+    "description": "Module 12 scenario: one retailer, hidden answers per stage (mktstats.synth.capstone).",
+    "seed": 2032,
+    "seeds": {
+      "retailer": 2032,
+      "mmm": 2033,
+      "geo_panel": 2034,
+      "email_experiment": 2035,
+      "email_split": 2036
+    },
+    "scenario": {
+      "story": "One retailer. Its customers arrive through search, social or referral (acquisition channels); it spends on tv, search, social and display (media channels). Last autumn it switched paid search off in 8 of its 40 regions for 10 weeks. Next quarter's weekly media budget must be split, and a retention e-mail offer can be sent to some customers.",
+      "margin": 0.3,
+      "customer_value": {
+        "months": 36,
+        "monthly_discount_rate": 0.01,
+        "weeks_per_month": 4.34821,
+        "convention": "acquisition purchase (month 0, undiscounted) plus monthly repeat purchases discounted by (1 + monthly_discount_rate)**k, k = 1..months"
+      },
+      "geo_test": {
+        "channel": "search",
+        "treated_geos": [
+          "G03",
+          "G14",
+          "G17",
+          "G18",
+          "G20",
+          "G33",
+          "G38",
+          "G40"
+        ],
+        "test_start": "2025-10-20",
+        "test_end": "2025-12-22",
+        "test_weeks": 10,
+        "spend_change": -1.0,
+        "spend_change_description": "switched paid search off",
+        "base_weekly_spend_national": 18000.0,
+        "spend_change_total": -31200.0,
+        "spend_change_total_definition": "change in search spend in the treated geos over the test (negative = saved); the treated geos' spend was proportional to their sales",
+        "treated_share_of_sales_rule": "treated geos' share of all geos' sales in the weeks before test_start (computable from the panel)",
+        "national_equivalent_rule": "lift-test row for the national MMM: x = base_weekly_spend_national, delta_x = spend_change * x = spend_change_total / (treated_share * test_weeks), delta_y = sales change in the treated geos / (treated_share * test_weeks), sigma = its standard error on the same scale; delta_x and delta_y are negative for a cut, which add_lift_test_measurements accepts (delta_x * delta_y >= 0)"
+      },
+      "mmm": {
+        "window_start": "2022-10-24",
+        "window_end": "2025-10-13",
+        "channels": [
+          "tv",
+          "search",
+          "social",
+          "display"
+        ]
+      },
+      "budget": {
+        "weekly_budget": 75000.0,
+        "budget_rule": "mean weekly total spend over the last 52 weeks, rounded to $1,000",
+        "bounds": {
+          "tv": [
+            16182.7,
+            64730.7
+          ],
+          "search": [
+            10575.5,
+            42302.1
+          ],
+          "social": [
+            6736.93,
+            26947.7
+          ],
+          "display": [
+            3891.82,
+            15567.3
+          ]
+        },
+        "bounds_rule": "0.5 to 2.0 times each channel's mean weekly spend over the last 52 weeks",
+        "current_allocation": {
+          "tv": 32463.2,
+          "search": 21215.0,
+          "social": 13514.6,
+          "display": 7807.17
+        },
+        "planning_weeks": 13
+      },
+      "channel_link": {
+        "media_to_acquisition": {
+          "tv": {
+            "search": 0.3,
+            "social": 0.0,
+            "referral": 0.7
+          },
+          "search": {
+            "search": 1.0,
+            "social": 0.0,
+            "referral": 0.0
+          },
+          "social": {
+            "search": 0.0,
+            "social": 0.9,
+            "referral": 0.1
+          },
+          "display": {
+            "search": 0.6,
+            "social": 0.4,
+            "referral": 0.0
+          }
+        },
+        "cost_per_new_customer": {
+          "tv": 150.0,
+          "search": 150.0,
+          "social": 100.0,
+          "display": 300.0
+        },
+        "new_customers_per_dollar": {
+          "tv": 0.00666667,
+          "search": 0.00666667,
+          "social": 0.01,
+          "display": 0.00333333
+        }
+      },
+      "retention_offer": {
+        "offer_cost": 0.75,
+        "margin": 0.3,
+        "rule": "send when predicted CATE (spend) * margin > offer_cost",
+        "held_out": "rows with split == 'test'"
+      }
+    },
+    "answers": {
+      "stage1_customer_value": {
+        "by_acquisition_channel": {
+          "search": {
+            "expected_repeat_purchases": 9.21646,
+            "revenue_including_first_purchase": 289.174,
+            "revenue_excluding_first_purchase": 257.174,
+            "margin_including_first_purchase": 86.7522,
+            "margin_excluding_first_purchase": 77.1522
+          },
+          "social": {
+            "expected_repeat_purchases": 5.19262,
+            "revenue_including_first_purchase": 177.682,
+            "revenue_excluding_first_purchase": 145.682,
+            "margin_including_first_purchase": 53.3046,
+            "margin_excluding_first_purchase": 43.7046
+          },
+          "referral": {
+            "expected_repeat_purchases": 15.6916,
+            "revenue_including_first_purchase": 466.203,
+            "revenue_excluding_first_purchase": 434.203,
+            "margin_including_first_purchase": 139.861,
+            "margin_excluding_first_purchase": 130.261
+          }
+        },
+        "ranking_by_margin_value": [
+          "referral",
+          "search",
+          "social"
+        ],
+        "top_channel": "referral",
+        "checkpoint": {
+          "compare": "margin_including_first_purchase",
+          "rel": 0.2,
+          "also": "the top channel is the true top channel"
+        }
+      },
+      "stage2_geo_test": {
+        "definition": "incremental_sales = change in the treated geos' sales over the test window caused by the test (negative for a spend cut: the sales the cut spend was driving); exact, from the generator's increments",
+        "incremental_sales": -85310.0,
+        "incremental_sales_per_week": -8531.0,
+        "lift_pct": -10.6509,
+        "counterfactual_sales_treated_window": 800964.0,
+        "treated_share_of_sales": 0.173369,
+        "campaign": {
+          "cost": -31200.0,
+          "margin": 0.3,
+          "incremental_sales": -85310.0,
+          "incremental_roas": 2.73429,
+          "break_even_roas": 3.33333,
+          "incremental_margin": -25593.0,
+          "net_return": 5607.0,
+          "return_on_spend": -0.179712,
+          "definition": "incremental_roas = true incremental sales / cost; incremental_margin = margin * incremental sales; net_return = incremental_margin - cost; return_on_spend = net_return / cost. The campaign pays back when incremental_roas > break_even_roas = 1 / margin.",
+          "reading": "A spend cut: incremental_sales and cost are negative (sales lost, spend saved). incremental_roas = sales lost / spend saved is the average return of the spend that was cut; below break_even_roas the cut spend was not paying back in short-run margin (net_return > 0 means the cut saved more than the margin it lost)."
+        },
+        "national_equivalent_lift_test": {
+          "channel": "search",
+          "x": 18000.0,
+          "delta_x": -18000.0,
+          "delta_y": -49207.0,
+          "delta_y_curve": -49214.0,
+          "date": "2025-12-22"
+        },
+        "lift_test_note": "delta_y is the realized increment (rounded per geo-week) scaled to the nation; delta_y_curve is the MMM's true curve r(x + delta_x) - r(x); they agree to rounding.",
+        "checkpoint": {
+          "incremental_sales": {
+            "rel": 0.15
+          },
+          "placebo_p_value_max": 0.1
+        }
+      },
+      "stage3_mmm": {
+        "true_roas": {
+          "tv": 1.8,
+          "search": 2.6,
+          "social": 1.2,
+          "display": 0.5
+        },
+        "confounding": {
+          "true": 2.6,
+          "naive_ols": 4.14059,
+          "oracle_ols": 3.00474,
+          "omitted_variable_bias": 1.13585
+        },
+        "checkpoint": {
+          "k_of_K_inside": [
+            3,
+            4
+          ],
+          "interval": "94% HDI"
+        }
+      },
+      "stage4_allocation": {
+        "definition": "Steady weekly plan maximizing margin * sum_c B_c * logistic(lam_c x_c / S_c) + sum_c x_c * new_customers_per_dollar_c * clv_margin_c (one week's short-run margin plus the discounted future margin of the customers that week's spend acquires), subject to sum(x_c) = weekly_budget and the bounds of true_optimal_allocation. Concave, so unique; solved exactly by bisection on the common marginal value (mktstats.synth.mmm.optimal_allocation_value).",
+        "margin": 0.3,
+        "weekly_budget": 75000.0,
+        "bounds": {
+          "tv": [
+            16182.7,
+            64730.7
+          ],
+          "search": [
+            10575.5,
+            42302.1
+          ],
+          "social": [
+            6736.93,
+            26947.7
+          ],
+          "display": [
+            3891.82,
+            15567.3
+          ]
+        },
+        "current_allocation": {
+          "tv": 32463.2,
+          "search": 21215.0,
+          "social": 13514.6,
+          "display": 7807.17
+        },
+        "short_run_optimal_allocation": {
+          "tv": 41643.9,
+          "search": 22727.3,
+          "social": 6736.93,
+          "display": 3891.82
+        },
+        "long_run_value_per_dollar_of_new_customers": {
+          "tv": 0.762189,
+          "search": 0.514348,
+          "social": 0.523602,
+          "display": 0.212577
+        },
+        "optimal_allocation": {
+          "tv": 49916.1,
+          "search": 14455.1,
+          "social": 6736.93,
+          "display": 3891.82
+        },
+        "optimal_share": {
+          "tv": 0.665548,
+          "search": 0.192735,
+          "social": 0.0898257,
+          "display": 0.0518909
+        },
+        "change_vs_short_run_optimum": {
+          "tv": 8272.2,
+          "search": -8272.15,
+          "social": 0.0,
+          "display": 0.0
+        },
+        "weekly_value_current": 85416.2,
+        "weekly_value_short_run_optimum": 91399.8,
+        "weekly_value_optimal": 92430.6,
+        "weekly_short_run_margin_at_optimum": 42595.3,
+        "weekly_new_customers_at_optimum": 509.484,
+        "marginal_value_at_optimum": {
+          "tv": 1.22918,
+          "search": 1.22918,
+          "social": 0.889328,
+          "display": 0.363376
+        },
+        "lagrange_multiplier": 1.22918,
+        "at_bound": {
+          "tv": "interior",
+          "search": "interior",
+          "social": "lower",
+          "display": "lower"
+        },
+        "value_sensitivity": {
+          "note": "How flat the objective is near its optimum: values of other plans as a share of the optimal value, and the share of the optimal gain over the current plan that each captures. A checkpoint on value alone cannot tell these plans apart unless its tolerance is below these gaps.",
+          "short_run_optimum_share_of_optimal_value": 0.988848,
+          "current_share_of_optimal_value": 0.924112,
+          "short_run_optimum_share_of_optimal_gain": 0.853053,
+          "plan_if_clv_includes_first_purchase": {
+            "tv": 49916.1,
+            "search": 14455.1,
+            "social": 6736.93,
+            "display": 3891.82
+          },
+          "that_plan_share_of_optimal_value": 0.999999
+        },
+        "clv_margin_by_acquisition_channel": {
+          "search": 77.1522,
+          "social": 43.7046,
+          "referral": 130.261
+        },
+        "clv_margin_by_media_channel": {
+          "tv": 114.328,
+          "search": 77.1522,
+          "social": 52.3602,
+          "display": 63.7732
+        },
+        "short_run_optimum_details": "capstone.mmm.true_optimal_allocation",
+        "checkpoint": {
+          "budget_and_bounds": "sum equals weekly_budget (1e-6 relative), bounds hold",
+          "value": {
+            "rel": 0.03,
+            "of": "weekly_value_optimal",
+            "note": "see value_sensitivity: even the current plan is within a few percent, so also compare spend by channel"
+          },
+          "spend_by_channel": {
+            "abs_share_of_budget": 0.05
+          }
+        }
+      },
+      "stage5_targeting": {
+        "all_rows": {
+          "treat_none": 0.0,
+          "treat_all": 0.123789,
+          "oracle": 0.511271,
+          "share_should_treat": 0.3764,
+          "n": 20000
+        },
+        "test_split": {
+          "treat_none": 0.0,
+          "treat_all": 0.126302,
+          "oracle": 0.511715,
+          "share_should_treat": 0.3764,
+          "n": 10000
+        },
+        "definition": "mean over rows of policy * (margin * true_cate - offer_cost), relative to sending nobody the offer; oracle sends exactly the rows with margin * true_cate > offer_cost",
+        "checkpoint": "on the test split, the learned rule's true value (from true_cate) is positive and at least treat_all"
+      }
+    },
+    "retailer": {
+      "description": "Pareto/NBD purchases and dropout with static acquisition-channel covariates (CLVTools parameterization), Gamma-Gamma spend per transaction. Rates per week.",
+      "seed": 2032,
+      "n_customers": 4000,
+      "time_unit": "week",
+      "rfm_settings": {
+        "time_unit": "D",
+        "time_scaler": 7
+      },
+      "start_date": "2024-01-01",
+      "acquisition_end": "2024-06-30",
+      "calibration_end": "2024-12-29",
+      "holdout_end": "2025-12-28",
+      "calibration_weeks": 52,
+      "holdout_weeks": 52,
+      "pnbd": {
+        "r": 0.9,
+        "alpha": 5.5,
+        "s": 0.6,
+        "beta": 12.0
+      },
+      "reference_channel": "search",
+      "covariates": {
+        "convention": "alpha_i = alpha * exp(-gamma_purchase * x_i), beta_i = beta * exp(-gamma_dropout * x_i); x_i = 0/1 indicator column channel_<name>; positive gamma_purchase = more purchases, positive gamma_dropout = faster dropout (CLVTools and pymc-marketing agree).",
+        "columns": {
+          "social": "channel_social",
+          "referral": "channel_referral"
+        },
+        "gamma_purchase": {
+          "search": 0.0,
+          "social": -0.35,
+          "referral": 0.25
+        },
+        "gamma_dropout": {
+          "search": 0.0,
+          "social": 0.5,
+          "referral": -0.7
+        }
+      },
+      "channel_probs": {
+        "search": 0.45,
+        "social": 0.35,
+        "referral": 0.2
+      },
+      "gamma_gamma": {
+        "p": 6.0,
+        "q": 4.0,
+        "v": 16.0
+      },
+      "population_mean_spend": 32.0,
+      "sample": {
+        "n_transactions": 30512,
+        "n_transactions_calibration": 18800,
+        "mean_true_lambda": 0.152267,
+        "mean_true_mu": 0.0544814,
+        "share_alive_at_cal_end": 0.44,
+        "share_alive_at_end": 0.288,
+        "channel_counts": {
+          "search": 1805,
+          "social": 1398,
+          "referral": 797
+        }
+      },
+      "value_by_channel": {
+        "definition": "Revenue (spend), not margin. Horizon = holdout_weeks after the calibration end (existing customers) or after acquisition (new customer). Continuous discounting at weekly rate ln(1 + annual_discount_rate) / 52. existing_customers_at_cal_end: closed form from each customer's true lambda, mu, mean spend and true alive status, averaged over all customers of the channel. new_customer: expectation over the channel's population distributions, by numerical quadrature. observed_holdout_*: what the holdout transactions actually show (one realization).",
+        "horizon_weeks": 52,
+        "annual_discount_rate": 0.1,
+        "weekly_discount_rate": 0.00183289,
+        "existing_customers_at_cal_end": {
+          "search": {
+            "n_customers": 1805,
+            "share_alive_at_cal_end": 0.443213,
+            "mean_expected_purchases": 2.93824,
+            "mean_spend_per_transaction": 32.5281,
+            "mean_discounted_clv": 91.8852,
+            "total_discounted_clv": 165853.0,
+            "observed_holdout_mean_purchases": 3.03601,
+            "observed_holdout_mean_spend": 99.1623
+          },
+          "social": {
+            "n_customers": 1398,
+            "share_alive_at_cal_end": 0.345494,
+            "mean_expected_purchases": 1.63385,
+            "mean_spend_per_transaction": 31.4977,
+            "mean_discounted_clv": 46.7531,
+            "total_discounted_clv": 65360.8,
+            "observed_holdout_mean_purchases": 1.6073,
+            "observed_holdout_mean_spend": 48.1969
+          },
+          "referral": {
+            "n_customers": 797,
+            "share_alive_at_cal_end": 0.598494,
+            "mean_expected_purchases": 4.86759,
+            "mean_spend_per_transaction": 31.4099,
+            "mean_discounted_clv": 144.619,
+            "total_discounted_clv": 115261.0,
+            "observed_holdout_mean_purchases": 5.0,
+            "observed_holdout_mean_spend": 154.779
+          }
+        },
+        "new_customer": {
+          "search": {
+            "expected_repeat_purchases": 4.68051,
+            "mean_spend_per_transaction": 32.0,
+            "discounted_clv_excluding_first_purchase": 143.946,
+            "discounted_clv_including_first_purchase": 175.946
+          },
+          "social": {
+            "expected_repeat_purchases": 2.75685,
+            "mean_spend_per_transaction": 32.0,
+            "discounted_clv_excluding_first_purchase": 84.9257,
+            "discounted_clv_including_first_purchase": 116.926
+          },
+          "referral": {
+            "expected_repeat_purchases": 7.39782,
+            "mean_spend_per_transaction": 32.0,
+            "discounted_clv_excluding_first_purchase": 227.007,
+            "discounted_clv_including_first_purchase": 259.007
+          }
+        }
+      }
+    },
+    "mmm": {
+      "description": "Weekly sales = intercept + trend + yearly seasonality + price and holiday effects + sum of channel contributions + Normal noise; channel contribution = B_c * logistic(lam_c * normalized_geometric_adstock(spend_c) / max(spend_c)). Confounded variant: an unobserved demand shock d_t (AR(1), phi = 0.7, standardized) multiplies search spend by exp(0.15 * d_t) and adds 4000 * d_t to sales. Channel contributions, and so the true ROAS, are causal and do not include the demand effect.",
+      "seed": 2033,
+      "n_weeks": 156,
+      "start_date": "2022-10-24",
+      "end_date": "2025-10-13",
+      "l_max": 8,
+      "adstock": "GeometricAdstock(l_max=8, normalize=True), zero spend before the first week",
+      "saturation": "LogisticSaturation: beta * (1 - exp(-lam x)) / (1 + exp(-lam x))",
+      "units": "adstock_alpha and saturation_lam are scale-free (lam applies to spend / max spend over all weeks); saturation_beta_model_units = B_c / max(y) is what pymc-marketing's MMM reports when fitted on all rows with default max scaling; *_sales_units are dollars.",
+      "roas_definition": "roas = sum over all weeks of the channel's noiseless contribution / sum of its spend over all weeks (zero spend before week 1; carry-over past the last week not counted). roas_with_carryover adds the contribution of in-window spend in the l_max - 1 weeks after the last week.",
+      "roas_window": {
+        "start": "2022-10-24",
+        "end": "2025-10-13"
+      },
+      "y_scale": 512117.0,
+      "channels": {
+        "tv": {
+          "adstock_alpha": 0.6,
+          "saturation_lam": 1.5,
+          "saturation_beta_model_units": 0.394382,
+          "saturation_beta_sales_units": 201970.0,
+          "channel_scale": 77888.0,
+          "roas": 1.8,
+          "roas_with_carryover": 1.82561,
+          "contribution": 8993720.0,
+          "spend": 4996510.0,
+          "contribution_share": 0.446159,
+          "share_of_sales": 0.14371
+        },
+        "search": {
+          "adstock_alpha": 0.2,
+          "saturation_lam": 2.5,
+          "saturation_beta_model_units": 0.165743,
+          "saturation_beta_sales_units": 84879.8,
+          "channel_scale": 33979.0,
+          "roas": 2.6,
+          "roas_with_carryover": 2.60482,
+          "contribution": 8256830.0,
+          "spend": 3175700.0,
+          "contribution_share": 0.409603,
+          "share_of_sales": 0.131935
+        },
+        "social": {
+          "adstock_alpha": 0.4,
+          "saturation_lam": 2.0,
+          "saturation_beta_model_units": 0.0995852,
+          "saturation_beta_sales_units": 50999.3,
+          "channel_scale": 40709.0,
+          "roas": 1.2,
+          "roas_with_carryover": 1.20437,
+          "contribution": 2436610.0,
+          "spend": 2030510.0,
+          "contribution_share": 0.120875,
+          "share_of_sales": 0.0389345
+        },
+        "display": {
+          "adstock_alpha": 0.3,
+          "saturation_lam": 3.0,
+          "saturation_beta_model_units": 0.014012,
+          "saturation_beta_sales_units": 7175.8,
+          "channel_scale": 19625.0,
+          "roas": 0.5,
+          "roas_with_carryover": 0.502818,
+          "contribution": 470965.0,
+          "spend": 941930.0,
+          "contribution_share": 0.0233635,
+          "share_of_sales": 0.00752552
+        }
+      },
+      "media_share_of_sales": 0.322106,
+      "baseline": {
+        "intercept": 250000.0,
+        "trend_per_week": 250.0,
+        "fourier_sin1_cos1_sin2_cos2": [
+          15000.0,
+          25000.0,
+          5000.0,
+          -8000.0
+        ],
+        "price_coef_per_unit_index": -400000.0,
+        "price_effect_form": "price_coef * (price_index - 1)",
+        "holiday_effect": 40000.0,
+        "noise_sd": 8000.0
+      },
+      "lift_tests": {
+        "definition": "Randomized geo tests, each lasting test_weeks weeks and ending in the week `date`. A test changed weekly spend from x (the channel's mean positive weekly spend over the 26 weeks before the test) to x + delta_x (delta_x = -x: the channel was switched off in the test regions, scaled to the national level); true_delta_y is the steady-state weekly sales change on the true curve (saturation only, as add_lift_test_measurements models it), delta_y = true_delta_y + Normal(0, sigma), sigma = rel_sigma * |true_delta_y|. Randomized tests measure the causal effect, so the demand shock does not bias them. Use `date` as lift_test_date_column in TimeSliceCrossValidator.run: a fold may use a test only if the test ended on or before the fold's last training week.",
+        "test_weeks": 8,
+        "rel_sigma": 0.08,
+        "plan": [],
+        "rows": []
+      },
+      "true_roas_target": {
+        "tv": 1.8,
+        "search": 2.6,
+        "social": 1.2,
+        "display": 0.5
+      },
+      "true_optimal_allocation": {
+        "definition": "Steady-state weekly allocation (the same spend every week, so normalized adstock equals spend) maximizing the sum of true weekly channel contributions B_c * logistic(lam_c * x_c / S_c) subject to sum(x_c) = budget and per-channel bounds. The problem is concave (logistic = tanh(z/2)), so the optimum is unique; it is solved exactly by equalizing marginal returns (bisection on the Lagrange multiplier, mktstats.synth.mmm.optimal_allocation), no random starts.",
+        "weekly_budget": 75000.0,
+        "budget_rule": "mean weekly total spend over the last 52 weeks, rounded to $1,000",
+        "bounds_rule": "0.5 to 2.0 times each channel's mean weekly spend over the last 52 weeks",
+        "bounds": {
+          "tv": [
+            16182.7,
+            64730.7
+          ],
+          "search": [
+            10575.5,
+            42302.1
+          ],
+          "social": [
+            6736.93,
+            26947.7
+          ],
+          "display": [
+            3891.82,
+            15567.3
+          ]
+        },
+        "current_allocation": {
+          "tv": 32463.2,
+          "search": 21215.0,
+          "social": 13514.6,
+          "display": 7807.17
+        },
+        "optimal_allocation": {
+          "tv": 41643.9,
+          "search": 22727.3,
+          "social": 6736.93,
+          "display": 3891.82
+        },
+        "optimal_share": {
+          "tv": 0.555252,
+          "search": 0.303031,
+          "social": 0.0898258,
+          "display": 0.0518909
+        },
+        "weekly_contribution_current": 136751.0,
+        "weekly_contribution_optimal": 145383.0,
+        "weekly_gain": 8631.6,
+        "marginal_roas_at_optimum": {
+          "tv": 1.66279,
+          "search": 1.66279,
+          "social": 1.21908,
+          "display": 0.502663
+        },
+        "lagrange_multiplier": 1.66279,
+        "at_bound": {
+          "tv": "interior",
+          "search": "interior",
+          "social": "lower",
+          "display": "lower"
+        }
+      },
+      "confounding": {
+        "channel": "search",
+        "mechanism": "Unobserved demand shock d_t raises search spend (log spend + 0.15 * d_t) and sales (+ 4000 * d_t) in the same weeks. A model without d_t attributes the demand effect to search, so its ROAS is overstated; the other channels' spend does not depend on d_t.",
+        "demand_shock": {
+          "process": "AR(1), standardized to sample mean 0 and sd 1",
+          "phi": 0.7,
+          "spend_elasticity": 0.15,
+          "sales_effect_per_sd": 4000.0,
+          "observed": false,
+          "weekly_series": "table `latent`, column demand_shock"
+        },
+        "corr_demand_spend": 0.633086,
+        "corr_demand_log_spend": 0.635145,
+        "roas": {
+          "tv": {
+            "true": 1.8,
+            "naive_ols": 1.77519,
+            "oracle_ols": 1.77366,
+            "omitted_variable_bias": 0.00152947
+          },
+          "search": {
+            "true": 2.6,
+            "naive_ols": 4.14059,
+            "oracle_ols": 3.00474,
+            "omitted_variable_bias": 1.13585
+          },
+          "social": {
+            "true": 1.2,
+            "naive_ols": 1.23627,
+            "oracle_ols": 1.26818,
+            "omitted_variable_bias": -0.0319098
+          },
+          "display": {
+            "true": 0.5,
+            "naive_ols": -1.28186,
+            "oracle_ols": -1.0292,
+            "omitted_variable_bias": -0.252661
+          }
+        },
+        "ols_definition": "OLS of y on intercept, t, the generator's yearly Fourier terms (order 2), price_index, holiday and each channel's true transformed spend logistic(lam_c * adstock(spend_c) / S_c) (true alpha and lam); naive omits d_t, oracle adds it. ROAS = coefficient * sum(transformed spend) / sum(spend); omitted_variable_bias = naive_ols - oracle_ols. It shows the direction and size of the bias an MMM fitted without d_t inherits; a Bayesian MMM also estimates alpha and lam and uses priors, so its posterior need not equal it. OLS values for a small channel can be far from the truth for reasons unrelated to confounding (display spend trends with t); compare naive with oracle, not with the truth.",
+        "ovb_identity": {
+          "formula": "naive_B_c = oracle_B_c + oracle_coef_d * delta_c",
+          "oracle_coef_d": 3390.7,
+          "delta": {
+            "tv": 0.0506134,
+            "search": 10.9361,
+            "social": -0.39996,
+            "display": -1.06942
+          }
+        }
+      }
+    },
+    "geo_panel": {
+      "n_geos": 40,
+      "n_weeks": 104,
+      "base_median": 8800.0,
+      "noise": {
+        "geo_noise_sd": 0.015,
+        "regional_sd": 0.0075,
+        "national_sd": 0.015
+      },
+      "effect": "additive: treated geo g gains round(share_g * delta_y_curve) dollars in every test week (share_g: its share of pre-period sales)",
+      "weekly_increment_by_geo": {
+        "G03": -267.0,
+        "G14": -2613.0,
+        "G17": -672.0,
+        "G18": -1215.0,
+        "G20": -977.0,
+        "G33": -2083.0,
+        "G38": -403.0,
+        "G40": -301.0
+      }
+    },
+    "email_experiment": {
+      "description": "Randomized e-mail offer (Bernoulli treat_prob). P(buy) = expit(f(x) + T*tau(x)); spend | buy ~ Gamma(shape, mean m(x)) independent of T; true_cate = (expit(f+tau) - expit(f)) * m(x), the effect on expected spend.",
+      "seed": 2035,
+      "n": 20000,
+      "treat_prob": 0.5,
+      "ate": 2.91263,
+      "ate_definition": "mean of true_cate over the n rows (sample average treatment effect)",
+      "margin": 0.3,
+      "offer_cost": 0.75,
+      "decision_rule": "treat when cate * margin > offer_cost",
+      "share_negative_cate": 0.20815,
+      "share_should_treat": 0.3764,
+      "policy_value_per_customer": {
+        "treat_none": 0.0,
+        "treat_all": 0.123789,
+        "oracle": 0.511271,
+        "definition": "mean over rows of policy * (margin * true_cate - offer_cost), relative to sending nobody the offer"
+      },
+      "base_conversion_control": 0.0360275,
+      "conversion_treated": 0.0632307,
+      "spend_shape": 2.0
     }
   }
 }

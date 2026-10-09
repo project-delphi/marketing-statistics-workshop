@@ -37,6 +37,31 @@ MMM_ADSTOCK_ALPHA = {"tv": 0.6, "search": 0.2, "social": 0.4, "display": 0.3}
 MMM_SATURATION_LAM = {"tv": 1.5, "search": 2.5, "social": 2.0, "display": 3.0}
 MMM_ROAS = {"tv": 1.6, "search": 3.0, "social": 1.4, "display": 0.6}
 
+# confounded variant (Module 9): hidden demand shock shared by search spend and sales
+# Chosen by fitting pymc-marketing 1.2.0 (see data/README.md): strong enough that an uncalibrated
+# MMM's 94% HDI for search ROAS excludes the truth, weak enough that the two search lift tests
+# bring it back inside.
+CONFOUNDED_DEMAND_PHI = 0.7
+CONFOUNDED_SPEND_ELASTICITY = 0.15
+CONFOUNDED_SALES_EFFECT = 9_000.0
+CONFOUNDED_LIFT_REL_SIGMA = 0.08
+# dated lift tests of the confounded variant: (channel, end of the test as a fraction of the
+# window, relative change in weekly spend during the test; -1 = channel switched off). Noise is
+# drawn in this order; the table is sorted by date.
+LIFT_TEST_PLAN = (("search", 0.40, 0.3), ("tv", 0.55, 0.3), ("social", 0.70, 0.3),
+                  ("display", 0.85, 0.3), ("search", 0.65, -1.0))
+CONFOUNDED_STREAM_OFFSET = 1_000_003  # seed of the demand stream = seed + this
+
+
+def _demand_shock(rng: np.random.Generator, n: int, phi: float) -> np.ndarray:
+    """Stationary AR(1) with coefficient ``phi``, standardized to sample mean 0 and sd 1."""
+    e = rng.normal(0.0, 1.0, n)
+    d = np.empty(n)
+    d[0] = e[0] / np.sqrt(1 - phi**2)
+    for i in range(1, n):
+        d[i] = phi * d[i - 1] + e[i]
+    return (d - d.mean()) / d.std()
+
 
 def geometric_adstock(x, alpha: float, l_max: int = 8, normalize: bool = True) -> np.ndarray:
     """Geometric adstock along axis 0, zero history before the first row (numpy)."""
@@ -98,6 +123,68 @@ def optimal_allocation(budget: float, big_b, lam, scale, lower, upper, tol: floa
     return spend_at(eta), eta
 
 
+def optimal_allocation_value(budget: float, big_b, lam, scale, lower, upper, *,
+                             margin: float = 1.0, linear=None, tol: float = 1e-12):
+    """Like :func:`optimal_allocation`, for the long-run objective
+
+        sum_c margin * B_c * logistic(lam_c * x_c / S_c) + linear_c * x_c
+
+    (``linear_c``: value per dollar that does not saturate, e.g. new customers per dollar times
+    their future margin). Concave plus linear is concave, so the optimum is unique and is found
+    exactly by bisection on the common marginal value ``eta`` of the channels inside their bounds.
+    Marginal value of channel c at spend x: ``margin * k_c * (1 - tanh(lam_c x / (2 S_c))**2) +
+    linear_c`` with ``k_c = B_c lam_c / (2 S_c)``. Returns ``(x, eta)``.
+    """
+    big_b, lam, scale, lower, upper = (np.asarray(a, dtype=float)
+                                       for a in (big_b, lam, scale, lower, upper))
+    lin = np.zeros_like(big_b) if linear is None else np.asarray(linear, dtype=float)
+    if not lower.sum() - 1e-9 <= budget <= upper.sum() + 1e-9:
+        raise ValueError("budget is outside the range allowed by the bounds")
+    k = margin * big_b * lam / (2 * scale)  # short-run marginal value at zero spend
+
+    def spend_at(eta):
+        ratio = np.clip((eta - lin) / k, 0.0, 1.0)
+        with np.errstate(divide="ignore"):
+            x = np.where(ratio <= 0, np.inf,
+                         np.where(ratio < 1, (2 * scale / lam) * np.arctanh(np.sqrt(1 - ratio)),
+                                  0.0))
+        return np.clip(x, lower, upper)
+
+    lo, hi = min(0.0, float(lin.min())), float((k + lin).max())
+    for _ in range(400):
+        mid = (lo + hi) / 2
+        if spend_at(mid).sum() > budget:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < tol * max(1.0, abs(hi)):
+            break
+    eta = (lo + hi) / 2
+    x = spend_at(eta)
+    # put the bisection's rounding residue (< 1e-6 of the budget) on an interior channel
+    inside = (x > lower + 1e-9) & (x < upper - 1e-9)
+    if inside.any():
+        j = int(np.flatnonzero(inside)[0])
+        x[j] += budget - x.sum()
+    return x, eta
+
+
+def long_run_value(x, big_b, lam, scale, *, margin: float = 1.0, linear=None) -> np.ndarray:
+    """Per-channel weekly long-run value ``margin * B_c * logistic(lam_c x_c / S_c) + linear_c *
+    x_c`` (the objective of :func:`optimal_allocation_value`)."""
+    x = np.asarray(x, dtype=float)
+    lin = 0.0 if linear is None else np.asarray(linear, dtype=float)
+    return margin * steady_state_response(x, big_b, lam, scale) + lin * x
+
+
+def true_response(spend, channel_truth: dict) -> np.ndarray:
+    """True steady-state weekly sales response of constant weekly ``spend`` for one channel, from
+    its truth block (``truth["mmm"]["channels"][c]``): ``saturation_beta_sales_units *
+    logistic(saturation_lam * spend / channel_scale)``."""
+    return steady_state_response(spend, channel_truth["saturation_beta_sales_units"],
+                                 channel_truth["saturation_lam"], channel_truth["channel_scale"])
+
+
 def _thanksgiving(year: int) -> pd.Timestamp:
     nov1 = pd.Timestamp(year=year, month=11, day=1)
     first_thu = nov1 + pd.Timedelta(days=(3 - nov1.weekday()) % 7)
@@ -133,8 +220,15 @@ def mmm(
     holiday_effect: float = 40_000.0,
     noise_sd: float = 8_000.0,
     lift_delta_frac: float = 0.3,
-    lift_rel_sigma: float = 0.15,
+    lift_rel_sigma: float | None = None,
     alloc_bounds: tuple[float, float] = (0.5, 2.0),
+    confounded: bool = False,
+    confounded_channel: str = "search",
+    demand_phi: float = CONFOUNDED_DEMAND_PHI,
+    demand_spend_elasticity: float = CONFOUNDED_SPEND_ELASTICITY,
+    demand_sales_effect: float = CONFOUNDED_SALES_EFFECT,
+    lift_test_weeks: int = 8,
+    lift_test_plan: tuple[tuple[str, float, float], ...] | None = None,
 ) -> SynthResult:
     """Weekly sales and spend for tv, search, social and display.
 
@@ -147,11 +241,39 @@ def mmm(
         ``delta_y`` from raising weekly spend from ``x`` to ``x + delta_x``, measured with standard
         error ``sigma`` (``delta_y`` = true lift + Normal(0, sigma) noise); ``true_delta_y`` is the
         noiseless value on the true curve (an extra column the method ignores).
+
+    ``confounded=True`` (Module 9, "what an MMM cannot identify") adds an unobserved weekly demand
+    shock ``d_t`` (stationary AR(1) with coefficient ``demand_phi``, standardized to mean 0 and
+    standard deviation 1, drawn from its own random stream so every other draw is the same as with
+    ``confounded=False``). Spend on ``confounded_channel`` is multiplied by
+    ``exp(demand_spend_elasticity * d_t)`` (paid search is bought per click, so spend rises when
+    more people search) and sales rise by ``demand_sales_effect * d_t``. The channel's causal
+    contribution is unchanged, so its true ROAS is still the requested one, but a model that does
+    not see ``d_t`` credits the channel with the demand effect. The variant also returns
+
+    * ``lift_tests`` with dates: one row per test in ``lift_test_plan`` (``(channel, end,
+      change)``: the test lasts ``lift_test_weeks`` weeks, ends at fraction ``end`` of the window
+      and changes weekly spend by ``change`` times ``x``; default ``LIFT_TEST_PLAN``: one +30% test
+      per channel plus a second search test that switches search off); extra columns ``date``
+      (last week of the test: the result is known from then on; the column for
+      ``TimeSliceCrossValidator.run(..., lift_test_date_column="date")``), ``test_start``,
+      ``test_weeks``; ``x`` is the channel's mean positive weekly spend over the 26 weeks before
+      the test; ``sigma`` is ``lift_rel_sigma`` (default 8% here) of the true lift;
+    * ``latent`` : date_week, demand_shock (``d_t``), demand_effect (``demand_sales_effect *
+      d_t``, dollars), media_contribution_<channel> (noiseless, dollars) — never shown to a model,
+      only for revealing the mechanism;
+    * truth ``confounding``: the mechanism and the omitted-variable bias of a regression that uses
+      the true media transforms but omits ``d_t`` (``roas[c].naive_ols``), next to the same
+      regression with ``d_t`` (``roas[c].oracle_ols``).
     """
+    if lift_rel_sigma is None:  # relative standard error of the lift tests
+        lift_rel_sigma = CONFOUNDED_LIFT_REL_SIGMA if confounded else 0.15
     alpha_c = dict(MMM_ADSTOCK_ALPHA if adstock_alpha is None else adstock_alpha)
     lam_c = dict(MMM_SATURATION_LAM if saturation_lam is None else saturation_lam)
     roas_c = dict(MMM_ROAS if roas is None else roas)
     channels = MMM_CHANNELS
+    if confounded and confounded_channel not in channels:
+        raise ValueError(f"confounded_channel must be one of {channels}")
     rng = make_rng(seed)
     n = n_weeks
     dates = pd.date_range(start, periods=n, freq="7D")
@@ -171,6 +293,11 @@ def mmm(
         social[b0 : b0 + 4] *= 1.8
     display = 6_000 * np.linspace(0.6, 1.3, n) * rng.lognormal(0, 0.3, n)
     spend = {"tv": tv, "search": search, "social": social, "display": display}
+    if confounded:
+        # own stream, so the main stream (and every other column) matches confounded=False
+        demand_shock = _demand_shock(make_rng(seed + CONFOUNDED_STREAM_OFFSET), n, demand_phi)
+        spend[confounded_channel] = (spend[confounded_channel]
+                                     * np.exp(demand_spend_elasticity * demand_shock))
     spend = {c: np.round(v, 0) for c, v in spend.items()}
 
     # controls
@@ -201,7 +328,8 @@ def mmm(
     baseline = (intercept + trend_per_week * t + season + price_coef * (price - 1.0)
                 + holiday_effect * holiday)
     noise = rng.normal(0, noise_sd, n)
-    y = np.round(baseline + media + noise, 0)
+    demand_effect = demand_sales_effect * demand_shock if confounded else 0.0
+    y = np.round(baseline + media + noise + demand_effect, 0)
 
     weekly = pd.DataFrame({"date_week": dates})
     for c in channels:
@@ -221,18 +349,23 @@ def mmm(
 
     # lift tests on the true curve (steady state: normalized adstock of a constant is the constant)
     last52 = slice(max(0, n - 52), n)
-    rows = []
-    for c in channels:
-        recent = spend[c][last52]
-        x0 = float(np.round(recent[recent > 0].mean(), -2))
-        dx = float(np.round(lift_delta_frac * x0, -2))
-        true_dy = big_b[c] * (logistic_saturation((x0 + dx) / scale[c], lam_c[c])
-                              - logistic_saturation(x0 / scale[c], lam_c[c]))
-        sigma = lift_rel_sigma * true_dy
-        dy = true_dy + rng.normal(0, sigma)
-        rows.append({"channel": c, "x": x0, "delta_x": dx, "delta_y": float(np.round(dy, 0)),
-                     "sigma": float(np.round(sigma, 0)),
-                     "true_delta_y": float(np.round(true_dy, 0))})
+    if confounded:
+        rows = _dated_lift_tests(rng, dates, spend, big_b, lam_c, scale, lift_test_weeks,
+                                 LIFT_TEST_PLAN if lift_test_plan is None else lift_test_plan,
+                                 lift_rel_sigma)
+    else:
+        rows = []
+        for c in channels:
+            recent = spend[c][last52]
+            x0 = float(np.round(recent[recent > 0].mean(), -2))
+            dx = float(np.round(lift_delta_frac * x0, -2))
+            true_dy = big_b[c] * (logistic_saturation((x0 + dx) / scale[c], lam_c[c])
+                                  - logistic_saturation(x0 / scale[c], lam_c[c]))
+            sigma = lift_rel_sigma * true_dy
+            dy = true_dy + rng.normal(0, sigma)
+            rows.append({"channel": c, "x": x0, "delta_x": dx,
+                         "delta_y": float(np.round(dy, 0)), "sigma": float(np.round(sigma, 0)),
+                         "true_delta_y": float(np.round(true_dy, 0))})
     lift_tests = pd.DataFrame(rows)
 
     # answer key for budget allocation: steady-state weekly split of the recent average budget
@@ -341,4 +474,148 @@ def mmm(
         "true_roas_target": sig_dict(roas_c),
         "true_optimal_allocation": allocation,
     }
-    return SynthResult("mmm", {"weekly": weekly, "lift_tests": lift_tests}, truth)
+    if not confounded:
+        return SynthResult("mmm", {"weekly": weekly, "lift_tests": lift_tests}, truth)
+
+    # ------------------------------------------------------------------ confounded variant only
+    latent = pd.DataFrame({"date_week": dates, "demand_shock": np.round(demand_shock, 6),
+                           "demand_effect": np.round(demand_effect, 2)})
+    for c in channels:
+        latent[f"media_contribution_{c}"] = np.round(contrib[c], 2)
+    truth["description"] += (
+        f" Confounded variant: an unobserved demand shock d_t (AR(1), phi = {demand_phi}, "
+        f"standardized) multiplies {confounded_channel} spend by exp({demand_spend_elasticity} * "
+        f"d_t) and adds {demand_sales_effect:g} * d_t to sales. Channel contributions, and so the "
+        "true ROAS, are causal and do not include the demand effect."
+    )
+    truth["lift_tests"] = {
+        "definition": (
+            "Randomized geo tests, each lasting test_weeks weeks and ending in the week `date`. "
+            "A test changed weekly spend from x (the channel's mean positive weekly spend over "
+            "the 26 weeks before the test) to x + delta_x (delta_x = -x: the channel was switched "
+            "off in the test regions, scaled to the national level); true_delta_y is the "
+            "steady-state weekly sales change on the true curve (saturation only, as "
+            "add_lift_test_measurements models it), delta_y = true_delta_y + Normal(0, sigma), "
+            "sigma = rel_sigma * |true_delta_y|. Randomized tests measure the causal effect, so "
+            "the demand shock does not bias them. Use `date` as lift_test_date_column in "
+            "TimeSliceCrossValidator.run: a fold may use a test only if the test ended on or "
+            "before the fold's last training week."
+        ),
+        "test_weeks": lift_test_weeks,
+        "rel_sigma": lift_rel_sigma,
+        "plan": [{"channel": c, "end_fraction": e, "spend_change": ch}
+                 for c, e, ch in (LIFT_TEST_PLAN if lift_test_plan is None else lift_test_plan)],
+        "rows": [{k: (v if not isinstance(v, pd.Timestamp) else str(v.date()))
+                  for k, v in r.items()} for r in rows],
+    }
+    truth["confounding"] = _confounding_truth(
+        weekly, dates, sat, spend, big_b, demand_shock, channels, confounded_channel,
+        demand_phi, demand_spend_elasticity, demand_sales_effect, fourier_phase=ph)
+    return SynthResult("mmm_confounded",
+                       {"weekly": weekly, "lift_tests": lift_tests, "latent": latent}, truth)
+
+
+def mmm_confounded(seed: int = 2028, **kwargs) -> SynthResult:
+    """``mmm(seed, confounded=True, **kwargs)``: Module 9's data (see :func:`mmm`).
+
+    With the default seed, tv, social and display spend, prices and holidays are identical to
+    Module 8's ``mmm()``; search spend and sales differ by the hidden demand shock.
+    """
+    return mmm(seed, confounded=True, **kwargs)
+
+
+def _dated_lift_tests(rng, dates, spend, big_b, lam_c, scale, weeks, plan, rel_sigma):
+    """Randomized lift tests with their dates (see ``mmm(confounded=True)``).
+
+    A negative change is a spend cut (``change = -1`` turns the channel off in the test regions);
+    ``delta_x`` and ``delta_y`` are then negative, which ``add_lift_test_measurements`` accepts
+    (it compares absolute values and requires ``delta_x * delta_y >= 0``)."""
+    n = len(dates)
+    rows = []
+    for c, end_frac, change in plan:
+        end = int(round(end_frac * n)) - 1
+        start = end - weeks + 1
+        if start < 26:
+            raise ValueError(f"lift test for {c} starts before week 26")
+        before = spend[c][start - 26:start]
+        x0 = float(np.round(before[before > 0].mean(), -2))
+        dx = float(np.round(change * x0, -2))
+        true_dy = big_b[c] * (logistic_saturation((x0 + dx) / scale[c], lam_c[c])
+                              - logistic_saturation(x0 / scale[c], lam_c[c]))
+        sigma = rel_sigma * abs(true_dy)
+        dy = true_dy + rng.normal(0, sigma)
+        rows.append({"channel": c, "x": x0, "delta_x": dx, "delta_y": float(np.round(dy, 0)),
+                     "sigma": float(np.round(sigma, 0)), "date": dates[end],
+                     "test_start": dates[start], "test_weeks": weeks,
+                     "true_delta_y": float(np.round(true_dy, 0))})
+    return sorted(rows, key=lambda row: row["date"])
+
+
+def _ols(design: np.ndarray, y: np.ndarray) -> np.ndarray:
+    return np.linalg.lstsq(design, y, rcond=None)[0]
+
+
+def _confounding_truth(weekly, dates, sat, spend, big_b, demand_shock, channels, conf_channel,
+                       phi, elasticity, sales_effect, fourier_phase):
+    """The omitted-variable-bias mechanism, computed exactly on this realization.
+
+    Both regressions use the true media transforms (true adstock alpha and saturation lam), so only
+    the media coefficients B_c are estimated; that isolates confounding from the harder problem of
+    learning the curves. ``naive`` omits d_t (what an MMM sees), ``oracle`` includes it. OLS
+    identity: naive_B_c = oracle_B_c + oracle_coef_d * delta_c, where delta_c is the coefficient on
+    channel c in the regression of d_t on the naive regressors.
+    """
+    y = weekly["y"].to_numpy(dtype=float)
+    ph = fourier_phase
+    base = np.column_stack([
+        np.ones(len(y)), weekly["t"].to_numpy(float), np.sin(ph), np.cos(ph), np.sin(2 * ph),
+        np.cos(2 * ph), weekly["price_index"].to_numpy(float), weekly["holiday"].to_numpy(float)])
+    media_x = np.column_stack([sat[c] for c in channels])
+    naive_x = np.column_stack([base, media_x])
+    oracle_x = np.column_stack([naive_x, demand_shock])
+    k = base.shape[1]
+    b_naive = _ols(naive_x, y)[k:k + len(channels)]
+    b_oracle_all = _ols(oracle_x, y)
+    b_oracle, coef_d = b_oracle_all[k:k + len(channels)], b_oracle_all[-1]
+    delta = _ols(naive_x, demand_shock)[k:k + len(channels)]
+    roas = {}
+    for j, c in enumerate(channels):
+        per_b = sat[c].sum() / spend[c].sum()  # ROAS per unit of B_c
+        roas[c] = {"true": sig(big_b[c] * per_b), "naive_ols": sig(b_naive[j] * per_b),
+                   "oracle_ols": sig(b_oracle[j] * per_b),
+                   "omitted_variable_bias": sig((b_naive[j] - b_oracle[j]) * per_b)}
+    log_spend = np.log(weekly[conf_channel].to_numpy(dtype=float))
+    corr_spend = float(np.corrcoef(demand_shock, weekly[conf_channel].to_numpy(float))[0, 1])
+    return {
+        "channel": conf_channel,
+        "mechanism": (
+            f"Unobserved demand shock d_t raises {conf_channel} spend (log spend + "
+            f"{elasticity} * d_t) and sales (+ {sales_effect:g} * d_t) in the same weeks. A model "
+            f"without d_t attributes the demand effect to {conf_channel}, so its ROAS is "
+            "overstated; the other channels' spend does not depend on d_t."
+        ),
+        "demand_shock": {"process": "AR(1), standardized to sample mean 0 and sd 1",
+                         "phi": phi, "spend_elasticity": elasticity,
+                         "sales_effect_per_sd": sig(sales_effect),
+                         "observed": False,
+                         "weekly_series": "table `latent`, column demand_shock"},
+        "corr_demand_spend": sig(corr_spend),
+        "corr_demand_log_spend": sig(float(np.corrcoef(demand_shock, log_spend)[0, 1])),
+        "roas": roas,
+        "ols_definition": (
+            "OLS of y on intercept, t, the generator's yearly Fourier terms (order 2), "
+            "price_index, holiday and each channel's true transformed spend "
+            "logistic(lam_c * adstock(spend_c) / S_c) (true alpha and lam); naive omits d_t, "
+            "oracle adds it. ROAS = coefficient * sum(transformed spend) / sum(spend); "
+            "omitted_variable_bias = naive_ols - oracle_ols. It shows the direction and size of "
+            "the bias an MMM fitted without d_t inherits; a Bayesian MMM also estimates alpha and "
+            "lam and uses priors, so its posterior need not equal it. OLS values for a small "
+            "channel can be far from the truth for reasons unrelated to confounding (display "
+            "spend trends with t); compare naive with oracle, not with the truth."
+        ),
+        "ovb_identity": {
+            "formula": "naive_B_c = oracle_B_c + oracle_coef_d * delta_c",
+            "oracle_coef_d": sig(coef_d),
+            "delta": {c: sig(delta[j]) for j, c in enumerate(channels)},
+        },
+    }
