@@ -123,3 +123,23 @@ jobs:
           git add runs
           git commit -m "CI run records for ${GITHUB_SHA::7} (run ${GITHUB_RUN_ID})"
           git push origin evidence
+
+  recovery:
+    # Weekly (and on demand): the slow tests refit the models on the committed synthetic data
+    # and on fresh seeds, checking the stated tolerances in data/synthetic/truth.json.
+    needs: image
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v7
+      - run: pytest -m slow -q

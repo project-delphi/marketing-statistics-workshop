@@ -5,7 +5,7 @@ install cell must be able to import ``mktstats.runtime`` before it installs the 
 versions of those libraries, and a library imported at the wrong version stays in memory
 until the runtime restarts. Submodules load on first use: ``mktstats.checks``,
 ``mktstats.harness``, ``mktstats.runtime``, ``mktstats.data``, ``mktstats.synth``,
-``mktstats.uplift``.
+``mktstats.uplift``, ``mktstats.recovery``.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import importlib
 # Keep in step with pyproject.toml (tests/test_package.py checks).
 __version__ = "0.1.0"
 
-_SUBMODULES = ("checks", "data", "harness", "runtime", "synth", "uplift")
+_SUBMODULES = ("checks", "data", "harness", "recovery", "runtime", "synth", "uplift")
 
 __all__ = ["__version__", *_SUBMODULES]
 
