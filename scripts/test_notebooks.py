@@ -18,7 +18,11 @@ Modes:
 Run:
   python scripts/test_notebooks.py [--notebooks ID ...] [--mode worked|learner|both]
       [--full] [--no-verify] [--save DIR] [--record runs/FILE.json --env ENV]
-  python scripts/test_notebooks.py --list-matrix     JSON list of notebooks for CI
+  python scripts/test_notebooks.py --notebooks ID --verify-checkpoints   (= --mode worked)
+  python scripts/test_notebooks.py --notebooks ID --learner              (= --mode learner)
+  python scripts/test_notebooks.py --list-matrix   JSON list of {id, slug, kernel, path}
+
+The exit code is 1 if any run failed; the --record file is written either way.
 
 `--notebooks` takes ids (python/00-setup-warmup), stems (00-setup-warmup) or paths.
 `--record` writes (or extends) a run-record batch (runs/README.md); `--env` names the
@@ -331,6 +335,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--notebooks", nargs="*", default=[], help="ids, stems or paths")
     parser.add_argument("--mode", choices=("worked", "learner", "both"), default="worked")
+    parser.add_argument(
+        "--verify-checkpoints",
+        action="store_true",
+        help="worked mode with checkpoint verification (the default; kept for CI)",
+    )
+    parser.add_argument("--learner", action="store_true", help="the same as --mode learner")
     parser.add_argument("--full", action="store_true", help="full settings (no QUICK)")
     parser.add_argument("--no-verify", action="store_true", help="skip checkpoint verification")
     parser.add_argument("--save", type=Path, help="write executed notebooks here")
@@ -343,7 +353,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.list_matrix:
         entries = select(v, args.notebooks)
         print(
-            json.dumps([{"id": e["id"], "kernel": e["kernel"], "path": e["path"]} for e in entries])
+            json.dumps(
+                [
+                    {
+                        "id": e["id"],
+                        "slug": e["id"].replace("/", "-"),
+                        "kernel": e["kernel"],
+                        "path": e["path"],
+                    }
+                    for e in entries
+                ]
+            )
         )
         return 0
     if args.record and not args.env:
@@ -355,7 +375,10 @@ def main(argv: list[str] | None = None) -> int:
     os.environ.setdefault("MKTSTATS_CACHE", str(ROOT / ".cache" / "mktstats"))
     os.environ.setdefault("MPLBACKEND", "Agg")
     entries = select(v, args.notebooks)
-    modes = ["worked", "learner"] if args.mode == "both" else [args.mode]
+    if args.learner and args.verify_checkpoints:
+        parser.error("--learner and --verify-checkpoints are separate runs")
+    mode = "learner" if args.learner else "worked" if args.verify_checkpoints else args.mode
+    modes = ["worked", "learner"] if mode == "both" else [mode]
     results, failures = [], 0
     for entry in entries:
         kernel = entry["kernel"]
