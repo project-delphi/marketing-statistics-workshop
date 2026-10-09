@@ -218,9 +218,11 @@ lift_rows.round(0)
 # spend-share priors, on these data, with no lift tests. `make_mmm()` returns the unfitted model,
 # so the calibrated fit and the cross-validation below get exactly the same specification.
 #
-# `target_accept=0.95` makes the sampler take smaller steps than Module 8's 0.9: with the lift
-# tests added, the workshop's test fit at 0.9 left 3 divergent draws in 4,000 (what a divergence
-# is: Module 8, Exercise 4). Read the next exercise's Predict prompt while this runs.
+# `target_accept=0.98` makes the sampler take smaller steps than Module 8's 0.9: with the lift
+# tests added, the workshop's test fits left a few divergent draws at 0.9 (3 in 4,000, on a
+# laptop) and at 0.95 (4 in 4,000, in the workshop's Docker image), and none at 0.98, at about a
+# third more time (what a divergence is: Module 8, Exercise 4). Read the next exercise's Predict
+# prompt while this runs.
 #
 # With QUICK on, the sampler draws 300 instead of 2,000 values per chain: intervals are rougher
 # and may not match the module page, and a decision near its threshold can flip. That is a
@@ -252,7 +254,7 @@ def make_mmm():
 
 
 DRAWS = 300 if QUICK else 2000
-TARGET_ACCEPT = 0.95
+TARGET_ACCEPT = 0.98
 mmm = make_mmm()
 t_fit = time.time()
 idata = mmm.fit(X, y, nuts_sampler="nutpie", chains=2, draws=DRAWS, tune=DRAWS,
@@ -531,6 +533,9 @@ HORIZON = 8  # weeks forecast in each fold
 STEP = 8  # weeks the cut moves between folds
 N_INIT = 132 if QUICK else 124  # training weeks of the first fold: 3 or 4 folds ending at week 156
 CV_DRAWS = 200 if QUICK else 500
+# 0.95, not 0.98: the folds showed no divergences at 0.95 in the workshop's test runs, and
+# smaller steps would lengthen the longest cell.
+CV_TARGET_ACCEPT = 0.95
 cv = TimeSliceCrossValidator(n_init=N_INIT, forecast_horizon=HORIZON, date_column="date",
                              step_size=STEP)
 t_cv = time.time()
@@ -538,7 +543,7 @@ cv_idata = cv.run(
     X, y, mmm=make_mmm(), df_lift_test=search_rows, lift_test_date_column="date",
     original_scale_vars=["y", "channel_contribution"],
     sampler_config={"draws": CV_DRAWS, "tune": CV_DRAWS, "chains": 2, "nuts_sampler": "nutpie",
-                    "target_accept": TARGET_ACCEPT, "random_seed": SEED, "progressbar": False},
+                    "target_accept": CV_TARGET_ACCEPT, "random_seed": SEED, "progressbar": False},
 )
 cv_seconds = time.time() - t_cv
 
@@ -803,7 +808,7 @@ decision.assign(true_roas=[true_roas[c] for c in CHANNELS],
 # cv_plain_idata = cv_plain.run(
 #     X, y, mmm=make_mmm(), original_scale_vars=["y", "channel_contribution"],
 #     sampler_config={"draws": CV_DRAWS, "tune": CV_DRAWS, "chains": 2, "nuts_sampler": "nutpie",
-#                     "target_accept": TARGET_ACCEPT, "random_seed": SEED, "progressbar": False})
+#                     "target_accept": CV_TARGET_ACCEPT, "random_seed": SEED, "progressbar": False})
 # pd.concat({"calibrated": scorecard,
 #            "uncalibrated": cv_scorecard(cv_plain.summary.predictions(hdi_probs=(0.94,)))},
 #           axis=1).round(3)

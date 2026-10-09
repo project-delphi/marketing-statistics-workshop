@@ -78,8 +78,10 @@ local({
       sprintf("%s/%s/environment/requirements.txt", getOption("mktstats.raw"), MKTSTATS_REF)
     message("Installing the Python library nevergrad for Robyn ...")
     system2(py, c("-m", "pip", "install", "-q", "nevergrad", "-c", shQuote(pins)))
-    if (!can_import(py)) {  # this Python refuses packages: give Robyn its own environment
-      reticulate::virtualenv_create("r-robyn", python = py, packages = NULL)
+    if (!can_import(py)) {  # this Python refuses packages: give Robyn its own environment,
+      # reusing the packages already installed (numpy, pandas, scipy on Colab)
+      reticulate::virtualenv_create("r-robyn", python = py, packages = NULL,
+                                    system_site_packages = TRUE)
       reticulate::virtualenv_install("r-robyn", "nevergrad", pip_options = c("-c", pins))
       py <- reticulate::virtualenv_python("r-robyn")
     }
