@@ -29,7 +29,7 @@ jobs:
 
   build:
     needs: image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     container:
       image: ${{ needs.image.outputs.image }}
@@ -73,28 +73,34 @@ jobs:
 
   links:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v8
         with:
           name: github-pages
-      - run: mkdir _site && tar -xf artifact.tar -C _site
+      - name: Unpack the site under its Pages path
+        # 404.html uses site-absolute links (/marketing-statistics-workshop/...), so the
+        # site sits under that path inside a root directory lychee resolves against.
+        run: mkdir -p root/marketing-statistics-workshop && tar -xf artifact.tar -C root/marketing-statistics-workshop
       - name: Internal links (blocking)
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --offline --no-progress '_site/**/*.html'
+          args: --offline --no-progress --root-dir ${{ github.workspace }}/root 'root/**/*.html'
           fail: true
 
   links-external:
     needs: build
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: true
     steps:
       - uses: actions/download-artifact@v8
         with:
           name: github-pages
-      - run: mkdir _site && tar -xf artifact.tar -C _site
+      - name: Unpack the site under its Pages path
+        # 404.html uses site-absolute links (/marketing-statistics-workshop/...), so the
+        # site sits under that path inside a root directory lychee resolves against.
+        run: mkdir -p root/marketing-statistics-workshop && tar -xf artifact.tar -C root/marketing-statistics-workshop
       - name: External links (weekly, non-blocking)
         uses: lycheeverse/lychee-action@v2
         with:
@@ -102,13 +108,14 @@ jobs:
             --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
             --accept 200,203,206,429
             --exclude '^https://colab\.research\.google\.com/'
-            '_site/**/*.html'
+            --root-dir ${{ github.workspace }}/root
+            'root/**/*.html'
           fail: true
 
   deploy:
     needs: [build, links]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
