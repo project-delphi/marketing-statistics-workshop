@@ -151,9 +151,9 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] [TE] M0 Python + R notebooks; [Lead] Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks
 
 ### Phase 2 — generators (freeze mktstats API at the end)
-- [ ] [TE] synth: BTYD retailer (true r, α, a, b, alive status, acquisition channel effect), Gamma-Gamma spend, weekly MMM (adstock, saturation, true ROAS), geo panel (true lift), email experiment (true CATE); `truth.json`; drift gate
-- [ ] [TE] recovery tests (MAP fast in CI; seeded multi-seed coverage weekly)
-- [ ] [TE] loaders: CDNOW, Online Retail II, Hillstrom, mmm_example, Prop 99, sBG counts (sha256 + fallback)
+- [x] [TE] synth: BTYD retailer (true r, α, a, b, alive status, acquisition channel effect), Gamma-Gamma spend, weekly MMM (adstock, saturation, true ROAS), geo panel (true lift), email experiment (true CATE); `truth.json`; drift gate
+- [x] [TE] recovery tests (MAP fast in CI; seeded multi-seed sweep is `pytest -m slow tests/test_synth_files.py`, to be scheduled weekly in CI)
+- [x] [TE] loaders: CDNOW, Online Retail II, Hillstrom, mmm_example, Prop 99, sBG counts (sha256 + fallback)
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
 - [ ] M8 Bayesian MMM
