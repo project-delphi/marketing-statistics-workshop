@@ -412,9 +412,11 @@ modules:
     recap: "Module 7 measures one campaign in one window; it cannot compare channels or say what next month's budget will return."
     next: "An MMM fitted on observational data can credit a channel that merely follows demand, and fit the data well while getting ROAS wrong. Module 9 calibrates it with lift tests and validates it out of sample."
     notebooks:
-      - {path: labs/python/08-bayesian-mmm.ipynb, source: labs/src/08-bayesian-mmm.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/08-bayesian-mmm.ipynb, source: labs/src/08-bayesian-mmm.py, kernel: python3, install: [pymc-marketing, nutpie]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, data/synthetic/mmm_weekly.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Synthetic weekly MMM (mmm_weekly.csv, seed 2028)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_weekly.csv"}
+      - {name: "PyMC-Marketing mmm_example.csv (simulated demo data)", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/mmm_example.csv", sha256: 320d299569b989c37facac5bda6a4ee2d661cb12e158ac5d80689c8cc3d37955}
   m09:
     slug: 09-mmm-calibration
     title: "Calibrating and validating an MMM"
@@ -469,9 +471,11 @@ modules:
     recap: "Module 9 gives calibrated response curves but no rule for dividing a fixed budget among channels."
     next: "Allocation decides how much to spend per channel, not whom to reach. Module 11 asks which customers an offer actually changes."
     notebooks:
-      - {path: labs/python/10-budget-allocation.ipynb, source: labs/src/10-budget-allocation.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/10-budget-allocation.ipynb, source: labs/src/10-budget-allocation.py, kernel: python3, install: [pymc-marketing, nutpie, scipy]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth/mmm.py, data/synthetic/mmm_weekly.csv, data/synthetic/mmm_lift_tests.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Synthetic weekly MMM (mmm_weekly.csv, seed 2028)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_weekly.csv"}
+      - {name: "Synthetic lift tests (mmm_lift_tests.csv)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_lift_tests.csv"}
   m11:
     slug: 11-uplift
     title: "Uplift and heterogeneous treatment effects"
