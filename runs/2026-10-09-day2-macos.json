@@ -5,7 +5,7 @@
   "env": "macos-arm64",
   "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
   "kernel": "python3",
-  "commit": "06747ba",
+  "commit": "b4fe8f3",
   "ref": "main",
   "evidence": "scripts/test_notebooks.py --record",
   "runs": [
@@ -43,18 +43,18 @@
       "notebook": "python/04-monetary-clv",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 62.3,
+      "seconds": 43.2,
       "phases": {
-        "generated": 0.09,
-        "other": 54.63,
-        "exercise": 0.01,
-        "solution": 0.01,
-        "checkpoint": 4.06,
-        "verify": 0.04
+        "generated": 0.07,
+        "other": 38.66,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.74,
+        "verify": 0.01
       },
       "slowest_cell": {
         "id": "cell-024",
-        "seconds": 14.38
+        "seconds": 11.52
       },
       "verified": 5,
       "checkpoints": {
@@ -114,23 +114,23 @@
       "settings": {
         "MKTSTATS_QUICK": "1"
       },
-      "content_sha": "0cfa66344b272f9e",
+      "content_sha": "e06df310e7cccdc1",
       "deps_sha": "b8e2e65f20985b4b",
       "notebook": "python/05-clv-decisions",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 19.3,
+      "seconds": 16.4,
       "phases": {
-        "generated": 0.09,
-        "other": 15.65,
-        "exercise": 0.03,
+        "generated": 0.1,
+        "other": 13.57,
+        "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.54,
-        "verify": 0.05
+        "checkpoint": 0.46,
+        "verify": 0.01
       },
       "slowest_cell": {
         "id": "cell-011",
-        "seconds": 8.09
+        "seconds": 7.34
       },
       "verified": 5,
       "checkpoints": {
@@ -193,18 +193,18 @@
       "notebook": "python/04-monetary-clv",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 89.1,
+      "seconds": 76.7,
       "phases": {
-        "generated": 0.07,
-        "other": 77.08,
+        "generated": 0.06,
+        "other": 66.47,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 8.35,
-        "verify": 0.1
+        "checkpoint": 7.69,
+        "verify": 0.03
       },
       "slowest_cell": {
         "id": "cell-024",
-        "seconds": 22.95
+        "seconds": 18.99
       },
       "verified": 5,
       "checkpoints": {
@@ -262,23 +262,23 @@
       },
       "install_seconds": 0.0,
       "settings": {},
-      "content_sha": "0cfa66344b272f9e",
+      "content_sha": "e06df310e7cccdc1",
       "deps_sha": "b8e2e65f20985b4b",
       "notebook": "python/05-clv-decisions",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 40.9,
+      "seconds": 37.4,
       "phases": {
-        "generated": 0.07,
-        "other": 37.58,
+        "generated": 0.08,
+        "other": 34.32,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.54,
+        "checkpoint": 0.55,
         "verify": 0.0
       },
       "slowest_cell": {
         "id": "cell-011",
-        "seconds": 22.99
+        "seconds": 20.33
       },
       "verified": 5,
       "checkpoints": {
@@ -319,17 +319,17 @@
       "notebook": "python/04-monetary-clv",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 4.3,
+      "seconds": 4.4,
       "phases": {
-        "generated": 0.07,
-        "other": 2.43,
+        "generated": 0.05,
+        "other": 2.42,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.0
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.43
+        "seconds": 2.42
       }
     },
     {
@@ -337,22 +337,22 @@
       "settings": {
         "MKTSTATS_QUICK": "1"
       },
-      "content_sha": "0cfa66344b272f9e",
+      "content_sha": "e06df310e7cccdc1",
       "deps_sha": "b8e2e65f20985b4b",
       "notebook": "python/05-clv-decisions",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 4.3,
+      "seconds": 4.0,
       "phases": {
-        "generated": 0.05,
-        "other": 2.28,
+        "generated": 0.04,
+        "other": 2.25,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.0
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.23
+        "seconds": 2.2
       }
     }
   ]

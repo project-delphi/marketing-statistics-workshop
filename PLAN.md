@@ -162,10 +162,10 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M11 uplift (EconML + grf)
 - [ ] M7 geo (Python SC/DiD + R CausalImpact/GeoLift)
 - [ ] M1 customer base (DuckDB)
-- [ ] M4 monetary value and CLV
+- [ ] M4 monetary value and CLV — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab pending
 - [ ] M6 experiments
 - [ ] M3 covariates (CLVTools) + BTYD vs ML
-- [ ] M5 CLV decisions
+- [ ] M5 CLV decisions — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab pending
 - [ ] M9 calibration and validation (+ Robyn per S5)
 - [ ] M10 budget allocation
 - [ ] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`; lab still to build)
