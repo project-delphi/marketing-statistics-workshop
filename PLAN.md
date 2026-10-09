@@ -138,17 +138,18 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] [Lead] S5 Robyn (1-hour timebox) → lab, demo or comparison table only
 
 ### Phase 1 — walking skeleton
-- [ ] [TE] `src/mktstats`: runtime (detect Colab/SageMaker/local, install with constraints, restart guard), harness (solution/checkpoint/use_reference/run_record, verify hooks), lazy imports
-- [ ] [TE] `R/mktstats.R`: harness without forms, loaders, checks, run record
-- [ ] [TE] `scripts/gen_notebooks.py` (jupytext percent → ipynb; generated header/install/harness/record/footer cells; solution metadata; R kernelspec; strip outputs; idempotent)
-- [ ] [TE] `scripts/test_notebooks.py` (nbclient; kernel from metadata; worked + verify-checkpoints in one pass; learner mode; per-cell timing; `--record`)
-- [ ] [TE] `scripts/run_records.py`, `readiness.py`, `add_run_record.py`, `release_check.py` (content_sha + deps_sha staleness; Colab authenticity fields)
-- [ ] [TE] `scripts/gen_tables.py` (includes: facts, days, path, module headers, lab steps, schedule, notebooks table, readiness, VERSIONS.md, README regions)
-- [ ] [TE] tests: structure of notebooks, variables, runs/readiness rules, checks-can-fail
+- [x] [TE] `src/mktstats`: runtime (detect Colab/SageMaker/local, install with constraints, restart guard), harness (solution/checkpoint/use_reference/run_record, verify hooks), lazy imports
+- [x] [TE] `R/mktstats.R`: harness without forms, loaders, checks, run record
+- [x] [TE] `scripts/gen_notebooks.py` (jupytext percent → ipynb; generated header/install/harness/record/footer cells; solution metadata; R kernelspec; strip outputs; idempotent)
+- [x] [TE] `scripts/test_notebooks.py` (nbclient; kernel from metadata; worked + verify-checkpoints in one pass; learner mode; per-cell timing; `--record`)
+- [x] [TE] `scripts/run_records.py`, `readiness.py`, `add_run_record.py`, `release_check.py` (content_sha + deps_sha staleness; Colab authenticity fields)
+- [x] [TE] `scripts/gen_tables.py` (includes: facts, days, path, module headers, lab steps, schedule, notebooks table, readiness, VERSIONS.md, README status region)
+- [x] [TE] tests: structure of notebooks, variables, runs/readiness rules, checks-can-fail
 - [ ] [UI] `_quarto.yml`, theme tokens (light/dark), filters, page shells for every navbar/footer page, landing layout
 - [ ] [TE] `.github/workflows/publish.yml` (drift gates, ruff, pytest, evidence checkout, render, lychee offline, deploy-pages) + Pages enabled
 - [ ] [TE] `.github/workflows/notebooks.yml` (matrix from `_variables.yml`, image container, collect → `evidence` branch) + `image.yml`
-- [ ] [TE] M0 Python + R notebooks; [Lead] Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks
+- [x] [TE] M0 Python + R notebooks (written; worked+verify and learner runs recorded on macOS and in Docker, full settings)
+- [ ] [Lead] M0 Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks
 
 ### Phase 2 — generators (freeze mktstats API at the end)
 - [ ] [TE] synth: BTYD retailer (true r, α, a, b, alive status, acquisition channel effect), Gamma-Gamma spend, weekly MMM (adstock, saturation, true ROAS), geo panel (true lift), email experiment (true CATE); `truth.json`; drift gate
