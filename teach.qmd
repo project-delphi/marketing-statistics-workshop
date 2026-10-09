@@ -9,8 +9,10 @@ Module titles, minutes and the readiness age limit come from _variables.yml thro
 This page states no run times: measured ones are on readiness.qmd, generated from runs/.
 Files that are not rendered pages (briefs/) are linked on GitHub so the
 offline link check passes.
-Debrief prompts marked "check against _variables.yml decision" were written before the Academic
-Director's final decision wording; re-read them against modules.mNN.decision.
+The third debrief prompt of each module asks for that module's decision as worded in
+modules.mNN.decision (checked 2026-10-09); if a decision changes there, change the prompt.
+"Common failures seen in testing" comes from runs/, DECISIONS.md and the lab build commits; it
+quotes no run times.
 -->
 
 This page is for the person running the room. It says what is in the kit, how a module and a day run, when to cut, what to ask in each debrief, and what to do when Colab, an install or a model fit goes wrong.
@@ -60,6 +62,8 @@ Each module is a **briefing** (45 to 55 minutes), a **lab** (50 to 55 minutes) a
 
 **Each lab ends with a Decision cell** (number → rule → recommendation with uncertainty) and then an optional stretch. Everyone reaches the Decision cell; nobody needs the stretch.
 
+**Two-notebook labs (Modules 3, 7 and 11)** fit both notebooks into the one lab slot. The first cell of each notebook gives the order of work, the minutes in each notebook and the minute to switch; call the switch aloud, and anyone not finished uses the reference for what is left. Module 3: R first, then Python about 30 minutes in. Module 7: Python Parts A and B first, R's Part C about 33 minutes in, then back to Python for the decision. Module 11: R first, then Python about 28 minutes in. In each, learners start the slower install first (the Python one in Modules 3 and 11, the R one in Module 7), so they hold two Colab runtimes at once.
+
 ## Pacing rules {#pacing}
 
 Apply these in order. A module's own notes in its brief come first.
@@ -89,67 +93,67 @@ Do not reteach the briefing and do not debug code in front of the room.
 
 1. What share of customers bought only once? What does that do to any average taken over "customers"?
 2. Which "recency" did you compute: time since the last purchase, or age at the last purchase? Where would mixing them up go wrong tomorrow?
-3. Which customers would you treat as active for a retention campaign, and by what rule? What does the rule ignore? <!-- check against _variables.yml decision -->
+3. Would you stop retargeting customers who have been inactive for N days? For the N you chose, how many still-active customers does the rule drop, and does the retargeting cost it saves outweigh the margin they would have brought? What does the rule ignore?
 
 ### Module 2 · {{< var modules.m02.title >}}
 
 1. Where did the BG/NBD parameters land against the truth, and which had the widest interval relative to its value? Why that one?
 2. Two customers with the same number of repeat purchases have very different P(alive). What drives the difference?
-3. Your stop-retargeting rule: which cost and margin set its threshold? Is a low P(alive) the same as "retargeting would not bring them back"? (Module 11 answers that.) <!-- check against _variables.yml decision -->
+3. Your threshold, τ = contact cost ÷ (margin per purchase × response rate): how many customers fall below it, and how much contact cost does stopping them save? How far did that count move between a 2% and a 10% response rate? Is a low P(alive) the same as "retargeting would not bring them back"? (Day 3 measures the response rate; Module 11 asks whom an offer changes.)
 
 ### Module 3 · {{< var modules.m03.title >}}
 
 1. Which acquisition channel's customers buy more often or leave sooner, and how sure are you? Is that the channel's effect, or who the channel reaches?
 2. Did gradient boosting beat the BTYD model on the holdout period, on which metric? What does the BTYD model give you that the machine-learning model does not?
-3. Would you change acquisition spend by channel on this evidence alone? What else do you need? (Day 2 brings in cost per customer.) <!-- check against _variables.yml decision -->
+3. Which channels would you treat differently, by the lab's rule (a rate more than 20% away from search, with a 90% interval that excludes no difference)? Which forecaster would you use for next quarter, and did the bootstrap interval of the error difference exclude 0? Would you change acquisition spend on this alone? (Day 2 adds what each channel's customers are worth and cost.)
 
 ### Module 4 · {{< var modules.m04.title >}}
 
 1. Did the check that spend per transaction is unrelated to purchase frequency pass? What would you do if heavy buyers spent less per order?
 2. How far does average customer value move when you change the discount rate or the horizon? Which assumption matters most for your number?
-3. Which value would you put in front of finance, with which interval, and why that one? <!-- check against _variables.yml decision -->
+3. What are an average customer and the whole customer base worth over 12 and over 36 months, with 94% intervals? Which assumption moved the number most: the horizon, the discount rate or the spend model? Is that the number you would put in front of finance?
 
 ### Module 5 · {{< var modules.m05.title >}}
 
 1. What acquisition cost cap did you set per channel, and from which quantile of customer value? Why not the mean?
 2. Two segments' intervals overlap. Does that mean their values are not different? How did you check?
-3. Does the retention offer pay? Which number in that calculation has nobody measured yet? (Day 3 measures it.) <!-- check against _variables.yml decision -->
+3. Would you run the proposed retention campaign? Which number in that calculation has nobody measured yet? (Day 3 measures it.)
 
 ### Module 6 · {{< var modules.m06.title >}}
 
 1. How many customers per arm did you need for the effect you care about? What did halving the detectable effect do?
 2. What did peeking do to the false-positive rate in the simulation, and what fixes it?
-3. Would you ship the treatment on this result? What do you check before reading the effect at all? <!-- check against _variables.yml decision -->
+3. Would you roll out the email? Give the incremental revenue per customer with its 95% interval after the SRM check and CUPED, and say whether the margin per email cleared the cost per email at the interval's lower end. What did you check before reading the effect at all?
 
 ### Module 7 · {{< var modules.m07.title >}}
 
 1. Did your interval contain the true lift? Where did synthetic control and difference-in-differences disagree, and why?
 2. What did the placebo tests show? How large an effect could this design have detected?
-3. Would you scale the campaign? Compare the interval for the lift with the break-even lift. <!-- check against _variables.yml decision -->
+3. Was the campaign incremental, and by how much? Give the incremental sales with their interval (the 90% placebo-in-time interval, and CausalImpact's 95% interval if you ran it) and the return on the campaign spend at the interval's lower end. Would you scale it?
 
 ### Module 8 · {{< var modules.m08.title >}}
 
 1. Which channels' true ROAS fell inside their interval? Which channel had the widest interval, and what in its spend history explains it?
 2. Were there divergences? What do they mean, and what did you do about them?
-3. Which channels are credibly above break-even ROAS, and which can the data not decide? <!-- check against _variables.yml decision -->
+3. Which channels pay back (probability at least 0.9 that ROAS is above break-even, 1 ÷ gross margin), which do not (at least 0.9 that it is below), and which are undecided? What would settle an undecided channel?
 
 ### Module 9 · {{< var modules.m09.title >}}
 
 1. How did the lift test change the tested channel's ROAS: did the interval narrow, move, or both?
 2. How did the model do on weeks it had not seen, and were its parameters stable across time windows?
-3. Is the model good enough to allocate a budget on? Which channel would you test next, and why that one? <!-- check against _variables.yml decision -->
+3. Which channel's ROAS is reliable enough to move budget on now, and which needs a new lift test first? Why that one?
 
 ### Module 10 · {{< var modules.m10.title >}}
 
 1. How far did the optimizer move from the current split, and which constraint stopped it?
 2. How did the allocation that accounts for risk differ from the one computed at the posterior mean? Why?
-3. Which split would you recommend, with what probability of beating the current one, and how did valuing customers by lifetime value change it? <!-- check against _variables.yml decision -->
+3. Which weekly split would you recommend within the agreed bounds, with its expected incremental sales and 94% interval, and what probability that it beats the current plan? How did the risk-averse and the CLV-weighted objectives change it?
 
 ### Module 11 · {{< var modules.m11.title >}}
 
 1. Are the customers with the highest predicted uplift the ones most likely to buy? Why not?
 2. On held-out customers, did targeting by predicted uplift beat random targeting? What did the RATE estimate say about whether the differences are real?
-3. Whom would you send the offer to, at the given margin and offer cost? What happens to the rule if the offer costs twice as much? <!-- check against _variables.yml decision -->
+3. How many customers clear margin × predicted uplift > offer cost, and how much more (or less) does mailing only them earn than mailing everyone, with its interval? What happens to the rule if the offer costs twice as much?
 
 ### Module 12 · {{< var modules.m12.title >}}
 
@@ -161,7 +165,7 @@ The presentations are the debrief. After the last pair, ask the room:
 ## Clinics and the capstone {#clinics}
 
 - **Day 2, CFO memo clinic.** Print one CFO card and one Analyst checklist (both on the [Day 2 page](day-2.qmd#clinic)) per person. Groups of three; you keep time and call each step aloud. Write down the gaps you hear for the wrap-up.
-- **Day 3, geo-test design review.** Before the session, run Module 7's R notebook on a Colab R runtime with `WORKED_EXAMPLE` on and keep its market-selection output open for the demo; do not run market selection live. The plan and checklist are on the [Day 3 page](day-3.qmd#clinic).
+- **Day 3, geo-test design review.** Before the session, run Module 7's R notebook on a Colab R runtime with `WORKED_EXAMPLE` on and keep its market-selection output open for the demo; do not run market selection live. If a team asks how to analyze a design with several treated markets, the answer is to aggregate them into one series (as Lab 7 does) or use CausalImpact, not `GeoLift()` (see [Common failures seen in testing](#seen-in-testing)). The plan and checklist are on the [Day 3 page](day-3.qmd#clinic).
 - **Day 5, capstone.** Announce the pairs at the end of Day 4. Pair people whose strengths differ (one at ease with the code, one with the business logic), and avoid pairing two people who both needed the reference through most of Day 4. Before presentations, prepare the answer key (the rubric says how) and decide who scores. With more than 12 pairs, split into two rooms with one scorer each. The run of show is on the [Day 5 page](day-5.qmd#capstone).
 
 ## What goes wrong, and what to do {#failures}
@@ -174,11 +178,28 @@ The presentations are the debrief. After the last pair, ask the room:
 | R packages install slowly or fail. | R packages come as binaries from a dated Posit Package Manager snapshot, which serves binaries only when R identifies itself correctly; the install cell sets this. A restart in the middle of the install leaves it half done. CLVTools needs the GSL system library, which the install cell installs. GeoLift and augsynth are not on CRAN; the install cell fetches them from pinned GitHub archives. | Re-run the install cell from the top, not from the middle. Never `install.packages("GeoLift")`. If GitHub is unreachable from the room, use the reference outputs prepared in advance for the GeoLift demo. |
 | A model fit runs far past its expected time. | A slow shared runtime, FULL settings, or a model that is struggling (see divergences). | Learners read the next Predict prompt while it runs. Past twice the recorded time: **Runtime → Interrupt execution**, switch on `QUICK` in the harness cell, re-run the fit cell; or use the reference for that exercise. Do not edit sampler settings by hand: `QUICK` is the short setting the checkpoints were tested with. |
 | The sampler warns of **divergences**. | The sampler could not explore part of the posterior; estimates may be biased. | Do not ignore it, and do not just draw more samples. Follow the lab: its checkpoint states how many divergences it accepts and which setting to change (for example, a higher target acceptance rate). In Module 8 the warning may be part of the lesson. |
-| A data download fails. | The source site is down or slow, or the room's network blocks it. | The workshop's loaders check each file's hash and try fallback URLs; read the message, which names the file. If every source fails, one person downloads the file and shares it, and learners upload it in Colab's **Files** panel to the folder the message names. <!-- confirm against src/mktstats/data.py once built --> |
+| A data download fails. | The source site is down or slow, or the room's network blocks it. | The workshop's loaders try each listed source in order, check every file's SHA-256 hash and keep a cache; the message lists each URL it tried and the error. If every source fails, one person downloads the file from one of those URLs and shares it. Learners upload it in Colab's **Files** panel (it lands in `/content`), move it into the loaders' cache with `!mkdir -p ~/.cache/mktstats && mv /content/FILE ~/.cache/mktstats/` (in R: `system("mkdir -p ~/.cache/mktstats && mv /content/FILE ~/.cache/mktstats/")`), and rerun the cell. FILE is the name the loader expects: `cdnow_transactions.csv`, `online_retail_ii.zip`, `hillstrom.csv` or `mmm_example.csv`. A cached file with the right hash is used without a download. |
 | Colab disconnected, and variables are gone. | Idle timeout or a runtime reset (for example over lunch). | Re-run from the top; switch on `QUICK` if the clock is short. For the capstone, keep the tab open during a fit. |
 | Colab warns that the notebook was not authored by Google. | Any notebook opened from GitHub. | **Run anyway**: the notebooks come from the workshop's public repository. |
+| Colab will not connect a new runtime and mentions **too many sessions**. | Every open Colab notebook holds its own runtime. The two-notebook labs (Modules 3, 7 and 11) need two at once, and tabs from earlier labs may still hold theirs. Seen while recording the Colab runs. | **Runtime → Manage sessions**, terminate the sessions of earlier labs, then connect again. Keep connected only the notebooks the current lab needs. |
 | The runtime runs out of memory. | Several large objects, or several Colab tabs each holding a runtime. | Close other Colab tabs; **Runtime → Restart session**; switch on `QUICK`, which subsamples the data. |
 | A checkpoint fails on the **reference** solution. | A bug, or a package that changed. | Not the learner's fault. Note the notebook, the checkpoint, the full message and the run's `COLAB_RELEASE_TAG`, and report it. Tell the room to run the following cells one at a time instead of Run all. |
+
+## Common failures seen in testing, by module {#seen-in-testing}
+
+What went wrong, or surprised us, while the labs were built and run, from the run records in [`runs/`]({{< var repo.url >}}/tree/{{< var repo.ref >}}/runs), [DECISIONS.md]({{< var repo.url >}}/blob/{{< var repo.ref >}}/DECISIONS.md) and the lab build notes, with what to tell the room. Where each notebook has run, and how long it took, is on the [readiness page](readiness.qmd); check it before each day, because a lab that has not yet run on Colab can still surprise you there. Modules 4, 5, 9 and 12 are still being built; their entries come when they have run.
+
+- **Every two-notebook lab (Modules 3, 7 and 11).** Learners hold two Colab runtimes at once. While the Colab runs were recorded, Colab refused a new runtime with a "too many sessions" message when earlier notebooks were still connected; the fix is in the table above.
+- **The workshop's Docker image with a CPU limit.** Under `docker run --cpus 2` on a laptop with more cores, the linear-algebra library started one thread per visible core and SciPy's optimizer in Module 7 slowed about 75-fold; the lab now limits it to one thread with `threadpoolctl` (DECISIONS.md). Colab and the GitHub runner are not expected to be affected (not verified on Colab). Run records made in such a container report the host's core count, not the limit.
+- **Module 0.** Nothing beyond the general table above.
+- **Module 1.** The first load of Online Retail II downloads and converts a 45 MB file from the UCI repository; later loads read the cache. Learners read Exercise 2 meanwhile. Checkpoint 1b compares invoice counts with counts measured on the hash-checked file, so a different count means a cleaning rule differs, not that the data changed.
+- **Module 2.** The parameter-recovery check (3 of the 4 true BG/NBD parameters inside their 94% HDI) passed on 17 of 20 simulated cohorts in a scan of seeds; the misses came in pairs (r with α, a with b). The notebook fixes a cohort that passes in QUICK and FULL. If a learner changes the cohort seed and Checkpoint 3 fails, that is chance, not their code. The Pareto/NBD is fitted by MAP because sampling it was too slow for class on Colab (DECISIONS.md, spike S2).
+- **Module 3.** CLVTools needs the GSL system library, which Colab lacks; the R install cell installs it (spike S3). If `library(CLVTools)` fails, rerun the install cell from the top.
+- **Module 6.** Hillstrom downloads from minethatdata.com over plain HTTP, with a gzip copy on Amazon S3 as the fallback; both are hash-checked. If minethatdata.com is unreachable from the room, the loader moves to the fallback after its retries, so the first load can take longer.
+- **Module 7.** `GeoLift()` fails with two or more test markets at the pinned commits (reproduced on GeoLift's own example; DECISIONS.md). Market selection and power, which the clinic demo uses, work. The augsynth stretch with `progfunc = "ridge"` cross-validates its penalty and is much slower than the default; the stretch says so.
+- **Module 8.** FULL draws 2 × 2,000 because 2 × 1,000 left the smallest bulk ESS below the lab's bar of 400 in testing; with QUICK the diagnostics gate usually fails, which the notebook says is expected. `target_accept = 0.9` because 0.8 left a divergence in one of six test fits. The main MMM fit is the notebook's longest cell.
+- **Module 10.** The risk-averse plan (SLSQP maximizing the 10% quantile) barely moves from the mean-optimal plan, in a direction that depends on the draws; in one Docker run it stopped at its start, because the quantile is nearly flat around that plan. The notebook prints the iterations and the dollars moved: "it hardly moved" is the finding, not a failure. The CLV-weighted plan rests on made-up acquisition costs and is shown as a sensitivity only.
+- **Module 11.** The Python install is the longer of the two, so learners start it first. The grf forests grow 1,000 trees rather than grf's default 2,000, to keep each fit short on 2 CPUs. Hillstrom downloads as in Module 6.
 
 ## Before the workshop {#before}
 
