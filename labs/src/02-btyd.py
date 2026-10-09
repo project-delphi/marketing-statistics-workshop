@@ -178,8 +178,8 @@ for a_, b_ in [(1, 9), (5, 5)]:
 # period that follows. CDNOW: calibration to 1997-09-30 (39 weeks), holdout 1997-10-01 to
 # 1998-06-30 (39 weeks), as in Fader, Hardie & Lee's BG/NBD note.
 #
-# **Predict.** If you swapped recency and $T$, would customers who bought recently look more
-# alive or less alive than they are?
+# **Predict.** If you swapped recency and $T$, would customers who have been silent for a long
+# time look more alive or less alive than they are? Write one word down.
 #
 # **Task.** Write `calibration_holdout(tx, cal_end, holdout_end)` for a log with columns
 # `customer_id` and `date`. Return one row per customer whose first purchase is on or before
@@ -265,7 +265,9 @@ with workshop.checkpoint(2):
 # simulates a cohort of 4,000 customers at the true parameters, with the same story as your
 # `simulate_bgnbd` written without the loop (so every participant fits exactly the same
 # cohort, whatever order their own function draws random numbers in). It then fits the BG/NBD
-# two ways, with PyMC-Marketing's default priors:
+# two ways, with PyMC-Marketing's default priors. (A *prior* is the spread of parameter values
+# the model finds plausible before it sees data; the *posterior* is that spread after the data
+# have updated it.)
 #
 # - **MAP** (maximum a posteriori): the single most probable parameter values. Fast; no
 #   uncertainty.
@@ -483,7 +485,8 @@ def holdout_comparison(model, cal, holdout_weeks):
 
 # %% [markdown]
 # **Explain.** Compare with your prediction, group by group, in the table under the
-# checkpoint. Where do the two models agree, and where does the forecast miss most?
+# checkpoint. Where do the two models agree? Point to the group with the largest gap between
+# `actual` and `predicted`: does the forecast fall short there or overshoot?
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -592,9 +595,9 @@ def retarget_flags(p_alive, tau):
 
 
 # %% [markdown]
-# **Explain.** $u$ is an assumption here, not a measurement: what would you need to measure it
-# (Day 3)? And why does the CDNOW decision below use the Pareto/NBD's P(alive), not the
-# BG/NBD's?
+# **Explain.** Compare with your prediction: $\tau = 0.50 / (20 \times 0.05) = 0.5$. $u$ is an
+# assumption here, not a measurement: what would you need to measure it (Day 3)? And why does
+# the CDNOW decision below use the Pareto/NBD's P(alive), not the BG/NBD's?
 #
 # <details><summary>Why this solution works</summary>
 #
