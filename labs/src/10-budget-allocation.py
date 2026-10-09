@@ -15,6 +15,13 @@
 #   minimize_kwargs=None, return_if_fail=False, callback=False) -> BudgetOptimizationResult with
 #   .budgets (xarray over channel, money) and .scipy_result; default method SLSQP. total_budget
 #   is per period: optimization_variables.py repeats the budget over the date dimension.
+#   minimize_kwargs is merged over DEFAULT_MINIMIZE_KWARGS = {"method": "SLSQP", "options":
+#   {"ftol": 1e-9, "maxiter": 1000}} (a shallow merge, so pass "method" and "options"); x0 may
+#   be a labelled DataArray over channel. On failure it raises MinimizeException. With the
+#   default ftol it raised "Positive directional derivative for linesearch" on Colab x86_64
+#   (the lead's run, 2026-10-09); ftol is absolute, on an objective of about $2.6 million.
+# - truth["channel_value"] (new_customers_per_dollar, clv_margin_by_media_channel,
+#   media_to_acquisition, long_run_optimal_allocation.mmm) from mktstats.synth.channels.
 # - BudgetOptimizer.evaluate_response_distribution(plan) -> DataArray with dims ("sample",):
 #   total media contribution over the whole window (carry-in + decisions + carry-over) per
 #   posterior draw, in sales units (measured: dims ("sample",), 2 x draws values).
@@ -430,9 +437,20 @@ scored.round(0)
 # **Predict.** If you passed the quarter's total budget (13 weeks of \$72,000) as `total_budget`,
 # would the recommended weekly spend be right, 13 times too high, or 13 times too low?
 #
-# **Task.** Write `pymc_allocation(opt, weekly_total, bounds)` that calls
-# `opt.allocate_budget(total_budget=weekly_total, budget_bounds=bounds)` and returns the result's
-# `.budgets` as a `pd.Series` (`.to_series()`).
+# Two settings matter, both provided below. The optimizer stops when SLSQP's objective changes
+# by less than `ftol`, in the objective's own units. Its default, `ftol=1e-9`, is absolute: on
+# an objective of about \$2.6 million (mean media sales summed over the window) that asks for
+# more precision than the rounding error of the sum, and SLSQP can then fail with "Positive
+# directional derivative for linesearch" on one machine and not on another (it did on Colab's
+# x86 runtime). `SLSQP_OPTIONS` asks for a cent instead. And a start inside the bounds (`x0`,
+# your Exercise 3 plan) beats the default start, which splits the budget equally and breaks
+# display's upper bound.
+#
+# **Task.** Write `pymc_allocation(opt, weekly_total, bounds, x0=None,
+# minimize_kwargs=SLSQP_OPTIONS)`: call `opt.allocate_budget(total_budget=weekly_total,
+# budget_bounds=bounds, x0=..., minimize_kwargs=minimize_kwargs)`, where `x0` is `None` or a plan
+# (`pd.Series`) converted with the provided `plan_array(x0)`, and return the result's `.budgets`
+# as a `pd.Series` (`.to_series()`).
 
 # %%
 start = weekly["date_week"].max() + pd.Timedelta(weeks=1)
@@ -441,19 +459,34 @@ t_opt = time.time()
 opt = mmm.budget_optimizer(start_date=start, end_date=end)
 print(f"Optimizer for {start:%Y-%m-%d} to {end:%Y-%m-%d}: {opt.num_periods} decision weeks"
       f" (built in {time.time() - t_opt:.1f} s)")
+# Keys checked in pymc-marketing 1.2.0 (BudgetOptimizer.allocate_budget merges them over its
+# defaults {"method": "SLSQP", "options": {"ftol": 1e-9, "maxiter": 1000}}) and SciPy 1.16.3.
+SLSQP_OPTIONS = {"method": "SLSQP", "options": {"ftol": 0.01, "maxiter": 1000}}
+
+
+def plan_array(plan):
+    """A plan (pd.Series by channel) as the labelled DataArray PyMC-Marketing expects."""
+    return xr.DataArray(pd.Series(plan)[CHANNELS].to_numpy(dtype=float), dims=["channel"],
+                        coords={"channel": CHANNELS})
 
 
 # %% tags=["exercise"]
-def pymc_allocation(opt, weekly_total, bounds):
-    # TODO 4: opt.allocate_budget(total_budget=weekly_total, budget_bounds=bounds).budgets
+def pymc_allocation(opt, weekly_total, bounds, x0=None, minimize_kwargs=SLSQP_OPTIONS):
+    # TODO 4: opt.allocate_budget(total_budget=weekly_total, budget_bounds=bounds,
+    #         x0=None or plan_array(x0), minimize_kwargs=minimize_kwargs).budgets as a Series
     raise NotImplementedError("TODO 4")
 
 
 # %% tags=["solution"]
 # @title Solution 4 — try it yourself first { display-mode: "form" }
 @workshop.solution(4)
-def pymc_allocation(opt, weekly_total, bounds):
-    result = opt.allocate_budget(total_budget=weekly_total, budget_bounds=bounds)
+def pymc_allocation(opt, weekly_total, bounds, x0=None, minimize_kwargs=SLSQP_OPTIONS):
+    result = opt.allocate_budget(
+        total_budget=weekly_total,
+        budget_bounds=bounds,
+        x0=None if x0 is None else plan_array(x0),
+        minimize_kwargs=minimize_kwargs,
+    )
     return result.budgets.to_series()
 
 
@@ -477,7 +510,7 @@ def pymc_allocation(opt, weekly_total, bounds):
 # %% tags=["checkpoint"]
 with workshop.checkpoint(4):
     t_alloc = time.time()
-    plan_pymc = pymc_allocation(opt, BUDGET, BOUNDS)
+    plan_pymc = pymc_allocation(opt, BUDGET, BOUNDS, x0=plan_mean)
     alloc_seconds = time.time() - t_alloc
     assert isinstance(plan_pymc, pd.Series) and sorted(plan_pymc.index) == sorted(CHANNELS), (
         f"Return result.budgets.to_series(): a pd.Series indexed by channel; got"
@@ -514,13 +547,7 @@ pd.DataFrame({"your allocate, model curves": plan_mean, "PyMC-Marketing": plan_p
 # same parameter draw, so the two can be compared draw by draw.
 
 # %%
-def plan_array(plan):
-    """A plan as the labelled DataArray PyMC-Marketing expects."""
-    return xr.DataArray(pd.Series(plan)[CHANNELS].to_numpy(dtype=float), dims=["channel"],
-                        coords={"channel": CHANNELS})
-
-
-zero_total = opt.evaluate_response_distribution(plan_array(pd.Series(0.0, index=CHANNELS)))
+zero_total =opt.evaluate_response_distribution(plan_array(pd.Series(0.0, index=CHANNELS)))
 
 
 def weekly_sales_draws(plan):
@@ -605,10 +632,21 @@ risk_fit = minimize(
     method="SLSQP",
     bounds=[BOUNDS[c] for c in CHANNELS],
     constraints=[{"type": "eq", "fun": lambda s: s.sum() - BUDGET}],
+    # SciPy's default tolerance, on weekly sales of about $0.1 million: well above the rounding
+    # error of these sums, unlike PyMC-Marketing's 1e-9 on a window total 20 times larger.
+    options={"ftol": 1e-6, "maxiter": 200},
 )
 plan_risk = pd.Series(risk_fit.x, index=CHANNELS)
 risk_seconds = time.time() - t_risk
 draws_risk = weekly_sales_draws(plan_risk)
+# Keep the result only if it is a valid plan that is at least as good in the tail; the quantile
+# is flat and kinked here, so SLSQP may stop early. Otherwise the mean-optimal plan stands.
+valid = (risk_fit.success and abs(plan_risk.sum() - BUDGET) <= 1.0
+         and np.quantile(draws_risk, 0.10) >= np.quantile(draws_mean_opt, 0.10))
+if not valid:
+    print(f"SLSQP did not improve the 10% quantile ({risk_fit.message}): keeping the"
+          " mean-optimal plan as the risk-averse plan.")
+    plan_risk, draws_risk = plan_pymc.copy(), draws_mean_opt
 risk_table = pd.DataFrame({
     name: {**{c: p[c] for c in CHANNELS}, **allocation_risk(d)}
     for name, p, d in [("current", CURRENT, draws_current),
@@ -646,12 +684,15 @@ show(fig)
 # where $m$ is the gross margin, $n_c$ the new customers acquired per dollar on channel $c$, and
 # $\text{CLV}_c$ a new customer's future margin.
 #
-# The inputs below are partly **assumptions, for illustration**. The CLVs come from the
-# retailer's truth file (Module 5's data): its acquisition channels are search, social and
-# referral, so search and social map to the media channels of the same name, and tv and display,
-# which have no counterpart there, get the mean of the two. We use CLV *excluding* the first
-# purchase, which the MMM's short-run sales already contain, times the 30% margin. The costs per
-# new customer are **made up**: no workshop dataset measures acquisitions per media dollar yet.
+# Media channels (where money is spent) and acquisition channels (how the CRM records a new
+# customer's first visit: search, social, referral) are different lists. The synthetic world
+# links them, and the table below shows the link: tv viewers mostly arrive by word of mouth
+# (recorded as referral) or by searching for the brand, so a tv-acquired customer is valued as
+# that mix of acquisition channels. $\text{CLV}_c$ is the discounted margin on a new customer's
+# *repeat* purchases over 52 weeks (Module 5's quantity): the first purchase is already in the
+# MMM's short-run sales. Here these numbers come from the truth file; in practice the cost per
+# new customer comes from attribution in the CRM and the CLV from Module 5's model, both with
+# uncertainty.
 #
 # **Predict.** When the long-run value of new customers counts, which channel gains budget?
 #
@@ -659,17 +700,16 @@ show(fig)
 # `plan` (a `pd.Series` of weekly spend by channel), summing over the channels in `plan`.
 
 # %%
-COST_PER_NEW_CUSTOMER = {"tv": 300.0, "search": 150.0, "social": 100.0, "display": 250.0}  # MADE UP
-new_customers_per_dollar = {c: 1 / COST_PER_NEW_CUSTOMER[c] for c in CHANNELS}
-clv_by_channel = truth_all["retailer"]["value_by_channel"]["new_customer"]
-clv_revenue = {c: clv_by_channel[c]["discounted_clv_excluding_first_purchase"]
-               for c in ("search", "social")}
-clv_revenue["tv"] = clv_revenue["display"] = (clv_revenue["search"] + clv_revenue["social"]) / 2
-clv = {c: GROSS_MARGIN * clv_revenue[c] for c in CHANNELS}  # future margin per new customer
-pd.DataFrame({"cost per new customer ($, assumed)": COST_PER_NEW_CUSTOMER,
-              "CLV, revenue ($)": clv_revenue, "CLV, margin ($)": clv,
-              "long-run margin per $ of spend": {c: new_customers_per_dollar[c] * clv[c]
-                                                 for c in CHANNELS}}).loc[CHANNELS].round(3)
+channel_value = truth_all["channel_value"]  # the synthetic world's link between the two lists
+new_customers_per_dollar = channel_value["new_customers_per_dollar"]
+clv = channel_value["clv_margin_by_media_channel"]  # future margin per new customer, $
+mix = pd.DataFrame(channel_value["media_to_acquisition"]).T.loc[CHANNELS]
+mix.columns = [f"share recorded as {a}" for a in mix.columns]
+mix.assign(**{"cost per new customer ($)": [channel_value["cost_per_new_customer"][c]
+                                           for c in CHANNELS],
+              "CLV, margin ($)": [clv[c] for c in CHANNELS],
+              "long-run margin per $ of spend": [new_customers_per_dollar[c] * clv[c]
+                                                 for c in CHANNELS]}).round(3)
 
 
 # %% tags=["exercise"]
@@ -688,19 +728,20 @@ def long_run_value(plan, curves, margin, new_customers_per_dollar, clv):
 
 # %% [markdown]
 # **Explain.** Compare with your guess, using the plans below. The CLV term adds a constant
-# amount per dollar to each channel's marginal value. Which number in the assumption table
-# decides which channel gains, and how sure are you of it?
+# amount per dollar to each channel's marginal value. Which column of the table above decides
+# which channel gains, and how sure would you be of it with real data?
 #
 # <details><summary>Why this solution works</summary>
 #
 # The long-run term is linear in spend, so it raises each channel's marginal value by
-# $n_c \cdot \text{CLV}_c$ and the allocator moves money toward channels where that sum is
-# largest, until diminishing short-run returns or a bound stop it. The short-run curves are
-# nearly flat around the optimum (tv and search share one marginal ROAS there), so even a
-# modest difference in long-run value per dollar moves a lot of money. The size of the shift
-# rests on the cost per new customer, which we made up, and on CLVs that are themselves
-# estimates with intervals (Module 5). Short-run sales understate channels that bring loyal
-# customers; a CLV-weighted plan is only as good as the acquisition and CLV numbers behind it.
+# $n_c \cdot \text{CLV}_c$ (the last column) and the allocator moves money toward channels where
+# that sum is largest, until diminishing short-run returns or a bound stop it. tv gains: it
+# costs as much per new customer as search, but its customers arrive mostly by referral, the
+# most loyal acquisition channel. The short-run curves are nearly flat around the optimum (tv
+# and search share one marginal ROAS there), so a modest difference in long-run value per dollar
+# moves thousands of dollars a week while total value hardly changes. With real data the cost
+# per new customer and the CLV are estimates with intervals (Module 5); a CLV-weighted plan is
+# only as good as those numbers.
 # </details>
 
 # %% tags=["checkpoint"]
@@ -727,10 +768,25 @@ with workshop.checkpoint(6):
         f"Doubling social's CLV lowered social's spend from ${plan_clv['social']:,.0f} to"
         f" ${plan_more['social']:,.0f}: the CLV term must add spend x customers per dollar x CLV."
     )
+    # On the TRUE curves, the CLV-weighted plan must be the truth's long-run optimum.
+    true_long_run = {c: (lambda s, c=c: long_run_value(pd.Series({c: s}), true_curves,
+                                                       GROSS_MARGIN, new_customers_per_dollar,
+                                                       clv)) for c in CHANNELS}
+    plan_lr_true = allocate(BUDGET, BOUNDS, true_long_run)[CHANNELS]
+    lr_key = pd.Series(channel_value["long_run_optimal_allocation"]["mmm"]["optimal_allocation"])
+    off = (plan_lr_true - lr_key[CHANNELS]).abs() / BUDGET
+    assert off.max() <= 0.01, (
+        f"On the true curves the CLV-weighted plan should be the long-run optimum"
+        f" {lr_key[CHANNELS].round(0).to_dict()}; yours is {plan_lr_true.round(0).to_dict()}"
+        f" ({off.max():.1%} of the budget off for {off.idxmax()}). Check that the long-run term"
+        " is spend x new customers per dollar x CLV and that the margin multiplies only the"
+        " short-run sales."
+    )
 
 # %%
-pd.DataFrame({"mean-optimal (short run)": plan_pymc, "CLV-weighted": plan_clv,
-              "change": plan_clv - plan_pymc}).round(0)
+pd.DataFrame({"mean-optimal (short run)": plan_pymc, "CLV-weighted, model curves": plan_clv,
+              "change": plan_clv - plan_pymc, "CLV-weighted, true curves": plan_lr_true,
+              "answer key (long run)": lr_key[CHANNELS]}).round(0)
 
 # %% [markdown]
 # ## Decision · Next quarter's weekly budget
@@ -743,12 +799,12 @@ pd.DataFrame({"mean-optimal (short run)": plan_pymc, "CLV-weighted": plan_clv,
 # 10% quantile; then recommend the risk-averse plan if its 10% quantile beats the current plan's,
 # and otherwise keep the current plan. Use the CLV-weighted plan only if the cost per new
 # customer and the CLV by channel are measured (Module 5's model and an acquisition count per
-# channel), and say so. Here the costs per new customer are made up, so the CLV-weighted plan is
-# shown as a sensitivity, not recommended.
+# channel), and say so. Here they come from the synthetic world's truth file, not from a model
+# you fitted, so the CLV-weighted plan is shown as the long-run alternative, not recommended.
 
 # %%
 candidates = {"current": CURRENT, "mean-optimal": plan_pymc,
-              "risk-averse (best 10% quantile)": plan_risk, "CLV-weighted (assumed costs)": plan_clv}
+              "risk-averse (best 10% quantile)": plan_risk, "CLV-weighted": plan_clv}
 rows = []
 for name, plan in candidates.items():
     d = weekly_sales_draws(plan)
@@ -786,7 +842,7 @@ decision.T.round(2)
 # **Recommendation.** Write one sentence a manager could act on: the weekly spend by channel,
 # the expected incremental sales and their range, the probability that the plan beats the
 # current one, and what would change it (a new lift test on the channel with the widest
-# response band, Module 9; measured acquisition costs for the CLV-weighted plan).
+# response band, Module 9; measured acquisition costs and CLVs for the CLV-weighted plan).
 #
 # ```text
 # Your sentence: ________________________________________________
@@ -817,11 +873,12 @@ decision.assign(**{"true weekly sales": [sum(true_response(candidates[p][c], c) 
 # from pymc_marketing.mmm.utility import conditional_value_at_risk
 # opt_cvar = mmm.budget_optimizer(start_date=start, end_date=end,
 #                                 utility_function=conditional_value_at_risk(confidence_level=0.90))
-# plan_cvar = opt_cvar.allocate_budget(total_budget=BUDGET, budget_bounds=BOUNDS).budgets.to_series()
+# plan_cvar = pymc_allocation(opt_cvar, BUDGET, BOUNDS, x0=plan_pymc)
 # print(allocation_risk(weekly_sales_draws(plan_cvar)))
 #
 # bounds_contract = {**BOUNDS, "tv": (40_000.0, BOUNDS["tv"][1])}
-# plan_contract = pymc_allocation(opt, BUDGET, bounds_contract)
+# start_contract = allocate(BUDGET, bounds_contract, mean_curves)  # your Exercise 3 allocator
+# plan_contract = pymc_allocation(opt, BUDGET, bounds_contract, x0=start_contract)
 # cost = weekly_sales_draws(plan_pymc) - weekly_sales_draws(plan_contract)
 # print(plan_contract.round(0).to_dict(), cost.mean(), checks.interval(cost, 0.94, "hdi"))
 # ```
