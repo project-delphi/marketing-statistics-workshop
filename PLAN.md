@@ -168,7 +168,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
 - [x] M10 budget allocation (built + Docker run; Colab pending)
-- [ ] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`; lab still to build)
+- [x] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`); [TE] lab built + Docker run (runs/2026-10-09-m12-*.json); Colab pending
 
 ### Phase 6 — site and docs
 - [x] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`

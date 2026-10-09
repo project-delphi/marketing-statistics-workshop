@@ -56,16 +56,18 @@ versions. The stage exercises are the integration functions.
 
 ## Model fits (provided cells)
 
-| Stage | Fit | QUICK | FULL | Measured (laptop FULL; see run records) |
+| Stage | Fit | QUICK | FULL | Measured, FULL (laptop) |
 |---|---|---|---|---|
-| 1 | `BetaGeoModel` with `channel_social`, `channel_referral` on purchase and dropout, MCMC nutpie; `GammaGammaModel` MCMC with weak half-normal priors; every purchase to date | 2 chains × 200 draws (tune 200) | 2 × 500 | 24 s for both |
-| 3 | MMM without the test, then calibrated (`build_model` → `add_lift_test_measurements` → `fit`), Module 8's specification, default priors, `target_accept=0.9` | 2 × 200 | 2 × 500 | 7 s and 8 s |
+| 1 | `BetaGeoModel` with `channel_social`, `channel_referral` on purchase and dropout, MCMC nutpie; `GammaGammaModel` MCMC with weak half-normal priors; every purchase to date | 2 chains × 200 draws (tune 200) | 2 × 500 | 20–21 s for both (Docker, 2 CPUs: 39 s, the slowest cell) |
+| 3 | MMM without the test, then calibrated (`build_model` → `add_lift_test_measurements` → `fit`), Module 8's specification, default priors, `target_accept=0.9` | 2 × 200 | 2 × 500 | 6 s and 7 s |
 | 5 | `CausalForestDML(discrete_treatment=True)` on the train split | 200 trees | 1,000 trees | 8 s |
 
-Fewer draws than the module labs (1,000–2,000) so that the whole notebook fits Colab: the FULL laptop run
-takes about a minute and no cell takes more than 25 s; Colab is expected to be two to five times slower
-(Module 8's MMM fit: 110 s on Colab against about 20 s on a laptop) and has not been timed yet. No
-Pareto/NBD MCMC (231 s for 2×300 on Colab, lead's measurement). All fits `progressbar=False`.
+Fewer draws than the module labs (1,000–2,000) so that the whole notebook fits Colab. Recorded
+(`runs/2026-10-09-m12-*.json`): the whole notebook in worked mode with verification took 50.4 s FULL and
+33.3 s QUICK on the laptop and 91.5 s FULL in Docker with 2 CPUs; no cell took more than 21 s on the laptop
+or 39 s in Docker. Colab is expected to be two to five times slower than the laptop (Module 8's MMM fit:
+110 s on Colab against about 20 s on a laptop) and has not been timed yet. No Pareto/NBD MCMC (231 s for
+2×300 on Colab, lead's measurement). All fits `progressbar=False`.
 
 ## Stages
 
