@@ -10,7 +10,7 @@ Turn posterior CLV into decisions: the most we can pay to acquire a customer in 
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/05-clv-decisions.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,7 +29,7 @@ Languages
 :   Python. Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production.
 
 Labs
-:   Python: `labs/python/05-clv-decisions.ipynb` (in preparation)
+:   Python: `labs/python/05-clv-decisions.ipynb`
 
 Data
 :   *To be written.*
