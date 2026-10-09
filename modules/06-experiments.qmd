@@ -5,13 +5,261 @@ title: "{{< var modules.m06.title >}}"
 {{< include /_includes/module-06.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Day 2 ended with decisions that rest on causal claims nobody checked. Module 5's acquisition caps assume each channel caused the customers credited to it; its retention offer pays back only if the offer causes extra purchases. A model of what customers did cannot say what they would have done otherwise. This module asks the cleanest version of the question, for an email campaign: did it cause extra revenue, by how much, and how sure are we? The answer is a randomized experiment, and most of the module is about the ways a real experiment goes wrong.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-06.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. Why randomize
+
+A **randomized experiment** (an A/B test) assigns each customer at random to **treatment** (here: gets the email) or **control** (does not). Because a coin decides who gets the email, the two groups are alike, on average, in everything else: past spend, channel, how recently they bought, things nobody measured. So the difference in their outcomes estimates the email's effect, and nothing else.
+
+The quantity of interest is the **average treatment effect (ATE)**: the mean outcome with the email minus the mean outcome without it, over the same customers. With randomization,
+
+$$
+\widehat{\text{ATE}} = \bar y_1 - \bar y_0,
+\qquad
+\operatorname{SE}(\widehat{\text{ATE}}) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_0^2}{n_0}},
+$$ {#eq-ate}
+
+where $\bar y_1, \bar y_0$ are the mean outcomes, $s_1^2, s_0^2$ the sample variances and $n_1, n_0$ the sizes of the treated and control arms. A **95% confidence interval** is $\widehat{\text{ATE}} \pm 1.96 \times \text{SE}$: a procedure that covers the true value in 95% of repeated experiments. All intervals in this module are of that kind.
+
+That is the whole method. The rest of this module is about what breaks it in practice: a test too small to see the effect, a broken assignment, peeking at results, wasted precision, the wrong unit for the standard error, and reports that confuse attribution with effect.
+
+The data are two email tests. The **synthetic experiment** (20,000 customers of the workshop's retailer, about half emailed) has a known true effect. **Hillstrom's** (2008) is a real test: 64,000 customers randomized to a men's email, a women's email or no email, with visits, conversions and spend over the next two weeks.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $y$ | outcome per customer: spend in the two weeks after the email, dollars |
+| $n$ | customers per arm (when the arms are equal) |
+| $\sigma$ | standard deviation of the outcome |
+| $\delta$ | a true effect size; MDE, the minimum detectable effect |
+| $\alpha$, $1 - \beta$ | significance level (0.05, two-sided) and power (0.8) |
+| $z_q$ | the $q$-quantile of the standard normal: $z_{0.975} = 1.96$, $z_{0.8} = 0.84$ |
+| $x$ | a pre-experiment covariate: last year's spend (`history`) |
+| $\rho$ | correlation between $y$ and $x$ |
+| $\theta$ | the CUPED coefficient |
+| $p_1$, $p_0$ | conversion rates in the treated and control arms |
+| $m$, $k$ | gross margin rate and cost per email (section 7) |
+
+## 2. Before the test: power and the minimum detectable effect
+
+**Objective for this section:** compute the sample size needed for a minimum detectable effect (MDE), and the MDE for a fixed sample.
+
+A test must be big enough to see the effect you care about. With $n$ customers per arm, the standard error of the difference in means is $\sigma\sqrt{2/n}$. The test rejects "no effect" when $|z| = |\hat\delta| / (\sigma\sqrt{2/n}) > z_{1-\alpha/2}$. If the true effect is $\delta$, then $z$ is approximately normal with mean $\delta / (\sigma\sqrt{2/n})$ and standard deviation 1, so the test detects the effect with probability (power) about $\Phi\big(\delta / (\sigma\sqrt{2/n}) - z_{1-\alpha/2}\big)$, where $\Phi$ is the standard normal distribution function. Setting that probability to $1 - \beta$ and solving:
+
+$$
+n = \frac{2\,(z_{1-\alpha/2} + z_{1-\beta})^2\,\sigma^2}{\delta^2},
+\qquad
+\text{MDE} = (z_{1-\alpha/2} + z_{1-\beta})\,\sigma\,\sqrt{2/n}.
+$$ {#eq-power}
+
+The **minimum detectable effect** is the smallest true effect a test of size $n$ detects with power $1 - \beta$. Read the formula for its two lessons:
+
+- **Precision costs the square.** $n \propto 1/\delta^2$: to see an effect half as large you need four times the customers.
+- **Noise costs the square too.** $n \propto \sigma^2$: anything that lowers the outcome's variance is worth as much as more customers (section 5).
+
+In Hillstrom, two-week spend per customer has a standard deviation of about $15. To detect a $0.50 lift with $\alpha = 0.05$ and 80% power, @eq-power gives **14,128 customers per arm**. The lab checks the formula against simulation: 2,000 experiments of that size with a true lift of $0.50 detected it 79.4% of the time (FULL run). The formula assumes the difference in means is normal, which holds at these sizes even though individual spend (mostly zeros, a few large orders) is far from normal.
+
+The synthetic experiment has 9,942 customers in control, and spend there has a standard deviation of $29.60, so its MDE is **$1.18** of spend per customer. An effect smaller than that could be real and still be missed four times in five.
+
+::: {.self-check}
+**Check yourself.** The marketing team now wants to detect a $0.25 lift in Hillstrom-like spend, half the effect above. How many customers per arm? If the email list has 60,000 customers in total, what is the smallest lift you can promise to detect with 80% power?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Halving $\delta$ multiplies $n$ by four: about $4 \times 14{,}128 = 56{,}512$ per arm, 113,000 in all, more than the list. With 30,000 per arm, $\text{MDE} = 2.80 \times 15 \times \sqrt{2/30{,}000} \approx \$0.34$. Tell the team before the test that effects below about $0.34 per customer will usually be missed, so a "no significant effect" result will not mean "no effect".
 :::
+:::
+
+## 3. Check the split before reading the result
+
+**Objective for this section:** detect a sample-ratio mismatch (SRM) with a chi-square test before reading any result.
+
+A **sample-ratio mismatch** is a gap between the share of customers each arm was meant to get and the share it got. It means the randomization or the logging is broken: emails that bounced were dropped from one arm, a filter excluded some treated customers, a bot hit one variant. Once the arms differ for a reason other than the coin, the comparison is no longer a comparison of like with like, whatever the effect looks like. Practitioner guides treat the check as mandatory before any result is read (Fabijan et al. 2019; Kohavi, Tang and Xu 2020).
+
+The check is a chi-square goodness-of-fit test of the observed arm counts $O_g$ against the counts the design implies, $E_g = (\text{designed share}_g) \times N$:
+
+$$
+\chi^2 = \sum_{g} \frac{(O_g - E_g)^2}{E_g}, \qquad \text{with (number of arms} - 1) \text{ degrees of freedom.}
+$$ {#eq-srm}
+
+FULL run:
+
+- **Hillstrom**, designed one third each: 21,307, 21,387 and 21,306 customers; p = 0.90. The split is fine.
+- **A broken copy** of the synthetic experiment, with the records of 10% of treated customers lost at random: 9,942 against 9,052; p = $1.1 \times 10^{-10}$. Unmistakable.
+- **Losing only 2%** of treated records: p = 0.55, against 0.41 for the intact split. The check cannot see it.
+
+The SRM check is itself a test with limited power. In 20,000 customers it catches gross breakage, not small leaks. A passing check does not prove the logging is perfect; a failing one means the comparison cannot be trusted. The lab's rule uses a strict threshold, p < 0.001, to declare a mismatch, so that the check does not cry wolf on one test in twenty.
+
+## 4. During the test: what peeking does
+
+**Objective for this section:** simulate A/A tests with repeated peeking, measure the inflated false-positive rate, and calibrate a stricter threshold for a fixed number of looks.
+
+An **A/A test** gives both arms the same experience, so the true effect is zero and every "significant" result is a **false positive**. **Peeking** means checking the p-value while the data arrive and stopping as soon as it drops below 0.05. Each look on its own has a 5% false-positive rate. A test that stops at the *first* crossing keeps every lucky crossing, so
+
+$$
+P(\text{declare an effect} \mid \text{no effect}) = P\Big(\max_{\ell = 1..L} |z_\ell| > 1.96\Big) > 0.05
+$$ {#eq-peeking}
+
+for $L > 1$ looks, where $z_\ell$ is the z statistic at look $\ell$. If the looks were independent this would be $1 - 0.95^L$: 0.40 for ten looks. They are not independent (later looks reuse the earlier data), so the true rate is lower but still far above 5%. The lab measures it on 4,000 simulated A/A tests (FULL run):
+
+| Looks | 1 | 2 | 5 | 10 |
+|---|---|---|---|---|
+| False-positive rate | 5.8% | 9.2% | 14.9% | 20.6% |
+
+With ten looks, one A/A test in five is declared a winner. The one-look rate of 5.8% is the 5% design plus simulation noise. Three fixes:
+
+1. **Fix the sample size in advance (@eq-power) and look once.** Dashboards can show the data; decisions wait.
+2. **Use a stricter threshold at each look.** The stretch finds it by simulation: for ten equally spaced looks, a constant threshold of $|z| > 2.54$ (a nominal p-value of 0.011 per look) keeps the overall false-positive rate at 5%. This is the idea behind group-sequential designs.
+3. **Use always-valid inference**, which is built for continuous monitoring: p-values and intervals that stay valid however often you look (Johari et al. 2022).
+
+::: {.self-check}
+**Check yourself.** A colleague ran a test with a daily dashboard for three weeks and stopped on day 9, when p hit 0.03. They point out that "p = 0.03 is below 0.05". What do you ask, and what is the honest status of the result?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Ask how many times they looked and what the stopping rule was. Nine daily looks with a stop at the first p < 0.05 is close to the lab's ten-look case, where about one A/A test in five is declared significant, so p = 0.03 at a peek is weak evidence. With a threshold calibrated for nine or ten looks ($|z| > 2.54$ for ten), p = 0.03 ($|z| \approx 2.17$) would not have stopped the test. Honest status: inconclusive; rerun with a fixed sample size, or continue to the planned size and read it once.
+:::
+:::
+
+## 5. Reading the test: CUPED and the delta method
+
+**Objective for this section:** reduce variance with CUPED using a pre-experiment covariate, and compute a delta-method standard error for a ratio metric.
+
+### CUPED
+
+@eq-power says that lowering the outcome's variance is worth as much as more customers. **CUPED** (controlled experiments using pre-experiment data; Deng et al. 2013) subtracts from each outcome the part that was predictable before the test. With a pre-period covariate $x$,
+
+$$
+\theta = \frac{\operatorname{cov}(y, x)}{\operatorname{var}(x)},
+\qquad
+y^{\text{adj}}_i = y_i - \theta\,(x_i - \bar x),
+$$ {#eq-cuped}
+
+with $\theta$ computed on both arms pooled, and the effect estimated as in @eq-ate on $y^{\text{adj}}$. Two facts make it work.
+
+- **It cannot bias the comparison.** $x$ was fixed before randomization, so it is balanced across arms on average; subtracting a function of it changes each arm's mean by the same amount in expectation. (This is why $x$ must be a **pre-period** variable. A post-period variable can be moved by the treatment, and adjusting for it can remove part of the effect.)
+- **It removes exactly the predictable variance.** $\theta$ is the slope that minimizes $\operatorname{var}(y - \theta x)$, and the minimum is
+$$
+\operatorname{var}(y^{\text{adj}}) = (1 - \rho^2)\,\operatorname{var}(y),
+$$ {#eq-cuped-var}
+so confidence intervals shrink by the factor $\sqrt{1 - \rho^2}$, and the test behaves as if it had $1/(1 - \rho^2)$ times as many customers.
+
+How much it helps depends entirely on $\rho$. FULL run:
+
+| Data | $\rho$ | Variance removed | 95% CI width, raw | with CUPED |
+|---|---|---|---|---|
+| Synthetic experiment (spend) | 0.106 | 1.1% | 1.635 | 1.626 |
+| Simulated metric with a strong pre-period predictor | 0.803 | 64.4% | 0.557 | 0.331 |
+| Hillstrom, women's email vs none (spend) | 0.020 | 0.0% | 0.511 | 0.511 |
+
+Deng et al. report variance reductions of about 50% at Bing. Two-week spend here gains almost nothing, because whether a customer buys in a given fortnight is mostly chance and last year's spend predicts little of it. Metrics that customers repeat steadily (visits, sessions, weekly purchases) have a large $\rho$ and gain a lot. A better covariate, such as spend in the same weeks last year or a model's prediction from several pre-period variables, raises $\rho$.
+
+### Ratio metrics and the delta method
+
+Many marketing metrics are **ratios** of two sums: revenue per session, clicks per impression, spend per visit. We randomize **customers**, but one customer contributes many sessions, and a customer's sessions resemble each other (a big spender is big in every session). Treating every session as an independent observation overstates the information in the data.
+
+For per-customer numerators $u_i$ (revenue) and denominators $v_i$ (sessions), the metric is $R = \sum u_i / \sum v_i = \bar u / \bar v$. The **delta method** approximates its variance by linearizing $R$ around the means, using customer-level variances and the covariance:
+
+$$
+\operatorname{Var}(R) \approx \frac{1}{\bar v^{2}}\Big(\operatorname{Var}(\bar u) - 2R\,\operatorname{Cov}(\bar u, \bar v) + R^2\,\operatorname{Var}(\bar v)\Big),
+$$ {#eq-delta}
+
+with $\operatorname{Var}(\bar u) = \operatorname{var}(u)/n$, $\operatorname{Var}(\bar v) = \operatorname{var}(v)/n$ and $\operatorname{Cov}(\bar u, \bar v) = \operatorname{cov}(u, v)/n$ over the $n$ customers (Deng, Knoblich and Lu 2018). In the lab's simulated arm (10,000 customers, 33,941 sessions; FULL run), revenue per session is $R = \$3.727$ and:
+
+| Standard error | Value |
+|---|---|
+| Naive (sessions independent) | 0.0280 |
+| Delta method (@eq-delta) | 0.0555 |
+| Bootstrap over customers (2,000 resamples) | 0.0565 |
+
+The naive error is half the right one, so its intervals would be half as wide as they should be and false positives far more common. The delta method agrees with the bootstrap at a fraction of the computation. On Hillstrom, spend per visit in the women's-email arm ($7.11) has the same delta-method and naive error (0.673), because Hillstrom records only whether a customer visited: each customer has at most one visit, so the unit problem does not arise.
+
+## 6. What the test measures: attribution is not incrementality
+
+**Objective for this section:** show with a simulation why last-click attribution credits conversions that would have happened anyway.
+
+**Last-touch attribution** credits each conversion to the last marketing touch before it. In the email test, every conversion of an emailed customer would be credited to the email. **Incremental conversions** are the ones the email caused: conversions among emailed customers minus the conversions they would have made anyway, which the control arm estimates. With conversion rates $p_1$ and $p_0$ and $n_1$ emailed customers,
+
+$$
+\text{attributed} = p_1\, n_1,
+\qquad
+\text{incremental} = (p_1 - p_0)\, n_1 .
+$$ {#eq-attribution}
+
+The share of attributed conversions the email caused is $(p_1 - p_0)/p_1$. FULL run, synthetic experiment:
+
+| | Conversions |
+|---|---|
+| Attributed to the email (last touch) | 644 |
+| Incremental (estimate, 95% CI) | 298 (238 to 358) |
+| Incremental (truth) | 269 |
+
+More than half of the conversions the report credits to the email would have happened without it: these are customers who were going to buy anyway and happened to get an email first. The gap is not a quirk of this dataset. Gordon et al. (2019) compared common observational methods with 15 large randomized advertising experiments at Facebook and found that the observational estimates often failed to reproduce the experimental lift.
+
+This is the answer to the question Day 2 left open. A CAC cap built on attributed customers, or a retention offer valued by redemptions, counts customers who would have come anyway. Only a comparison with a randomized (or well-constructed) control says what marketing caused.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** The rule, fixed before reading the result: **roll out if the SRM check passes (p > 0.001) and the lower end of the 95% CI of incremental margin per email is above $0.** Incremental margin per email is $m \times \widehat{\text{ATE}} - k$, with gross margin $m = 35\%$ and offer cost $k = \$0.50$ per email (assumptions recorded with the synthetic data). Requiring the lower end, not the point estimate, to be positive is deliberate: a rollout is hard to reverse, and a wrong one loses money on every email.
+
+FULL run, synthetic experiment:
+
+- **SRM:** p = 0.41. The split is intact.
+- **Incremental revenue per customer (CUPED):** $3.35, 95% CI $2.54 to $4.17.
+- **Incremental margin per email:** $0.35 \times 3.35 - 0.50 = \$0.67$, 95% CI $0.39 to $0.96. The lower end is above zero.
+- **Recommendation:** roll out. Per 100,000 emails, about $67,000 of incremental margin (95% CI $39,000 to $96,000).
+
+The lab then reveals the truth: an ATE of $2.85 per customer, inside the interval, and a true margin of $0.50 per email, about $50,000 per 100,000 emails. The decision was right. The estimated margin per email was a third too high ($0.67 against $0.50), which an interval of this width allows: that is why the rule reads the lower end. What would change the decision: a dearer offer (above about $0.89 per email, the lower end of incremental revenue times the margin), or a segment where the effect is much larger or negative, which Module 11 looks for.
+:::
+
+## Summary
+
+- Randomization makes the difference in means an unbiased estimate of the average treatment effect (@eq-ate).
+- Size the test before it starts: $n \propto \sigma^2/\delta^2$ (@eq-power). Hillstrom-like spend needs about 14,000 customers per arm to detect $0.50.
+- Check the split first (@eq-srm). A 10% logging loss in one arm is obvious; a 2% loss is not visible in 20,000 customers.
+- Peeking inflates false positives (@eq-peeking): about 21% with ten looks. Look once at a fixed size, use a stricter per-look threshold (2.54 for ten looks), or use always-valid inference.
+- CUPED removes the share $\rho^2$ of the variance a pre-period covariate predicts (@eq-cuped, @eq-cuped-var); it helps a lot for repeated behaviour and barely at all for two-week spend.
+- Ratio metrics need a standard error at the unit of randomization: the delta method (@eq-delta) doubled the naive error in the lab's simulated sessions.
+- Attribution counts conversions after a touch; incrementality counts conversions caused by it (@eq-attribution). On the synthetic test, more than half of the attributed conversions would have happened anyway.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 6 |
+|---|---|---|
+| @eq-power | sample size and MDE | **Exercise 1**: `sample_size(sd, mde)` and `mde(n_per_arm, sd)`; Checkpoint 1 checks the round trip and simulated power of 0.80 |
+| @eq-srm | sample-ratio mismatch | **Exercise 2**: `srm_pvalue(counts, expected_shares)`; Checkpoint 2 passes Hillstrom and fails the broken copy |
+| @eq-peeking | false positives under peeking | **Exercise 3**: `peeking_fpr(n_per_arm, looks, n_sims, alpha, rng)`; Checkpoint 3 checks about 5% at one look and a rise with more looks |
+| @eq-ate, @eq-cuped, @eq-cuped-var | effect, CUPED and its variance reduction | **Exercise 4**: `cuped(y, x, treatment)`; Checkpoint 4 runs three datasets, the true ATE inside the interval on the synthetic one |
+| @eq-delta | delta-method standard error | **Exercise 5**: `ratio_delta_se(num, den)`; Checkpoint 5 compares it with the bootstrap |
+| @eq-attribution | attributed against incremental | **Exercise 6**: `attributed_vs_incremental(df)`; Checkpoint 6 checks the truth inside the interval |
+| A per-look threshold for ten looks | group-sequential idea | Stretch: the 95th percentile of the largest $|z|$ over ten looks |
+
+## Gotchas
+
+- **`scipy.stats.chisquare` wants expected counts**, not shares, and they must add up to the observed total.
+- **A non-significant result is not "no effect"** when the true effect may be below the MDE. Report the interval.
+- **Peeking without a correction** turns a 5% test into a 20% one at ten looks.
+- **CUPED needs a pre-period covariate.** Anything measured after assignment can be moved by the treatment.
+- **The unit of analysis is the unit of randomization.** Sessions, visits and orders inside a customer are not independent observations.
+- **An SRM check can miss small leaks.** Large platforms catch smaller ones because they have millions of users; a passing check is not proof.
+- **"Attributed" is not "caused".** Last-touch credit includes every customer who would have bought anyway.
+- **The margin and offer cost are assumptions.** The decision moves with them; state them.
+
+## Next steps
+
+A randomized test needs control over who gets the treatment, customer by customer. Email allows that; TV, outdoor, radio and regional campaigns do not, because they switch on for whole regions at once. Module 7 measures the lift of a regional campaign from geo-level data: difference-in-differences and synthetic control written from scratch, placebo tests and power by simulation on a geo panel with a known lift, CausalImpact in R, and the classic Proposition 99 case as a check on real data.
+
+## Further reading
+
+1. Kohavi, R., Tang, D., & Xu, Y. (2020). [*Trustworthy online controlled experiments: A practical guide to A/B testing*](https://doi.org/10.1017/9781108653985). Cambridge University Press. The practitioner reference for everything in this module, including the chapter on sample ratio mismatch.
+2. Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). [Improving the sensitivity of online controlled experiments by utilizing pre-experiment data](https://doi.org/10.1145/2433396.2433413). *WSDM 2013*, 123–132. CUPED.
+3. Deng, A., Knoblich, U., & Lu, J. (2018). [Applying the delta method in metric analytics: A practical guide with novel ideas](https://doi.org/10.1145/3219819.3219919). *KDD 2018*, 233–242. Ratio metrics and the unit of randomization.
+4. Johari, R., Koomen, P., Pekelis, L., & Walsh, D. (2022). [Always valid inference: Continuous monitoring of A/B tests](https://doi.org/10.1287/opre.2021.2135). *Operations Research*, 70(3), 1806–1821. The principled fix for peeking.
+5. Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: Evidence from big field experiments at Facebook](https://doi.org/10.1287/mksc.2018.1135). *Marketing Science*, 38(2), 193–225. Why attribution is not incrementality, on real campaigns.
+
+Also cited above: Fabijan et al. (2019), [Diagnosing sample ratio mismatch in online controlled experiments](https://doi.org/10.1145/3292500.3330722), *KDD 2019*. All entries, with the date each was checked, are on the [References](/references.qmd) page.

@@ -5,13 +5,285 @@ title: "{{< var modules.m04.title >}}"
 {{< include /_includes/module-04.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Day 1 ended with a purchase forecast for every customer: P(alive), expected purchases over any horizon, and channel effects on buying and leaving. None of it is money. A referral customer buys 25% more often and stays twice as long as a search customer, but the CFO's question is what a customer is worth in dollars, and how sure we are. This module adds a model of spend per purchase, combines it with the purchase model into a discounted lifetime value with an honest interval, and asks which assumption moves that number most.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-04.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. What we mean by customer lifetime value
+
+**Customer lifetime value (CLV)** in this workshop is the present value of what a customer will spend over a stated horizon. Three choices hide in that sentence, and each changes the number:
+
+- **Revenue or margin.** This module computes revenue. Module 5 multiplies by the gross margin before any spending decision.
+- **The horizon.** "Lifetime" is a figure of speech. A plan runs for 12 or 36 months, and the model is less trustworthy the further out it extrapolates. Always state the horizon.
+- **The discount rate.** A dollar next year is worth less than a dollar today. We discount monthly: cash in month $k$ is divided by $(1 + d)^k$, where $d$ is the **monthly** discount rate. 0.8% a month is about 10% a year; 2% a month is about 27%.
+
+For customer $i$, with $n_{ik}$ the expected number of purchases in month $k$ and $s_i$ the expected spend per purchase,
+
+$$
+\text{CLV}_i(H, d) = \sum_{k=1}^{H} \frac{s_i \, n_{ik}}{(1 + d)^{k}} ,
+$$ {#eq-clv}
+
+over a horizon of $H$ months. The purchase model of Module 2 gives $n_{ik}$; this module adds a model for $s_i$. Multiplying the two is valid only if how much a customer spends per purchase does not depend on how often they buy. That assumption is checked first.
+
+The data are the synthetic retailer of Day 1 (5,000 customers acquired in the first half of 2024, calibration ending on 2024-12-29), generated with a known spend process so every estimate can be checked; CDNOW, whose spend model has published estimates; and a published set of subscription retention counts for section 6.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $x_i$ | repeat purchases (Module 2) |
+| $z_{ij}$ | the amount of customer $i$'s $j$-th repeat purchase (sum over a purchase day) |
+| $\bar z_i$ | customer $i$'s mean spend over their $x_i$ repeat purchases (`monetary_value`) |
+| $\nu_i$ | customer $i$'s spend rate parameter: their mean spend per purchase is $p/\nu_i$ |
+| $p$, $q$, $v$ | Gamma-Gamma parameters (PyMC-Marketing's names; Fader and Hardie call $v$ "$\gamma$") |
+| $s_i$ | expected spend per purchase of customer $i$, given their history |
+| $n_{ik}$ | expected purchases of customer $i$ in month $k$ |
+| $H$, $d$ | horizon in months, monthly discount rate |
+| $\theta_i$ | sBG (section 6): customer $i$'s probability of not renewing at each renewal |
+| $\alpha$, $\beta$ | sBG: parameters of the beta distribution of $\theta$. **Not** the Pareto/NBD's $\alpha$ and $\beta$ |
+| $S(t)$ | sBG: share of a cohort still subscribed after $t$ renewal periods |
+
+## 2. Is spend independent of how often customers buy?
+
+**Objective for this section:** check the Gamma-Gamma independence assumption with the correlation between frequency and mean spend among repeat buyers.
+
+The **Gamma-Gamma model** describes spend per purchase separately from the purchase process. That is what lets us multiply $s_i$ by $n_{ik}$ in @eq-clv. If heavy buyers systematically spent less per purchase (bulk discounts, small top-up orders) or more (loyal big-basket customers), the product would be biased, and spend and frequency would need one joint model.
+
+The check is simple: among **repeat buyers** ($x_i > 0$), the Pearson correlation between $x_i$ and $\bar z_i$. FULL run:
+
+| Dataset | Repeat buyers | Correlation of $x$ and $\bar z$ |
+|---|---|---|
+| Synthetic retailer | 3,153 | 0.030 |
+| CDNOW | 946 | 0.114 |
+
+The retailer's spend was generated independently of its purchases, so its correlation is near zero. CDNOW's 0.11 is small, and Fader and Hardie accept it in their note on the model. Two cautions:
+
+- **Exclude customers with no repeat purchase.** Their $\bar z_i$ is set to 0 because there is no repeat spend to average. Including them manufactures a positive correlation: they have both the lowest frequency and a spend of zero.
+- **A small correlation is consistent with independence; it does not prove it.** A dependence that is not a straight line, or one confined to a few heavy buyers, can hide behind a correlation near zero. Plot $\bar z$ against $x$ before you trust the number.
+
+## 3. The Gamma-Gamma spend model
+
+**Objective for this section:** fit Gamma-Gamma and check that the true spend parameters ($p$, $q$, $v$) fall inside the 94% HDI.
+
+The model (Fader and Hardie's note on the Gamma-Gamma model, after Fader, Hardie and Lee 2005) has two layers:
+
+$$
+z_{ij} \mid \nu_i \sim \text{Gamma}(p, \nu_i),
+\qquad
+\nu_i \sim \text{Gamma}(q, v),
+$$ {#eq-gg}
+
+both with a shape and a **rate**. Customer $i$'s transactions vary around their own mean $p/\nu_i$; customers' means vary across the population. The population mean spend per purchase is
+
+$$
+E\!\left[\frac{p}{\nu_i}\right] = \frac{p\, v}{q - 1} \qquad (q > 1).
+$$ {#eq-gg-mean}
+
+The model is fitted on repeat buyers only: a customer's first purchase is not part of $\bar z_i$, and the gamma likelihood needs a spend above zero.
+
+### What it predicts for one customer
+
+Given a customer's $x_i$ repeat purchases with mean $\bar z_i$, the expected spend of their next purchase is a **weighted average** of the population mean and their own mean:
+
+$$
+s_i = E[Z_i \mid x_i, \bar z_i] = (1 - w_i)\, \frac{p\, v}{q - 1} + w_i\, \bar z_i,
+\qquad
+w_i = \frac{p\, x_i}{p\, x_i + q - 1} .
+$$ {#eq-gg-shrinkage}
+
+The weight on the customer's own mean grows with the number of purchases: one purchase is weak evidence about a customer, ten purchases are strong. This is **shrinkage**: an unusual first observation is pulled toward the population. Customers with no repeat purchase ($x_i = 0$, $w_i = 0$) get the population mean.
+
+In the lab, a customer with one repeat purchase of $200, in a population whose mean is about $30, gets an expected spend of $142 (94% HDI $130 to $152; FULL run). With $p$ near 6 and $q$ near 4, one purchase already carries a weight of about $6/9 = 0.67$. A smaller $p$, which means more variable transactions, would pull the customer further toward the population.
+
+::: {.self-check}
+**Check yourself.** Take $p = 6$, $q = 4$, $v = 15$. What is the population mean spend? What expected spend does @eq-gg-shrinkage give a customer whose repeat purchases averaged $200, if they made one repeat purchase? Ten?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Population mean $p v / (q - 1) = 6 \times 15 / 3 = \$30$. With one purchase, $w = 6/(6 + 3) = 0.667$, so $s = 0.333 \times 30 + 0.667 \times 200 = \$143$. With ten, $w = 60/63 = 0.952$, so $s = 0.048 \times 30 + 0.952 \times 200 = \$192$. The more a customer has bought, the more their own average counts.
 :::
+:::
+
+### Recovery, and a lesson about priors
+
+PyMC-Marketing's default priors for $p$ and $q$ (Weibull(2, 1)) put most of their mass below 2, and on data of this size they pull $p$ well below a true value of 6: over 30 simulated datasets the MAP estimate of $p$ averaged 4.55 with the defaults and 5.79 with weaker priors (measured by the Technical Expert while building the lab's helpers). The population mean @eq-gg-mean is recovered either way, because $p$, $q$ and $v$ trade off against each other. The lab therefore uses weaker priors, HalfNormal(10) for $p$ and $q$ and HalfNormal(100) for $v$, and says so. Priors are part of the model; a default is a choice someone else made for different data.
+
+With those priors and MCMC (2 chains of 1,000 draws) on the retailer's 3,153 repeat buyers (FULL run):
+
+| Parameter | Truth | Posterior mean | 94% HDI |
+|---|---|---|---|
+| $p$ | 6 | 6.12 | 4.84 to 7.53 |
+| $q$ | 4 | 4.17 | 3.86 to 4.44 |
+| $v$ | 15 | 15.99 | 11.79 to 20.73 |
+
+All three true values lie inside their intervals. The checkpoint asks for 2 of 3, because the three parameters are strongly correlated in the posterior and tend to miss together.
+
+**The CDNOW benchmark.** A flat-prior MAP fit is maximum likelihood, and on CDNOW's 946 repeat buyers it reproduces Fader and Hardie's published estimates: $p = 6.250$, $q = 3.744$, $v = 15.444$ against 6.25, 3.74 and 15.44.
+
+## 4. Discounted CLV, with both uncertainties
+
+**Objective for this section:** compute discounted CLV with PyMC-Marketing, then write your own version that carries the uncertainty of both the purchase and the spend models.
+
+### The transaction model
+
+@eq-clv needs $n_{ik}$, the expected purchases in each future month. The retailer's purchases were generated by a Pareto/NBD, but the lab uses the **BG/NBD** of Module 2 as the transaction model, because a Pareto/NBD MCMC fit is too slow for the lab slot on Colab's two CPUs and the BG/NBD forecasts similarly. Its posterior on the retailer (FULL run): $r = 0.391$, $\alpha = 2.75$, $a = 0.38$, $b = 2.69$. The price is a small misspecification, which shows up below.
+
+$n_{ik}$ is a difference of cumulative forecasts: expected purchases by the end of month $k$ minus expected purchases by the end of month $k - 1$, with months of 30.4375 days, as the library uses.
+
+### The library's CLV, and what its interval leaves out
+
+PyMC-Marketing's `GammaGammaModel.expected_customer_lifetime_value(transaction_model, data, future_t, discount_rate, time_unit)` computes @eq-clv. Two arguments are easy to get wrong:
+
+- `future_t` is always in **months**, whatever `time_unit` says. `time_unit="W"` only tells the library that the RFM table is in weeks.
+- `discount_rate` is **monthly**: 0.008 is 0.8% a month.
+
+Reading the installed source shows a third thing: the method multiplies the purchase forecast, draw by draw, by each customer's **posterior mean** spend. Its interval therefore reflects the purchase model's uncertainty only.
+
+The lab's `discounted_clv(purchases_by_month, spend, monthly_rate)` pairs draw $j$ of the purchase posterior with draw $j$ of the spend posterior, so each draw of $\text{CLV}_i$ carries both. Pairing draws from two separately fitted posteriors treats them as independent, which is the Gamma-Gamma independence assumption once more.
+
+FULL run, total 12-month CLV of the 5,000 customers at 0.8% a month:
+
+| | Posterior mean | 94% HDI |
+|---|---|---|
+| Library (posterior mean spend) | $477,275 | $464,743 to $492,431 |
+| Your function (spend draws) | $477,275 | $463,778 to $491,627 |
+| Truth | $447,019 | |
+
+Two readings.
+
+**Spend uncertainty barely widens the total** (interval width ratio 1.01), but it widens a single customer's interval: the median customer's 94% interval is 1.14 times the library's. The total is dominated by frequent buyers, whose expected spend is mostly their own observed mean (weight near 1 in @eq-gg-shrinkage), which is data rather than a parameter; and the population mean spend is pinned down by over 3,000 repeat buyers. For a customer with one or two purchases, the population parameters carry more weight and their uncertainty shows.
+
+**The interval does not contain the truth.** The estimate is 6.8% above the true value, and the 94% HDI starts above it. Part of the gap is a convention: the truth is revenue over 52 weeks discounted continuously at 10% a year, the library uses 12 months of 30.4375 days discounted at each month's end, and that difference is well under 1%. Most of it is the transaction model: a BG/NBD fitted to data generated by a Pareto/NBD. A posterior interval describes uncertainty **within the model**; it says nothing about whether the model is the right one. That is why the checkpoint compares the total with the truth at a stated tolerance (12%, set from the reference run) rather than asking the truth to be inside the interval, and why the stretch fits the Pareto/NBD that made the data.
+
+Both intervals are for an **expected** value. What one customer will actually spend varies far more than their expected CLV, because a customer's own behaviour is random even when the model and its parameters are known.
+
+::: {.self-check}
+**Check yourself.** A colleague says: "The 94% HDI for total 12-month CLV is $464k to $492k, so we can be 94% sure the true value is in that range." Using the lab's result, say what is wrong with the sentence and how you would rephrase it for the CFO.
+
+::: {.callout-tip collapse="true" title="Answer"}
+The interval is 94% probability **given the model**: the BG/NBD and Gamma-Gamma with their priors. It does not include the chance that the model is wrong, and in the lab the true value ($447k) lies below the interval because the purchase model is misspecified. It also describes the expected value, not what the customers will actually spend. Rephrased: "Under our purchase and spend models, the expected 12-month revenue from the current base is about $477k, with a model-based 94% interval of $464k to $492k. Model choice alone can move this by several percent; we checked it against a known truth and it came out 7% high."
+:::
+:::
+
+## 5. Horizon and discount rate
+
+**Objective for this section:** show how CLV changes with the horizon in months and the monthly discount rate.
+
+The lab's `clv_grid` evaluates @eq-clv on a grid of horizons and monthly rates, each with its 94% HDI. Total CLV of the 5,000 customers, FULL run (posterior mean, thousands of dollars):
+
+| Horizon | 0% a month | 0.8% a month | 2% a month |
+|---|---|---|---|
+| 12 months | 501 | 477 | 444 |
+| 24 months | 910 | 830 | 729 |
+| 36 months | 1,268 | 1,112 | 926 |
+
+Going from 12 to 36 months at 0.8% a month adds $634,499; going from 0% to 2% a month at 36 months removes $342,582. **The horizon moves the total most.** Two mechanisms shape the table:
+
+- **Each later month adds less.** From 12 to 24 months the total grows by $353k at 0.8%; from 24 to 36, by $282k. Customers keep dropping out (P(alive) decays), and later months are discounted more.
+- **Discounting compounds.** The gap between 0% and 2% is 11% of the total at 12 months and 27% at 36. The discount rate matters more the longer the horizon.
+
+The horizon is a business choice, not an estimate: how long the plan runs and how far you trust a model fitted to one year of history. Choose it before you look at the numbers, and report it with every CLV.
+
+## 6. Contractual customers: the shifted-beta-geometric model
+
+**Objective for this section:** fit the shifted-beta-geometric (sBG) model to the Fader–Hardie retention data and project retention for later years.
+
+Subscriptions are **contractual**: a customer who does not renew has left, and you see it. The question changes from "who is still a customer?" to "how many of this cohort will still be subscribed in year 12?". The data are Fader and Hardie's (2007) survivors out of 1,000 customers in two segments, "Regular" and "High End", years 0 to 12. Following the paper, the model sees years 0 to 7 and projects 8 to 12.
+
+The **sBG** model says each customer $i$ has a constant probability $\theta_i$ of leaving at each renewal, and customers differ: $\theta_i \sim \text{Beta}(\alpha, \beta)$. The share of the cohort still subscribed after $t$ periods, and the cohort's retention rate in period $t$, are
+
+$$
+S(t) = \frac{B(\alpha, \beta + t)}{B(\alpha, \beta)},
+\qquad
+r_t = \frac{S(t)}{S(t-1)} = \frac{\beta + t - 1}{\alpha + \beta + t - 1},
+$$ {#eq-sbg}
+
+where $B$ is the beta function. $r_t$ **rises** with $t$ although every individual's $\theta_i$ is constant. The customers with a high $\theta_i$ leave early, so each year the survivors are a more loyal group. A curve fitted to aggregate retention that assumes a constant rate misses this and under-projects later survivors.
+
+### Encoding the counts
+
+PyMC-Marketing's `ShiftedBetaGeoModel` wants one row per customer: `recency` is the period in which they left, and `T` is the same for everyone in a cohort. Its likelihood is censored at $T$: a row with `recency == T` means "still subscribed at $T$; leaves at $T$ or later". So customers lost during year $t$ get `recency = t`, and the customers still active after the last observed year $n$ get `recency = T = n + 1`: censored one period after the last renewal we saw. With $T = n$ instead, survivors look like customers who might have left in year $n$, and Regular's estimates come out as $\alpha = 0.718$, $\beta = 1.208$ instead of 0.704 and 1.182.
+
+### Results
+
+A flat-prior MAP fit to years 0 to 7 reproduces the paper (FULL run): Regular $\alpha = 0.704$, $\beta = 1.182$; High End $\alpha = 0.668$, $\beta = 3.806$. For an interval, the lab samples the posterior (flat priors, MCMC) and computes @eq-sbg per draw. Survivors out of 1,000, years 8 to 12 (FULL run):
+
+| Year | Regular: actual | projected | 94% HDI | High End: actual | projected | 94% HDI |
+|---|---|---|---|---|---|---|
+| 8 | 223 | 219 | 193 to 244 | 468 | 457 | 424 to 485 |
+| 9 | 207 | 203 | 177 to 227 | 445 | 432 | 398 to 462 |
+| 10 | 194 | 190 | 163 to 214 | 427 | 409 | 373 to 440 |
+| 11 | 183 | 178 | 153 to 203 | 409 | 390 | 355 to 426 |
+| 12 | 173 | 169 | 144 to 194 | 394 | 372 | 334 to 408 |
+
+All ten actual counts fall inside their intervals, from a model that saw only years 0 to 7. Regular customers' retention rate rises from 0.63 in year 1 to 0.91 in year 7 and 0.94 by year 12 (posterior means), which @eq-sbg gives directly: $r_1 = 1.182 / 1.886 = 0.63$, $r_7 = 7.182 / 7.886 = 0.91$.
+
+::: {.self-check}
+**Check yourself.** A manager sees Regular retention rising from 63% to 91% over seven years and concludes that the loyalty programme launched in year 2 is working. What does the sBG say about that conclusion?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The rise is what a cohort of different customers does with no change in anyone's behaviour: in the sBG every customer's churn probability is constant, and the aggregate rate still rises from 0.63 to 0.91, because the likely leavers leave first. A rising retention curve is not evidence that anything worked. Evidence would be retention above what the model, fitted before the programme, projected; better still, a randomized test (Day 3).
+:::
+:::
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Quote CLV as an expected value with its interval, horizon and monthly rate; when two assumptions are uncertain, report the one that moves the total most. FULL run, the retailer's 5,000 customers at 0.8% a month, revenue:
+
+- **12 months:** $477,275 (94% HDI $463,778 to $491,627); the average customer $95 ($93 to $98).
+- **36 months:** $1,111,774 (94% HDI $1,055,295 to $1,167,527); the average customer $222 ($211 to $234).
+- **What moves it most:** the horizon. 12 to 36 months adds $634,499; 0% to 2% a month at 36 months removes $342,582. The spend model is not the weak point here (frequency–spend correlation 0.03).
+- **The caveat to say aloud:** the model-based interval does not include model error. On this dataset, where the truth is known, the 12-month estimate is 6.8% above the true $447,019 because the purchase model is a BG/NBD fitted to Pareto/NBD data.
+
+At an assumed 30% gross margin (Module 5's), the average customer's 12 months are worth about $29 of margin. Your sentence for the CFO gives the number with its interval, horizon and rate, names the horizon as the assumption that moves it most, and says what would change it: a different margin, a different horizon, or a different purchase model.
+:::
+
+## Summary
+
+- CLV is the discounted sum of expected purchases times expected spend per purchase over a stated horizon (@eq-clv). Say whether it is revenue or margin, and give the horizon and the monthly rate.
+- Multiplying purchases by spend needs spend to be independent of frequency. Check the correlation among repeat buyers first (0.03 on the retailer, 0.11 on CDNOW).
+- The Gamma-Gamma model (@eq-gg) predicts spend per purchase as a weighted average of the population mean and the customer's own mean (@eq-gg-shrinkage). With weaker priors it recovered $p$, $q$, $v$ inside their 94% HDIs; on CDNOW it reproduces the published estimates.
+- PyMC-Marketing's CLV interval uses the posterior mean spend; pairing draws carries both uncertainties. That barely widens the total, and widens individual customers.
+- A posterior interval is conditional on the model. The 12-month total came out 6.8% above the truth, with the truth outside the interval, because of a misspecified purchase model.
+- The horizon moved total CLV more than the discount rate; later months add less.
+- In a contractual setting the sBG (@eq-sbg) explains rising aggregate retention by heterogeneity alone, and projected years 8 to 12 inside their 94% intervals.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 4 |
+|---|---|---|
+| Correlation of $x$ and $\bar z$ | the independence check | **Exercise 1**: `spend_frequency_correlation(rfm)`; Checkpoint 1 compares with the reference on both datasets, before any fit |
+| @eq-gg, @eq-gg-mean | the Gamma-Gamma model | Provided: the MCMC fit with weaker priors, and the flat-prior CDNOW benchmark |
+| 94% HDI of $p$, $q$, $v$ | recovery | **Exercise 2**: `spend_recovery(gg_idata, truth)`; Checkpoint 2 asks for 2 of 3 true values inside |
+| @eq-gg-shrinkage | expected spend per customer | Provided: `expected_customer_spend`, and the $200 customer |
+| @eq-clv | discounted CLV with both uncertainties | **Exercise 3**: `discounted_clv(purchases_by_month, spend, monthly_rate)`; Checkpoint 3 matches the library with mean spend, checks the wider per-customer interval and the total within 12% of the truth |
+| @eq-clv on a grid | horizon and rate sensitivity | **Exercise 4**: `clv_grid(clv_fn)`; Checkpoint 4 checks monotonicity and the (12 months, 0.8%) cell |
+| @eq-sbg and the censored encoding | contractual retention | **Exercise 5**: `counts_to_customers(alive, cohort)`; Checkpoint 5 reproduces Fader and Hardie's $\alpha$, $\beta$ within 1% |
+
+## Gotchas
+
+- **`future_t` is in months** in PyMC-Marketing's CLV functions, whatever `time_unit` is; **`discount_rate` is monthly**.
+- **The library's CLV interval omits spend uncertainty.** It multiplies by the posterior mean spend.
+- **Fit Gamma-Gamma on repeat buyers only** ($\bar z > 0$). Predict for everyone; customers with $x = 0$ get the population mean.
+- **Default priors are not neutral.** PyMC-Marketing's Gamma-Gamma defaults pull $p$ down on data of this size. State the priors you used.
+- **Months are 30.4375 days** in the library. Your own monthly forecast must use the same constant to match it.
+- **sBG off by one.** Survivors after the last observed year $n$ need `recency = T = n + 1`.
+- **Two different $\alpha$ and $\beta$.** The sBG's describe churn probabilities; the Pareto/NBD's describe rates. Do not carry one into the other.
+- **A posterior interval is not a model check.** Test a CLV model against a holdout or a known truth, not against its own interval.
+
+## Next steps
+
+A CLV number is not yet a decision. The CFO's real questions are what the retailer can afford to pay to acquire a customer in each channel, which segments differ in value by more than the uncertainty, and whether a proposed retention campaign would pay for itself. Module 5 turns the posterior CLV of new customers into acquisition-cost caps by channel with a stated risk rule, finds the retention improvement a campaign needs to break even, writes customer scores to a warehouse table, and prepares the numbers for a one-page memo.
+
+## Further reading
+
+1. Fader, P. S., & Hardie, B. G. S. (2013). [*The Gamma-Gamma model of monetary value*](https://www.brucehardie.com/notes/025/). The model, the independence assumption, the weighted-average prediction, and the CDNOW estimates the lab reproduces.
+2. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). [RFM and CLV: Using iso-value curves for customer base analysis](https://doi.org/10.1509/jmkr.2005.42.4.415). *Journal of Marketing Research*, 42(4), 415–430. CLV from recency, frequency and monetary value, combining a purchase model with a spend model.
+3. Fader, P. S., & Hardie, B. G. S. (2007). [How to project customer retention](https://doi.org/10.1002/dir.20074). *Journal of Interactive Marketing*, 21(1), 76–90. The sBG, the retention data of section 6, and why curve-fitting projections fail.
+4. Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S. (2006). [Modeling customer lifetime value](https://doi.org/10.1177/1094670506293810). *Journal of Service Research*, 9(2), 139–155. A map of CLV model families and their uses; background for Module 5.
+5. PyMC-Marketing, [CLV quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html). The Gamma-Gamma and CLV calls on CDNOW.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.

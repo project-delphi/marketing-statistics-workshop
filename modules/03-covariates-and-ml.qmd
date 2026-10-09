@@ -5,13 +5,284 @@ title: "{{< var modules.m03.title >}}"
 {{< include /_includes/module-03.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 2 gave every customer a probability of being alive and a purchase forecast, from $x$, $t_x$ and $T$. It recovered known parameters on simulated data and reproduced published estimates on CDNOW. But it treats all customers as draws from one population, so it cannot say whether customers acquired through search, social or referral buy or leave at different rates. And we never tested it against the obvious alternative: a flexible machine-learning model. This module asks both questions, and measures the answers instead of assuming them.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-03.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. Two questions a marketer asks next
+
+A marketing team that has seen Module 2's output asks two things.
+
+1. **"Are customers from different channels different?"** If social brings customers who leave twice as fast, a social customer is worth less, and the most the retailer should pay to acquire one is lower. Module 5 sets those acquisition-cost caps; this module supplies the channel effects they rest on.
+2. **"Why not use machine learning?"** Gradient boosting with a few RFM features is a standard forecaster. Does a model built on a story about buying and dying forecast better or worse than one that learns from data?
+
+The first is answered by putting the channel into the Pareto/NBD as a **covariate**: a customer characteristic that shifts the model's rates. The second is answered by a **fair holdout comparison**: same customers, same forecast window, no information from the future. Both are run on the synthetic retailer, where the truth is known, and the comparison also on CDNOW.
+
+The lab uses two languages. **CLVTools** (R) is the reference implementation of the Pareto/NBD with covariates; the Python notebook fits the same model with PyMC-Marketing as one of the two forecasters. Open the Python notebook first and run its install cell, then work the R notebook while it installs.
+
+## Notation for this module
+
+The workshop notation of Module 2 applies. New symbols:
+
+| Symbol | Meaning |
+|---|---|
+| $\mathbf{z}_i$ | customer $i$'s covariates: here two 0/1 indicators, $z_{i,\text{social}}$ and $z_{i,\text{referral}}$; search is the reference ($\mathbf{z}_i = \mathbf{0}$) |
+| $\boldsymbol{\gamma}_{\text{trans}}$ | purchase ("transaction") coefficients, one per covariate |
+| $\boldsymbol{\gamma}_{\text{life}}$ | dropout ("lifetime") coefficients, one per covariate |
+| $\alpha_i$, $\beta_i$ | customer $i$'s gamma rate parameters after the covariates act |
+| $H$ | the forecast horizon: 13 weeks (a quarter) |
+| $\hat y_i$, $y_i$ | forecast and actual purchases of customer $i$ in the horizon |
+
+## 2. Covariates in the Pareto/NBD
+
+**Objective for this section:** fit a Pareto/NBD with static covariates in CLVTools (`clvdata`, then `SetStaticCovariates`, then `pnbd`) and interpret the purchase and dropout coefficients.
+
+In the Pareto/NBD of Module 2, customer $i$'s purchase rate $\lambda_i$ comes from a Gamma($r$, $\alpha$) distribution and their dropout rate $\mu_i$ from a Gamma($s$, $\beta$). A **static covariate** (one that does not change over time, like the acquisition channel) moves each customer's distributions. CLVTools and PyMC-Marketing both use the form of Fader and Hardie's note on covariates in the Pareto/NBD (cited by CLVTools' `pnbd` help page):
+
+$$
+\alpha_i = \alpha\, e^{-\boldsymbol{\gamma}_{\text{trans}}^{\top} \mathbf{z}_i},
+\qquad
+\beta_i = \beta\, e^{-\boldsymbol{\gamma}_{\text{life}}^{\top} \mathbf{z}_i}.
+$$ {#eq-covariates}
+
+The minus sign is there so that coefficients read naturally. The mean of a Gamma($r$, $\alpha_i$) is $r/\alpha_i$, so
+
+$$
+E[\lambda_i \mid \mathbf{z}_i] = \frac{r}{\alpha}\, e^{\boldsymbol{\gamma}_{\text{trans}}^{\top} \mathbf{z}_i},
+\qquad
+E[\mu_i \mid \mathbf{z}_i] = \frac{s}{\beta}\, e^{\boldsymbol{\gamma}_{\text{life}}^{\top} \mathbf{z}_i}.
+$$ {#eq-channel-rates}
+
+A **positive** purchase coefficient raises the mean purchase rate; a **positive** dropout coefficient raises the mean dropout rate, so customers leave sooner. Each coefficient is a **multiplicative effect**, read like a coefficient in a log-linear (Poisson) regression: $e^{\gamma}$ is the ratio of a channel's mean rate to the reference channel's. A coefficient of 0.3 means $e^{0.3} = 1.35$, about +35%, not +30%. With covariates in the model, $r$, $\alpha$, $s$, $\beta$ describe the **reference channel**, search.
+
+The covariates explain only the part of the customer-to-customer differences that a channel shares. Customers within a channel still differ, and the gamma distributions still absorb that.
+
+### The CLVTools flow
+
+CLVTools works in three steps: a `clvdata()` object holds the transaction log and the calibration/holdout split (it merges same-day transactions and measures time from each customer's first purchase, the same $x$, $t_x$, $T$ as Module 2); `SetStaticCovariates()` attaches the covariates to the purchase and dropout processes; `pnbd()` fits by maximum likelihood. The same model in both languages:
+
+::: {.panel-tabset group="language"}
+
+## R
+
+```r
+clv <- clvdata(tx, date.format = "ymd", time.unit = "week",
+               estimation.split = "2024-12-29",            # a date, not a number of weeks
+               name.id = "Id", name.date = "Date", name.price = "Price")
+cov <- data.frame(Id = customers$customer_id,
+                  channel_social = customers$channel_social,
+                  channel_referral = customers$channel_referral)
+indicators <- c("channel_social", "channel_referral")
+clv_cov <- SetStaticCovariates(clv, data.cov.life = cov, data.cov.trans = cov,
+                               names.cov.life = indicators, names.cov.trans = indicators,
+                               name.id = "Id")
+fit_cov <- pnbd(clv_cov, verbose = FALSE)                  # maximum likelihood
+confint(fit_cov, level = 0.9)                              # Wald intervals
+```
+
+## Python
+
+```python
+cols = ["channel_social", "channel_referral"]
+config = {k: Prior("HalfFlat") for k in ("r", "alpha", "s", "beta")} | {
+    "purchase_coefficient": Prior("Flat"), "dropout_coefficient": Prior("Flat"),
+    "purchase_covariate_cols": cols, "dropout_covariate_cols": cols}
+btyd = clv.ParetoNBDModel(model_config=config)
+btyd.fit(data=rfm, method="map")      # flat priors: MAP is maximum likelihood
+btyd.fit_summary()                    # purchase_coefficient[channel_social], ...
+```
+
 :::
+
+Pass the two 0/1 indicators, not the channel names. Given a text column, CLVTools dummy-codes it with the first level alphabetically as the reference, which would be `referral`, and every coefficient would mean something else.
+
+## 3. Do the estimates match the truth?
+
+**Objective for this section:** check that the channel effects estimated on the synthetic retailer match the truth within their 90% confidence intervals.
+
+The synthetic retailer has 5,000 customers acquired in the first half of 2024: 2,229 through search, 1,780 through social and 991 through referral, with calibration ending on 2024-12-29. Before any model, a provided table shows each channel's share of customers with no repeat purchase in calibration: 33.2% for search, 48.1% for social, 25.1% for referral (FULL run). That already suggests social customers leave sooner, or buy less often, or both. The model separates the two.
+
+CLVTools' maximum-likelihood estimates with 90% confidence intervals (FULL run):
+
+| Coefficient | Truth | Estimate | 90% interval | Ratio to search, $e^{\hat\gamma}$ |
+|---|---|---|---|---|
+| purchase, social | −0.4 | −0.439 | −0.520 to −0.358 | 0.645 |
+| purchase, referral | 0.3 | 0.224 | 0.142 to 0.307 | 1.252 |
+| dropout, social | 0.6 | 0.666 | 0.466 to 0.866 | 1.946 |
+| dropout, referral | −0.6 | −0.673 | −0.894 to −0.452 | 0.510 |
+
+All four true coefficients lie inside their intervals. A 90% **confidence interval** here is a Wald interval, estimate $\pm 1.645$ standard errors: across repeated samples it covers the true value about 90% of the time. Four such intervals all cover only about $0.9^4 \approx 66\%$ of the time if they were independent, so the checkpoint allows one miss; on this dataset there were none.
+
+Notice the pattern of precision. The dropout intervals are about two and a half times as wide as the purchase intervals. That is Module 2's lesson again: dropout is never observed, so the data say less about it.
+
+### From coefficients to rates
+
+@eq-channel-rates turns the coefficients into rates per channel, which is the table Module 5 uses (FULL run; true values are the average true rates of each channel's customers in this dataset):
+
+| Channel | Mean purchase rate (per week) | True | Mean dropout rate (per week) | True | Lifetime at the mean dropout rate |
+|---|---|---|---|---|---|
+| search | 0.153 | 0.160 | 0.044 | 0.046 | 22.6 weeks |
+| social | 0.099 | 0.108 | 0.086 | 0.088 | 11.6 weeks |
+| referral | 0.192 | 0.209 | 0.023 | 0.028 | 44.4 weeks |
+
+The estimated purchase rates sit a few percent below the truth for every channel, partly because the data record purchases by calendar day, so two purchases on one day count once. The ranking and the ratios between channels are right, and those are what the decision needs.
+
+The last column is $1 / E[\mu_i \mid \mathbf{z}_i]$, the lifetime of a customer with the channel's **mean** dropout rate. It is not the mean lifetime of the channel's customers. For a Gamma($s$, $\beta$) dropout rate, the mean of $1/\mu$ is $\beta/(s-1)$ when $s > 1$ and infinite when $s \le 1$: a few customers with a dropout rate near zero stay almost forever. The retailer's fitted $s$ is below 1 (0.46 in the Python notebook's fit).
+
+::: {.self-check}
+**Check yourself.** The dropout coefficient for social is 0.666. By how much does it multiply the mean dropout rate relative to search, and what does that do to the lifetime at the mean rate? Why is "social customers stay half as long on average" not quite the right sentence?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$e^{0.666} = 1.95$, so the mean dropout rate is about 1.95 times search's, and the lifetime at the mean rate falls from 22.6 to 11.6 weeks. The sentence is not quite right because the lifetime at the mean rate is not the average lifetime: with a gamma distribution of dropout rates whose shape is below 1, the average lifetime is infinite (a few customers almost never leave). The correct, still useful, statement is that the typical social customer's dropout rate is about twice search's.
+:::
+:::
+
+## 4. Two implementations, one model
+
+**Objective for this section:** compare CLVTools' fit with the Python fit from Module 2 on the same customers.
+
+The R notebook starts with a check that runs before any covariate model is fitted: CLVTools' Pareto/NBD on CDNOW, with the calibration period ending on 1997-09-30 as in Module 2. FULL run:
+
+| Parameter | CLVTools (maximum likelihood) | PyMC-Marketing, Module 2 (flat-prior MAP) | Relative difference |
+|---|---|---|---|
+| $r$ | 0.55327 | 0.55328 | −0.002% |
+| $\alpha$ | 10.5778 | 10.5777 | +0.001% |
+| $s$ | 0.60602 | 0.60623 | −0.03% |
+| $\beta$ | 11.6639 | 11.6684 | −0.04% |
+
+Two independent implementations, maximum likelihood in R and a flat-prior MAP in PyMC, agree to within 0.04% when they see the same data. The Python notebook fits the covariate model of section 2 to the retailer too, and gets coefficients of −0.440, 0.224, 0.659 and −0.678 against CLVTools' −0.439, 0.224, 0.666 and −0.673 (FULL runs). This is the pre-work's lesson at the scale of a model: agreement between two tools written separately is strong evidence that the data preparation and the time units are right.
+
+The parameters that differ most are the dropout ones, $s$ and $\beta$. Give the model one extra day of data (calibration ending on 1997-10-01 instead of 1997-09-30) and they move by about 3 to 5%, while $r$ and $\alpha$ barely move (measured while writing the brief, not in the recorded run). The likelihood is flat in the dropout direction, because dropout is never observed.
+
+## 5. A fair comparison with machine learning
+
+**Objective for this section:** build features and a holdout target without leakage, and compare gradient boosting with BTYD on holdout purchases.
+
+### The design
+
+A BTYD model needs no labelled examples: it is fitted to $x$, $t_x$, $T$ at the cutoff and extrapolates. A supervised model needs a target, so it needs an earlier window to learn from. With horizon $H = 13$ weeks and cutoff $\tau$:
+
+| | Features describe | Target | Used for |
+|---|---|---|---|
+| **Training** | history up to $\tau - H$ | purchases in $(\tau - H, \tau]$ | fitting gradient boosting |
+| **Holdout** | history up to $\tau$ | purchases in $(\tau, \tau + H]$ | scoring both methods |
+
+**Leakage** is any information from after the date the features describe. It makes a model look better in testing than it will be in use. The lab's `make_features(tx, customers, cutoff)` filters the log to `date <= cutoff` before computing anything (frequency, recency, $T$, mean spend, weeks since last purchase, purchases in the last 4 and 13 weeks, channel indicators), and its checkpoint proves it: the features must be identical when every transaction after the cutoff is deleted, and when those transactions are scrambled across customers.
+
+The BTYD forecaster is the Pareto/NBD (flat priors, MAP; with the channel covariates for the retailer) fitted at $\tau$, forecasting $E[\text{purchases in } H \text{ weeks}]$. The machine-learning forecaster is scikit-learn's `HistGradientBoostingRegressor` with a **Poisson loss**, suited to counts, default settings.
+
+### The scorecard
+
+For each method and each group of customers by calibration frequency, the lab reports
+
+$$
+\text{MAE} = \frac{1}{n}\sum_i |\hat y_i - y_i|, \qquad
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_i (\hat y_i - y_i)^2}, \qquad
+\text{bias} = \sum_i \hat y_i - \sum_i y_i .
+$$ {#eq-scorecard}
+
+MAE weighs every error equally; RMSE weighs large errors more; bias shows whether a method forecasts too many or too few purchases in total, which matters for planning stock or budget. FULL run, MAE per customer (purchases in 13 weeks):
+
+| Calibration $x$ | Retailer: customers | BTYD | Boosting | CDNOW: customers | BTYD | Boosting |
+|---|---|---|---|---|---|---|
+| 0 | 1,847 | 0.111 | **0.100** | 1,411 | **0.130** | 0.159 |
+| 1 | 777 | 0.335 | **0.313** | 439 | **0.395** | 0.410 |
+| 2–3 | 883 | 0.563 | **0.556** | 314 | **0.650** | 0.762 |
+| 4–7 | 743 | 0.895 | **0.894** | 152 | **1.151** | 1.674 |
+| 8+ | 750 | **1.754** | 1.952 | 41 | **1.601** | 2.288 |
+
+Two different pictures:
+
+- **On the retailer**, gradient boosting is slightly better for light buyers and BTYD clearly better for the heaviest. Bias has opposite signs: BTYD over-forecasts the total holdout purchases (4,160 actual) by about 190, boosting under-forecasts by about 170.
+- **On CDNOW**, BTYD is better in every group, most of all for frequent buyers. Boosting over-forecasts the 4–7 group by 132 purchases in total. A likely reason: CDNOW is a single cohort that all arrived in early 1997, so the training window (July to September 1997) catches it younger and more active than the forecast window (October to December). Boosting learns "customers like this buy this much next quarter" from a period that does not repeat; BTYD's model of dying customers extrapolates the slowdown.
+
+Is the overall difference larger than chance? A **bootstrap** interval resamples customers with replacement 1,000 times, recomputes the difference in MAE each time (the same resampled customers for both methods), and takes the middle 95%:
+
+| Dataset | MAE, BTYD | MAE, boosting | Difference (BTYD − boosting) | 95% bootstrap interval |
+|---|---|---|---|---|
+| Retailer | 0.588 | 0.609 | −0.021 | −0.036 to −0.008 |
+| CDNOW | 0.340 | 0.421 | −0.081 | −0.099 to −0.063 |
+
+Both intervals exclude 0: on these data, at this horizon, BTYD has the lower error. On the retailer the gap is small (about 3% of boosting's MAE); on CDNOW it is about 19%.
+
+::: {.self-check}
+**Check yourself.** A colleague builds the boosting features from the whole log (including the 13 holdout weeks) and reports that boosting now beats BTYD by a wide margin. What happened, and which check in the lab would have caught it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Leakage. Features such as "purchases in the last 13 weeks" computed at the end of the log count the very purchases the model is asked to forecast, so the target is partly in the input. The error looks small because the model is reading the answer; in real use the future is not in the log. Checkpoint 1 of the Python notebook catches it: the features must not change when every transaction after the cutoff is deleted or scrambled.
+:::
+:::
+
+## 6. What each approach gives
+
+**Objective for this section:** state what each approach gives that the other cannot (P(alive) and extrapolation versus flexible features).
+
+The scorecard measured one thing, holdout error at one horizon from one cutoff. The two approaches differ in more than that.
+
+| | BTYD (Pareto/NBD) | Gradient boosting |
+|---|---|---|
+| Training data | none beyond $x$, $t_x$, $T$ at the cutoff | a labelled earlier window, which costs $H$ weeks of history |
+| Horizon | any, from one fit | the one it was trained on |
+| P(alive) | yes | no |
+| Customers not yet acquired | yes: $E[X(t)]$ for a new customer (Module 2) | no |
+| Parameters with a meaning | yes: rates, channel effects (section 3) | no |
+| Extra features (web visits, product mix, service calls) | only through covariates, with a model for each | any feature, with no model needed |
+| Behaviour that changes over time (cohort ageing, seasonality) | follows from the model of dying, misses seasonality | only if the training window looks like the forecast window |
+
+Neither column wins in general. Wübben and von Wangenheim (2008) found simple recency heuristics competitive with BTYD models for telling active from inactive customers; the models' advantage was mainly in forecasting future purchases. On a different log, with richer features, boosting could win. That is why the lab measures instead of assuming, and why its checkpoints never test which method wins.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Two rules, stated before the numbers.
+
+**Channels.** Treat a channel differently in acquisition spending if its purchase or dropout rate differs from search by more than 20% and the 90% confidence interval of the ratio $e^{\gamma}$ excludes 1. The 20% is a business threshold (smaller differences are not worth separate budgets), not a statistical constant. FULL run: social buys at 0.65 times search's rate (90% interval 0.60 to 0.70) and drops out at 1.95 times (1.59 to 2.38); referral buys at 1.25 times (1.15 to 1.36) and drops out at 0.51 times (0.41 to 0.64). All four ratios pass both tests: **treat both social and referral differently from search**, in opposite directions. Module 5 turns this into the most the retailer can pay to acquire a customer in each channel.
+
+**Forecaster.** Deploy the forecaster with the lower holdout MAE only if the 95% bootstrap interval of the difference excludes 0; otherwise prefer BTYD for what it adds (P(alive), any horizon). FULL run: BTYD has the lower MAE on both datasets and both intervals exclude 0, so **use the Pareto/NBD for next quarter's purchase forecast**. What would change it: a different horizon, more cutoffs (one 13-week window is a single test), or features that BTYD cannot use.
+:::
+
+## Summary
+
+- Static covariates enter the Pareto/NBD through the gamma rates (@eq-covariates); $e^{\gamma}$ is a multiplicative effect on the mean purchase or dropout rate (@eq-channel-rates), and $r$, $\alpha$, $s$, $\beta$ then describe the reference channel.
+- On the synthetic retailer, CLVTools recovered all four true channel coefficients inside their 90% intervals; dropout effects were estimated less precisely than purchase effects.
+- CLVTools and PyMC-Marketing agree to within 0.04% on CDNOW and closely on the retailer's coefficients: two implementations, one model.
+- A fair comparison with machine learning needs a training window that ends where the holdout starts and features that cannot see the future. On these data BTYD had the lower holdout MAE on both datasets, by a small margin on the retailer and a larger one on CDNOW.
+- BTYD gives P(alive), any horizon and new customers; boosting gives any feature. Measure, do not assume.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 3 |
+|---|---|---|
+| CLVTools on CDNOW (section 4) | the cross-implementation check | **R Exercise 1**: `make_clvdata(tx, split)` and `compare_with_day1(fit, day1)`; Checkpoint 1 tests the object before any fit, 1b the four parameters within 1% |
+| @eq-covariates | covariates in the gamma rates | **R Exercise 2**: `fit_channel_pnbd(clv, customers)`; Checkpoint 2 checks the four coefficients against the truth with 90% intervals |
+| @eq-channel-rates | mean rates per channel | **R Exercise 3**: `channel_rates(fit, channels)`; Checkpoint 3 checks each channel's purchase rate within 10% of the truth |
+| Training and holdout design (section 5) | leakage-free features | **Python Exercise 1**: `make_features(tx, customers, cutoff)`; Checkpoint 1 deletes and scrambles the future |
+| @eq-scorecard | MAE, RMSE, bias by group | **Python Exercise 2**: `holdout_scorecard(y_true, preds, groups)`; Checkpoint 2 uses a toy input with known answers and never tests who wins |
+| Bootstrap interval of the MAE difference | is the gap larger than chance? | Provided, before the Decision cell |
+
+## Gotchas
+
+- **Reference level.** Pass 0/1 indicators. A text column is dummy-coded with the alphabetically first level (`referral`) as the reference.
+- **`estimation.split` as a number** counts periods from the first transaction in the log, not a date. Pass a date string to match Module 2's calibration period.
+- **NA coefficients.** CLVTools' default optimizer can return `NA` on some data; refit with `optimx.args = list(method = "Nelder-Mead")`.
+- **$e^{\gamma}$, not $\gamma$.** A coefficient of 0.3 is +35%, and a coefficient of −0.44 is −36%, not −44%.
+- **Lifetime at the mean rate is not the mean lifetime** (section 3).
+- **Leakage hides in "recent activity" features.** Filter the log by the cutoff first, then compute every feature.
+- **One window is one test.** A single cutoff and horizon can favour either method by chance; the bootstrap interval covers customers, not cutoffs.
+- **LightGBM on macOS** needs `libomp`; the lab uses scikit-learn's `HistGradientBoostingRegressor`, which needs nothing extra.
+
+## Next steps
+
+Every forecast so far counts purchases. None of it is money: we can say a referral customer buys 25% more often and stays twice as long, but not what that is worth in dollars, or how sure we are. Module 4 adds a model of how much customers spend per purchase, checks the assumption it rests on, discounts future spend to a present value with its uncertainty, and handles the contractual case (subscriptions) with the shifted-beta-geometric model.
+
+## Further reading
+
+1. Bachmann, P., Meierer, M., & Näf, J. (2021). [The role of time-varying contextual factors in latent attrition models for customer base analysis](https://doi.org/10.1287/mksc.2020.1254). *Marketing Science*, 40(4), 783–809. The method paper behind CLVTools' covariate models.
+2. CLVTools reference pages for [`SetStaticCovariates`](https://www.clvtools.com/reference/SetStaticCovariates.html) and [`pnbd`](https://www.clvtools.com/reference/pnbd.html). The functions the R notebook uses, and the covariate parameterization.
+3. Wübben, M., & v. Wangenheim, F. (2008). [Instant customer base analysis: Managerial heuristics often "get it right"](https://doi.org/10.1509/jmkg.72.3.082). *Journal of Marketing*, 72(3), 82–93. Why the comparison has to be measured.
+4. Schmittlein, D. C., Morrison, D. G., & Colombo, R. (1987). [Counting your customers: Who-are they and what will they do next?](https://doi.org/10.1287/mnsc.33.1.1) *Management Science*, 33(1), 1–24. The Pareto/NBD without covariates.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.

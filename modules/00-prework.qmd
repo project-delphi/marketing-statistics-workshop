@@ -4,10 +4,158 @@ title: "{{< var modules.m00.title >}}"
 
 {{< include /_includes/module-00.md >}}
 
+::: {.recap}
+**Where we are.** This is the starting point. Before Day 1 you need two things: a runtime that runs the workshop's notebooks, and one table that every later module builds on, with one row per customer, made from a raw log of purchases. This page is read on your own, in about 15 minutes, before or alongside the notebook. It explains what the lab asks you to do and why each step matters later in the week.
+:::
+
 ## The lab {#lab}
 
 {{< include /_includes/lab-00.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. Why an hour before Day 1
+
+Day 1 starts with customer data at 09:15 and has no slot for installing anything. The pre-work does two jobs at once.
+
+- **It proves your environment runs.** The notebook installs the workshop's pinned packages (on Colab) and prints where it ran. A run that finishes with every checkpoint passed is evidence. A plan to "sort it out on the day" is not.
+- **It builds the table Day 1 starts from.** Every model in the first two days starts from one row per customer: when they first bought, when they last bought, how many times they bought and what they spent. You build that table twice, in two tools, and pin down one definition (what counts as a *repeat purchase*) that changes the answers of every model after it.
+
+The data is the **CDNOW transaction log**: purchases by 2,357 customers of an online CD retailer who first bought in the first quarter of 1997, followed to the end of June 1998 ([references](/references.qmd#datasets)). It is real data, so there is no "true answer" to check against. Instead the checkpoints test facts that must hold whatever the answer: one row per customer, purchases and spend that add up to the raw log, and two implementations that agree.
+
+## 2. Your runtime, and why versions are pinned
+
+A **runtime** is the machine your notebook runs on. On Colab it is a virtual machine that Google starts for you and deletes when you disconnect, so anything you install or download lasts only for the session. Part A of the notebook prints the runtime's Python (or R) version, CPU count and memory.
+
+Two habits from this part carry through the week.
+
+- **A time means nothing without the machine it ran on.** Later labs report how long a model fit took. Colab's default runtime and a laptop can differ several-fold. The [Readiness](/readiness.qmd) page therefore records, for every notebook, *where* it ran, with which settings and when, and it never labels a laptop or Docker time as a Colab time. Measured Colab install times are on the [Setup](/setup.qmd#install-times) page.
+- **Versions are pinned to what Colab ships.** Google publishes the software in each Colab runtime ([googlecolab/backend-info](https://github.com/googlecolab/backend-info)). The workshop's Python pins follow that list, freeing only the packages PyMC-Marketing needs newer, so the versions tested in the workshop's Docker image are the ones you run on Colab. If the install cell asks you to **restart the session and Run all**, Colab had already loaded an older version of a package; do exactly that, once.
+
+The notebook also has two switches. `WORKED_EXAMPLE` binds the reference solutions, so the whole notebook runs without your code; leave it off so your own functions are checked. `QUICK` shortens sampling in later labs and has no effect here ([FAQ](/faq.qmd)).
+
+## 3. From a transaction log to a customer table, in SQL
+
+A **transaction log** has one row per purchase. In CDNOW the columns are a customer identifier `id`, a purchase date stored as an integer `YYYYMMDD`, the number of CDs and the dollars spent. A **customer table** has one row per customer. Turning one into the other is a `GROUP BY`:
+
+```sql
+SELECT id AS customer_id,
+       MIN(strptime(CAST(date AS VARCHAR), '%Y%m%d'))::DATE AS first_purchase,
+       MAX(strptime(CAST(date AS VARCHAR), '%Y%m%d'))::DATE AS last_purchase,
+       COUNT(*)   AS n_purchases,
+       SUM(spent) AS total_spend
+FROM transactions
+GROUP BY id
+```
+
+`GROUP BY id` collapses each customer's rows into one, and every other column must then be an aggregate. The lab runs this in **DuckDB**, an analytical database that runs inside the notebook with no server and can query a pandas DataFrame directly. The same SQL runs on a warehouse, which is why Module 1 continues in DuckDB.
+
+**Convert the dates.** Integer dates sort correctly, so `MIN` and `MAX` work on them, but the next step in Module 1 subtracts dates to get recency and customer age, and $19970201 - 19970131 = 70$, not 1. Convert once, at the start.
+
+On the full log the notebook reports 6,919 transactions from 2,357 customers, $244,091.94 of spend, and a window from 1997-01-01 to 1998-06-30 (FULL run of the Python notebook; the R notebook prints the same counts).
+
+## 4. Two implementations that agree
+
+Exercise 2 rebuilds the same table in pandas (or dplyr in R). Writing it twice is not busywork: **two independent implementations that agree are the cheapest test you will ever write.** A wrong join, a dropped date conversion or a filter in the wrong place rarely produces the same wrong answer in two tools written separately.
+
+The checkpoint matches the two tables on `customer_id` and compares every shared column: dates exactly, counts and spend within a tiny tolerance, because floating-point sums can differ in the last digit depending on the order of addition. Comparing to a tolerance rather than exactly is a habit worth keeping: an exact equality test on sums of money will fail for reasons that have nothing to do with your logic.
+
+The other checks in Exercise 1 are **invariants**, facts that must hold whatever the data:
+
+- one row per customer: the row count equals the number of distinct `id` values;
+- `first_purchase` is never after `last_purchase`;
+- the purchases and the spend summed over customers equal the raw log's totals.
+
+An invariant does not tell you the answer is right, but a failed one tells you for certain that it is wrong.
+
+::: {.self-check}
+**Check yourself.** Your SQL customer table has 2,357 rows and its spend adds up to the raw log's total, but the pandas table has 2,360 rows. Name one likely cause, and say which of the checks above catches it.
+
+::: {.callout-tip collapse="true" title="Answer"}
+Most likely the pandas version grouped on something other than the customer identifier alone: for example on `_id` and `id` together where a customer has inconsistent values, or on a column with missing values that pandas treats as a separate group. The row-count invariant (one row per distinct `id`) catches it, and the agreement check names the customers that appear in only one table. Totals can still match, because the same purchases are split over more rows: a total that matches is necessary, not sufficient.
 :::
+:::
+
+## 5. Repeat purchases count days, not rows
+
+This is the one definition in the pre-work that changes later answers.
+
+The models of Modules 2 to 4 describe a customer by three numbers computed over an observation window:
+
+- $x$, the number of **repeat purchases**: purchase occasions after the first;
+- $t_x$, the time of the last purchase measured from the first;
+- $T$, the customer's age: the time from the first purchase to the end of the window.
+
+They count purchase **occasions**, not rows. Two transactions by the same customer on the same day are one occasion, so
+
+$$
+x = (\text{number of distinct purchase days}) - 1 .
+$$ {#eq-repeat}
+
+A customer who bought once has $x = 0$. The models treat the first purchase as the moment the customer is "born" and model only what happens after it; counting the first purchase too, or counting rows, inflates $x$.
+
+On CDNOW the difference is real but small: 51.7% of customers made only one purchase occasion, and 118 customers' counts change if you count rows instead of days (FULL run). PyMC-Marketing's `rfm_summary`, which Module 2 uses, applies the same rule: it groups each customer's transactions by period (by day with `time_unit="D"`) before counting, so same-day purchases count once (checked in the installed 1.2.0 source).
+
+::: {.self-check}
+**Check yourself.** A customer bought twice on 1 January and once on 1 March. What are $x$, and $t_x$ in days, measured to the end of a window that closes on 31 March? What would a row count give for $x$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Two distinct purchase days, so $x = 2 - 1 = 1$. The last purchase is 59 days after the first (1 January to 1 March in a non-leap year), so $t_x = 59$ days, and $T = 89$ days. Counting rows gives $3 - 1 = 2$ repeat purchases, which would tell the model this customer buys twice as often as they do.
+:::
+:::
+
+## 6. Working with a coding agent
+
+A **coding agent** is an AI assistant that writes code, and often runs it, in your project. It can draft every query on this page from a description of the tables. Treat what it writes as a colleague's first draft: useful, and unverified until checked. Part C of the notebook sets out four rules, and the rest of the week relies on them.
+
+1. **Give it definitions, not only column names.** "Repeat purchases" was ambiguous until @eq-repeat pinned it down. Ambiguity is where a plausible-looking query goes wrong.
+2. **Ask for an independent check, not only the answer.** A second implementation and the invariants of section 4 catch errors that reading the code misses.
+3. **Run the checks yourself and read the code.** An agent saying "this works" is not evidence; a passing checkpoint is. Every lab this week has checkpoints that work as a test harness for agent-written functions.
+4. **Mind the data.** Do not paste customer records into a tool your organization has not approved for them. Describing the schema, or sharing a small made-up sample like the four-row log in checkpoint 3, is usually enough.
+
+One more rule applies to statistical libraries in particular: **never trust a library call written from memory.** PyMC-Marketing, PyMC and ArviZ change their interfaces between versions, and an agent (or a person) remembering an older version writes code that fails, or worse, runs and means something else. Check the installed version's documentation or source.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Two sign-offs, each resting on a check that ran.
+
+- **Where you will run the labs.** Use Colab if the notebook ran to the end here with every checkpoint passed. Use the workshop's Docker image if the Colab install failed twice or your organization blocks Colab ([Setup](/setup.qmd#local)). Do the R notebook as well if you can: Modules 3, 7 and 11 have R notebooks, and Colab's R runtime is a separate runtime type.
+- **Whether the customer table is fit to hand over.** The notebook prints customers, purchases and spend next to the raw log's totals and lists the checkpoints that passed. Hand it to Module 1 only if the SQL and pandas (or dplyr) versions agree, the totals match, and repeat purchases follow @eq-repeat. Write one sentence: yes or no, and which checks your answer rests on.
+:::
+
+## Summary
+
+- A run time or a "it works" claim needs the machine it ran on; the [Readiness](/readiness.qmd) page records where each notebook ran.
+- A customer table is a `GROUP BY` over the transaction log; convert dates before you subtract them.
+- Two independent implementations that agree, plus invariants (one row per customer, matching totals), are the first test of any data pipeline.
+- Repeat purchases count distinct purchase days minus one (@eq-repeat). The models of Modules 2 to 4 assume this definition.
+- Code from a coding agent is a draft until a checkpoint you understand has passed on it.
+
+### Definitions and where you implement them
+
+| Definition | What it is | In Lab 0 |
+|---|---|---|
+| Customer table (`GROUP BY id`) | first and last purchase, number of purchases, total spend per customer | **Exercise 1**: `customer_table_sql(con)`; Checkpoint 1 tests one row per customer, dates, and totals against the log |
+| The same table in a second tool | an independent implementation | **Exercise 2**: `customer_table_pandas(tx)` (R: `customer_table_dplyr`); Checkpoint 2 compares it with Exercise 1 customer by customer |
+| @eq-repeat | repeat purchases $x$ on distinct days | **Exercise 3**: `repeat_purchases(tx)`; Checkpoint 3 uses a four-row log with a same-day purchase, then an independent SQL count |
+| $t_x$ and $T$ | time of last purchase since the first; customer age | Not in this lab: Module 1, Exercise 2 computes them in SQL |
+
+## Gotchas
+
+- **Integer dates.** `YYYYMMDD` integers sort in date order but subtract wrongly. Convert them before any arithmetic.
+- **Time zones.** Parse dates as dates, not as datetimes with a time zone, or SQL and pandas can disagree about which day a purchase falls on.
+- **Rows are not occasions.** A row count overstates repeat purchases for customers with same-day transactions (118 customers on CDNOW).
+- **Exact equality on money.** Sums of floating-point amounts can differ in the last digit between tools. Compare with a tolerance.
+- **"Restart session, then Run all."** If the install cell says this, Colab had already imported an older package version. Restart once; do not keep running cells.
+- **The R notebook needs the R runtime.** Colab's R runtime is a separate runtime type (Runtime > Change runtime type).
+
+## Next steps
+
+You now have a customer table, but it says only what customers did. It does not say who is still a customer. In a shop with no subscription, customers never announce that they have left: they just stop buying. Module 1 cleans a messier real log, computes recency and customer age with SQL window functions, draws cohort retention curves, and measures how often a "no purchase in 90 days" rule calls a still-active customer lost, on synthetic data where the truth is known.
+
+## Further reading
+
+1. CDNOW (1/10th sample), distributed by Bruce Hardie, [brucehardie.com/datasets](https://www.brucehardie.com/datasets/). The readme describes the sample and its columns; the data behind this lab and Modules 1 to 4.
+2. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). ["Counting your customers" the easy way: An alternative to the Pareto/NBD model](https://doi.org/10.1287/mksc.1040.0098). *Marketing Science*, 24(2), 275–284. Read the model summary for why $x$, $t_x$ and $T$ are all a model needs; Module 2 fits it.
+3. PyMC-Marketing, [CLV quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html). How `rfm_summary` turns a transaction log into the model's inputs.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.

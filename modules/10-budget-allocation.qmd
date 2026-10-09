@@ -5,13 +5,242 @@ title: "{{< var modules.m10.title >}}"
 {{< include /_includes/module-10.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 8's marketing mix model said what each channel's dollars returned, and Module 9 calibrated it with lift tests so its response curves can be trusted further. Neither says what to do next quarter. A planner has a fixed weekly budget, bounds the business has agreed for each channel, and a model whose curves are uncertain. This module turns response curves into a budget: which split of the money maximizes expected sales, how sure we are that it beats the current plan, and how the answer changes when we care about the bad case or about the long-run value of the customers each channel brings.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-10.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. The planning problem
+
+The planner's facts, as finance would supply them (from the synthetic truth file):
+
+- a weekly media budget of **$72,000**, the mean weekly total over the last 52 weeks;
+- **bounds** for each channel: between half and twice its mean weekly spend over those 52 weeks;
+- the **current plan**, the recent mix scaled to the budget.
+
+| Channel | Current plan ($/week) | Lower bound | Upper bound |
+|---|---|---|---|
+| TV | 31,581 | 15,716 | 62,864 |
+| search | 20,562 | 10,233 | 40,930 |
+| social | 12,229 | 6,086 | 24,343 |
+| display | 7,628 | 3,796 | 15,185 |
+
+The model is Module 8's specification refitted with one lift test per channel added to its likelihood (the calibration of Module 9), so that this lab stands on its own. The question this module answers is **how to split** a budget, not **how large** it should be. Section 7 comes back to the second question.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $s_c$ | planned weekly spend on channel $c$ |
+| $r_c(s)$ | steady-state weekly sales response of channel $c$ to weekly spend $s$ |
+| $\beta_c$, $\lambda_c$ | the fitted saturation parameters (Module 8), per posterior draw |
+| $x_c$, $y_{\text{scale}}$ | the channel's largest weekly spend and the largest weekly sales in the data (the model's scaling) |
+| $B$ | the weekly budget |
+| $\ell_c$, $u_c$ | lower and upper bounds on $s_c$ |
+| $m_c(s)$ | marginal ROAS: $dr_c/ds$, the return on the next dollar |
+| $\mu$ | the Lagrange multiplier of the budget: the marginal ROAS shared at the optimum |
+| $q_{0.1}$, CVaR | the 10% quantile of a plan's weekly sales, and the mean of the draws below it |
+| $m$ | gross margin rate (30%) |
+| $n_c$, $\text{CLV}_c$ | new customers acquired per dollar on channel $c$, and a new customer's future margin |
+
+## 2. Response curves and marginal ROAS
+
+**Objective for this section:** derive steady-state response curves and marginal ROAS per channel from the posterior.
+
+Hold weekly spend on channel $c$ constant at $s$ for the quarter. Normalized adstock (Module 8) averages recent weeks with weights that sum to 1, so the adstock of a constant spend is that spend, and after a few weeks the channel adds the same sales every week. That **steady-state response** is Module 8's saturation curve scaled back to dollars:
+
+$$
+r_c(s) = \beta_c \, y_{\text{scale}} \cdot \frac{1 - e^{-\lambda_c s / x_c}}{1 + e^{-\lambda_c s / x_c}} .
+$$ {#eq-response}
+
+$\beta_c y_{\text{scale}}$ is the most the channel can add in a week; $\lambda_c / x_c$ says how fast spend gets there. Each posterior draw of $(\beta_c, \lambda_c)$ gives one curve, so the posterior gives a band of curves, and the band's width at the spend levels between the bounds is the model's uncertainty about what a plan will return.
+
+The curve is concave: each extra dollar adds less. On the true curve, doubling TV from its current $31,581 a week raises its weekly sales from $53,020 to $97,539, an increase of 84% for an increase in spend of 100% (FULL run).
+
+The quantity a budget decision needs is the **marginal ROAS**,
+
+$$
+m_c(s) = \frac{d r_c}{d s} \approx \frac{r_c(s + \varepsilon) - r_c(s - \varepsilon)}{2\varepsilon} ,
+$$ {#eq-marginal}
+
+the return on the next dollar (the lab uses a central difference with $\varepsilon$ = one dollar; its error shrinks with $\varepsilon^2$). Module 8 reported the **average** ROAS, $r_c(s)/s$, which includes the steep first dollars. On a concave curve that starts at zero, the marginal ROAS is below the average at every spend level. At the current plan, on the true curves (FULL run):
+
+| Channel | Average ROAS | Marginal ROAS |
+|---|---|---|
+| TV | 1.68 | 1.58 |
+| search | 3.02 | 2.00 |
+| social | 1.43 | 1.30 |
+| display | 0.58 | 0.36 |
+
+A dollar moved from one channel to another loses that channel's marginal return and gains the other's. Moving a dollar from display to search today gains about $2.00 − 0.36 = $1.64 of weekly sales. Only marginal ROAS says whether a move pays.
+
+## 3. The allocation problem
+
+**Objective for this section:** write a constrained allocator with `scipy.optimize.minimize` (SLSQP) and check it against the allocation that is optimal under the true parameters.
+
+The problem is
+
+$$
+\max_{s_1, \dots, s_C} \; \sum_c r_c(s_c)
+\quad \text{subject to} \quad
+\sum_c s_c = B, \qquad \ell_c \le s_c \le u_c .
+$$ {#eq-allocate}
+
+Its solution has a simple shape. Attach a multiplier $\mu$ to the budget constraint. At the optimum,
+
+$$
+m_c(s_c^*) = \mu \ \text{ if } \ell_c < s_c^* < u_c,
+\qquad
+m_c(\ell_c) \le \mu \ \text{ if } s_c^* = \ell_c,
+\qquad
+m_c(u_c) \ge \mu \ \text{ if } s_c^* = u_c .
+$$ {#eq-kkt}
+
+Every channel strictly inside its bounds earns the same marginal ROAS; otherwise moving a dollar from the lower one to the higher one would add sales. A channel at its lower bound returns less than $\mu$ even there, so it would get less if the bound allowed. Because every $r_c$ is concave, the problem has a single optimum, and a local method finds it.
+
+**SLSQP** (sequential least squares quadratic programming) handles exactly this: a smooth objective, bounds, and an equality constraint. It replaces the problem near the current point with a quadratic model and linearized constraints, solves that, and repeats. The lab's `allocate(total, bounds, curves)` calls `scipy.optimize.minimize(..., method="SLSQP", bounds=..., constraints=[{"type": "eq", "fun": lambda s: s.sum() - total}])` on the negative of total sales. On curves that are not concave, SLSQP can stop at a local optimum: start it from several points.
+
+FULL run, weekly spend:
+
+| Plan | TV | search | social | display | True weekly sales from media |
+|---|---|---|---|---|---|
+| current | 31,581 | 20,562 | 12,229 | 7,628 | 136,901 |
+| your `allocate`, model curves | 36,831 | 25,287 | 6,086 | 3,796 | 143,069 |
+| your `allocate`, true curves | 36,878 | 25,240 | 6,086 | 3,796 | 143,069 |
+| answer key (exact optimum) | 36,882 | 25,236 | 6,086 | 3,796 | 143,069 |
+
+The best plan puts **social and display at their lower bounds** and splits the rest between TV and search where their marginal ROAS is equal (about 1.53 dollars of sales per dollar on the true curves). Allocating on the model's posterior-mean curves gives a plan worth the same true sales as the exact optimum, $6,168 a week (4.5%) more than the current plan. Search, the channel with the highest average ROAS, does not get the most money: TV's curve is less saturated at these spend levels, so its next dollar earns as much.
+
+::: {.self-check}
+**Check yourself.** At some plan, search's marginal ROAS is 2.0 and social's is 1.3, and both are inside their bounds. What is the gain from moving $1,000 a week from social to search, roughly? Why does the gain shrink as you keep moving money?
+
+::: {.callout-tip collapse="true" title="Answer"}
+About $1{,}000 \times (2.0 - 1.3) = \$700$ of weekly sales, for a small move. As money moves, search climbs its curve (its marginal ROAS falls) and social moves down its curve (its marginal ROAS rises), so each further dollar gains less. The moves stop paying when the two marginal ROAS are equal (@eq-kkt), or when social hits its lower bound first, which is what happens here.
 :::
+:::
+
+## 4. PyMC-Marketing's optimizer, in its units
+
+**Objective for this section:** run PyMC-Marketing's budget optimizer with minimum and maximum bounds and reconcile it with your allocator.
+
+PyMC-Marketing plans a budget for a future window of dates: `mmm.budget_optimizer(start, end)` builds an optimizer for the 13 weeks after the data end, and `allocate_budget(total_budget=..., budget_bounds=...)` runs it, with SLSQP by default. Two things differ from your allocator, and both matter.
+
+- **Units.** In pymc-marketing 1.2.0, `total_budget` is a budget **per period** (per week here): the optimizer repeats it for each of the 13 weeks (read in the installed source). Pass a quarterly total and it recommends spending the quarter's budget every week, 13 times too much.
+- **Time.** The optimizer scores whole weeks, not the steady state: its window includes 8 weeks of history before the quarter (their spend still carries in) and 8 weeks after it (so the carry-over of the last weeks' spend counts).
+
+FULL run: the library's plan is TV $36,509, search $25,609, social $6,086, display $3,796. It differs from your model-curve plan by 0.4% of the budget, on TV and search only. Two implementations of the same idea, with different handling of time, agree to a fraction of a percent; that is the reconciliation the checkpoint asks for.
+
+## 5. Uncertainty: the bad case
+
+**Objective for this section:** evaluate allocations over posterior draws and choose one by a stated risk rule (mean versus 10% quantile of response).
+
+A plan's sales are uncertain because the model's parameters are. For each posterior draw, the lab computes the plan's incremental weekly sales (the optimizer's window total minus the same total with zero spend, divided by 13 weeks). Draw $j$ of two plans comes from the same parameter draw, so plans can be compared draw by draw, as Module 5 compared segments.
+
+Two summaries of the bad case:
+
+$$
+q_{0.1} = \text{the 10\% quantile of the draws},
+\qquad
+\text{CVaR}_{0.1} = \text{mean of the draws at or below } q_{0.1} .
+$$ {#eq-risk}
+
+The 10% quantile says how bad the bad case is; CVaR (conditional value at risk) also says how bad the tail is beyond it. A **risk-averse plan** maximizes $q_{0.1}$ instead of the mean. FULL run, weekly incremental sales from media:
+
+| Plan | Mean | 10% quantile | CVaR |
+|---|---|---|---|
+| current | 121,462 | 105,910 | 102,673 |
+| mean-optimal (PyMC-Marketing) | 129,081 | 113,546 | 110,026 |
+| risk-averse (best 10% quantile) | 129,081 | 113,555 | 110,019 |
+
+Two lessons.
+
+- **Even is not safe.** The current plan spreads money more evenly, yet its whole distribution, tail included, sits lower: it keeps money on channels with low marginal returns.
+- **The risk-averse plan barely moves** ($52 of the weekly budget). At the mean-optimal plan, TV and search share one marginal ROAS, and most of the uncertainty is in search's overall level, which every allowed plan carries. No reallocation within the bounds removes it. A lift test that narrows search's curve would (Module 9).
+
+Note the levels: the model's expected sales for a plan are about 10% below the true ones (129,081 against 143,062 for the mean-optimal plan), because its curves are biased low in level. Its estimate of the **gain** over the current plan, $7,620 a week (94% HDI $3,738 to $10,848), contains the true gain of $6,161. For a decision between plans the gain is what matters, and differences between plans cancel much of the shared error.
+
+## 6. The long run: a CLV-weighted objective
+
+**Objective for this section:** add a CLV-weighted term so channels that acquire more valuable customers get credit beyond short-run sales.
+
+Short-run sales miss what new customers buy later. Module 5 priced that: the margin a new customer brings after the first purchase, by acquisition channel. Adding it to the objective,
+
+$$
+V(s) = m \sum_c r_c(s_c) + \sum_c s_c \, n_c \, \text{CLV}_c ,
+$$ {#eq-clv-objective}
+
+where $n_c$ is the number of new customers a dollar on channel $c$ acquires and $\text{CLV}_c$ a new customer's future margin, **excluding the first purchase**, which the MMM's short-run sales already contain. The long-run term is linear in spend, so it adds a constant $n_c \text{CLV}_c$ to each channel's marginal value, $m\, m_c(s) + n_c \text{CLV}_c$, and the optimum moves money toward channels where that is largest until diminishing short-run returns or a bound stop it.
+
+The lab's inputs are **partly made up**, and the lab says so. The CLVs come from the retailer's truth (Module 5's data), mapped to media channels (search and social to their namesakes; TV and display, which have no acquisition-channel counterpart, get the mean of the two). The costs per new customer (TV $300, search $150, social $100, display $250) are assumptions: no workshop dataset measured acquisitions per media dollar when the lab was built. Resulting long-run margin per dollar of spend: TV 0.107, search 0.275, social 0.228, display 0.128.
+
+FULL run: the CLV-weighted plan moves $15,499 a week from TV to search and social: TV $21,010, search $37,255, social $9,939, display $3,796. On short-run sales alone it is worse than the mean-optimal plan (true 135,854 against 143,062 a week) and beats the current plan with posterior probability only 0.70. The trade it makes, less short-run sales for more valuable customers, is exactly what @eq-clv-objective asks for, and its size rests on two numbers we made up.
+
+::: {.self-check}
+**Check yourself.** With $m = 0.30$ and long-run margin per dollar of 0.107 for TV and 0.275 for search, at what difference in short-run marginal ROAS do TV and search have equal marginal value under @eq-clv-objective? Which way does that move money compared with the short-run optimum?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Equal marginal value means $0.30\, m_{\text{TV}} + 0.107 = 0.30\, m_{\text{search}} + 0.275$, so $m_{\text{TV}} - m_{\text{search}} = 0.168 / 0.30 = 0.56$. At the short-run optimum the two marginal ROAS are equal; now search's must be 0.56 lower than TV's, so money moves to search until its curve has flattened that much more. The size of the move depends on the 0.275 and 0.107, which rest on made-up acquisition costs.
+:::
+:::
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** The rule, stated before the numbers: recommend the mean-optimal plan unless its 10% quantile is below the current plan's; then recommend the risk-averse plan if its 10% quantile beats the current plan's, and otherwise keep the current plan. Use the CLV-weighted plan only if the cost per new customer and the CLV by channel are measured; here the costs are made up, so it is a sensitivity, not a recommendation.
+
+FULL run, weekly budget $72,000 for 13 weeks:
+
+- The 10% quantile of the mean-optimal plan ($113,546) is above the current plan's ($105,910), so the rule picks **the mean-optimal plan**: **TV $36,509, search $25,609, social $6,086, display $3,796 a week.**
+- Expected incremental sales $129,081 a week (94% HDI $105,343 to $157,483); a gain over the current plan of $7,620 a week (94% HDI $3,738 to $10,848); posterior probability that it beats the current plan 1.00.
+- The risk-averse plan is the same to within $52. The CLV-weighted plan (TV $21,010, search $37,255, social $9,939) shows how far long-run value could move the split if the acquisition costs were measured.
+
+The truth confirms the choice: the plan's true weekly sales from media are $143,062, against $143,069 at the true optimum and $136,901 for the current plan. What would change it: a lift test that narrows search's response curve (the widest band), measured acquisition costs for the CLV-weighted plan, or new bounds.
+:::
+
+**One more question the allocation does not answer.** At the optimum the shared marginal ROAS is about 1.53 on the true curves: the last dollar returns $1.53 of sales, which at a 30% margin is $0.46 of margin. On short-run sales alone, the last dollars of this budget lose money, which matches Module 8's finding that no channel pays back at a break-even ROAS of 3.33. Whether to spend less in total, or whether the long-run value of new customers (@eq-clv-objective) justifies the spend, is a decision about the size of the budget. It needs the measured acquisition costs this lab assumed.
+
+## Summary
+
+- With normalized adstock, a constant weekly spend has a steady-state weekly response equal to the saturation curve in dollars (@eq-response).
+- Budget decisions need the marginal ROAS (@eq-marginal), which is below the average ROAS on every concave curve.
+- At the optimal split of a fixed budget, every channel inside its bounds has the same marginal ROAS (@eq-allocate, @eq-kkt). Here social and display sat at their lower bounds and TV and search shared the rest.
+- SLSQP finds the optimum of this concave problem. Your allocator, PyMC-Marketing's (whose `total_budget` is per period) and the exact optimum agreed to within 0.4% of the budget.
+- Evaluate plans draw by draw. The mean-optimal plan beat the current one with probability 1.00 and had the better bad case too (@eq-risk); a risk-averse objective barely moved it.
+- A CLV-weighted objective (@eq-clv-objective) moves money toward channels that bring valuable customers; how far depends on acquisition costs that must be measured.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 10 |
+|---|---|---|
+| @eq-response | steady-state response curve | **Exercise 1**: `response_curve(spend, beta, lam, x_scale, y_scale)`; Checkpoint 1 checks it against the true curves, broadcasting over draws, and zero response at zero spend |
+| @eq-marginal | marginal ROAS | **Exercise 2**: `marginal_roas(spend, curve_fn)`; Checkpoint 2 compares with the exact slope and checks it falls with spend |
+| @eq-allocate, @eq-kkt | the allocation problem and its optimum | **Exercise 3**: `allocate(total, bounds, curves)` with SLSQP; Checkpoint 3 checks the budget, the bounds, sales within 0.5% of the true optimum and equal marginal ROAS inside the bounds |
+| The library's optimizer | budget per period, with carry-in and carry-over | **Exercise 4**: `pymc_allocation(opt, weekly_total, bounds)`; Checkpoint 4 checks the weekly total and reconciles the plan with yours within 5% of the budget |
+| @eq-risk | 10% quantile and CVaR | **Exercise 5**: `allocation_risk(draws, q)`; Checkpoint 5 checks it on the draws 1 to 10 and on the real plans; the risk-averse plan is provided |
+| @eq-clv-objective | long-run value of a plan | **Exercise 6**: `long_run_value(plan, curves, margin, new_customers_per_dollar, clv)`; Checkpoint 6 checks it with the CLVs set to zero and with them, then allocates on it |
+
+## Gotchas
+
+- **Average ROAS is not marginal ROAS.** Allocating by Module 8's average ROAS would pour money into search past the point where its next dollar pays.
+- **`total_budget` is per period** in pymc-marketing 1.2.0's `allocate_budget`; a quarterly total is spent every week.
+- **Bounds decide a lot.** Two of four channels ended at their lower bounds; the bounds, not the model, set their spend. Say so when you present the plan.
+- **SLSQP is local.** These curves are concave, so one start suffices; with other curve shapes, start from several points.
+- **Compare plans draw by draw.** The level of every plan carries the model's shared error; the difference between plans carries much less of it.
+- **"Even" is not "safe".** Spreading money across low-return channels lowers the whole distribution, tail included.
+- **A CLV-weighted plan is only as good as its acquisition costs and CLVs.** Here the costs are assumptions.
+- **Allocation is not budget size.** The optimal split of a budget can still be a budget whose last dollars lose money.
+
+## Next steps
+
+Allocation decides how much to spend on each channel. It treats every customer the same: a dollar of email or retention spend is worth the same whoever receives it. But an offer that makes one customer buy can be wasted on another who would have bought anyway, and Module 5's retention break-even was provisional for exactly that reason. Module 11 asks **whom** to target: it estimates, customer by customer, how much an email offer changes behaviour, evaluates targeting rules on held-out data, and sends the offer only where the expected incremental margin exceeds its cost.
+
+## Further reading
+
+1. SciPy, [`minimize(method="SLSQP")`](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html). The optimizer both allocators use, with bounds and constraints.
+2. PyMC-Marketing, [budget allocation example](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_budget_allocation_example.html). The library's optimizer on a fitted MMM.
+3. Jin, Y., Wang, Y., Sun, Y., Chan, D., & Koehler, J. (2017). [*Bayesian methods for media mix modeling with carryover and shape effects*](https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/). Google. Response curves from a Bayesian MMM, and their uncertainty.
+4. Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S. (2006). [Modeling customer lifetime value](https://doi.org/10.1177/1094670506293810). *Journal of Service Research*, 9(2), 139–155. Using CLV to set spending on acquisition, the idea behind the CLV-weighted objective.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.
