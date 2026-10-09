@@ -160,10 +160,10 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M8 Bayesian MMM
 - [ ] M2 BTYD
 - [ ] M11 uplift (EconML + grf)
-- [ ] M7 geo (Python SC/DiD + R CausalImpact/GeoLift)
+- [x] M7 geo (Python SC/DiD + R CausalImpact/GeoLift) — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
 - [ ] M1 customer base (DuckDB)
 - [ ] M4 monetary value and CLV
-- [ ] M6 experiments
+- [x] M6 experiments — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
 - [ ] M3 covariates (CLVTools) + BTYD vs ML
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
