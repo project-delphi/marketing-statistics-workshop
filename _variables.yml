@@ -400,7 +400,7 @@ modules:
     day: d4
     minutes: {briefing: 50, lab: 55, debrief: 10}
     language: [python, r]
-    language_why: "Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation. An R demo of Meta's Robyn runs only if the Robyn spike passes (see DECISIONS.md)."
+    language_why: "Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation; a short R notebook runs Meta's Robyn, an R package, for comparison (its spike passed in Docker; the Colab run is pending)."
     summary: "Feed geo-test results into the MMM as extra likelihood terms, validate it with time-slice cross-validation and parameter stability, and see what an MMM cannot identify, such as a channel whose spend follows demand."
     objectives:
       - "Show on synthetic data how a demand-following channel biases its ROAS in an uncalibrated MMM."
