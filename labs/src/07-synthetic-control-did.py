@@ -475,7 +475,7 @@ with workshop.checkpoint(3):
           f" {1 / (len(placebo_ratios) + 1):.3f}); with the campaign removed: {p_no_lift:.3f}")
 
 # %% [markdown]
-# Look at whether the colored treated gap leaves the grey band of placebo gaps inside the test
+# Look at whether the colored treated gap leaves the gray band of placebo gaps inside the test
 # window, and stays inside it before.
 
 # %%
