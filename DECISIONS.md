@@ -28,6 +28,23 @@ Newest first within each section.
 - GeoLift and augsynth are GitHub-only and pure R → built at pinned commits into `cran/` and served
   from the site, so a class does not hit GitHub's anonymous API limit.
 
+## Open issues found while building labs
+
+### GeoLift() fails with two or more test markets at the pinned commits (2026-10-09, Module 7 build)
+- `GeoLift()` errors inside augsynth ("Tibble columns must have compatible sizes") when the test group has
+  two or more markets, reproduced on GeoLift's own chicago + portland example; one market works.
+  `GeoLiftMarketSelection` and `GeoLiftPower` are not affected, so the Day 3 clinic demo runs.
+- Consequence: multi-market post-test analysis with `GeoLift()` is not used in the labs; the Python
+  synthetic control and R CausalImpact cover the analysis. Options to fix later: try another augsynth
+  commit, or aggregate treated markets before calling `GeoLift()`. Not yet investigated.
+
+### BLAS threads oversubscribe a CPU-limited container (2026-10-09, Module 7 build)
+- In Docker with `--cpus 2` on a 10-core host, OpenBLAS starts 10 threads and SciPy's SLSQP slowed ~75×.
+  Module 7's Python lab now calls `threadpool_limits(1, "blas")` (threadpoolctl 3.7.0, pinned).
+- Colab and the GitHub runner expose only their own cores to the process, so they are not expected to be
+  affected (unverified on Colab). Run records also report the host's core count (`os.cpu_count()`)
+  under `--cpus 2`; their notes say so.
+
 ## Spikes
 
 (Results are added below as each spike runs.)
