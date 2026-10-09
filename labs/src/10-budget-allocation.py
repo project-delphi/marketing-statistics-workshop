@@ -615,7 +615,9 @@ risk_table = pd.DataFrame({
                        ("mean-optimal", plan_pymc, draws_mean_opt),
                        ("risk-averse (best 10% quantile)", plan_risk, draws_risk)]
 })
-print(f"Risk-averse plan: SLSQP {risk_fit.message.lower()} in {risk_seconds:.1f} s")
+moved = (plan_risk - plan_pymc).abs().sum() / 2
+print(f"Risk-averse plan: SLSQP from the mean-optimal plan, {risk_fit.nit} iterations in"
+      f" {risk_seconds:.1f} s ({risk_fit.message}); it moved ${moved:,.0f} of the weekly budget.")
 risk_table.round(0)
 
 # %% [markdown]

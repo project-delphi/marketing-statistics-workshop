@@ -6,7 +6,7 @@
 #   control_columns=, yearly_seasonality=, model_config=) (mmm/mmm.py); .build_model(X, y);
 #   .sample_prior_predictive(X, y, samples=, random_seed=) returns a Dataset whose y is in model
 #   units (sales / max sales); .fit(X, y, nuts_sampler="nutpie", chains=, draws=, tune=,
-#   target_accept=, random_seed=, progressbar=) returns an xarray DataTree;
+#   target_accept=, random_seed=, progressbar=False) returns an xarray DataTree;
 #   .sample_posterior_predictive(X, extend_idata=True, random_seed=, progressbar=) (y in model units);
 #   .incrementality.contribution_over_spend(frequency="all_time", start_date=, end_date=)
 #   (mmm/incrementality.py) has dims (chain, draw, channel). Over all weeks it equals the sum of
