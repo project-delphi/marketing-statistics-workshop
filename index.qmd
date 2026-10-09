@@ -1,0 +1,124 @@
+---
+title: "{{< var workshop.title >}}"
+subtitle: "{{< var workshop.subtitle >}}"
+toc: false
+page-layout: full
+# custom.scss hides the title block on this page: the hero below carries the title.
+body-classes: landing
+---
+
+::: {.hero}
+[{{< var workshop.org >}} · A hands-on workshop]{.eyebrow}
+
+# {{< var workshop.title >}} {.unnumbered .unlisted}
+
+[{{< var workshop.subtitle >}}]{.hero-subtitle}
+
+::: {.hero-lead}
+Five days from a raw transaction log to a budget and a target list. You find out who your customers are and who is still active, what each one is worth, whether the marketing caused the sales, where the next dollar should go and whom to send an offer. Every method is first fitted to synthetic data with a known answer, so you see whether it recovers the truth before you trust it on real data.
+:::
+
+::: {.hero-actions}
+[Start here](prepare.qmd){.btn-primary-action} [Intro slides](slides/welcome.qmd) [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
+:::
+
+{{< include /_includes/facts.md >}}
+:::
+
+::: {.callout-note appearance="simple"}
+{{< include /_includes/readiness-summary.md >}}
+:::
+
+## The five days {#days}
+
+::: {.section-lede}
+Each day answers one question, and each module ends in a business decision. A module is a short briefing, a hands-on lab in Google Colab and a debrief.
+:::
+
+{{< include /_includes/days.md >}}
+
+::: {.prose}
+See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd). Before Day 1, [Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd) is optional pre-work: it checks that Colab runs for you and warms up the SQL and data-frame skills Day 1 uses.
+:::
+
+## The path {#path}
+
+::: {.section-lede}
+Each step fixes a failure of the one before it. The same retailer and its data come back from module to module, so each improvement is measured on the same customers, not asserted.
+:::
+
+{{< include /_includes/path.md >}}
+
+## How the parts connect {#integration}
+
+::: {.section-lede}
+The methods are not a list of separate techniques. Each one produces an input that a later decision needs.
+:::
+
+::: {.integration}
+::: {.integration-figure .inline-svg src="/images/integration.svg"}
+:::
+
+::: {.integration-guide}
+Read each lane from top to bottom, starting in the middle. Every lane ends in a decision.
+
+1. **Customer value** (middle). Transaction logs become customer lifetime value (CLV): buy-till-you-die (BTYD) models estimate how often each customer buys and whether they are still active, and the Gamma-Gamma model estimates how much they spend.
+2. **Media and lift** (left). Geo tests measure what a campaign added against a counterfactual. That measured lift then constrains the Bayesian marketing mix model (MMM), whose response curves drive the budget allocator.
+3. **Targeting** (right). Randomized experiments train uplift models, which estimate who responds to an offer, not just who buys.
+
+CLV connects the lanes. It is the long-run value the allocator maximizes and the margin that decides whether an offer pays for itself. The capstone on Day 5 runs the whole chain for one retailer.
+:::
+:::
+
+## What you will be able to do {#outcomes}
+
+::: {.outcomes}
+- Turn a raw transaction log into a customer table and cohorts with SQL in DuckDB.
+- Fit BG/NBD and Pareto/NBD models, check that they recover known parameters, and say which customers are probably still active.
+- Add customer covariates with CLVTools in R, and compare the probabilistic models with gradient boosting on held-out data.
+- Estimate customer lifetime value in dollars with an interval, and turn it into acquisition cost caps and retention break-even points.
+- Plan and analyze experiments: power and minimum detectable effect, sample ratio mismatch, peeking, CUPED.
+- Estimate the lift of a geo test with synthetic control, difference-in-differences and CausalImpact, and check it with placebo tests.
+- Fit a Bayesian marketing mix model, calibrate it with lift tests, and validate it out of time.
+- Allocate a budget across channels under uncertainty, with constraints and a CLV-weighted objective.
+- Estimate uplift with causal forests and meta-learners, evaluate it with Qini curves, and target where the margin exceeds the cost of the offer.
+:::
+
+## Who it is for {#audience}
+
+::: {.prose}
+{{< var workshop.audience >}}
+
+You do not need a background in econometrics or Bayesian statistics: each model is introduced from what a practitioner needs to use it and check it. Not sure you are ready? The 15-minute [entry check](prepare.qmd#entry-check) tells you, area by area, whether to review anything and what to read.
+
+You need a Google account for Colab and a current browser on a laptop. Labs run in Colab in Python or R; a local Docker image and documented AWS options are on the [Setup](setup.qmd) page.
+:::
+
+## How each module works {#modules}
+
+::: {.prose}
+Each module is a **briefing** that motivates and derives the method, a **lab** in which you build it in a Colab notebook, and a short **debrief** in which the room compares results and states the decision. The times for each module are on the [schedule](schedule.qmd).
+:::
+
+Every lab follows one rhythm:
+
+::: {.rhythm}
+1. **Predict** what a cell will show before you run it, and write it down.
+2. **Run** it.
+3. **Explain** the result, especially where it differs from your prediction.
+4. **Check** your work against a checkpoint that passes or fails, often against the known truth of the synthetic data.
+:::
+
+::: {.prose}
+Each exercise has its solution folded directly beneath it, for when you are stuck. Each lab ends with its business decision and an optional stretch section for those who finish early.
+:::
+
+## Where to start {#start}
+
+::: {.start-steps}
+1. **[Take the entry check](prepare.qmd).** Fifteen minutes, before the workshop, to see what to review.
+2. **[Set up](setup.qmd).** Open a lab in Colab and run the setup check; no install needed on your laptop.
+3. **[Do the pre-work](modules/00-prework.qmd).** Optional Module 0: the environment check and a short SQL and data-frame warm-up.
+:::
+
+Everything that has run, and where, is on the [readiness](readiness.qmd) page. The reading list is on [References](references.qmd).

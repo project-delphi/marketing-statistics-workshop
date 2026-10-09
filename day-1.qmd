@@ -1,0 +1,25 @@
+---
+title: "Day 1"
+subtitle: "{{< var days.d1.title >}}"
+toc: false
+---
+
+::: {.day-question}
+{{< var days.d1.question >}}
+:::
+
+::: {.callout-tip appearance="simple"}
+**Before Day 1: [Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd), optional pre-work.** Run the environment check in Colab and the short SQL and data-frame warm-up before you arrive. The [intro slides](slides/welcome.qmd) open the day.
+:::
+
+## The day's modules {#modules}
+
+{{< include /_includes/day-1.md >}}
+
+{{< include /days/_day-1-notes.md >}}
+
+## Run sheet {#run-sheet}
+
+{{< include /_includes/run-1.md >}}
+
+Times are on the [schedule](schedule.qmd). Every lab opens from the [notebooks](notebooks.qmd) page too.

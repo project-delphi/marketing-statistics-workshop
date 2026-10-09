@@ -1,0 +1,21 @@
+---
+title: "Day 3"
+subtitle: "{{< var days.d3.title >}}"
+toc: false
+---
+
+::: {.day-question}
+{{< var days.d3.question >}}
+:::
+
+## The day's modules {#modules}
+
+{{< include /_includes/day-3.md >}}
+
+{{< include /days/_day-3-notes.md >}}
+
+## Run sheet {#run-sheet}
+
+{{< include /_includes/run-3.md >}}
+
+Times are on the [schedule](schedule.qmd). Every lab opens from the [notebooks](notebooks.qmd) page too.

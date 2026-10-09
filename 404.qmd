@@ -1,0 +1,14 @@
+---
+title: "Page not found"
+toc: false
+---
+
+::: {.not-found}
+There is no page at this address. It may have moved when the site was reorganized.
+
+- [Home](index.qmd): the five days and the path through the modules.
+- [Schedule](schedule.qmd) and the day pages, from the **Days** menu.
+- [Notebooks](notebooks.qmd): every lab, one click to Colab.
+
+The search box in the navigation bar searches every page.
+:::

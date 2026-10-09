@@ -1,0 +1,9 @@
+---
+title: "Readiness"
+subtitle: "What has run, where, and what is still missing"
+page-layout: full
+---
+
+This page says, notebook by notebook, what is known about whether the workshop can be taught as designed. It is generated from the run records in [`runs/`]({{< var repo.url >}}/tree/main/runs) and the CI evidence, with the rules in [`_variables.yml`]({{< var repo.url >}}/blob/main/_variables.yml); it is never written by hand. A run time appears here only if a run record exists, and a run on a laptop, in Docker or on CI is never shown as a Colab run.
+
+{{< include /_includes/readiness.md >}}
