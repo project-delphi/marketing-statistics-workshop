@@ -5,7 +5,7 @@
 |---|---|---|
 | 09:00–09:15 | [Warm-up]{.slot-debrief} |  |
 | 09:15–10:05 | [Briefing]{.slot-briefing} | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd): the briefing. |
-| 10:05–11:00 | [Lab]{.slot-lab} | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 10:05–11:00 | [Lab]{.slot-lab} | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/08-bayesian-mmm.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 11:00–11:10 | [Debrief]{.slot-debrief} | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd): debrief on the decision. Decide which channels pay back: list channels whose ROAS exceeds the break-even ROAS (1 ÷ gross margin) with posterior probability ≥ 0.9, channels below it with probability ≥ 0.9, and channels the data cannot yet decide. |
 | 11:10–11:25 | [Break]{.slot-break} |  |
 | 11:25–12:15 | [Briefing]{.slot-briefing} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): the briefing. |
@@ -13,7 +13,7 @@
 | 13:10–13:20 | [Debrief]{.slot-debrief} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): debrief on the decision. Decide which channel's ROAS is reliable enough to move budget on now, and which channel needs a new lift test first. |
 | 13:20–14:15 | [Lunch]{.slot-break} |  |
 | 14:15–15:00 | [Briefing]{.slot-briefing} | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd): the briefing. |
-| 15:00–15:55 | [Lab]{.slot-lab} | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 15:00–15:55 | [Lab]{.slot-lab} | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/10-budget-allocation.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 15:55–16:05 | [Debrief]{.slot-debrief} | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd): debrief on the decision. Recommend next quarter's weekly spend per channel within the agreed bounds, with expected incremental sales and a 94% interval, and show how the recommendation changes under a risk-averse or a CLV-weighted objective. |
 | 16:05–16:15 | [Break]{.slot-break} |  |
 | 16:15–16:35 | [Wrap-up]{.slot-debrief} |  |

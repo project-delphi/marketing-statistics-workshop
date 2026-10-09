@@ -10,7 +10,7 @@ Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonal
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python. Python. PyMC-Marketing 1.2.0 is a Bayesian MMM that runs on Colab's CPU; Google's Meridian conflicts with it on package versions and its docs recommend a GPU (see DECISIONS.md).
 
 Labs
-:   Python: `labs/python/08-bayesian-mmm.ipynb` (in preparation)
+:   Python: `labs/python/08-bayesian-mmm.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic weekly MMM (mmm_weekly.csv, seed 2028)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_weekly.csv), [PyMC-Marketing mmm_example.csv (simulated demo data)](https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/mmm_example.csv)
 :::
 
 ::: {.module-outcomes}

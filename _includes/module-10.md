@@ -10,7 +10,7 @@ Turn response curves into a budget: write a constrained SLSQP allocator, compare
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/10-budget-allocation.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python. Python. The optimizer works directly on PyMC-Marketing's posterior draws, and SciPy's SLSQP, which you call yourself, is the algorithm the library uses.
 
 Labs
-:   Python: `labs/python/10-budget-allocation.ipynb` (in preparation)
+:   Python: `labs/python/10-budget-allocation.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic weekly MMM (mmm_weekly.csv, seed 2028)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_weekly.csv), [Synthetic lift tests (mmm_lift_tests.csv)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_lift_tests.csv)
 :::
 
 ::: {.module-outcomes}
