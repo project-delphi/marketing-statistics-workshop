@@ -1,0 +1,8 @@
+<!-- STUB created by the UI Expert; the owner's file replaces it -->
+
+---
+title: "References"
+subtitle: "Reading list"
+---
+
+This page is written by the Academic Director: every entry fetched, with the date it was verified.

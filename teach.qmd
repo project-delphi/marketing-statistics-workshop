@@ -1,0 +1,8 @@
+<!-- STUB created by the UI Expert; the owner's file replaces it -->
+
+---
+title: "Teach"
+subtitle: "For instructors"
+---
+
+This page is written by the Pedagogy Expert: timings, common failures, debrief prompts and where the solutions live.

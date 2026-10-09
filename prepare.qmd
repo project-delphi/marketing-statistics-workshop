@@ -1,0 +1,12 @@
+<!-- STUB created by the UI Expert; the owner's file replaces it -->
+
+---
+title: "Start here"
+subtitle: "Before the workshop"
+---
+
+This page is written by the Pedagogy Expert: what to do before Day 1, and the entry check.
+
+## Entry check {#entry-check}
+
+The 15-minute entry check goes here.

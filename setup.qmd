@@ -1,0 +1,10 @@
+<!-- STUB created by the UI Expert; the owner's file replaces it -->
+
+---
+title: "Setup"
+subtitle: "Colab, local Docker and AWS"
+---
+
+This page is written by the Technical Expert: running the labs on Colab (Python and R), locally in Docker, and on AWS, with install times measured from run records.
+
+{{< include /_includes/install-times.md >}}
