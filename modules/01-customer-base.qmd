@@ -59,7 +59,7 @@ purchase_date - LAG(purchase_date)
 
 `PARTITION BY customer_id` makes each customer's rows a group; `ORDER BY purchase_date` puts them in date order; `LAG` reads the previous row's value. On CDNOW, 14.6% of the 4,339 gaps between purchase days are shorter than 7 days (FULL run). That number is why the workshop measures time as **days divided by 7** rather than in calendar weeks: counting by week would merge those purchases with the one before and understate how often people buy.
 
-## 3. The RFM table: three numbers per customer
+## 3. The RFM table: three numbers per customer {#rfm-table}
 
 **Objective for this section:** compute frequency, recency and customer age with window functions, using exactly the definitions the Module 2 models need.
 
@@ -139,7 +139,7 @@ The December 2009 group is not a cohort of new customers. The log starts that mo
 :::
 :::
 
-## 5. Unobserved churn and the recency rule
+## 5. Unobserved churn and the recency rule {#recency-rule}
 
 **Objective for this section:** explain why churn is unobserved in a non-contractual setting, and measure how often a "no purchase in 90 days" rule misclassifies customers against known truth.
 
