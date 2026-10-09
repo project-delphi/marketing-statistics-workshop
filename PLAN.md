@@ -157,7 +157,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [TE] loaders: CDNOW, Online Retail II, Hillstrom, mmm_example, Prop 99, sBG counts (sha256 + fallback)
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
-- [ ] M8 Bayesian MMM
+- [x] M8 Bayesian MMM (built + Docker run; Colab pending)
 - [ ] M2 BTYD
 - [ ] M11 uplift (EconML + grf)
 - [ ] M7 geo (Python SC/DiD + R CausalImpact/GeoLift)
@@ -167,7 +167,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [ ] M3 covariates (CLVTools) + BTYD vs ML
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
-- [ ] M10 budget allocation
+- [x] M10 budget allocation (built + Docker run; Colab pending)
 - [ ] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`; lab still to build)
 
 ### Phase 6 — site and docs
