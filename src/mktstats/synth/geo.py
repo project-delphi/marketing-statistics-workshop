@@ -91,7 +91,7 @@ def geo_panel(
             "date": np.tile(dates, n_geos),
             "geo": np.repeat(geos, n_weeks),
             "region": np.repeat(regions[region_of], n_weeks),
-            "sales": y.ravel(),
+            "sales": y.ravel().astype(np.int64),
             "treated": np.repeat(treated, n_weeks),
             "post": np.tile(post, n_geos),
         }

@@ -205,11 +205,11 @@ def mmm(
 
     weekly = pd.DataFrame({"date_week": dates})
     for c in channels:
-        weekly[c] = spend[c]
+        weekly[c] = spend[c].astype(np.int64)
     weekly["price_index"] = price
     weekly["holiday"] = holiday
     weekly["t"] = t
-    weekly["y"] = y
+    weekly["y"] = y.astype(np.int64)
 
     # ROAS with carry-out: extend spend with l_max - 1 zero weeks and sum the tail as well
     roas_carry = {}
