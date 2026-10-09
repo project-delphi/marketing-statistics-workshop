@@ -17,6 +17,7 @@ progress
 lifecycle
 osqp
 FNN
+knitr
 Formula
 # Robyn (Module 9): R package plus reticulate; Python nevergrad comes from requirements.txt
 Robyn
