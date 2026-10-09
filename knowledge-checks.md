@@ -10,8 +10,8 @@ adding it; if it is added, point teach.qmd's link at the page instead of GitHub)
 from _variables.yml through var shortcodes, which resolve only when the page is rendered.
 Questions are numbered module.question, with anchors #q1-1 etc. The day pages' warm-ups use some of
 them; the "Used in" line says where. Worked numbers in questions are invented for the question and
-computed by hand; none is a lab result. Questions marked "check against _variables.yml decision"
-depend on the final wording of that module's decision.
+computed by hand; none is a lab result. The last question of each module follows that module's
+decision as worded in modules.mNN.decision (checked 2026-10-09); if a decision changes, check it.
 Library facts checked 2026-10-09: CLVTools 0.12.1 reference manual (covariates scale the Gamma rate
 by exp(-gamma z) in the BG/NBD with static covariates); UCI Online Retail II page (invoice codes
 starting with "c" are cancellations; CC BY 4.0); MineThatData blog (Hillstrom: 64,000 customers,
@@ -54,10 +54,10 @@ Collapse lines to purchase occasions (one invoice, or one customer-day, is one p
 The June cohort has not been observed for six months yet: its cell is missing (right-censored), not zero. Averaging it as 0% drags month-6 retention down. Average only cohorts observed for at least six months, and say how many there are.
 :::
 
-[**1.5**]{#q1-5} Which customers would you treat as active for a retention campaign, using only what Module 1 computes, and what does that rule miss? <!-- check against _variables.yml decision -->
+[**1.5**]{#q1-5} A colleague proposes to stop retargeting anyone who has not bought for 90 days. Using only what Module 1 computes, how do you decide whether the rule is good enough, and what does it miss?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-A rule on time since last purchase (for example, bought within the last 90 days), perhaps with a minimum frequency. It misses that customers buy at different rates: 90 days of silence is normal for a customer who buys twice a year and alarming for one who buys weekly. Module 2's P(alive) uses each customer's own rate.
+Count how many customers it would drop who are still active, and compare the margin their next purchases would bring with the retargeting cost the rule saves. On real data you cannot see who is still active, which is why Lab 1 measures it on the synthetic retailer, where the truth is known. The rule misses that customers buy at different rates: 90 days of silence is normal for a customer who buys twice a year and alarming for one who buys weekly. Module 2's P(alive) uses each customer's own rate.
 :::
 
 ## Module 2 · {{< var modules.m02.title >}}
@@ -88,10 +88,10 @@ Exactly 1. In the BG/NBD, dropout can only happen right after a repeat purchase,
 Fit on a calibration period and compare its forecast with what happened in a holdout period: total repeat purchases, and purchases by calibration-frequency group. On synthetic data, also check that the true parameters fall inside their named intervals (for example, 94% HDI). A model that fits the calibration period but misses the holdout is not ready for decisions.
 :::
 
-[**2.5**]{#q2-5} A rule says "stop retargeting customers with P(alive) below 0.2". What does it need before it is a business decision? <!-- check against _variables.yml decision -->
+[**2.5**]{#q2-5} A rule says "stop retargeting customers with P(alive) below 0.2". What does it need before it is a business decision?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Money: the cost of retargeting a customer and the expected margin they would bring. Retarget when P(alive) × expected margin while active exceeds the cost; the threshold follows from that, not from habit. And uncertainty: report how many customers fall below the threshold with an interval. Note that P(alive) says who is likely still buying, not whom retargeting would change; that is uplift, Module 11.
+Money: the cost of contacting a customer, the margin per purchase, and the share of alive customers the ad makes buy (the response rate). Retarget when P(alive) × margin × response rate exceeds the cost, so the threshold is cost ÷ (margin × response rate); it follows from the economics, not from habit. And uncertainty: report how many customers fall below the threshold with an interval. Note that P(alive) says who is likely still buying, not whom retargeting would change; that is uplift, Module 11.
 :::
 
 ## Module 3 · {{< var modules.m03.title >}}
@@ -120,10 +120,10 @@ Leakage is when a feature uses information from the period being predicted, for 
 Any two of: it gives each customer a P(alive) and a forecast for any horizon, not only the one the machine-learning label was built for; its parameters have a meaning you can check and explain; it gives intervals from the model; it needs only the transaction log. Which model wins depends on the data and the metric; the lab reports the result that ran, not an assumed winner.
 :::
 
-[**3.5**]{#q3-5} The covariate effect says a channel's customers buy more often. Should acquisition budget move to that channel? <!-- check against _variables.yml decision -->
+[**3.5**]{#q3-5} The covariate effect says a channel's customers buy more often. Should acquisition budget move to that channel?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Not on that alone. The effect describes the customers the channel has brought, who may differ for reasons the channel did not cause; more spend may bring in different, marginal customers; and the decision needs each channel's cost per acquired customer and their value in money (Day 2).
+Not on that alone. The effect describes the customers the channel has brought, who may differ for reasons the channel did not cause; more spend may bring in different, marginal customers; and the decision needs each channel's cost per acquired customer and their value in money (Day 2). What Module 3 decides is narrower: whether the channels differ enough to be treated differently in forecasts (in Lab 3, a rate more than 20% away from the reference channel with a 90% interval that excludes no difference).
 
 **Used in:** Day 2 warm-up (W4).
 :::
@@ -158,10 +158,10 @@ $\sum_{t \ge 1} 100 \times (0.8/1.1)^t = 100 \times 0.8/(1.1 - 0.8) \approx \$26
 Not necessarily. If each customer has their own constant renewal probability, the less loyal ones leave first, so the survivors are increasingly the loyal ones and the aggregate rate rises with no change in any individual. This is the shifted-beta-geometric (sBG) model's point; projecting the year-1 rate forward would undervalue the customers.
 :::
 
-[**4.5**]{#q4-5} Finance asks for "the" customer lifetime value. Why give a range, and which assumptions should be stated beside it? <!-- check against _variables.yml decision -->
+[**4.5**]{#q4-5} Finance asks for "the" customer lifetime value. Why give a range, and which assumptions should be stated beside it?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-The value depends on the horizon, the discount rate and whether it is margin or revenue, and the model's estimate has its own uncertainty. State margin, horizon and discount rate, give the model's interval (type and probability), and show how much the value moves under other reasonable horizons or rates.
+The value depends on the horizon, the discount rate and whether it is margin or revenue, and the model's estimate has its own uncertainty. State margin, horizon and discount rate, give the model's interval (type and probability), show how much the value moves under other reasonable horizons or rates, and name the assumption (horizon, discount rate or spend model) that moves it most.
 :::
 
 ## Module 5 · {{< var modules.m05.title >}}
@@ -192,7 +192,7 @@ No. Compute the difference in each posterior draw and look at the interval of th
 The interval bounds (with their type and probability), P(alive), the horizon, discount rate and margin assumption, the model version and the date of the data it was fitted on. Downstream users need the uncertainty to set thresholds and the provenance to know when the numbers are stale.
 :::
 
-[**5.5**]{#q5-5} What must the first sentence of a decision memo to a CFO contain? <!-- check against _variables.yml decision -->
+[**5.5**]{#q5-5} What must the first sentence of a decision memo to a CFO contain?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 The one recommendation, the money it concerns, and how sure you are: for example, "Cap acquisition cost at \$X for channel Y; we are about 95% confident new customers there are worth more than that, over a 3-year horizon at a 10% discount rate." Assumptions and what would change the recommendation follow.
@@ -264,10 +264,10 @@ Apply the same method where nothing happened: to control regions as if treated, 
 With few regions, sales that are correlated week to week and an estimator like synthetic control, no simple formula applies. Inject known lifts into past data, run the exact analysis you plan, and count how often it detects them; that gives the smallest lift the design can detect.
 :::
 
-[**7.5**]{#q7-5} The geo test's 90% interval for incremental margin is \$20k to \$140k and the campaign cost \$60k. Should you scale it? <!-- check against _variables.yml decision -->
+[**7.5**]{#q7-5} The geo test's 90% interval for incremental margin is \$20k to \$140k and the campaign cost \$60k. Should you scale it?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-The data cannot say: the cost lies inside the interval. Under a rule fixed in advance such as "scale if the lower end exceeds the cost", the answer is no, not yet: extend the test, or redesign it so that the detectable lift is below break-even. Report the posterior probability that the margin exceeds \$60k, if the analysis gives one.
+The data cannot say: the cost lies inside the interval. Under a rule fixed in advance such as "scale if the lower end exceeds the cost", the answer is no, not yet: extend the test, or redesign it so that the detectable lift is below break-even. Report the implied return on the spend with its range (margin ÷ cost: about 0.33 to 2.3 times), and the posterior probability that the margin exceeds \$60k, if the analysis gives one.
 :::
 
 ## Module 8 · {{< var modules.m08.title >}}
@@ -298,10 +298,10 @@ With a few years of weekly data and correlated channels, the data alone allow im
 The sampler could not follow the posterior's shape somewhere, so it may have missed part of it and the estimates can be biased. Do not ignore them and do not just draw more samples. Raise the target acceptance rate, reparameterize, or tighten priors that allow implausible regions; then refit and check that the divergences are gone.
 :::
 
-[**8.5**]{#q8-5} TV's revenue ROAS has a 94% HDI of 1.8 to 3.4; margin is 40%. Is TV profitable? <!-- check against _variables.yml decision -->
+[**8.5**]{#q8-5} TV's revenue ROAS has a 94% HDI of 1.8 to 3.4; margin is 40%. Is TV profitable?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Break-even is 2.5, inside the interval, so the data cannot decide. Report the posterior probability that ROAS exceeds 2.5, and remember average ROAS is not the return on the next dollar.
+Break-even is 2.5, inside the interval, so the data cannot decide. Report the posterior probability that ROAS exceeds 2.5; under Lab 8's rule TV pays back only if that probability is at least 0.9, does not if it is at most 0.1, and is otherwise undecided, and an interval that straddles break-even like this one points to undecided, which a lift test would settle. Remember too that average ROAS is not the return on the next dollar.
 
 **Used in:** Day 5 warm-up (W2).
 :::
@@ -331,7 +331,7 @@ When channels move together or a channel's spend barely varies, the data identif
 [**9.4**]{#q9-4} You refit the model on the first two years and on the last two years, and one channel's ROAS halves. What do you conclude?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Either the channel's effect changed (new creative, saturation, a market change) or the data cannot pin it down. Either way, a budget decision that leans on that channel is fragile: widen its uncertainty in the allocation, constrain how far it can move, and make it the next lift test. <!-- check against _variables.yml decision -->
+Either the channel's effect changed (new creative, saturation, a market change) or the data cannot pin it down. Either way, a budget decision that leans on that channel is fragile: widen its uncertainty in the allocation, constrain how far it can move, and make it the next lift test.
 :::
 
 [**9.5**]{#q9-5} Robyn and a Bayesian MMM give different answers for the same data. Name one difference in how they work. (Only if the Robyn comparison runs; see DECISIONS.md, spike S5.)
@@ -362,10 +362,10 @@ The model is informed only near the spend levels it has seen; far outside them, 
 Response curves are non-linear, so the average outcome over draws differs from the outcome at the average parameters. Optimizing over draws lets you report the distribution of outcomes and the probability that the new split beats the current one. A risk-averse objective (for example, a low quantile of incremental margin) moves money away from channels whose effect is uncertain.
 :::
 
-[**10.4**]{#q10-4} What changes when the objective values new customers by their lifetime value instead of first-purchase revenue? <!-- check against _variables.yml decision -->
+[**10.4**]{#q10-4} What changes when the objective values new customers by their lifetime value instead of first-purchase revenue?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Channels that bring customers who keep buying gain budget, and channels that bring one-off buyers lose it, even at the same short-term ROAS. It connects Day 4's allocation to Days 1 and 2; the lifetime values' uncertainty should be carried into the objective, not only their means.
+Channels that bring customers who keep buying gain budget, and channels that bring one-off buyers lose it, even at the same short-term ROAS. It connects Day 4's allocation to Days 1 and 2; the lifetime values' uncertainty should be carried into the objective, not only their means. The shift is only as good as the cost per new customer and the lifetime value behind it: in Lab 10 the costs were assumptions, so the CLV-weighted plan is reported as a sensitivity beside the recommendation, not as the recommendation.
 :::
 
 ## Module 11 · {{< var modules.m11.title >}}
@@ -391,7 +391,7 @@ Customers are sorted by predicted uplift; the curve shows the cumulative increme
 [**11.4**]{#q11-4} A customer's predicted uplift in conversion probability is 0.4 points, each conversion brings \$50 of margin, and the email costs \$0.10. Send it? What if it costs \$0.25?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Expected incremental margin is $0.004 \times 50 = \$0.20$. At \$0.10, send (gain \$0.10). At \$0.25, do not (loss \$0.05). The rule is: send when predicted uplift × margin exceeds the cost. <!-- check against _variables.yml decision -->
+Expected incremental margin is $0.004 \times 50 = \$0.20$. At \$0.10, send (gain \$0.10). At \$0.25, do not (loss \$0.05). The rule is: send when predicted uplift × margin exceeds the cost.
 :::
 
 [**11.5**]{#q11-5} grf's RATE (rank-weighted average treatment effect) for a causal forest's ranking has a confidence interval that includes zero. What do you conclude?
