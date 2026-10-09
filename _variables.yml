@@ -387,7 +387,7 @@ modules:
       - "Linear regression with several predictors"
       - "Module 2: what a prior, a posterior and an HDI are, and MAP versus MCMC"
       - "Module 7: incremental sales as a counterfactual difference"
-    decision: "Decide which channels pay back: list channels with P(ROAS > 1) ≥ 0.9, channels with P(ROAS < 1) ≥ 0.9, and channels the data cannot yet decide."
+    decision: "Decide which channels pay back: list channels whose ROAS exceeds the break-even ROAS (1 ÷ gross margin) with posterior probability ≥ 0.9, channels below it with probability ≥ 0.9, and channels the data cannot yet decide."
     recap: "Module 7 measures one campaign in one window; it cannot compare channels or say what next month's budget will return."
     next: "An MMM fitted on observational data can credit a channel that merely follows demand, and fit the data well while getting ROAS wrong. Module 9 calibrates it with lift tests and validates it out of sample."
     notebooks:
