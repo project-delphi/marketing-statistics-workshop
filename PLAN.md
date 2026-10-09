@@ -158,13 +158,13 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
 - [ ] M8 Bayesian MMM
-- [ ] M2 BTYD
+- [x] M2 BTYD — built + Docker run; Colab pending
 - [ ] M11 uplift (EconML + grf)
 - [ ] M7 geo (Python SC/DiD + R CausalImpact/GeoLift)
-- [ ] M1 customer base (DuckDB)
+- [x] M1 customer base (DuckDB) — built + Docker run; Colab pending
 - [ ] M4 monetary value and CLV
 - [ ] M6 experiments
-- [ ] M3 covariates (CLVTools) + BTYD vs ML
+- [x] M3 covariates (CLVTools) + BTYD vs ML — built + Docker run (R and Python); Colab pending
 - [ ] M5 CLV decisions
 - [ ] M9 calibration and validation (+ Robyn per S5)
 - [ ] M10 budget allocation
