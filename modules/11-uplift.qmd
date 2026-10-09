@@ -5,13 +5,262 @@ title: "{{< var modules.m11.title >}}"
 {{< include /_includes/module-11.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 10 split the media budget across channels, and every earlier decision about offers treated customers alike: Module 6 measured the email's *average* effect, and Module 5's retention break-even was provisional because nobody knew which customers an offer actually changes. An offer that makes one customer buy is wasted on another who would have bought anyway, and can put off a third. This module asks: for each customer, how much does the offer change what they spend, and whom should we send it to?
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-11.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. Who buys, and who buys because of the offer
+
+**Objective for this section:** explain why predicting who buys is not the same as predicting who buys because of the offer (uplift).
+
+The usual targeting model is a **response model**: predict who will buy, and send the offer to those most likely to. Think about four kinds of customer:
+
+| | Buys if emailed | Does not buy if emailed |
+|---|---|---|
+| **Buys if not emailed** | buys anyway: the email is wasted | the email puts them off |
+| **Does not buy if not emailed** | buys *because of* the email | never buys: the email is wasted |
+
+A response model ranks by the left column, and its top scorers are mostly people who would buy anyway. Only the bottom-left cell is worth paying for, and the top-right cell costs money twice. The quantity that separates them is the effect of the email on each customer, not their chance of buying.
+
+For a customer with features $x$, let $Y(1)$ be what they would spend if emailed and $Y(0)$ if not. The **conditional average treatment effect** (CATE), or **uplift**, is
+
+$$
+\tau(x) = E\big[\,Y(1) - Y(0) \mid X = x\,\big],
+$$ {#eq-cate}
+
+how much more a customer like $x$ spends *because of* the email. Its average over all customers is Module 6's ATE. No customer is ever both emailed and not emailed, so $\tau(x)$ cannot be read off the data customer by customer; it has to be estimated from customers who look alike, some emailed and some not. That needs a **randomized** test (Radcliffe and Surry 2011): with random assignment, emailed and not-emailed customers with the same $x$ differ only by the email.
+
+The lab works on two experiments with the same columns. The **Hillstrom** test (R notebook) is real: the Womens email against no email, about 42,700 customers with an equal chance of each, outcome spend over two weeks. The **synthetic experiment** (Python notebook) has 20,000 customers who look like Hillstrom's and a known true effect for every customer, so every uplift model can be graded against the truth before it is trusted.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $W_i$ or $T_i$ | treatment: customer $i$ got the email (grf writes $W$, EconML $T$) |
+| $Y_i$ | spend in the two weeks after |
+| $X_i$ | features known before the email: recency, last year's spend (`history`), product lines bought, zip code type, new customer, purchase channel |
+| $\tau(x)$, $\hat\tau(x)$ | true and estimated CATE |
+| $\mu_1(x)$, $\mu_0(x)$ | expected spend if emailed, if not |
+| $e$ | propensity score: the probability of being emailed (0.5 here, known) |
+| $\Gamma_i$ | doubly robust score of customer $i$ |
+| $m$, $c$ | margin rate and cost per email |
+| $q$ | share of customers targeted, from the top of a ranked list |
+
+## 2. Causal forests and the doubly robust average effect
+
+**Objective for this section:** fit a causal forest in grf and report the average treatment effect with a doubly robust 95% interval.
+
+A **causal forest** (Wager and Athey 2018; Athey, Tibshirani and Wager 2019) is a random forest that splits customers where the **effect** differs, not where spend differs. Each tree is **honest**: one half of its sample chooses the splits and the other half estimates the effect in each leaf, so a tree cannot fit noise and then grade itself on it. The forest averages many trees and predicts $\hat\tau(x)$ for any customer, with a confidence interval.
+
+Even when the target is the average effect, the forest helps. The **augmented inverse probability weighting** (AIPW, "doubly robust") estimator averages a score per customer,
+
+$$
+\Gamma_i = \hat\mu_1(X_i) - \hat\mu_0(X_i)
++ \frac{W_i\,\big(Y_i - \hat\mu_1(X_i)\big)}{e}
+- \frac{(1 - W_i)\,\big(Y_i - \hat\mu_0(X_i)\big)}{1 - e},
+\qquad
+\widehat{\text{ATE}} = \frac{1}{n}\sum_i \Gamma_i ,
+$$ {#eq-aipw}
+
+the model's predicted effect plus a correction from the customer's own outcome. It is unbiased if either the outcome models $\hat\mu$ or the propensity $e$ is right, hence "doubly robust"; here the email was assigned at random with $e = 0.5$, which the lab passes to grf (`W.hat = 0.5`), so the correction is exact. The scores have a second use: their average over **any** group of customers estimates that group's average effect, which section 5 uses to value targeting rules.
+
+Hillstrom, training half (21,346 customers), FULL run in the workshop's Docker image:
+
+| Estimator | ATE per customer | 95% interval |
+|---|---|---|
+| AIPW, causal forest (1,000 trees) | $0.696 | $0.288 to $1.104 |
+| Difference in means (Module 6) | $0.698 | $0.290 to $1.106 |
+
+They agree, as they should under random assignment, and the AIPW interval is no narrower. The features would sharpen it only if they predicted spend, and they barely do: 0.82% of customers bought anything in the two weeks, and a handful of large orders moves the mean.
+
+The same model in both languages, as the lab fits it:
+
+::: {.panel-tabset group="language"}
+
+## R
+
+```r
+forest <- causal_forest(X_train, Y_train, W_train, W.hat = 0.5,
+                        num.trees = 1000, seed = SEED)
+average_treatment_effect(forest, target.sample = "all")      # AIPW by default
+tau_eval <- predict(forest, X_eval)$predictions               # CATE for new customers
+```
+
+## Python
+
+```python
+cf = CausalForestDML(model_y=HistGradientBoostingRegressor(random_state=SEED),
+                     model_t=HistGradientBoostingClassifier(random_state=SEED),
+                     discrete_treatment=True, n_estimators=1000, random_state=SEED)
+cf.fit(y_train, t_train, X=X_train)
+cf.ate__inference().conf_int(alpha=0.05)                       # doubly robust ATE
+tau_eval = cf.effect(X_eval)                                    # CATE for new customers
+```
+
 :::
+
+EconML's `CausalForestDML` adds **double machine learning** (Chernozhukov et al. 2018) in front of the forest: it first removes what the features predict about spend and about treatment (with the two boosted models), then grows the forest on what is left. On randomized data the treatment model has little to remove; on observational data it is what protects the estimate from confounding by the features.
+
+## 3. Four uplift models against the truth
+
+**Objective for this section:** fit EconML's `CausalForestDML` and S-, T- and X-learners, and compare their effect estimates with the true effects in the synthetic experiment.
+
+**Meta-learners** turn any regression method into a CATE estimator (Künzel et al. 2019):
+
+- **S-learner** (single): one model of $Y$ on $X$ and $T$; $\hat\tau(x) = \hat f(x, 1) - \hat f(x, 0)$.
+- **T-learner** (two): one model per arm; $\hat\tau(x) = \hat\mu_1(x) - \hat\mu_0(x)$.
+- **X-learner**: a T-learner first, then models of each customer's imputed effect, blended with the propensity score. It is efficient when one arm is much larger than the other, as with marketing holdouts.
+
+All four models in the lab use gradient-boosted trees as their base learners and are fitted on a training half of the synthetic experiment (10,000 customers); every grade uses the other half. The true average effect is $2.85 of spend per customer. FULL run:
+
+| Model | RMSE of $\hat\tau$ ($) | Rank correlation with $\tau$ | Spread of $\hat\tau$ ($) |
+|---|---|---|---|
+| S-learner | 7.06 | 0.61 | 8.52 |
+| T-learner | 13.02 | 0.36 | 14.09 |
+| X-learner | 10.43 | 0.48 | 11.80 |
+| Causal forest (DML) | **4.77** | **0.62** | 5.76 |
+| *True effects* | | | *4.32* |
+
+The causal forest has the lowest error and the best ranking; its doubly robust ATE is $2.63 (95% interval $1.31 to $3.96), and the true average on the evaluation half is $2.83. Two patterns matter more than the winner:
+
+- **Every model's estimates are more spread out than the truth** (the last column). Fewer than 5% of customers buy, so much of what a model learns from spend is noise, and the noise appears as made-up differences between customers.
+- **The T-learner is worst** because its two separate models each carry their own noise, and the difference of two noisy predictions is noisier still. Models that target the difference directly (the X-learner, the DML forest) or share one model across arms (the S-learner) do better.
+
+## 4. Grading a ranking without the truth: Qini, TOC and RATE
+
+**Objective for this section:** evaluate a targeting rule on held-out data with `rank_average_treatment_effect` (RATE and its TOC curve) and with a Qini curve.
+
+On real data there is no true $\tau$ to correlate with. A ranking is graded on held-out customers using what *is* observed: who got the email and what they spent.
+
+**The Qini curve.** Rank the held-out customers by $\hat\tau$, highest first, and walk down the list. After the top $k$,
+
+$$
+g(k) = Y_T(k) - Y_C(k)\,\frac{N_T(k)}{N_C(k)} ,
+$$ {#eq-qini}
+
+where $Y_T(k)$ and $Y_C(k)$ are the total spend of treated and control customers among the top $k$, and $N_T(k)$ and $N_C(k)$ their numbers. $g(k)$ estimates the extra spend the email caused among the treated customers in the top $k$. Random targeting gives a straight line from 0 to $g(n)$; the **Qini coefficient** is the area between the curve and that line (Radcliffe and Surry 2011). Larger is a better ranking; about 0 is no better than random. It grades the ranking, not the size of the effects.
+
+**TOC and RATE.** grf's version asks the same question with the doubly robust scores of @eq-aipw. For the top share $q$ of the ranked list, the **targeting operator characteristic** is
+
+$$
+\text{TOC}(q) = E\big[\tau(X) \mid \text{top } q \text{ of the ranking}\big] - E\big[\tau(X)\big],
+\qquad
+\text{RATE}_{\text{Qini}} = \int_0^1 q \,\text{TOC}(q)\, dq ,
+$$ {#eq-rate}
+
+the extra effect among the top $q$ over the average, and the **rank-weighted average treatment effect** summarizes the curve (Yadlowsky et al. 2025). With the Qini weighting it is the analogue of the Qini coefficient; a RATE of 0 means the ranking does no better than random. Crucially, it comes with a standard error. **The forest must not grade itself**: the lab ranks the evaluation customers with the forest fitted on the training half, and estimates the TOC with a second forest fitted only on the evaluation half.
+
+FULL runs:
+
+- **Synthetic experiment** (Qini coefficient, 10,000 held-out customers): causal forest 4,073, S-learner 3,882, X-learner 3,102, T-learner 2,697; the true effects themselves score 6,019, so the forest captures about two thirds of the best possible ranking. 99% of random scores land within ±2,104 of zero, so all four models clear the noise.
+- **Hillstrom** (RATE with Qini weighting, 21,347 held-out customers): 0.090 dollars per customer, 95% interval −0.016 to 0.196; a random ranking scores −0.031 (−0.127 to 0.064). The interval includes 0. The Python stretch tells the same story with Qini coefficients: no model clears the random band of ±1,274.
+
+On Hillstrom, the forest has not shown that it ranks customers better than random. That does not prove the effect is the same for everyone; it says that with 21,000 customers per half, fewer than 1% of whom buy, differences of a few tens of cents per customer cannot be told from noise. A best linear projection of the effect on recency and last year's spend (the R stretch) finds no detectable slope on either.
+
+::: {.self-check}
+**Check yourself.** A model ranks customers by $\hat\tau$ and its Qini coefficient on the customers it was trained on is twice what it is on held-out customers. Which number do you report, and why is the gap expected?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The held-out number. On its own training customers, a flexible model has partly fitted their noise: customers who happened to buy after the email get high $\hat\tau$, and then the curve built from those same purchases rewards the model for it. The held-out Qini (or RATE from a separate evaluation forest) is the only one that estimates how the ranking will do on next month's mailing list. The same logic is why grf's RATE uses a second forest fitted only on the evaluation half.
+:::
+:::
+
+## 5. From effects to a targeting list
+
+**Objective for this section:** turn effect estimates into a targeting list where incremental margin exceeds offer cost, and compare its profit with mailing everyone or no one.
+
+An email to customer $i$ earns, in expectation, $m\,\tau(x_i)$ of margin and costs $c$. So the rule is
+
+$$
+\text{send}_i = \mathbb{1}\big[\, m\,\hat\tau(x_i) > c \,\big]
+\quad\Longleftrightarrow\quad
+\hat\tau(x_i) > \frac{c}{m} ,
+$$ {#eq-target}
+
+and its profit per customer, against emailing nobody, is $\frac{1}{n}\sum_i \text{send}_i\,(m\,\tau_i - c)$. On real data $\tau_i$ is unknown, but the doubly robust scores of @eq-aipw estimate it without bias on held-out customers:
+
+$$
+\widehat{V}(\text{rule}) = \frac{1}{n}\sum_{i=1}^{n} \text{send}_i\,\big(m\,\Gamma_i - c\big),
+$$ {#eq-policy-value}
+
+with a 95% interval of $\pm 1.96$ standard errors of the per-customer terms. Any rule can be valued this way, without running a new experiment for it. The difference between two rules can be estimated the same way, and its interval is often narrower than either rule's, because both rules share most customers.
+
+**Synthetic experiment** ($m = 35\%$, $c = \$0.50$, so the cutoff is $1.43; FULL run, dollars per held-out customer):
+
+| Rule | Share targeted | Profit the model expects | True profit |
+|---|---|---|---|
+| S-learner | 39.2% | 0.99 | 0.56 |
+| T-learner | 47.5% | 1.63 | 0.45 |
+| X-learner | 45.2% | 1.37 | 0.51 |
+| Causal forest | 49.8% | 0.82 | **0.59** |
+| True CATE (best possible) | 46.9% | | 0.73 |
+| Mail everyone | 100% | | 0.49 |
+
+Every model **expects** more profit than it makes, the T-learner almost four times as much: a model that overstates the spread of effects (section 3) sees large effects where there are none and counts on them. A model can rank customers well and still misjudge the **size** of their effects, which moves who falls above the cutoff. That is why the decision values rules with @eq-policy-value on held-out data, not with the model's own predictions.
+
+::: {.self-check}
+**Check yourself.** On Hillstrom the forest's ranking has a RATE interval that includes 0, yet the R notebook finds that its rule beats emailing everyone by $61.3 per 1,000 customers (95% interval $11.3 to $111.3). How can both be true?
+
+::: {.callout-tip collapse="true" title="Answer"}
+They answer different questions. RATE asks whether customers ranked higher gain more than average, across the whole ranking. The rule comparison asks whether skipping the 42% of customers with the lowest predicted effect saves more in email costs than it loses in effect. The saving is certain ($0.10 per skipped customer); the lost effect is small if those customers' effects are low on average. With an average effect of only $0.16 per customer on the evaluation half, emailing everyone loses money at a $0.10 cost and 30% margin, so not emailing many of them pays even with a weak ranking. A higher average effect or a lower cost would make the comparison closer.
+:::
+:::
+
+## 6. The decision
+
+::: {.module-decision}
+**Decision.** Send the offer only to customers whose expected incremental margin exceeds its cost (@eq-target), and report how many that is and the incremental profit against mailing everyone, valued on held-out customers (@eq-policy-value).
+
+**Synthetic experiment** ($m = 35\%$, $c = \$0.50$; FULL run). The causal forest's list targets 4,979 of 10,000 held-out customers (49.8%). Estimated profit per 10,000 customers: the list $7,685 (95% interval $4,248 to $11,122), mailing everyone $7,841 ($3,701 to $11,980), mailing nobody $0. The difference, −$156 (−$2,463 to $2,152), cannot be told from zero, and the list sends half as many offers. Only 16% of the targeted customers have a 90% CATE interval entirely above $1.43. **Recommendation:** use the list; it earns about as much with half the mailings, and a larger holdout would settle which earns more. The truth, revealed after the decision: the list really earns $5,895 per 10,000 against $4,911 for mailing everyone and $7,343 for the best possible rule. The AIPW interval for the list contained the true value.
+
+**Hillstrom** (margin 30% and cost $0.10 assumed, since Hillstrom publishes neither; FULL run). The forest's rule emails 58% of 21,347 held-out customers and earns $61.3 more per 1,000 customers than emailing everyone (95% interval $11.3 to $111.3), mostly by not paying for emails to customers the email barely moves. What would change it: a higher cost per email (the cutoff is $c/m$), a larger test, or a ranking whose RATE interval excludes 0.
+:::
+
+## Summary
+
+- Uplift is the effect of the offer on each customer (@eq-cate), not their chance of buying. A response model targets customers who would buy anyway.
+- Causal forests split where the effect differs; the doubly robust score (@eq-aipw) gives an average effect with an interval and values any group or rule. On Hillstrom the AIPW ATE ($0.70) agreed with the difference in means.
+- Meta-learners turn any regression into an uplift model. Against the synthetic truth the DML causal forest had the lowest error and best ranking; every model exaggerated the spread of effects, the T-learner most.
+- Grade rankings on held-out customers: Qini (@eq-qini) with observed outcomes, TOC and RATE (@eq-rate) with doubly robust scores and a standard error. The synthetic models cleared the noise; on Hillstrom no ranking did.
+- Target where $m\hat\tau > c$ (@eq-target) and value the rule with held-out doubly robust scores (@eq-policy-value), not with the model's own predictions, which overstated profit for every model.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 11 |
+|---|---|---|
+| Difference in means | the ATE from Module 6 | **R Exercise 1**: `diff_in_means(Y, W)`; Checkpoint 1 checks a toy case, then that the difference in means lies inside the AIPW interval on Hillstrom |
+| @eq-aipw | doubly robust ATE | Provided: `causal_forest(..., W.hat = 0.5)` and `average_treatment_effect()` |
+| @eq-rate | TOC and RATE on held-out data | **R Exercise 2**: `rate_holdout(train_forest, X_eval, Y_eval, W_eval, ...)`; Checkpoint 2 compares with a reference RATE |
+| @eq-policy-value (R) | value of the forest's rule | **R Exercise 3**: `policy_value(tau_hat, scores, margin, cost)`; Checkpoint 3 checks a hand case and the value of emailing everyone |
+| @eq-cate graded against the truth | RMSE and rank correlation | **Python Exercise 1**: `cate_accuracy(cate_hat, true_cate)`; Checkpoint 1 also checks the forest's ATE interval contains the truth |
+| @eq-qini | Qini coefficients | **Python Exercise 2**: `qini_table(y, t, scores)` with `uplift.qini_coefficient`; Checkpoint 2 checks each coefficient and that the true effects rank best |
+| @eq-target | the targeting rule and its expected and true profit | **Python Exercise 3**: `targeting_profit(cate_hat, true_cate, margin, cost)`; Checkpoint 3 checks a toy case and the true profit |
+| @eq-policy-value (Python) | the decision on held-out customers | Provided: the Decision cell, with the T-learner's outcome models in the scores |
+
+## Gotchas
+
+- **A response model is not an uplift model.** High probability of buying often means the email is wasted.
+- **Uplift needs randomized data** (or a credible design for observational data). Without it, $\hat\tau$ mixes the email's effect with who was chosen to get it.
+- **Grade on held-out customers.** A model graded on its training customers rewards its own overfitting.
+- **Rare outcomes make noisy effects.** With under 5% buying, every model exaggerates differences between customers; use a less noisy outcome (visits) or more customers when you can.
+- **A good ranking can still mis-size effects**, which moves the cutoff. Value rules with doubly robust scores, not with $\hat\tau$.
+- **A RATE interval that includes 0 is not proof of "no heterogeneity".** It says the ranking has not shown it beats random.
+- **Two random halves can disagree.** On Hillstrom the training half's ATE was $0.70 and the evaluation half's $0.16: with skewed spend, half-samples of 21,000 customers differ by that much.
+- **The cutoff is $c/m$.** A change in offer cost or margin moves the targeting list more than a change of model.
+
+## Next steps
+
+Each module so far answered one question with its own data: what a customer is worth, whether a campaign caused sales, what each channel returns, how to split the budget, whom to target. A real plan needs them joined: customer values feed the allocation, the geo test calibrates the model, the targeting rule spends the retention money. The capstone (Module 12) runs the whole pipeline on one synthetic retailer, checks every stage against its truth, and ends in a five-slide decision brief with its uncertainty and the next test you would run.
+
+## Further reading
+
+1. Wager, S., & Athey, S. (2018). [Estimation and inference of heterogeneous treatment effects using random forests](https://doi.org/10.1080/01621459.2017.1319839). *Journal of the American Statistical Association*, 113(523), 1228–1242. Causal forests and their confidence intervals.
+2. Athey, S., & Wager, S. (2019). [Estimating treatment effects with causal forests: An application](https://doi.org/10.1353/obs.2019.0001). *Observational Studies*, 5(2), 37–51. A worked application with propensity scores and tests for heterogeneity; the closest model for this lab.
+3. Yadlowsky, S., Fleming, S., Shah, N., Brunskill, E., & Wager, S. (2025). [Evaluating treatment prioritization rules via rank-weighted average treatment effects](https://doi.org/10.1080/01621459.2024.2393466). *Journal of the American Statistical Association*, 120(549), 38–51. RATE, TOC and the Qini as a special case.
+4. Künzel, S. R., Sekhon, J. S., Bickel, P. J., & Yu, B. (2019). [Metalearners for estimating heterogeneous treatment effects using machine learning](https://doi.org/10.1073/pnas.1804597116). *PNAS*, 116(10), 4156–4165. S-, T- and X-learners.
+5. Radcliffe, N. J., & Surry, P. D. (2011). [*Real-world uplift modelling with significance-based uplift trees*](https://stochasticsolutions.com/pdf/sig-based-up-trees.pdf). Stochastic Solutions. Why uplift needs a control group, and Qini curves.
+
+Also cited above: Chernozhukov et al. (2018), [Double/debiased machine learning](https://doi.org/10.1111/ectj.12097), and Athey, Tibshirani and Wager (2019), [Generalized random forests](https://doi.org/10.1214/18-AOS1709). All entries, with the date each was checked, are on the [References](/references.qmd) page.
