@@ -546,9 +546,10 @@ modules:
     recap: "Modules 1–11 each answer one question in isolation, each with its own data and its own notebook."
     next: "After the workshop: run the same pipeline on your own data, starting with the Module 1 SQL on your transaction log."
     notebooks:
-      - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3, install: [pymc-marketing, nutpie, econml, scikit-learn, scipy, threadpoolctl, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth/channels.py, src/mktstats/synth/mmm.py, data/synthetic/capstone_transactions.csv, data/synthetic/capstone_customers.csv, data/synthetic/capstone_geo_panel.csv, data/synthetic/capstone_mmm_weekly.csv, data/synthetic/capstone_email_experiment.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
 
 # Evidence rules for readiness.qmd (scripts/readiness.py). Envs with teaching: true count as
 # "ran on the runtime it is designed for"; ci: true is the CI lane; documented_only envs are
