@@ -458,9 +458,15 @@ modules:
     recap: "Module 8's MMM fits clean synthetic data and recovers the truth, but nothing in it guards against confounding."
     next: "A calibrated MMM says what each channel returned; it does not say how to split next quarter's budget given diminishing returns, constraints and uncertainty. Module 10 optimizes the allocation."
     notebooks:
-      - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3, install: [pymc-marketing, nutpie]}
+      # Robyn calls the Python library nevergrad through reticulate: the notebook's first cell
+      # finds or installs it (pinned by environment/requirements.txt); the image has it.
+      - {path: labs/r/09-robyn.ipynb, source: labs/src/09-robyn.R, kernel: ir, install: [Robyn, reticulate, ggplot2]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, R/mktstats.R, data/synthetic/mmm_confounded_weekly.csv, data/synthetic/mmm_confounded_lift_tests.csv, data/synthetic/mmm_confounded_latent.csv, data/synthetic/truth.json, environment/requirements.txt]
+    data:
+      - {name: "Synthetic weekly MMM with a demand-following channel (mmm_confounded_weekly.csv, seed 2028)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_weekly.csv"}
+      - {name: "Synthetic dated lift tests (mmm_confounded_lift_tests.csv)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_lift_tests.csv"}
+      - {name: "Robyn dt_simulated_weekly (simulated MMM demo data, bundled with Robyn 3.12.1)", url: "https://cran.r-project.org/package=Robyn"}
   m10:
     slug: 10-budget-allocation
     title: "Budget allocation under uncertainty"

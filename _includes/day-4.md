@@ -28,7 +28,7 @@ Feed geo-test results into the MMM as extra likelihood terms, validate it with t
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/09-mmm-calibration.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/09-mmm-calibration.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 ::: {.module-card}

@@ -3,7 +3,7 @@
 ::: {.facts}
 [**5** days]{.fact}
 [**12** modules + optional pre-work]{.fact}
-[**17** lab notebooks (13 Python, 4 R), 16 written so far]{.fact}
-[**65** hands-on exercises so far]{.fact}
+[**18** lab notebooks (13 Python, 5 R)]{.fact}
+[**70** hands-on exercises]{.fact}
 [**45–55** min briefings, **50–55** min labs]{.fact}
 :::

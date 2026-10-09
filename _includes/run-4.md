@@ -9,7 +9,7 @@
 | 11:00–11:10 | [Debrief]{.slot-debrief} | [8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd): debrief on the decision. Decide which channels pay back: list channels whose ROAS exceeds the break-even ROAS (1 ÷ gross margin) with posterior probability ≥ 0.9, channels below it with probability ≥ 0.9, and channels the data cannot yet decide. |
 | 11:10–11:25 | [Break]{.slot-break} |  |
 | 11:25–12:15 | [Briefing]{.slot-briefing} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): the briefing. |
-| 12:15–13:10 | [Lab]{.slot-lab} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): Python lab (in preparation). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 12:15–13:10 | [Lab]{.slot-lab} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/09-mmm-calibration.ipynb), [R lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/09-robyn.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 13:10–13:20 | [Debrief]{.slot-debrief} | [9 · Calibrating and validating an MMM](/modules/09-mmm-calibration.qmd): debrief on the decision. Decide which channel's ROAS is reliable enough to move budget on now, and which channel needs a new lift test first. |
 | 13:20–14:15 | [Lunch]{.slot-break} |  |
 | 14:15–15:00 | [Briefing]{.slot-briefing} | [10 · Budget allocation under uncertainty](/modules/10-budget-allocation.qmd): the briefing. |

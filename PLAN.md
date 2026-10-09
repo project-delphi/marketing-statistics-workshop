@@ -166,7 +166,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] M6 experiments — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
 - [x] M3 covariates (CLVTools) + BTYD vs ML — built + Docker run (R and Python); Colab pending
 - [x] M5 CLV decisions — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab pending
-- [ ] M9 calibration and validation (+ Robyn per S5)
+- [x] M9 calibration and validation (+ Robyn per S5) — built + Docker run (runs/2026-10-09-m09-*.json); Colab pending
 - [x] M10 budget allocation (built + Docker run; Colab pending)
 - [x] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`); [TE] lab built + Docker run (runs/2026-10-09-m12-*.json); Colab pending
 
