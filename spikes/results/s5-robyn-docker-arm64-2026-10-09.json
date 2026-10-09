@@ -1,0 +1,1 @@
+{"spike":"s5-robyn","env":"docker-arm64 (--cpus 2)","robyn":"3.12.1","nevergrad":"1.0.12","timings":{"install_robyn":41.4,"install_nevergrad":1,"inputs":4.5,"run_500x1":35.7,"outputs":3.7,"allocator":1.2,"total":89.3}}

@@ -132,10 +132,10 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 ### Phase 0 — skeleton and spikes
 - [x] [Lead] git init, licences, pyproject, DECISIONS.md, public repo pushed
 - [x] [Lead] S4 Docker arm64 build (3.0 GB, ~16 min cold; full R dependency check)
-- [ ] [Lead] S1 Chrome-driven Colab loop: open from GitHub, fresh runtime, Run all, read record
-- [ ] [Lead] S2 Colab Python: install time, BG/NBD, Pareto/NBD, Gamma-Gamma, MMM, causal forest timings
-- [ ] [Lead] S3 Colab R: repos, binary installs, GSL, GeoLift from archives, hidden-cell behaviour
-- [ ] [Lead] S5 Robyn (1-hour timebox) → lab, demo or comparison table only
+- [x] [Lead] S1 Chrome-driven Colab loop: open from GitHub, fresh runtime, Run all, read record
+- [x] [Lead] S2 Colab Python: install time, BG/NBD, Pareto/NBD, Gamma-Gamma, MMM, causal forest timings
+- [x] [Lead] S3 Colab R: repos, binary installs, GSL, GeoLift from archives, hidden-cell behaviour
+- [x] [Lead] S5 Robyn (1-hour timebox) → lab, demo or comparison table only
 
 ### Phase 1 — walking skeleton
 - [ ] [TE] `src/mktstats`: runtime (detect Colab/SageMaker/local, install with constraints, restart guard), harness (solution/checkpoint/use_reference/run_record, verify hooks), lazy imports

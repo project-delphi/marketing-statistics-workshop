@@ -70,6 +70,17 @@ Newest first within each section.
   full in the R runtime. Whether a `#@title` line folds R cells is not yet known → checked on the first
   generated R lab; if it does not, R solutions are visible under a "Solution — try it yourself first" heading.
 
+### S5 · Robyn (2026-10-09, `spikes/s5_robyn.R`, `spikes/results/s5-robyn-docker-arm64-2026-10-09.json`)
+- The official demo flow (`robyn_inputs` → hyperparameters via `robyn_inputs(InputCollect=, hyperparameters=)`
+  → `robyn_run` → `robyn_outputs` → `robyn_allocator`) runs on `dt_simulated_weekly` in the workshop
+  image limited to 2 CPUs: Robyn 3.12.1 binary install 41 s, nevergrad 1.0.12 via uv into the image's
+  Python 1 s, 500 iterations × 1 trial 36 s, outputs 4 s, allocator 1 s (89 s total).
+- 500×1 is far below the demo's recommended 2000×5, so the lab presents Robyn as a method comparison
+  on Robyn's own simulated data with that caveat stated, not as a production fit.
+- Decision: keep `r/09-robyn` as a short paired notebook. Colab R still has to be proven (reticulate must
+  find a Python with nevergrad inside Colab's R runtime); until a Colab run is recorded it is not
+  "ready to teach". Robyn is effectively unmaintained (last commit 2025-06), which the briefing says.
+
 ### S4 · Docker image (2026-10-09)
 - `rocker/r-ver:4.6.1` + uv Python 3.13 + pinned requirements + R packages from P3M 2026-10-01 + Quarto
   1.10.19: linux/arm64 build 15 m 50 s cold on an Apple Silicon laptop, 3.0 GB. A first build silently
