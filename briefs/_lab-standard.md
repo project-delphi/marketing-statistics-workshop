@@ -36,6 +36,19 @@ once per lab (CONTRIBUTING.md); later exercises reuse that fit.
 participant finishes it in about 10 minutes, including reading. Until a pilot measures it, the number is an
 estimate and the brief says so.
 
+**Two-notebook labs** (Modules 3, 7 and 11: two notebooks with different names, CONTRIBUTING.md) share one
+slot, so the exercise minutes of both notebooks together stay within *L* − 15. The first markdown cell of
+each notebook carries an **Order of work** note that says:
+
+- which notebook comes first, in the order of `modules.mNN.notebooks` in `_variables.yml` (the order the
+  lab step table shows), and which install cell to start first: the slower one, even if its notebook comes
+  second;
+- the exercises and minutes in each notebook;
+- the minute of the lab at which to switch even if unfinished (`use_reference(n)` gets past the rest), and
+  where the lab's decision is made.
+
+Both notes say the same thing in the same words, and `teach.qmd` repeats the switch minutes.
+
 ## 2. Exercise sizing: one task, one function
 
 - **One exercise, one task, one function.** The learner writes one function with a stated signature,
@@ -209,6 +222,10 @@ The final "Your sentence" line is the learner's one decision claim. The day wrap
   The brief lists the names the lab uses.
 - **Visible seeds.** Every random step uses a seed set in a visible cell.
 - **No unexplained constants.** A threshold, a prior scale or a tolerance has a one-line reason next to it.
+- **Maintainer notes stay out of the learner's way.** Notes on which API versions were checked go in the
+  jupytext header or an HTML comment, never as the first paragraph a learner reads.
+- **Run times quoted to learners** come from a run record of the same content (say which runtime) or are
+  labelled estimates. A Colab time comes only from a Colab record.
 
 ## 10. Plots
 
@@ -230,6 +247,7 @@ review comment and tick each line.
 - [ ] Stated exercise minutes add up to no more than the lab minutes − 15.
 - [ ] Four to six core exercises, each 5 to 12 minutes, each with one task and one function.
 - [ ] The first checkpoint comes before any model fit or long download.
+- [ ] Two-notebook labs: each notebook opens with the same Order of work note (order as in `_variables.yml`, install to start first, minutes per notebook, switch minute).
 - [ ] Each model is fitted once; compute per cell and in total is stated (estimate or measured, labelled).
 - [ ] The lab ends with a Decision cell and then a stretch section; nothing later depends on the stretch.
 
@@ -262,5 +280,5 @@ review comment and tick each line.
 
 **Honesty**
 
-- [ ] Run times are labelled as measured (with the run record) or estimated.
+- [ ] Run times are labelled as measured (with the run record) or estimated, in Markdown cells as in the brief.
 - [ ] Numbers quoted in Markdown cells come from a recorded run, or are marked as illustrations.

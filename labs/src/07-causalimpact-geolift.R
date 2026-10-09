@@ -1,4 +1,5 @@
 # %% [markdown]
+# <!--
 # APIs checked for this lab (2026-10-09) inside the workshop image (R 4.6.1; CausalImpact 1.4.1,
 # bsts 0.9.11, GeoLift 2.7.5 and augsynth 0.2.0 at the pinned commits) with `args()` and the
 # package source: `CausalImpact(data, pre.period, post.period, model.args, bsts.model,
@@ -10,13 +11,16 @@
 # alpha, Correlations, fixed_effects, side_of_test, parallel, print, ...)`, `GeoLiftPower(data,
 # locations, effect_size, treatment_periods, lookback_window, cpic, side_of_test, parallel, ...)`,
 # `augsynth(form, unit, time, data, t_int, ...)` and `summary(fit, inf_type, alpha)`.
+# -->
 #
-# **Open this notebook first.** Its install cell (above) installs CausalImpact, GeoLift and their
-# dependencies on Colab: about 85 seconds of installs in the Colab spike of 2026-10-09
-# (DECISIONS.md, S3). While it runs, start Parts A and B of the Python notebook,
-# `labs/python/07-synthetic-control-did.ipynb`; come back here for Part C (Exercises 1 and 2 of this
-# notebook, Exercises 5 and 6 of the lab brief), then return to the Python notebook for the decision.
-# Part D is the demo for the afternoon geo-test design clinic.
+# **Order of work.** This R notebook is the second of the lab's two. Run its install cell
+# (above) first: CausalImpact, GeoLift and their dependencies are the slowest installs of the
+# lab (about 85 seconds of installs in the Colab timing spike of 2026-10-09). While it runs,
+# work Parts A and B of the Python notebook, `labs/python/07-synthetic-control-did.ipynb`
+# (Exercises 1 to 4, about 28 minutes). About 33 minutes into the lab, come back here for
+# Part C: Exercises 1 and 2 (about 12 minutes) and the short decision cell. Then return to the
+# Python notebook for the lab's decision. Part D is the demo for the afternoon geo-test design
+# clinic, not part of the lab.
 #
 # **How this lab runs.** CausalImpact fits by Markov chain Monte Carlo (MCMC): 5,000 draws in a full
 # run, 1,000 with `QUICK <- TRUE` (intervals then wobble a little more). Part D runs GeoLift's market
@@ -248,6 +252,9 @@ cat(sprintf("Share of MCMC draws in which %s is in the regression (contaminated 
 # The decision is made in the Python notebook; this cell states the CausalImpact view in the same
 # order. **Rule** (fixed in advance): incremental if the 95% posterior interval excludes 0;
 # profitable if the incremental margin at the lower end of the interval exceeds the campaign cost.
+# The printout also gives CausalImpact's *posterior tail-area probability*: under the model, the
+# probability of an effect at least this large arising by chance. Small means the effect is
+# unlikely to be noise.
 
 # %%
 margin <- GROSS_MARGIN * ci
@@ -280,9 +287,10 @@ cat("  Mode:", if (QUICK) "QUICK run (1,000 MCMC draws): treat this as a rough a
 # # Part D · GeoLift market selection (clinic demo; not part of the lab minutes)
 #
 # Before a geo test, **market selection** asks which markets to treat. GeoLift (Meta's open-source
-# geo-testing package, built on augmented synthetic control; Ben-Michael, Feller & Rothstein 2021)
-# simulates the test on historical data for candidate sets of N treated markets: for each set and
-# each effect size it injects the effect, estimates it, and records the power, the smallest effect
+# geo-testing package, built on *augmented synthetic control*: a synthetic control plus an
+# outcome model that corrects what the weights leave unmatched; Ben-Michael, Feller & Rothstein
+# 2021) simulates the test on historical data for candidate sets of N treated markets: for each
+# set and each effect size it injects the effect, estimates it, and records the power, the smallest effect
 # detected (minimum detectable effect, MDE), how well the other markets reproduce the set before the
 # test (`AvgScaledL2Imbalance`: smaller is better), and the budget the effect would cost
 # (`Investment`, from the cost per incremental unit `cpic`). The example uses GeoLift's bundled

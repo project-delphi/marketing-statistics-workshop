@@ -1,11 +1,14 @@
 <!--
 Partial, included by day-5.qmd (UI Expert). Owner: Pedagogy Expert.
 Sections: #warm-up, #capstone, #wrap-up.
-Clock times in the capstone run of show are computed from _variables.yml on 2026-10-09:
-days.d5 starts 09:00; warmup 15, m11 50+55+10, break 15 put the capstone at 11:25; m12 minutes
-{briefing: 15, lab: 240, debrief: 60} give briefing 11:25-11:40, pair work with lunch 11:40-15:40,
-presentations 15:40-16:40; wrapup 16:40-17:00. The 240-minute lab slot holds 180 minutes of work,
-a 50-minute lunch and a 10-minute break. If days.d5.blocks or modules.m12.minutes change, recompute.
+Clock times in the capstone run of show are computed from _variables.yml (recomputed 2026-10-09
+after days.d5.blocks split the capstone lab around lunch): days.d5 starts 09:00; warmup 15, m11
+50+55+10, break 15 put the capstone at 11:25; m12 minutes {briefing: 15, lab: 180, debrief: 60}
+with lab segments of 80 and 100 minutes give briefing 11:25-11:40, pair work 11:40-13:00, lunch
+13:00-13:50, pair work 13:50-15:30, break 15:30-15:40, presentations 15:40-16:40; wrapup
+16:40-17:00. These match the generated timetable (_includes/day-5.md). If days.d5.blocks or
+modules.m12.minutes change, recompute. briefs/12-capstone-rubric.md repeats the checkpoint
+times and must be changed with this table.
 The task, deliverables and rubric are in briefs/12-capstone-rubric.md.
 -->
 
@@ -46,18 +49,18 @@ You work in **pairs** on one notebook (one person types, both decide; swap at lu
 | Time | Minutes | Stage | Checkpoint at the end |
 |---|---|---|---|
 | 11:25–11:40 | 15 | **Briefing.** The task, the data, the rubric, the checkpoints. Sit with your pair (announced at the end of Day 4), open the notebook, run the setup cells. | — |
-| 11:40–12:10 | 30 | **1. What each customer is worth.** Customer value forecasts by acquisition channel, with intervals. | A: values by channel, with named intervals |
-| 12:10–12:40 | 30 | **2. Did the campaign work?** Analyze the geo test you designed on Day 3. | B: lift estimate with its interval |
-| 12:40–13:30 | 50 | **Lunch.** Pairs that passed B may start the calibrated MMM fit before leaving, with the Colab tab kept open. | — |
-| 13:30–14:10 | 40 | **3. A calibrated MMM.** Add the geo lift to the marketing mix model; check the fit (divergences, intervals). | C: calibrated ROAS by channel |
-| 14:10–14:35 | 25 | **4a. Where the next dollar goes.** Allocate next quarter's budget, valuing customers by Stage 1, with uncertainty. | D: allocation and the probability it beats the current split |
-| 14:35–15:00 | 25 | **4b. Whom to target.** Uplift targeting: send the offer where expected incremental margin exceeds its cost. | E: targeting rule and its expected profit |
-| 15:00–15:10 | 10 | **Break.** | — |
-| 15:10–15:40 | 30 | **5. The decision brief.** Five slides, one per question in the rubric's brief structure. Hand in by 15:40. | Slides handed in |
+| 11:40–12:20 | 40 | **1. What each customer is worth.** Customer value forecasts by acquisition channel, with intervals. | A: values by channel, with named intervals |
+| 12:20–13:00 | 40 | **2. Did the campaign work?** Analyze the geo test you designed on Day 3. | B: lift estimate with its interval |
+| 13:00–13:50 | 50 | **Lunch.** Pairs that passed B may start the calibrated MMM fit before leaving, with the Colab tab kept open. | — |
+| 13:50–14:25 | 35 | **3. A calibrated MMM.** Add the geo lift to the marketing mix model; check the fit (divergences, intervals). | C: calibrated ROAS by channel |
+| 14:25–14:45 | 20 | **4a. Where the next dollar goes.** Allocate next quarter's budget, valuing customers by Stage 1, with uncertainty. | D: allocation and the probability it beats the current split |
+| 14:45–15:05 | 20 | **4b. Whom to target.** Uplift targeting: send the offer where expected incremental margin exceeds its cost. | E: targeting rule and its expected profit |
+| 15:05–15:30 | 25 | **5. The decision brief.** Five slides, one per question in the rubric's brief structure. Hand in by 15:30. | Slides handed in |
+| 15:30–15:40 | 10 | **Break.** | — |
 | 15:40–16:40 | 60 | **Presentations.** Each pair presents; instructors score with the rubric. | — |
 | 16:40–17:00 | 20 | **Wrap-up** of the day and the week (below). | — |
 
-: Capstone run of show. The lab slot from 11:40 to 15:40 holds 180 minutes of work, lunch and a break. {.striped}
+: Capstone run of show. The pair work runs 11:40–13:00 and 13:50–15:30: 180 minutes, around lunch. {.striped}
 
 **Presentations.** With up to 8 pairs: 4 minutes to present, 2 for questions, 1 to change over (56 minutes). With 9 to 12 pairs: 3 minutes, 1 question, 1 to change over. With more than 12 pairs, the room splits in two with one scorer each. Your brief should still make sense if you only get to say the first sentence of each slide.
 

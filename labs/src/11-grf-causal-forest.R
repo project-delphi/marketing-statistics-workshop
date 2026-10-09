@@ -19,10 +19,13 @@
 # %% [markdown]
 # # Part A · Causal forest on the Hillstrom e-mail test
 #
-# **Order of work.** This lab has two notebooks. If you have not done so yet, open the Python
-# notebook `11-uplift-econml` and run its install cell first (it takes about a minute on
-# Colab), then come back here. Work Part A here (Exercises 1 to 3, 20 minutes), then return to
-# the Python notebook for Part B and the decision.
+# **Order of work.** This lab has two notebooks in one 55-minute slot, and this R notebook comes
+# first. If you have not done so yet, open the Python notebook `11-uplift-econml` and run its
+# install cell (the longer install of the two: about half a minute in the recorded Colab run),
+# then come back here. Work Part A here: Exercises 1 to 3 (about 20 minutes) and the Hillstrom
+# decision. About 28 minutes into the lab, return to the Python notebook even if an exercise
+# here is unfinished (`use_reference(n)` gets you past it): Part B there, Exercises 1 to 3
+# (about 20 minutes), and the lab's decision.
 #
 # **The experiment.** In March 2008 Kevin Hillstrom's MineThatData challenge published an
 # e-mail test on 64,000 customers who had bought in the last twelve months. Each customer was
@@ -110,7 +113,7 @@ checkpoint(1, {
 # %% [markdown]
 # Now the real data. The next cell downloads the Hillstrom file once (4 MB; a gzip copy on
 # Amazon S3 is the fallback), checks it against a known SHA-256 hash, and caches it. The data
-# are not stored in the workshop's repository: MineThatData states no licence for them.
+# are not stored in the workshop's repository: MineThatData states no license for them.
 
 # %%
 # TODO(R/mktstats.R): use a shared Hillstrom loader once the helpers have one.
@@ -193,8 +196,9 @@ cat(sprintf("Share who spent anything: %.2f%%. Mean spend: $%.2f e-mailed, $%.2f
 # **Run.** The next cell fits a causal forest on the training half. Read the call: `W.hat` is
 # each customer's probability of being e-mailed, the *propensity score*. grf estimates it with
 # another forest unless you give it; here the e-mail was assigned at random with probability
-# one half, so we pass `W.hat = 0.5`. This is the notebook's longest step: about a minute on
-# Colab with 1,000 trees (FULL). While it runs, look at your prediction.
+# one half, so we pass `W.hat = 0.5`. This is one of the notebook's two longest steps (an
+# estimate: about a minute on Colab with 1,000 trees, FULL). While it runs, look at your
+# prediction.
 #
 # `average_treatment_effect()` then estimates the ATE with the *augmented inverse probability
 # weighting* (AIPW, "doubly robust") estimator: it averages, over customers, the forest's
@@ -279,7 +283,8 @@ checkpoint(1, label = "1 on Hillstrom", {
 # 3. return `list(rate = rank_average_treatment_effect(eval_forest, priorities, target = "QINI"),
 #    eval_forest = eval_forest)` (Exercise 3 reuses the evaluation forest).
 #
-# The checkpoint runs your function, so it takes about a minute on Colab (FULL).
+# The checkpoint runs your function, which fits a second forest: about as long as the first
+# (an estimate).
 
 # %% tags=["exercise"]
 rate_holdout <- function(train_forest, X_eval, Y_eval, W_eval, num_trees, seed) {

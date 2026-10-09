@@ -651,9 +651,12 @@ show(fig)
 # referral, so search and social map to the media channels of the same name, and tv and display,
 # which have no counterpart there, get the mean of the two. We use CLV *excluding* the first
 # purchase, which the MMM's short-run sales already contain, times the 30% margin. The costs per
-# new customer are **made up**: no workshop dataset measures acquisitions per media dollar yet.
+# new customer are **made up**: nothing in this lab's data measures new customers per media
+# dollar.
 #
-# **Predict.** When the long-run value of new customers counts, which channel gains budget?
+# **Predict.** Run the next cell first: it prints the long-run margin per dollar of spend for
+# each channel. When that value counts, which channel gains the most budget: tv, search, social
+# or display? Write one name down.
 #
 # **Task.** Write `long_run_value(plan, curves, margin, new_customers_per_dollar, clv)`: $V$ for a
 # `plan` (a `pd.Series` of weekly spend by channel), summing over the channels in `plan`.
@@ -809,7 +812,7 @@ decision.assign(**{"true weekly sales": [sum(true_response(candidates[p][c], c) 
 #    `allocate` and PyMC-Marketing's optimizer. What does the contract cost in expected weekly
 #    sales, with a 94% HDI?
 #
-# Each new optimizer compiles the model again (a few seconds to a minute).
+# Each new optimizer compiles the model again (an estimate: a few seconds to a minute).
 #
 # <details><summary>Code for both</summary>
 #
