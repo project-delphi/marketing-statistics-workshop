@@ -30,8 +30,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize, nnls
+from threadpoolctl import threadpool_limits
 
 from mktstats.data import load_prop99, load_synthetic, load_truth
+
+# Every fit here is tiny, so one linear-algebra thread is fastest. It also avoids a large
+# slowdown where a container sees more cores than it is allowed to use.
+threadpool_limits(1, user_api="blas")
 
 panel = load_synthetic("geo_panel")
 truth_all = load_truth()

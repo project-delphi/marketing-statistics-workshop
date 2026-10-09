@@ -386,7 +386,7 @@ modules:
     # R install: GeoLift and augsynth come from their pinned archives (github_packages) after
     # their CRAN imports, which install.packages(repos = NULL) does not fetch by itself.
     notebooks:
-      - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
+      - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib, threadpoolctl]}
       - {path: labs/r/07-causalimpact-geolift.ipynb, source: labs/src/07-causalimpact-geolift.R, kernel: ir, install: [CausalImpact, bsts, ggplot2, dplyr, tidyr, knitr, gsynth, MarketMatching, panelView, directlabels, doParallel, foreach, gridExtra, progress, lifecycle, osqp, FNN, Formula, augsynth, GeoLift]}
     deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, R/mktstats.R, data/synthetic/geo_panel.csv, data/synthetic/truth.json, data/real/prop99.csv]
     data:
