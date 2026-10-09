@@ -196,15 +196,15 @@ Synthetic control gives no standard error, so the lab measures how wrong it is w
 The money: incremental margin $= m \times \text{incremental sales}$, and the campaign pays back when that exceeds its cost $C$, equivalently when its incremental return on ad spend (incremental sales $\div\, C$) exceeds the break-even $1/m$.
 
 ::: {.module-decision}
-**Decision.** The rule, fixed before reading the numbers: the campaign is **incremental** if the in-space placebo p-value is below 0.1 (and the CausalImpact interval, if entered, excludes 0); it is **profitable** if the incremental margin at the lower end of the 90% interval exceeds the campaign cost. The lab assumes a 30% margin and a $20,000 cost.
+**Decision.** The rule, fixed before reading the numbers: the campaign is **incremental** if the in-space placebo p-value is below 0.1 (and the CausalImpact interval, if entered, excludes 0); it is **profitable** if the incremental margin at the lower end of the interval exceeds the campaign cost. The lab reads the margin (30%) and the campaign's cost ($25,000: each treated geo spent 1.25% of its mean weekly pre-period sales in every test week) from the synthetic data's truth file; break-even needs about $83,300 of incremental sales.
 
 FULL run:
 
 - **Incremental:** yes. Placebo p = 0.030; CausalImpact's 95% interval (48,472 to 142,588) excludes 0.
-- **How much:** synthetic control 85,586 incremental sales (4.2%), 90% interval 70,931 to 140,603; difference-in-differences 88,926; CausalImpact 97,242.
-- **Profitable at the lower end:** incremental margin $25,676 (90% interval $21,279 to $42,181) against $20,000: yes, by a thin margin. A return of 1.28 times the cost (1.06 to 2.11).
+- **How much:** synthetic control 85,586 incremental sales (4.2%), 90% placebo-in-time interval 70,931 to 140,603; difference-in-differences 88,926; CausalImpact 97,242.
+- **Profitable at the lower end:** not shown. Incremental margin $25,676 (90% interval $21,279 to $42,181) against $25,000: a return of 1.03 times the cost (0.85 to 1.69). CausalImpact's lower end is lower still ($14,542). Both notebooks reach the same verdict.
 
-The profitability call is fragile, and the honest sentence says so. With CausalImpact's 95% interval the lower end of margin is $14,542, below the cost. The synthetic data's truth file records the campaign's actual cost as $25,000 (each treated geo spent 1.25% of its mean weekly pre-period sales in every test week), and at that cost the lower end of the 90% interval ($21,279) also falls short. The revealed truth: incremental margin $30,504, so at $25,000 the campaign earned a net $5,504. Recommendation: the campaign was incremental and probably paid back modestly; roll it out to similar regions only with a follow-up test sized to detect the lift that would make it profitable, and watch for spillover, which biases every estimate here downward.
+Recommendation: the campaign moved sales, but this test cannot show that it paid back; extend or redesign the test (more weeks or geos) before rolling it out, and watch for spillover, which biases every estimate here downward. The revealed truth makes the point: the true incremental margin was $30,504, so the campaign did earn a net $5,504 at $25,000, a margin this test is too small to resolve. Changing `CAMPAIGN_COST` in the lab shows how the verdict depends on the cost.
 :::
 
 ## Summary
