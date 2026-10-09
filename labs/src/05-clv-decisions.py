@@ -129,7 +129,7 @@ channel_rows
 # %%
 class ToyModel:
     """A stand-in for a fitted transaction model, for checkpoint 1: a new customer of channel c
-    makes rate[c] repeat purchases per week. One chain, two draws, identical."""
+    makes rate[c] repeat purchases per week, in both of its two draws (one chain)."""
 
     def __init__(self, rate):
         self.rate = rate
@@ -583,7 +583,8 @@ with workshop.checkpoint(4):
         f"Checkpoint 4: for cost $2, margins per purchase $3, $9, $6 and expected purchases 2, 4,"
         f" 0.5, the break-even lifts are {np.round(want, 4).tolist()}; yours are"
         f" {np.round(np.asarray(hand, float), 4).tolist()}. Divide the cost by margin per purchase"
-        " times expected purchases. To move on, run workshop.use_reference(4)."
+        " times expected purchases, and return a fraction (0.05 means 5%), not a percentage. To"
+        " move on, run workshop.use_reference(4)."
     )
     checks.monotone(breakeven_lift(2.0, 9.0, np.array([0.5, 1.0, 2.0, 4.0, 8.0])),
                     increasing=False, strict=True,
@@ -869,7 +870,10 @@ for c in CHANNELS:
 best = table.sort_values("median_lift").iloc[0]
 print(f"                  Retention: median break-even lift {np.median(lift):.0%};"
       f" {int((lift < 0.10).sum()):,} of {len(lift):,} customers need less than 10%; the segment"
-      f" with the smallest median is {best['segment']} ({best['median_lift']:.1%}).")
+      f" with the smallest median is {best['segment']} ({best['median_lift']:.1%}). By segment:")
+for line in table.assign(median_lift=table["median_lift"].map("{:.1%}".format)).to_string(
+        index=False).splitlines():
+    print(" " * 18 + line)
 print("Rule            : keep acquiring through a channel while its current CAC is below the cap")
 print("                  under the risk rule you chose (say which); run the retention offer for a")
 print("                  segment only if its break-even lift is below what an experiment has shown")

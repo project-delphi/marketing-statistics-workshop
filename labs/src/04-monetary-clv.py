@@ -688,7 +688,8 @@ with workshop.checkpoint(5):
     )
     assert (toy["T"] == 3).all(), (
         f"Checkpoint 5: with survivors at years 0, 1, 2 (n = 2), every row needs T = n + 1 = 3;"
-        f" got T = {sorted(toy['T'].unique())}. Survivors after year n need recency = T = n + 1:"
+        f" got T = {sorted(int(x) for x in toy['T'].unique())}. Survivors after year n need"
+        " recency = T = n + 1:"
         " the likelihood is censored at T, so T = n would say they might have left in year n."
         " To move on, run workshop.use_reference(5)."
     )
