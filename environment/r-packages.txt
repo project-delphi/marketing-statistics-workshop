@@ -1,0 +1,35 @@
+# R packages for the image, installed as binaries from the dated P3M snapshot (Dockerfile).
+# Labs
+CLVTools
+grf
+CausalImpact
+bsts
+# GeoLift and augsynth are GitHub-only; their CRAN dependencies are here and the two
+# packages themselves come from cran/ (scripts/build_cran_mirror.sh).
+gsynth
+MarketMatching
+panelView
+directlabels
+doParallel
+foreach
+gridExtra
+progress
+lifecycle
+osqp
+FNN
+Formula
+# Data and plotting
+duckdb
+DBI
+dplyr
+tidyr
+readr
+ggplot2
+jsonlite
+lubridate
+data.table
+# Notebook kernel and tooling
+IRkernel
+renv
+remotes
+digest
