@@ -1,0 +1,151 @@
+# The site. Facts (titles, days, timings, notebooks, pins) live in _variables.yml and reach
+# the pages through {{< var ... >}} and the includes that scripts/gen_tables.py writes. The
+# few facts repeated here (the site title, the Days menu labels, the repository URL) cannot
+# use shortcodes; keep them equal to _variables.yml (workshop.title, days.dN.title, repo.*).
+
+# Render with the Quarto in the workshop image (environment/Dockerfile), not an older local one:
+#   docker run --rm -v "$PWD":/work -w /work <image> quarto render
+quarto-required: ">=1.10.19"
+
+project:
+  type: website
+  output-dir: _site
+  # Explicit render list. Without it Quarto would render README.md, PLAN.md, AGENTS.md,
+  # briefs/ and the notebooks as pages. Files starting with "_" are partials, never pages.
+  render:
+    - index.qmd
+    - prepare.qmd
+    - setup.qmd
+    - schedule.qmd
+    - day-1.qmd
+    - day-2.qmd
+    - day-3.qmd
+    - day-4.qmd
+    - day-5.qmd
+    - modules/*.qmd
+    - notebooks.qmd
+    - references.qmd
+    - teach.qmd
+    # Instructor page, linked from teach.qmd (not in the navbar).
+    - knowledge-checks.md
+    - faq.qmd
+    - readiness.qmd
+    - 404.qmd
+    - slides/welcome.qmd
+  # Copied to the site as files, never executed. Globs are anchored with a leading "/" so
+  # they cannot match anything inside .venv/.
+  resources:
+    - /.nojekyll
+    - /labs/python/*.ipynb
+    - /labs/r/*.ipynb
+    - /fonts/**
+
+# website.sidebar (the modules grouped by day) is generated from _variables.yml.
+metadata-files:
+  - _includes/sidebar.yml
+
+website:
+  title: "Statistics for Marketing"
+  description: "A five-day hands-on workshop on statistics for marketing: customer-base analysis, customer lifetime value, experiments and geo tests, Bayesian marketing mix models, budget allocation and uplift, in Python and R on Google Colab."
+  site-url: https://project-delphi.github.io/marketing-statistics-workshop/
+  repo-url: https://github.com/project-delphi/marketing-statistics-workshop
+  open-graph: true
+  # Previous/next links at the foot of each module page, in sidebar order.
+  page-navigation: true
+  # The module header already names the day; no breadcrumb line above the title.
+  bread-crumbs: false
+  navbar:
+    background: primary
+    search: true
+    # The three journeys: before the workshop (Start here), during it (Schedule, Days,
+    # Notebooks) and after it (References); Teach is for instructors. Setup, FAQ and
+    # Readiness are in the footer.
+    left:
+      - href: index.qmd
+        text: Home
+      - href: prepare.qmd
+        text: Start here
+      - href: schedule.qmd
+        text: Schedule
+      - text: Days
+        menu:
+          # Module 0 is optional pre-work. Each day reads "Day N · " + days.dN.title.
+          - href: modules/00-prework.qmd
+            text: "Before Day 1 · Module 0 (pre-work)"
+          - href: day-1.qmd
+            text: "Day 1 · Who are our customers?"
+          - href: day-2.qmd
+            text: "Day 2 · What is a customer worth?"
+          - href: day-3.qmd
+            text: "Day 3 · Did the marketing cause the sales?"
+          - href: day-4.qmd
+            text: "Day 4 · Where should the next dollar go?"
+          - href: day-5.qmd
+            text: "Day 5 · Whom should we target?"
+      - href: notebooks.qmd
+        text: Notebooks
+      - href: references.qmd
+        text: References
+      - href: teach.qmd
+        text: Teach
+    right:
+      - icon: github
+        href: https://github.com/project-delphi/marketing-statistics-workshop
+        aria-label: "Source on GitHub"
+  page-footer:
+    left: "Statistics for Marketing · Genial Labs · Built with [Quarto](https://quarto.org)"
+    center:
+      - href: setup.qmd
+        text: Setup
+      - href: faq.qmd
+        text: FAQ
+      - href: readiness.qmd
+        text: Readiness
+    right: "[Text CC BY 4.0](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/LICENSE-content) · [Code MIT](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/LICENSE)"
+
+format:
+  html:
+    # custom.scss holds the light palette and every rule; custom-dark.scss only overrides
+    # the palette. Quarto adds the light/dark toggle to the navbar.
+    theme:
+      light: [cosmo, custom.scss]
+      dark: [cosmo, custom.scss, custom-dark.scss]
+    # First visit follows the operating system's light/dark setting (and keeps following
+    # it) until the reader uses the navbar toggle, which is then remembered in
+    # localStorage ("quarto-color-scheme"). Quarto 1.10 does this natively, so the site
+    # needs no script of its own.
+    respect-user-color-scheme: true
+    # The @font-face rules sit beside the font files they name (fonts/README.md).
+    css:
+      - fonts/fonts.css
+    grid:
+      sidebar-width: 240px
+      body-width: 850px
+      margin-width: 220px
+      gutter-width: 1.5rem
+    toc: true
+    toc-depth: 3
+    toc-title: "On this page"
+    anchor-sections: true
+    code-copy: true
+    code-overflow: wrap
+    # Pages may carry small figure cells later: their code is folded by default.
+    code-fold: true
+    code-summary: "Show the code"
+    # An adaptive style: Quarto emits a light and a dark variant.
+    syntax-highlighting: a11y
+    html-math-method: katex
+    link-external-newwindow: true
+    # pedagogy.lua adds classes (section objectives, optional callouts); disclosure.lua
+    # writes collapsed callouts as native <details>; inline-svg.lua inlines figures so
+    # they follow the theme.
+    filters:
+      - at: pre-ast
+        path: filters/pedagogy.lua
+      - at: pre-ast
+        path: filters/disclosure.lua
+      - at: pre-ast
+        path: filters/inline-svg.lua
+
+execute:
+  freeze: auto
