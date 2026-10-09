@@ -1,0 +1,332 @@
+# Single source of truth for the workshop. Pages read it through {{< var ... >}} and the
+# includes that scripts/gen_tables.py writes; notebooks through scripts/gen_notebooks.py.
+# Ownership of keys: see AGENTS.md ("Who owns what"). Do not duplicate these facts elsewhere.
+
+workshop:
+  title: "Statistics for Marketing"
+  subtitle: "Sales growth and customer lifetime value, with uncertainty"
+  short: "Stats for Marketing"
+  org: "Genial Labs"
+  audience: "Marketing analysts, data scientists and analytics engineers who know Python or R basics, linear and logistic regression, and SQL."
+  length: "five days"
+
+repo:
+  owner: project-delphi
+  name: marketing-statistics-workshop
+  url: https://github.com/project-delphi/marketing-statistics-workshop
+  site: https://project-delphi.github.io/marketing-statistics-workshop/
+  # Colab badges, the mktstats install, the constraints file and the R helpers all point at this
+  # ref. `main` while building; a release tag when the workshop is frozen for delivery.
+  ref: main
+  raw: https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop
+  colab_base: https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob
+
+environment:
+  python: "3.13"
+  r: "4.6.1"
+  quarto: "1.10.19"
+  # Dated Posit Public Package Manager snapshot used by the Docker image and the Colab R notebooks.
+  p3m_snapshot: "2026-10-01"
+  p3m_url: https://p3m.dev/cran/__linux__/noble/2026-10-01
+  colab_runtime: "Colab default runtime as of 2026-10 (Ubuntu 24.04.5, Python 3.13.16, R 4.6.1)"
+  colab_backend_info: https://github.com/googlecolab/backend-info
+  image: ghcr.io/project-delphi/marketing-statistics-workshop/env
+
+# Python packages the labs install on Colab, with the docs or source each was checked against.
+# Versions must agree with environment/requirements.txt (tests/test_variables.py).
+packages:
+  pymc-marketing: {version: "1.2.0", checked: 2026-10-09, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer)", docs: https://www.pymc-marketing.io/}
+  econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
+  nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
+
+# R packages (versions come from the P3M snapshot; recorded here after the image build).
+r_packages:
+  CLVTools: {version: "0.12.1", docs: https://cran.r-project.org/package=CLVTools}
+  grf: {version: "2.6.1", docs: https://grf-labs.github.io/grf/}
+  CausalImpact: {version: "1.4.1", docs: https://google.github.io/CausalImpact/}
+  bsts: {version: "0.9.11", docs: https://cran.r-project.org/package=bsts}
+
+# GitHub-only R packages, installed from archive tarballs at pinned commits (no GitHub API call).
+github_packages:
+  augsynth: {repo: ebenmichael/augsynth, sha: 7e70072232fe75057aa8b5d7af08c7e1aef53ae8, license: MIT}
+  GeoLift: {repo: facebookincubator/GeoLift, sha: db34ea4299ff0e28515ebac502b78c076c93c905, license: MIT}
+
+# Days: each day answers one question. `blocks` drive the generated timetable and clocks.
+days:
+  d0:
+    label: "Before Day 1"
+    title: "Pre-work"
+    question: "Is my environment ready, and can I turn a transaction log into a customer table?"
+    blocks: []
+  d1:
+    label: "Day 1"
+    title: "Who are our customers?"
+    question: "Who are our customers, and who is still with us?"
+    start: "09:00"
+    blocks:
+      - {kind: warmup, minutes: 15}
+      - {kind: module, id: m01}
+      - {kind: break, minutes: 15}
+      - {kind: module, id: m02}
+      - {kind: lunch, minutes: 55}
+      - {kind: module, id: m03}
+      - {kind: break, minutes: 10}
+      - {kind: wrapup, minutes: 20}
+  d2:
+    label: "Day 2"
+    title: "What is a customer worth?"
+    question: "What is a customer worth, in money, with uncertainty?"
+    start: "09:00"
+    blocks:
+      - {kind: warmup, minutes: 15}
+      - {kind: module, id: m04}
+      - {kind: break, minutes: 15}
+      - {kind: module, id: m05}
+      - {kind: lunch, minutes: 60}
+      - {kind: clinic, minutes: 60, title: "CFO memo clinic: peer review of the Module 5 decision memo"}
+      - {kind: wrapup, minutes: 20}
+  d3:
+    label: "Day 3"
+    title: "Did the marketing cause the sales?"
+    question: "Did the marketing cause the sales?"
+    start: "09:00"
+    blocks:
+      - {kind: warmup, minutes: 15}
+      - {kind: module, id: m06}
+      - {kind: break, minutes: 15}
+      - {kind: module, id: m07}
+      - {kind: lunch, minutes: 60}
+      - {kind: clinic, minutes: 60, title: "Geo-test design review, with the GeoLift market-selection demo"}
+      - {kind: wrapup, minutes: 20}
+  d4:
+    label: "Day 4"
+    title: "Where should the next dollar go?"
+    question: "Where should the next dollar go?"
+    start: "09:00"
+    blocks:
+      - {kind: warmup, minutes: 15}
+      - {kind: module, id: m08}
+      - {kind: break, minutes: 15}
+      - {kind: module, id: m09}
+      - {kind: lunch, minutes: 55}
+      - {kind: module, id: m10}
+      - {kind: break, minutes: 10}
+      - {kind: wrapup, minutes: 20}
+  d5:
+    label: "Day 5"
+    title: "Whom should we target?"
+    question: "Whom should we target, and how should we spend?"
+    start: "09:00"
+    blocks:
+      - {kind: warmup, minutes: 15}
+      - {kind: module, id: m11}
+      - {kind: break, minutes: 15}
+      - {kind: module, id: m12}
+      - {kind: wrapup, minutes: 20}
+
+# Modules. minutes: briefing / lab / debrief. Content keys (summary, objectives, outcomes, decision,
+# language_why) are filled by the Academic Director; notebooks/deps/data by the Technical Expert.
+modules:
+  m00:
+    slug: 00-prework
+    title: "Pre-work: environment, warm-up and coding agents"
+    day: d0
+    optional: true
+    minutes: {briefing: 0, lab: 60, debrief: 0}
+    language: [python, r]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.py, kernel: python3}
+      - {path: labs/r/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.R, kernel: ir}
+    deps: []
+    data: []
+  m01:
+    slug: 01-customer-base
+    title: "Transaction logs to customer-base analysis"
+    day: d1
+    minutes: {briefing: 45, lab: 50, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/01-customer-base-sql.ipynb, source: labs/src/01-customer-base-sql.py, kernel: python3}
+    deps: []
+    data: []
+  m02:
+    slug: 02-btyd
+    title: "Buy-till-you-die models: BG/NBD and Pareto/NBD"
+    day: d1
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/02-btyd.ipynb, source: labs/src/02-btyd.py, kernel: python3}
+    deps: []
+    data: []
+  m03:
+    slug: 03-covariates-and-ml
+    title: "Covariates, the R reference (CLVTools), and BTYD versus machine learning"
+    day: d1
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [r, python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/r/03-clvtools-covariates.ipynb, source: labs/src/03-clvtools-covariates.R, kernel: ir}
+      - {path: labs/python/03-btyd-vs-ml.ipynb, source: labs/src/03-btyd-vs-ml.py, kernel: python3}
+    deps: []
+    data: []
+  m04:
+    slug: 04-monetary-clv
+    title: "Monetary value and dollar CLV"
+    day: d2
+    minutes: {briefing: 55, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/04-monetary-clv.ipynb, source: labs/src/04-monetary-clv.py, kernel: python3}
+    deps: []
+    data: []
+  m05:
+    slug: 05-clv-decisions
+    title: "From CLV to decisions"
+    day: d2
+    minutes: {briefing: 55, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/05-clv-decisions.ipynb, source: labs/src/05-clv-decisions.py, kernel: python3}
+    deps: []
+    data: []
+  m06:
+    slug: 06-experiments
+    title: "Experiments done right"
+    day: d3
+    minutes: {briefing: 55, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/06-experiments.ipynb, source: labs/src/06-experiments.py, kernel: python3}
+    deps: []
+    data: []
+  m07:
+    slug: 07-geo-experiments
+    title: "Geo-experiments and quasi-experiments"
+    day: d3
+    minutes: {briefing: 55, lab: 55, debrief: 10}
+    language: [python, r]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3}
+      - {path: labs/r/07-causalimpact-geolift.ipynb, source: labs/src/07-causalimpact-geolift.R, kernel: ir}
+    deps: []
+    data: []
+  m08:
+    slug: 08-bayesian-mmm
+    title: "Bayesian marketing mix models"
+    day: d4
+    minutes: {briefing: 50, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/08-bayesian-mmm.ipynb, source: labs/src/08-bayesian-mmm.py, kernel: python3}
+    deps: []
+    data: []
+  m09:
+    slug: 09-mmm-calibration
+    title: "Calibrating and validating an MMM"
+    day: d4
+    minutes: {briefing: 50, lab: 55, debrief: 10}
+    language: [python, r]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3}
+    deps: []
+    data: []
+  m10:
+    slug: 10-budget-allocation
+    title: "Budget allocation under uncertainty"
+    day: d4
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/10-budget-allocation.ipynb, source: labs/src/10-budget-allocation.py, kernel: python3}
+    deps: []
+    data: []
+  m11:
+    slug: 11-uplift
+    title: "Uplift and heterogeneous treatment effects"
+    day: d5
+    minutes: {briefing: 50, lab: 55, debrief: 10}
+    language: [r, python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/r/11-grf-causal-forest.ipynb, source: labs/src/11-grf-causal-forest.R, kernel: ir}
+      - {path: labs/python/11-uplift-econml.ipynb, source: labs/src/11-uplift-econml.py, kernel: python3}
+    deps: []
+    data: []
+  m12:
+    slug: 12-capstone
+    title: "Capstone: one decision pipeline for the retailer"
+    day: d5
+    # Briefing 15 min, then pair work with lunch inside it, then presentations.
+    minutes: {briefing: 15, lab: 240, debrief: 60}
+    language: [python]
+    language_why: ""
+    summary: ""
+    objectives: []
+    decision: ""
+    notebooks:
+      - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3}
+    deps: []
+    data: []
+
+# Evidence rules for readiness.qmd (scripts/readiness.py). Envs with teaching: true count as
+# "ran on the runtime it is designed for"; ci: true is the CI lane; documented_only envs are
+# never run and are labelled so.
+readiness:
+  max_run_age_days: 21
+  envs:
+    colab-py: {label: "Colab (Python runtime, CPU)", teaching: true}
+    colab-r: {label: "Colab (R runtime, CPU)", teaching: true}
+    ci-amd64: {label: "GitHub Actions runner in the workshop image (linux/amd64, 4 vCPU)", ci: true}
+    docker-arm64: {label: "Workshop image on an Apple Silicon laptop (linux/arm64, Docker)"}
+    macos-arm64: {label: "Apple Silicon laptop, native uv environment (not Linux)"}
+    aws-sagemaker: {label: "AWS SageMaker Studio (custom image)", documented_only: true}
+    aws-ec2: {label: "AWS EC2 (workshop image over an SSH tunnel)", documented_only: true}
+  items: []
