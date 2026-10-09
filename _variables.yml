@@ -67,7 +67,7 @@ days:
     blocks: []
   d1:
     label: "Day 1"
-    title: "Who are our customers?"
+    title: "Customers and churn"
     question: "Who are our customers, and who is still with us?"
     start: "09:00"
     blocks:
@@ -81,7 +81,7 @@ days:
       - {kind: wrapup, minutes: 20}
   d2:
     label: "Day 2"
-    title: "What is a customer worth?"
+    title: "What a customer is worth"
     question: "What is a customer worth, in money, with uncertainty?"
     start: "09:00"
     blocks:
@@ -97,7 +97,7 @@ days:
       - {kind: wrapup, minutes: 20}
   d3:
     label: "Day 3"
-    title: "Did the marketing cause the sales?"
+    title: "Incrementality"
     question: "Did the marketing cause the sales?"
     start: "09:00"
     blocks:
@@ -113,7 +113,7 @@ days:
       - {kind: wrapup, minutes: 20}
   d4:
     label: "Day 4"
-    title: "Where should the next dollar go?"
+    title: "Where the next dollar goes"
     question: "Where should the next dollar go?"
     start: "09:00"
     blocks:
@@ -127,7 +127,7 @@ days:
       - {kind: wrapup, minutes: 20}
   d5:
     label: "Day 5"
-    title: "Whom should we target?"
+    title: "Targeting and the plan"
     question: "Whom should we target, and what is the plan for next quarter?"
     start: "09:00"
     blocks:

@@ -20,7 +20,7 @@ Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and rec
 
 ::: {.module-details}
 Day
-:   Day 1 · Who are our customers? (14:00–15:50)
+:   Day 1 · Customers and churn (14:00–15:50)
 
 Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)

@@ -73,15 +73,15 @@ website:
           - href: modules/00-prework.qmd
             text: "Before Day 1 · Module 0 (pre-work)"
           - href: day-1.qmd
-            text: "Day 1 · Who are our customers?"
+            text: "Day 1 · Customers and churn"
           - href: day-2.qmd
-            text: "Day 2 · What is a customer worth?"
+            text: "Day 2 · What a customer is worth"
           - href: day-3.qmd
-            text: "Day 3 · Did the marketing cause the sales?"
+            text: "Day 3 · Incrementality"
           - href: day-4.qmd
-            text: "Day 4 · Where should the next dollar go?"
+            text: "Day 4 · Where the next dollar goes"
           - href: day-5.qmd
-            text: "Day 5 · Whom should we target?"
+            text: "Day 5 · Targeting and the plan"
       - href: notebooks.qmd
         text: Notebooks
       - href: references.qmd

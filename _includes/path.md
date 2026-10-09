@@ -15,7 +15,7 @@ Check that your environment runs, turn a raw transaction log into a customer tab
 :::
 :::
 ::: {.path-day}
-[Day 1 · Who are our customers?](/day-1.qmd){.path-day-label}
+[Day 1 · Customers and churn](/day-1.qmd){.path-day-label}
 
 ::: {.path-step}
 [1]{.path-num}
@@ -46,7 +46,7 @@ Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and rec
 :::
 :::
 ::: {.path-day}
-[Day 2 · What is a customer worth?](/day-2.qmd){.path-day-label}
+[Day 2 · What a customer is worth](/day-2.qmd){.path-day-label}
 
 ::: {.path-step}
 [4]{.path-num}
@@ -68,7 +68,7 @@ Turn posterior CLV into decisions: the most we can pay to acquire a customer in 
 :::
 :::
 ::: {.path-day}
-[Day 3 · Did the marketing cause the sales?](/day-3.qmd){.path-day-label}
+[Day 3 · Incrementality](/day-3.qmd){.path-day-label}
 
 ::: {.path-step}
 [6]{.path-num}
@@ -90,7 +90,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 :::
 :::
 ::: {.path-day}
-[Day 4 · Where should the next dollar go?](/day-4.qmd){.path-day-label}
+[Day 4 · Where the next dollar goes](/day-4.qmd){.path-day-label}
 
 ::: {.path-step}
 [8]{.path-num}
@@ -121,7 +121,7 @@ Turn response curves into a budget: write a constrained SLSQP allocator, compare
 :::
 :::
 ::: {.path-day}
-[Day 5 · Whom should we target?](/day-5.qmd){.path-day-label}
+[Day 5 · Targeting and the plan](/day-5.qmd){.path-day-label}
 
 ::: {.path-step}
 [11]{.path-num}

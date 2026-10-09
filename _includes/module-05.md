@@ -20,7 +20,7 @@ Turn posterior CLV into decisions: the most we can pay to acquire a customer in 
 
 ::: {.module-details}
 Day
-:   Day 2 · What is a customer worth? (11:30–12:25 · 13:25–14:30)
+:   Day 2 · What a customer is worth (11:30–12:25 · 13:25–14:30)
 
 Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)

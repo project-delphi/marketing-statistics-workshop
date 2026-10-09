@@ -6,7 +6,7 @@
 
 On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up and coding agents](/modules/00-prework.qmd) (about 60 minutes).
 
-## [Day 1 · Who are our customers?](/day-1.qmd) {#day-1}
+## [Day 1 · Customers and churn](/day-1.qmd) {#day-1}
 
 *Who are our customers, and who is still with us?* 09:00–16:20
 
@@ -29,7 +29,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 16:00–16:20 | [Wrap-up]{.slot-debrief} |  |
 :::
 
-## [Day 2 · What is a customer worth?](/day-2.qmd) {#day-2}
+## [Day 2 · What a customer is worth](/day-2.qmd) {#day-2}
 
 *What is a customer worth, in money, with uncertainty?* 09:00–16:00
 
@@ -50,7 +50,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 15:40–16:00 | [Wrap-up]{.slot-debrief} |  |
 :::
 
-## [Day 3 · Did the marketing cause the sales?](/day-3.qmd) {#day-3}
+## [Day 3 · Incrementality](/day-3.qmd) {#day-3}
 
 *Did the marketing cause the sales?* 09:00–16:00
 
@@ -71,7 +71,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 15:40–16:00 | [Wrap-up]{.slot-debrief} |  |
 :::
 
-## [Day 4 · Where should the next dollar go?](/day-4.qmd) {#day-4}
+## [Day 4 · Where the next dollar goes](/day-4.qmd) {#day-4}
 
 *Where should the next dollar go?* 09:00–16:35
 
@@ -94,7 +94,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 16:15–16:35 | [Wrap-up]{.slot-debrief} |  |
 :::
 
-## [Day 5 · Whom should we target?](/day-5.qmd) {#day-5}
+## [Day 5 · Targeting and the plan](/day-5.qmd) {#day-5}
 
 *Whom should we target, and what is the plan for next quarter?* 09:00–17:00
 

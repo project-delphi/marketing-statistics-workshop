@@ -20,7 +20,7 @@ Design and read randomized experiments correctly: power and minimum detectable e
 
 ::: {.module-details}
 Day
-:   Day 3 · Did the marketing cause the sales? (09:15–11:15)
+:   Day 3 · Incrementality (09:15–11:15)
 
 Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)

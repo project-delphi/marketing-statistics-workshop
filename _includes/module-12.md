@@ -20,7 +20,7 @@ In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a ge
 
 ::: {.module-details}
 Day
-:   Day 5 · Whom should we target? (11:25–13:00 · 13:50–15:30 · 15:40–16:40)
+:   Day 5 · Targeting and the plan (11:25–13:00 · 13:50–15:30 · 15:40–16:40)
 
 Time
 :   255 minutes (15 briefing, 180 lab, 60 debrief)

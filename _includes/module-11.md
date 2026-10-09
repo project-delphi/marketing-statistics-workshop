@@ -20,7 +20,7 @@ Estimate who responds to an email offer because of it, with causal forests (grf 
 
 ::: {.module-details}
 Day
-:   Day 5 · Whom should we target? (09:15–11:10)
+:   Day 5 · Targeting and the plan (09:15–11:10)
 
 Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)

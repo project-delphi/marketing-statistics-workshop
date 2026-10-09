@@ -149,7 +149,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [Lead] `.github/workflows/publish.yml` (drift gates, ruff, pytest, evidence checkout, render, lychee offline, deploy-pages) + Pages enabled
 - [x] [Lead] `.github/workflows/notebooks.yml` (matrix from `_variables.yml`, image container, collect → `evidence` branch) + `image.yml`
 - [x] [TE] M0 Python + R notebooks (written; worked+verify and learner runs recorded on macOS and in Docker, full settings)
-- [ ] [Lead] M0 Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks
+- [x] [Lead] M0 Colab runs recorded. Milestone: live site, honest readiness for 2 notebooks (2026-10-09; CI evidence branch live)
 
 ### Phase 2 — generators (freeze mktstats API at the end)
 - [x] [TE] synth: BTYD retailer (true r, α, a, b, alive status, acquisition channel effect), Gamma-Gamma spend, weekly MMM (adstock, saturation, true ROAS), geo panel (true lift), email experiment (true CATE); `truth.json`; drift gate

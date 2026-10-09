@@ -20,7 +20,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 
 ::: {.module-details}
 Day
-:   Day 3 · Did the marketing cause the sales? (11:30–12:25 · 13:25–14:30)
+:   Day 3 · Incrementality (11:30–12:25 · 13:25–14:30)
 
 Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)

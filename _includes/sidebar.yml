@@ -8,7 +8,7 @@ website:
       contents:
       - href: modules/00-prework.qmd
         text: '0 · Pre-work: environment, warm-up and coding agents'
-    - section: Day 1 · Who are our customers?
+    - section: Day 1 · Customers and churn
       contents:
       - href: modules/01-customer-base.qmd
         text: 1 · Transaction logs to customer-base analysis
@@ -16,19 +16,19 @@ website:
         text: '2 · Buy-till-you-die models: BG/NBD and Pareto/NBD'
       - href: modules/03-covariates-and-ml.qmd
         text: 3 · Covariates in CLVTools, and BTYD versus machine learning
-    - section: Day 2 · What is a customer worth?
+    - section: Day 2 · What a customer is worth
       contents:
       - href: modules/04-monetary-clv.qmd
         text: 4 · Monetary value and dollar CLV
       - href: modules/05-clv-decisions.qmd
         text: 5 · From CLV to decisions
-    - section: Day 3 · Did the marketing cause the sales?
+    - section: Day 3 · Incrementality
       contents:
       - href: modules/06-experiments.qmd
         text: 6 · Experiments done right
       - href: modules/07-geo-experiments.qmd
         text: 7 · Geo-experiments and quasi-experiments
-    - section: Day 4 · Where should the next dollar go?
+    - section: Day 4 · Where the next dollar goes
       contents:
       - href: modules/08-bayesian-mmm.qmd
         text: 8 · Bayesian marketing mix models
@@ -36,7 +36,7 @@ website:
         text: 9 · Calibrating and validating an MMM
       - href: modules/10-budget-allocation.qmd
         text: 10 · Budget allocation under uncertainty
-    - section: Day 5 · Whom should we target?
+    - section: Day 5 · Targeting and the plan
       contents:
       - href: modules/11-uplift.qmd
         text: 11 · Uplift and heterogeneous treatment effects

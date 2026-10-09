@@ -20,7 +20,7 @@ Feed geo-test results into the MMM as extra likelihood terms, validate it with t
 
 ::: {.module-details}
 Day
-:   Day 4 · Where should the next dollar go? (11:25–13:20)
+:   Day 4 · Where the next dollar goes (11:25–13:20)
 
 Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)

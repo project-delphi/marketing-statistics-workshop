@@ -20,7 +20,7 @@ Turn raw transaction logs into a customer table with DuckDB window functions, dr
 
 ::: {.module-details}
 Day
-:   Day 1 · Who are our customers? (09:15–11:00)
+:   Day 1 · Customers and churn (09:15–11:00)
 
 Time
 :   105 minutes (45 briefing, 50 lab, 10 debrief)

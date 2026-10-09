@@ -20,7 +20,7 @@ Add a Gamma-Gamma spend model after checking that spend is independent of purcha
 
 ::: {.module-details}
 Day
-:   Day 2 · What is a customer worth? (09:15–11:15)
+:   Day 2 · What a customer is worth (09:15–11:15)
 
 Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)

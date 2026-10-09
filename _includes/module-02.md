@@ -20,7 +20,7 @@ Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the f
 
 ::: {.module-details}
 Day
-:   Day 1 · Who are our customers? (11:15–13:05)
+:   Day 1 · Customers and churn (11:15–13:05)
 
 Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)

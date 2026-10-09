@@ -13,7 +13,7 @@
 ::: {.day-card}
 [Day 1]{.eyebrow}
 
-[Who are our customers?](/day-1.qmd){.day-card-title}
+[Customers and churn](/day-1.qmd){.day-card-title}
 
 [Who are our customers, and who is still with us?]{.day-card-question}
 
@@ -22,7 +22,7 @@
 ::: {.day-card}
 [Day 2]{.eyebrow}
 
-[What is a customer worth?](/day-2.qmd){.day-card-title}
+[What a customer is worth](/day-2.qmd){.day-card-title}
 
 [What is a customer worth, in money, with uncertainty?]{.day-card-question}
 
@@ -31,7 +31,7 @@
 ::: {.day-card}
 [Day 3]{.eyebrow}
 
-[Did the marketing cause the sales?](/day-3.qmd){.day-card-title}
+[Incrementality](/day-3.qmd){.day-card-title}
 
 [Did the marketing cause the sales?]{.day-card-question}
 
@@ -40,7 +40,7 @@
 ::: {.day-card}
 [Day 4]{.eyebrow}
 
-[Where should the next dollar go?](/day-4.qmd){.day-card-title}
+[Where the next dollar goes](/day-4.qmd){.day-card-title}
 
 [Where should the next dollar go?]{.day-card-question}
 
@@ -49,7 +49,7 @@
 ::: {.day-card}
 [Day 5]{.eyebrow}
 
-[Whom should we target?](/day-5.qmd){.day-card-title}
+[Targeting and the plan](/day-5.qmd){.day-card-title}
 
 [Whom should we target, and what is the plan for next quarter?]{.day-card-question}
 

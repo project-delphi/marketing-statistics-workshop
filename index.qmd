@@ -1,5 +1,6 @@
 ---
 title: "{{< var workshop.title >}}"
+pagetitle: "A five-day workshop"
 subtitle: "{{< var workshop.subtitle >}}"
 toc: false
 page-layout: full

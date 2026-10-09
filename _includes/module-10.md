@@ -20,7 +20,7 @@ Turn response curves into a budget: write a constrained SLSQP allocator, compare
 
 ::: {.module-details}
 Day
-:   Day 4 · Where should the next dollar go? (14:15–16:05)
+:   Day 4 · Where the next dollar goes (14:15–16:05)
 
 Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)

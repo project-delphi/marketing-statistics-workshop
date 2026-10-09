@@ -20,7 +20,7 @@ Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonal
 
 ::: {.module-details}
 Day
-:   Day 4 · Where should the next dollar go? (09:15–11:10)
+:   Day 4 · Where the next dollar goes (09:15–11:10)
 
 Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
