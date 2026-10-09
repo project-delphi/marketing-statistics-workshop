@@ -65,11 +65,25 @@ need_cmd() {
   fi
 }
 
-# Print a command the way a shell would read it.
+# Quote one word for display: plain words as they are, anything else in single quotes.
+shell_quote() {
+  local s=$1 q="'\\''"
+  if [[ "$s" =~ ^[A-Za-z0-9_./:=@%+,-]+$ ]]; then
+    printf '%s' "$s"
+  else
+    printf "'%s'" "${s//\'/$q}"
+  fi
+}
+
+# Print a command so that it can be copied into a shell.
 show() {
+  local word
   {
     printf '+'
-    printf ' %q' "$@"
+    for word in "$@"; do
+      printf ' '
+      shell_quote "$word"
+    done
     printf '\n'
   } >&2
 }
