@@ -366,9 +366,9 @@ show(fig)
 # check again.
 #
 # **Run.** Fit the model by MCMC with the nutpie sampler: two chains. `target_accept=0.9` makes
-# the sampler take smaller steps than the default 0.8; on this model 0.8 left a divergence in
-# one of six test runs (what a divergence is: Exercise 4). Read the next exercise's Predict
-# prompt while it runs.
+# the sampler take smaller steps than the default 0.8, which left an occasional divergence in
+# the workshop's test fits of this model (what a divergence is: Exercise 4). Read the next
+# exercise's Predict prompt while it runs.
 #
 # With QUICK on, the sampler draws 300 instead of 2,000 values per chain: intervals are rougher
 # and may not match the module page, and a decision near its threshold can flip. That is a

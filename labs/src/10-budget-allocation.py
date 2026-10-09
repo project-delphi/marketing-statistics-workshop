@@ -563,21 +563,22 @@ def allocation_risk(draws, q=0.10):
 # %% [markdown]
 # **Explain.** Compare with your guess, using the table below. It adds a third plan, provided:
 # the *risk-averse* plan, which maximizes the 10% quantile instead of the mean (SLSQP again,
-# started from the mean-optimal plan). Was the more even current plan safer? How much does the
-# risk-averse plan move, and away from which channel?
+# started from the mean-optimal plan). Was the more even current plan safer? How far does the
+# risk-averse plan move from the mean-optimal one?
 #
 # <details><summary>Why this solution works</summary>
 #
 # The quantile and CVaR read the left tail of the draws; CVaR also says how bad the tail is
 # beyond the cut. Spreading money evenly is not the same as lowering risk: the current plan
 # keeps money on channels with low marginal ROAS, so its whole distribution, tail included,
-# sits lower. A risk-averse objective moves money from the channel whose response is least
-# certain (search: compare the widths of the bands in the response-curve plot) to a more
-# certain one, giving up a little expected sales for a better bad case. Here it moves little:
-# at the mean-optimal plan, tv and search have the same marginal ROAS, and most of the
-# uncertainty is in search's overall level, which every allowed plan carries. Whether a better
-# tail is worth lower expected sales is a business choice; the rule in the Decision states it.
-# With QUICK on, quantiles from 600 draws are rough.
+# sits lower. A risk-averse objective would move money away from a channel whose response is
+# uncertain *at the margin*, giving up a little expected sales for a better bad case. Here it
+# barely moves: at the mean-optimal plan tv and search have the same marginal ROAS, and most of
+# the uncertainty is in search's overall level (the wide band in the response-curve plot),
+# which every allowed plan carries, so no reallocation within the bounds removes it. A lift
+# test that narrows search's curve would (Module 9). Whether a better tail is worth lower
+# expected sales is a business choice; the rule in the Decision states it. With QUICK on,
+# quantiles from 600 draws are rough.
 # </details>
 
 # %% tags=["checkpoint"]
