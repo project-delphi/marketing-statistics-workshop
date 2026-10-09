@@ -9,6 +9,10 @@ workshop:
   org: "Genial Labs"
   audience: "Marketing analysts, data scientists and analytics engineers who know Python or R basics, linear and logistic regression, and SQL."
   length: "five days"
+  # One paragraph for the landing page and README.
+  lead: "Five days from a raw transaction log to a budget and a targeting list. Each day answers one business question, each module fixes something the previous one could not do, and every lab ends in a decision stated with its uncertainty."
+  # The running story every lab returns to (data from mktstats.synth, truth in data/synthetic/truth.json).
+  story: "One synthetic online retailer runs through the whole week. Its customers arrive through different acquisition channels, buy at their own pace and leave without telling anyone; it sends email offers, runs a regional campaign and spends on TV, search, social and display. We generated it, so we know the true answers, and every method is scored against that truth before you use it on real data."
 
 repo:
   owner: project-delphi
@@ -56,7 +60,7 @@ days:
   d0:
     label: "Before Day 1"
     title: "Pre-work"
-    question: "Is my environment ready, and can I turn a transaction log into a customer table?"
+    question: "Is my environment ready, and can I count purchases per customer in pandas, SQL or dplyr?"
     blocks: []
   d1:
     label: "Day 1"
@@ -115,7 +119,7 @@ days:
   d5:
     label: "Day 5"
     title: "Whom should we target?"
-    question: "Whom should we target, and how should we spend?"
+    question: "Whom should we target, and what is the plan for next quarter?"
     start: "09:00"
     blocks:
       - {kind: warmup, minutes: 15}
@@ -124,8 +128,14 @@ days:
       - {kind: module, id: m12}
       - {kind: wrapup, minutes: 20}
 
-# Modules. minutes: briefing / lab / debrief. Content keys (summary, objectives, outcomes, decision,
-# language_why) are filled by the Academic Director; notebooks/deps/data by the Technical Expert.
+# Modules. minutes: briefing / lab / debrief. Content keys are filled by the Academic Director;
+# notebooks/deps/data by the Technical Expert. Content keys and their types:
+#   title, summary (one sentence), decision (one sentence), language_why, recap, next: strings
+#   objectives (3-5, each starts with a checkable verb), outcomes ("What you will build"),
+#   prerequisites ("Before you start"): lists of strings
+# recap = what the previous module left unsolved, which this module fixes;
+# next = what this module still cannot do, which the next module fixes.
+# Lab briefs with exercises, checkpoints and run settings: briefs/NN-slug.md.
 modules:
   m00:
     slug: 00-prework
@@ -134,10 +144,24 @@ modules:
     optional: true
     minutes: {briefing: 0, lab: 60, debrief: 0}
     language: [python, r]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Both. Python is the main harness for the week; the R notebook checks the R runtime that Modules 3, 7 and 11 use, so you find out now, not on Day 1, whether it works for you."
+    summary: "Check that your environment runs, warm up on a transaction log in pandas and DuckDB SQL (or dplyr), simulate one customer, and practise checking code that a coding agent wrote."
+    objectives:
+      - "Run the environment check on Colab or locally and read what its report says."
+      - "Count purchases per customer from a transaction log in pandas and in DuckDB SQL (or dplyr in R)."
+      - "Simulate one customer's purchases as a Poisson process that stops at an exponential lifetime."
+      - "Verify a function written by a coding agent with a checkpoint before you trust it."
+    outcomes:
+      - "A working Colab or local environment with the workshop's pinned packages"
+      - "Three checkpoint-tested functions on a small transaction log"
+      - "A note of where you will run the labs and whether you will do the R notebooks"
+    prerequisites:
+      - "Python or R basics: functions, data frames, loops"
+      - "SQL SELECT, GROUP BY and JOIN"
+      - "A Google account for Colab, or Docker for the local image (see Setup)"
+    decision: "Decide where you will run the labs (Colab, local Docker or AWS) and whether you will do the R notebooks, based on an environment check that actually ran."
+    recap: "This is the starting point; no earlier module."
+    next: "A transaction log says what customers did, not who is still a customer. Module 1 builds the customer table and shows why churn is never recorded when customers can leave silently."
     notebooks:
       - {path: labs/python/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.py, kernel: python3}
       - {path: labs/r/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.R, kernel: ir}
@@ -149,10 +173,23 @@ modules:
     day: d1
     minutes: {briefing: 45, lab: 50, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python with DuckDB. SQL is what analytics engineers already write, and DuckDB runs it inside the notebook on Colab with no database server; the same queries work on a warehouse."
+    summary: "Turn raw transaction logs into a customer table with DuckDB window functions, draw cohort retention curves, and see why churn is never observed when customers can leave without telling you."
+    objectives:
+      - "Clean a real transaction log in SQL: cancellations, missing customer IDs, returns and same-day purchases."
+      - "Compute frequency, recency and customer age with window functions, using exactly the definitions the Module 2 models need."
+      - "Build monthly cohort retention curves and read them without mixing up cohorts and calendar time."
+      - "Explain why churn is unobserved in a non-contractual setting, and measure how often a 'no purchase in 90 days' rule misclassifies customers against known truth."
+    outcomes:
+      - "A reusable SQL query that turns any transaction log into an RFM table (frequency, recency, age, mean spend)"
+      - "Cohort retention curves for CDNOW and UCI Online Retail II"
+      - "A confusion table of a recency-rule churn flag against the synthetic retailer's true alive status"
+    prerequisites:
+      - "Module 0 (pre-work) or equivalent: pandas groupby or SQL GROUP BY"
+      - "No prior use of SQL window functions; they are introduced here"
+    decision: "Decide whether an 'inactive for N days' rule is good enough to stop retargeting customers, by counting how many still-active customers it would drop."
+    recap: "Pre-work left you with per-customer counts but no definition of who is still a customer."
+    next: "The recency rule needs an arbitrary cutoff, cannot forecast purchases and gives no probability. Module 2 replaces it with a model of purchasing and silent dropout."
     notebooks:
       - {path: labs/python/01-customer-base-sql.ipynb, source: labs/src/01-customer-base-sql.py, kernel: python3}
     deps: []
@@ -163,24 +200,53 @@ modules:
     day: d1
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. PyMC-Marketing implements BG/NBD and Pareto/NBD with full posteriors, in the same library we use for the marketing mix model on Day 4."
+    summary: "Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the fit recovers known parameters, forecast a holdout period, and turn the probability a customer is alive into a retargeting rule."
+    objectives:
+      - "Simulate the BG/NBD generative story and say what each parameter (r, α, a, b) controls."
+      - "Compute the sufficient statistics x (repeat purchases), t_x (time of last purchase since the first) and T (customer age) for a calibration period, without swapping them."
+      - "Fit BG/NBD by MAP and by MCMC and check that the true parameters fall inside the 94% HDI."
+      - "Compare predicted with actual holdout purchases on CDNOW for BG/NBD and Pareto/NBD."
+      - "Set a P(alive) threshold for retargeting from the contact cost and the expected margin."
+    outcomes:
+      - "A parameter-recovery table: true value, MAP, posterior mean and 94% HDI"
+      - "Holdout tracking plots for CDNOW (predicted versus actual repeat purchases)"
+      - "A per-customer P(alive) and expected-purchases table with a retarget / stop flag"
+    prerequisites:
+      - "Module 1: the RFM table and why churn is unobserved"
+      - "Poisson counts and exponential waiting times at the level of 'rate per week'"
+    decision: "Stop retargeting customers whose P(alive) is below τ = contact cost ÷ (margin per purchase × assumed response rate), and count how many customers and dollars that affects."
+    recap: "Module 1's recency rule flags churn with an arbitrary cutoff, cannot forecast, and misclassified still-active customers against the known truth."
+    next: "These models treat all customers as one population: they cannot say whether customers from different acquisition channels buy or leave at different rates, and we have not tested whether a flexible machine-learning model forecasts better. Module 3 does both."
     notebooks:
       - {path: labs/python/02-btyd.ipynb, source: labs/src/02-btyd.py, kernel: python3}
     deps: []
     data: []
   m03:
     slug: 03-covariates-and-ml
-    title: "Covariates, the R reference (CLVTools), and BTYD versus machine learning"
+    title: "Covariates in CLVTools, and BTYD versus machine learning"
     day: d1
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [r, python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "R for CLVTools, the reference implementation of the Pareto/NBD with covariates; Python for the machine-learning comparison with scikit-learn."
+    summary: "Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and recover the true channel effects, then run a fair holdout comparison of BTYD against gradient boosting."
+    objectives:
+      - "Fit a Pareto/NBD with static covariates in CLVTools (clvdata, then SetStaticCovariates, then pnbd) and interpret the purchase and dropout coefficients."
+      - "Check that the channel effects estimated on the synthetic retailer match the truth within their 90% confidence intervals."
+      - "Compare CLVTools' fit with the Python fit from Module 2 on the same customers."
+      - "Build features and a holdout target without leakage, and compare gradient boosting with BTYD on holdout purchases."
+      - "State what each approach gives that the other cannot (P(alive) and extrapolation versus flexible features)."
+    outcomes:
+      - "A table of true versus estimated channel effects on purchase and dropout rates"
+      - "A side-by-side of CLVTools and PyMC-Marketing parameter estimates"
+      - "A holdout scorecard (error by customer group) for BTYD and gradient boosting, with the result you measured"
+    prerequisites:
+      - "Module 2: the Pareto/NBD and the calibration/holdout split"
+      - "Linear or logistic regression coefficients as multiplicative effects (log scale)"
+      - "Optional for the R notebook: R basics from the R pre-work notebook"
+    decision: "Decide whether channels differ enough in purchase and dropout rates to be treated differently, and which method to use for next quarter's purchase forecast, based on the holdout error you measured."
+    recap: "Module 2's models describe one homogeneous population and were never compared with a flexible machine-learning forecaster."
+    next: "We now forecast how many purchases each customer will make, but not what they will spend, so we still cannot put a dollar value on a customer. Module 4 adds a spend model and discounting."
     notebooks:
       - {path: labs/r/03-clvtools-covariates.ipynb, source: labs/src/03-clvtools-covariates.R, kernel: ir}
       - {path: labs/python/03-btyd-vs-ml.ipynb, source: labs/src/03-btyd-vs-ml.py, kernel: python3}
@@ -192,10 +258,24 @@ modules:
     day: d2
     minutes: {briefing: 55, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. PyMC-Marketing's GammaGammaModel and ShiftedBetaGeoModel sit on the same posterior machinery as the Module 2 transaction models, so uncertainty can flow from purchases to dollars."
+    summary: "Add a Gamma-Gamma spend model after checking that spend is independent of purchase frequency, compute discounted CLV with its uncertainty, test how it moves with horizon and discount rate, and handle the contractual case with the shifted-beta-geometric model."
+    objectives:
+      - "Check the Gamma-Gamma independence assumption with the correlation between frequency and mean spend among repeat buyers."
+      - "Fit Gamma-Gamma and check that the true spend parameters (p, q, v) fall inside the 94% HDI."
+      - "Compute discounted CLV with PyMC-Marketing, then write your own version that carries the uncertainty of both the purchase and the spend models."
+      - "Show how CLV changes with the horizon in months and the monthly discount rate."
+      - "Fit the shifted-beta-geometric (sBG) model to the Fader–Hardie retention data and project retention for later years."
+    outcomes:
+      - "A per-customer CLV table with posterior mean and 94% interval"
+      - "A sensitivity grid of total CLV by horizon (12, 24, 36 months) and monthly discount rate"
+      - "An sBG retention projection compared with the published survival percentages"
+    prerequisites:
+      - "Module 2: BG/NBD, expected purchases and P(alive)"
+      - "Discounting a cash flow (net present value) at a monthly rate"
+    decision: "Report what an average customer and the whole customer base are worth over 12 and 36 months with a 94% interval, and name the assumption (horizon, discount rate or spend model) that moves the number most."
+    recap: "Module 3 forecasts purchases per customer, but there is no money in it yet."
+    next: "A CLV number is not a decision: we have not turned it into the most we can pay to acquire a customer in each channel, or into whether a retention campaign pays back. Module 5 does."
     notebooks:
       - {path: labs/python/04-monetary-clv.ipynb, source: labs/src/04-monetary-clv.py, kernel: python3}
     deps: []
@@ -206,10 +286,24 @@ modules:
     day: d2
     minutes: {briefing: 55, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production."
+    summary: "Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO."
+    objectives:
+      - "Compute a customer acquisition cost (CAC) cap per channel from the posterior of new-customer CLV and a stated risk rule."
+      - "Report segment value with 94% credible intervals and say which differences between segments are supported by the data."
+      - "Find the retention improvement a campaign needs to break even, and judge whether it is plausible."
+      - "Write customer scores (P(alive), CLV mean and interval, segment, model version, date) to a DuckDB table with a fixed schema."
+      - "Write a one-page decision memo that states the numbers, their uncertainty and the assumptions behind them."
+    outcomes:
+      - "A CAC-cap table by acquisition channel, compared with the true new-customer CLV"
+      - "A customer_scores table in a DuckDB 'warehouse' file"
+      - "A one-page CFO memo, peer-reviewed in the afternoon clinic"
+    prerequisites:
+      - "Module 4: discounted CLV with posterior draws"
+      - "Module 3: acquisition channel as a covariate"
+    decision: "Set the maximum CAC we can afford per acquisition channel, and decide whether to run the proposed retention campaign."
+    recap: "Module 4 gives CLV with an interval, but a number on its own does not tell anyone what to spend."
+    next: "CAC caps assume each channel caused the customers credited to it. Nothing so far tested that. Day 3 asks whether marketing causes sales, starting with randomized experiments in Module 6."
     notebooks:
       - {path: labs/python/05-clv-decisions.ipynb, source: labs/src/05-clv-decisions.py, kernel: python3}
     deps: []
@@ -220,10 +314,24 @@ modules:
     day: d3
     minutes: {briefing: 55, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. NumPy, SciPy and statsmodels cover everything here, and each method is short enough to write from scratch and check."
+    summary: "Design and read randomized experiments correctly: power and minimum detectable effect, sample-ratio checks, why peeking inflates false positives, CUPED variance reduction, delta-method standard errors for ratio metrics, and why attribution is not incrementality."
+    objectives:
+      - "Compute the sample size needed for a minimum detectable effect (MDE), and the MDE for a fixed sample."
+      - "Detect a sample-ratio mismatch (SRM) with a chi-square test before reading any result."
+      - "Simulate A/A tests with repeated peeking, measure the inflated false-positive rate, and calibrate a stricter threshold for a fixed number of looks."
+      - "Reduce variance with CUPED using a pre-experiment covariate, and compute a delta-method standard error for a ratio metric."
+      - "Show with a simulation why last-click attribution credits conversions that would have happened anyway."
+    outcomes:
+      - "A power and MDE calculator checked against simulation"
+      - "A peeking simulation showing the false-positive rate under daily looks"
+      - "An experiment readout for the email test (SRM check, CUPED-adjusted effect, 95% interval)"
+    prerequisites:
+      - "Linear regression and the standard error of a mean"
+      - "Module 5: what a customer is worth, used to price the effect"
+    decision: "Decide whether to roll out the email campaign: report incremental revenue per customer with a 95% confidence interval after the SRM check and CUPED, and compare it with the cost per email."
+    recap: "Module 5 set CAC caps assuming channels cause the customers credited to them, but nothing so far measured causation."
+    next: "Individuals cannot always be randomized: TV, outdoor and regional campaigns switch on for whole regions. Module 7 measures lift from geo-level tests and quasi-experiments."
     notebooks:
       - {path: labs/python/06-experiments.ipynb, source: labs/src/06-experiments.py, kernel: python3}
     deps: []
@@ -234,10 +342,24 @@ modules:
     day: d3
     minutes: {briefing: 55, lab: 55, debrief: 10}
     language: [python, r]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python for difference-in-differences and synthetic control written from scratch with SciPy; R because CausalImpact (bsts) and GeoLift are R packages and the reference implementations (the Python port of CausalImpact has had no release since 2023)."
+    summary: "Estimate the lift of a regional campaign with difference-in-differences and synthetic control written from scratch, test them with placebos and power simulations on a geo panel with known lift, compare with CausalImpact in R, and check the method on California's Proposition 99."
+    objectives:
+      - "Estimate a campaign effect with a two-period difference-in-differences and state the parallel-trends assumption it needs."
+      - "Fit synthetic-control weights by constrained least squares with SciPy and estimate incremental sales."
+      - "Run in-space placebo tests and compute a permutation p-value."
+      - "Estimate the power of a geo test by simulation, injecting a known lift into pre-period data."
+      - "Run CausalImpact on the same panel and compare its interval with the truth and with your synthetic control."
+    outcomes:
+      - "Your own did() and synthetic_control() functions, checked against the known lift"
+      - "A placebo plot and a power curve for the retailer's geo test"
+      - "A Prop 99 replication of the synthetic-control gap"
+    prerequisites:
+      - "Module 6: randomization, power and confidence intervals"
+      - "Least squares regression"
+    decision: "Was the campaign incremental, and by how much? Report incremental sales with an interval and the implied return on the campaign spend."
+    recap: "Module 6 needs randomization of individuals, which is impossible for regional or broadcast campaigns."
+    next: "A geo test measures one channel, once, in one window. To compare all channels continuously and plan budgets we need a model of how every channel drives sales over time: the marketing mix model in Module 8."
     notebooks:
       - {path: labs/python/07-synthetic-control-did.ipynb, source: labs/src/07-synthetic-control-did.py, kernel: python3}
       - {path: labs/r/07-causalimpact-geolift.ipynb, source: labs/src/07-causalimpact-geolift.R, kernel: ir}
@@ -249,10 +371,25 @@ modules:
     day: d4
     minutes: {briefing: 50, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. PyMC-Marketing 1.2.0 is a Bayesian MMM that runs on Colab's CPU; Google's Meridian conflicts with it on package versions and its docs recommend a GPU (see DECISIONS.md)."
+    summary: "Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonality in PyMC-Marketing, set priors from spend shares, check priors and posterior against the data, and report ROAS per channel with intervals against the known truth."
+    objectives:
+      - "Write geometric adstock and logistic saturation as functions and explain what the decay α and the saturation λ do."
+      - "Set channel-coefficient priors from spend shares and run a prior predictive check."
+      - "Fit the model with nutpie and check divergences, R-hat and effective sample size before reading any result."
+      - "Compute ROAS per channel with a 94% HDI and check that the truth lies inside it for at least 3 of the 4 channels."
+      - "Run the same workflow on a second dataset whose true parameters you do not know."
+    outcomes:
+      - "Your own adstock and saturation functions, checked against PyMC-Marketing's"
+      - "A diagnostics table (divergences, R-hat, ESS) and prior and posterior predictive plots"
+      - "A ROAS table with 94% HDIs next to the true ROAS"
+    prerequisites:
+      - "Linear regression with several predictors"
+      - "Module 2: what a prior, a posterior and an HDI are, and MAP versus MCMC"
+      - "Module 7: incremental sales as a counterfactual difference"
+    decision: "Decide which channels pay back: list channels with P(ROAS > 1) ≥ 0.9, channels with P(ROAS < 1) ≥ 0.9, and channels the data cannot yet decide."
+    recap: "Module 7 measures one campaign in one window; it cannot compare channels or say what next month's budget will return."
+    next: "An MMM fitted on observational data can credit a channel that merely follows demand, and fit the data well while getting ROAS wrong. Module 9 calibrates it with lift tests and validates it out of sample."
     notebooks:
       - {path: labs/python/08-bayesian-mmm.ipynb, source: labs/src/08-bayesian-mmm.py, kernel: python3}
     deps: []
@@ -263,10 +400,24 @@ modules:
     day: d4
     minutes: {briefing: 50, lab: 55, debrief: 10}
     language: [python, r]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation. An R demo of Meta's Robyn runs only if the Robyn spike passes (see DECISIONS.md)."
+    summary: "Feed geo-test results into the MMM as extra likelihood terms, validate it with time-slice cross-validation and parameter stability, and see what an MMM cannot identify, such as a channel whose spend follows demand."
+    objectives:
+      - "Show on synthetic data how a demand-following channel biases its ROAS in an uncalibrated MMM."
+      - "Convert a geo-test result into a lift-test row (channel, x, Δx, Δy, σ) and add it to the model with add_lift_test_measurements."
+      - "Compare ROAS intervals before and after calibration against the truth."
+      - "Run time-slice cross-validation and judge out-of-sample error and parameter stability across folds."
+      - "Name what the MMM cannot identify from these data, and the test that would resolve it."
+    outcomes:
+      - "A before/after table of ROAS intervals for the calibrated and uncalibrated model, next to the truth"
+      - "A time-slice cross-validation scorecard and a parameter-stability plot"
+      - "A list of channels ranked by how much a new lift test would change the decision"
+    prerequisites:
+      - "Module 8: the Bayesian MMM and its diagnostics"
+      - "Module 7: reading a geo-test result as incremental sales with an interval"
+    decision: "Decide which channel's ROAS is reliable enough to move budget on now, and which channel needs a new lift test first."
+    recap: "Module 8's MMM fits clean synthetic data and recovers the truth, but nothing in it guards against confounding."
+    next: "A calibrated MMM says what each channel returned; it does not say how to split next quarter's budget given diminishing returns, constraints and uncertainty. Module 10 optimizes the allocation."
     notebooks:
       - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3}
     deps: []
@@ -277,10 +428,25 @@ modules:
     day: d4
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python. The optimizer works directly on PyMC-Marketing's posterior draws, and SciPy's SLSQP, which you call yourself, is the algorithm the library uses."
+    summary: "Turn response curves into a budget: write a constrained SLSQP allocator, compare it with PyMC-Marketing's optimizer, add minimum and maximum spend per channel, make the allocation robust to posterior uncertainty, and credit channels for the long-run value of the customers they bring."
+    objectives:
+      - "Derive steady-state response curves and marginal ROAS per channel from the posterior."
+      - "Write a constrained allocator with scipy.optimize.minimize (SLSQP) and check it against the allocation that is optimal under the true parameters."
+      - "Run PyMC-Marketing's budget optimizer with minimum and maximum bounds and reconcile it with your allocator."
+      - "Evaluate allocations over posterior draws and choose one by a stated risk rule (mean versus 10% quantile of response)."
+      - "Add a CLV-weighted term so channels that acquire more valuable customers get credit beyond short-run sales."
+    outcomes:
+      - "Your own allocate() function with bounds and a budget constraint"
+      - "A comparison of your allocation, PyMC-Marketing's and the true optimum"
+      - "Three allocations (mean, risk-averse, CLV-weighted) with expected sales and 94% intervals"
+    prerequisites:
+      - "Module 9: a calibrated MMM and its response curves"
+      - "Module 5: CLV per acquisition channel"
+      - "The idea of a constrained optimum (no calculus required beyond 'marginal return')"
+    decision: "Recommend next quarter's weekly spend per channel within the agreed bounds, with expected incremental sales and a 94% interval, and show how the recommendation changes under a risk-averse or a CLV-weighted objective."
+    recap: "Module 9 gives calibrated response curves but no rule for dividing a fixed budget among channels."
+    next: "Allocation decides how much to spend per channel, not whom to reach. Module 11 asks which customers an offer actually changes."
     notebooks:
       - {path: labs/python/10-budget-allocation.ipynb, source: labs/src/10-budget-allocation.py, kernel: python3}
     deps: []
@@ -291,10 +457,24 @@ modules:
     day: d5
     minutes: {briefing: 50, lab: 55, debrief: 10}
     language: [r, python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "R for grf, the reference implementation of causal forests and of RATE; Python for EconML's double machine learning causal forest and the meta-learners."
+    summary: "Estimate who responds to an email offer because of it, with causal forests (grf in R, EconML in Python) and meta-learners, evaluate targeting rules with Qini curves and RATE on held-out data, and target only where the expected incremental margin exceeds the offer cost."
+    objectives:
+      - "Explain why predicting who buys is not the same as predicting who buys because of the offer (uplift)."
+      - "Fit a causal forest in grf and report the average treatment effect with a doubly robust 95% interval."
+      - "Evaluate a targeting rule on held-out data with rank_average_treatment_effect (RATE and its TOC curve) and with a Qini curve."
+      - "Fit EconML's CausalForestDML and S-, T- and X-learners, and compare their effect estimates with the true effects in the synthetic experiment."
+      - "Turn effect estimates into a targeting list where incremental margin exceeds offer cost, and compare its profit with mailing everyone or no one."
+    outcomes:
+      - "An ATE and a RATE/TOC readout for the Hillstrom email test"
+      - "Qini curves on held-out data for four uplift models"
+      - "A targeting list with expected incremental profit against 'mail all' and 'mail none'"
+    prerequisites:
+      - "Module 6: randomized experiments and confidence intervals"
+      - "Random forests or gradient boosting at the level of fit and predict"
+    decision: "Send the offer only to customers whose expected incremental margin exceeds the offer cost; report how many that is and the incremental profit compared with mailing everyone."
+    recap: "Module 10 decides how much to spend per channel but treats every customer the same."
+    next: "Each module so far answers one question with its own data. The capstone (Module 12) joins them into one pipeline and one decision brief."
     notebooks:
       - {path: labs/r/11-grf-causal-forest.ipynb, source: labs/src/11-grf-causal-forest.R, kernel: ir}
       - {path: labs/python/11-uplift-econml.ipynb, source: labs/src/11-uplift-econml.py, kernel: python3}
@@ -307,10 +487,21 @@ modules:
     # Briefing 15 min, then pair work with lunch inside it, then presentations.
     minutes: {briefing: 15, lab: 240, debrief: 60}
     language: [python]
-    language_why: ""
-    summary: ""
-    objectives: []
-    decision: ""
+    language_why: "Python, so the whole pipeline runs in one notebook on one runtime; results from the R notebooks (Modules 3, 7 and 11) can be carried in as numbers."
+    summary: "In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a geo-test readout, a calibrated MMM, a budget allocation and uplift targeting) and present a five-slide decision brief with its uncertainty."
+    objectives:
+      - "Chain the week's methods into one reproducible notebook in which each stage's output feeds the next."
+      - "Check each stage against the synthetic truth before building on it."
+      - "Combine CLV, the calibrated MMM and uplift estimates into one budget and one targeting rule."
+      - "Present a decision with its interval, its assumptions and the next test you would run, in five slides."
+    outcomes:
+      - "One notebook that runs the pipeline end to end, with a checkpoint at every stage"
+      - "A five-slide decision brief, presented and scored against the rubric"
+    prerequisites:
+      - "Modules 4, 5, 7, 9, 10 and 11 (their notebooks are the building blocks)"
+    decision: "Recommend next quarter's budget by channel and the customers to target with the retention offer, with expected value, a 94% interval and the main risk to the recommendation."
+    recap: "Modules 1–11 each answer one question in isolation, each with its own data and its own notebook."
+    next: "After the workshop: run the same pipeline on your own data, starting with the Module 1 SQL on your transaction log."
     notebooks:
       - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3}
     deps: []
