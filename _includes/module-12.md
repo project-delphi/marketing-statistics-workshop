@@ -10,7 +10,7 @@ In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a ge
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/12-capstone.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python. Python, so the whole pipeline runs in one notebook on one runtime; results from the R notebooks (Modules 3, 7 and 11) can be carried in as numbers.
 
 Labs
-:   Python: `labs/python/12-capstone.ipynb` (in preparation)
+:   Python: `labs/python/12-capstone.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic)
 :::
 
 ::: {.module-outcomes}
