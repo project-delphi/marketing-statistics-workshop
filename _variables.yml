@@ -298,9 +298,11 @@ modules:
     recap: "Module 3 forecasts purchases per customer, but there is no money in it yet."
     next: "A CLV number is not a decision: we have not turned it into the most we can pay to acquire a customer in each channel, or into whether a retention campaign pays back. Module 5 does."
     notebooks:
-      - {path: labs/python/04-monetary-clv.ipynb, source: labs/src/04-monetary-clv.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/04-monetary-clv.ipynb, source: labs/src/04-monetary-clv.py, kernel: python3, install: [pymc-marketing, nutpie, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth, data/real/sbg_retention.csv]
+    data:
+      - {name: "CDNOW transaction log", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/cdnow_transactions.csv", sha256: 7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac}
+      - {name: "Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)", url: "https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf"}
   m05:
     slug: 05-clv-decisions
     title: "From CLV to decisions"
@@ -326,8 +328,8 @@ modules:
     recap: "Module 4 gives CLV with an interval, but a number on its own does not tell anyone what to spend."
     next: "CAC caps assume each channel caused the customers credited to it. Nothing so far tested that. Day 3 asks whether marketing causes sales, starting with randomized experiments in Module 6."
     notebooks:
-      - {path: labs/python/05-clv-decisions.ipynb, source: labs/src/05-clv-decisions.py, kernel: python3}
-    deps: []
+      - {path: labs/python/05-clv-decisions.ipynb, source: labs/src/05-clv-decisions.py, kernel: python3, install: [pymc-marketing, nutpie, duckdb, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth]
     data: []
   m06:
     slug: 06-experiments
