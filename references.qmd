@@ -1,0 +1,399 @@
+---
+title: "References"
+description: "Books, papers, library documentation and datasets used in the workshop, grouped by day. Every entry was opened and checked on the date shown."
+---
+
+::: {.section-lede}
+Each entry links to a page we opened, and says what that page supports in the workshop. The tag
+*Verified (date)* means we read the page on that date. *Not read* means we could not open the text
+itself, and we say what we relied on instead. How we checked is explained at the [end of the page](#how-checked).
+:::
+
+## Day 1 · Who are our customers? {#day-1}
+
+### Customer-base analysis and buy-till-you-die models (Modules 1–3)
+
+- Schmittlein, D. C., Morrison, D. G., & Colombo, R. (1987). Counting your customers: Who-are they and
+  what will they do next? *Management Science*, 33(1), 1–24. <https://doi.org/10.1287/mnsc.33.1.1>\
+  *Verified (2026-10-09).* The Pareto/NBD model: from the number and timing of a customer's past
+  purchases it gives the probability the customer is still active and forecasts future purchases in a
+  non-contractual setting. (Module 2.) The title is printed with the hyphen, as in the Crossref record.
+
+- Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). "Counting your customers" the easy way: An
+  alternative to the Pareto/NBD model. *Marketing Science*, 24(2), 275–284.
+  <https://doi.org/10.1287/mksc.1040.0098>\
+  *Verified (2026-10-09).* The BG/NBD model forecasts almost as well as the Pareto/NBD and is far easier
+  to estimate. (Module 2.)
+
+- Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). *Implementing the BG/NBD model for customer base
+  analysis in Excel* (note, June 2005). <https://www.brucehardie.com/notes/004/>\
+  *Verified (2026-10-09).* Maximum-likelihood BG/NBD estimates for the 2,357 CDNOW customers over a
+  39-week calibration period (r = 0.243, α = 4.414, a = 0.793, b = 2.426). Module 2 uses these as a
+  checkpoint: a correct RFM table reproduces them.
+
+- Fader, P. S., Hardie, B. G. S., & Shang, J. (2010). Customer-base analysis in a discrete-time
+  noncontractual setting. *Marketing Science*, 29(6), 1086–1108. <https://doi.org/10.1287/mksc.1100.0580>\
+  *Verified (2026-10-09).* The BG/BB model, the discrete-time counterpart of the Pareto/NBD for
+  transactions that can only happen at fixed occasions. (Module 2 briefing.)
+
+- Wübben, M., & v. Wangenheim, F. (2008). Instant customer base analysis: Managerial heuristics often
+  "get it right". *Journal of Marketing*, 72(3), 82–93. <https://doi.org/10.1509/jmkg.72.3.082>\
+  *Verified (2026-10-09).* Simple recency heuristics can match Pareto/NBD and BG/NBD at telling active
+  from inactive customers; the models' advantage is mainly in forecasting total future purchases. This is
+  why Modules 1 and 3 measure the heuristic and the machine-learning alternative instead of assuming the
+  model wins.
+
+- Bachmann, P., Meierer, M., & Näf, J. (2021). The role of time-varying contextual factors in latent
+  attrition models for customer base analysis. *Marketing Science*, 40(4), 783–809.
+  <https://doi.org/10.1287/mksc.2020.1254>\
+  *Verified (2026-10-09).* A Pareto/NBD extension with covariates, the method paper behind CLVTools'
+  covariate models. (Module 3.) CLVTools itself is cited as software under
+  [Library documentation](#library-docs).
+
+## Day 2 · What is a customer worth? {#day-2}
+
+### Monetary value, CLV and retention (Modules 4–5)
+
+- Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). RFM and CLV: Using iso-value curves for customer
+  base analysis. *Journal of Marketing Research*, 42(4), 415–430.
+  <https://doi.org/10.1509/jmkr.2005.42.4.415>\
+  *Verified (2026-10-09).* CLV can be computed from recency, frequency and monetary value alone by
+  combining a Pareto/NBD purchase model with a gamma-gamma spend model; applied to CDNOW. (Module 4.)
+
+- Fader, P. S., & Hardie, B. G. S. (2013). *The Gamma-Gamma model of monetary value* (note, February 2013).
+  <https://www.brucehardie.com/notes/025/>\
+  *Verified (2026-10-09).* The Gamma-Gamma spend model assumes spend per transaction is independent of the
+  purchase process; a customer's expected spend is a weighted average of the population mean and their
+  own average. Estimates on the 946 CDNOW repeat buyers: p = 6.25, q = 3.74, γ = 15.44. Module 4 uses the
+  independence check and these estimates as a checkpoint.
+
+- Fader, P. S., & Hardie, B. G. S. (2007). How to project customer retention. *Journal of Interactive
+  Marketing*, 21(1), 76–90. <https://doi.org/10.1002/dir.20074>\
+  *Verified (2026-10-09).* The shifted-beta-geometric (sBG) model, fitted to seven years of retention
+  data, projects survival to year 12 accurately, while curve-fitting regressions do not; aggregate
+  retention rises only because customers differ. Table 1 gives the survival percentages for "Regular" and
+  "High End" customers used in Module 4. The paper prints the High End α as 0.688 in the text and 0.668 in
+  Appendix B; our own maximum-likelihood fit to the Appendix B counts gives 0.668 (β = 3.806).
+
+- Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S.
+  (2006). Modeling customer lifetime value. *Journal of Service Research*, 9(2), 139–155.
+  <https://doi.org/10.1177/1094670506293810>\
+  *Verified (2026-10-09).* A review of CLV model families and their use in segmentation and in spending
+  on acquisition, retention and cross-selling. Background for Module 5. (Crossref spells Kahn's first
+  name "Wiliam".)
+
+## Day 3 · Did the marketing cause the sales? {#day-3}
+
+### Experiments (Module 6)
+
+- Kohavi, R., Tang, D., & Xu, Y. (2020). *Trustworthy online controlled experiments: A practical guide
+  to A/B testing.* Cambridge University Press. <https://doi.org/10.1017/9781108653985>\
+  *Verified (2026-10-09).* A practitioner reference for A/B tests, including guardrail checks such as
+  sample ratio mismatch (it has a chapter of that name).
+
+- Deng, A., Xu, Y., Kohavi, R., & Walker, T. (2013). Improving the sensitivity of online controlled
+  experiments by utilizing pre-experiment data. *Proceedings of WSDM 2013*, 123–132.
+  <https://doi.org/10.1145/2433396.2433413>\
+  *Verified (2026-10-09).* CUPED: adjusting for a pre-experiment covariate reduces metric variance (the
+  authors report about 50% at Bing), so a test needs fewer users for the same power. Abstract read at
+  <https://exp-platform.com/cuped/>.
+
+- Fabijan, A., Gupchup, J., Gupta, S., Omhover, J., Qin, W., Vermeer, L., & Dmitriev, P. (2019).
+  Diagnosing sample ratio mismatch in online controlled experiments: A taxonomy and rules of thumb for
+  practitioners. *Proceedings of KDD 2019*, 2156–2164. <https://doi.org/10.1145/3292500.3330722>\
+  *Verified (2026-10-09).* A sample ratio mismatch (observed split different from the designed split) is
+  a common sign of a broken experiment and must be checked before reading results.
+
+- Deng, A., Knoblich, U., & Lu, J. (2018). Applying the delta method in metric analytics: A practical
+  guide with novel ideas. *Proceedings of KDD 2018*, 233–242. <https://doi.org/10.1145/3219819.3219919>\
+  *Verified (2026-10-09).* When users are randomized but the metric is a ratio (for example revenue per
+  visit), its variance must come from the delta method, not from treating visits as independent.
+
+- Johari, R., Koomen, P., Pekelis, L., & Walsh, D. (2022). Always valid inference: Continuous monitoring
+  of A/B tests. *Operations Research*, 70(3), 1806–1821. <https://doi.org/10.1287/opre.2021.2135>\
+  *Verified (2026-10-09).* Always-valid p-values and confidence intervals let analysts monitor a test
+  continuously and stop at any time without inflating false positives. (The arXiv preprint has a
+  different title and three authors.)
+
+- Johari, R., Koomen, P., Pekelis, L., & Walsh, D. (2017). Peeking at A/B tests: Why it matters, and what
+  to do about it. *Proceedings of KDD 2017*, 1517–1525. <https://doi.org/10.1145/3097983.3097992>\
+  *Verified (2026-10-09), record only.* We confirmed the bibliographic record (Crossref and the first
+  author's publication list) but could not open the abstract; for the claim, see the 2022 paper above.
+
+- Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). A comparison of approaches to
+  advertising measurement: Evidence from big field experiments at Facebook. *Marketing Science*, 38(2),
+  193–225. <https://doi.org/10.1287/mksc.2018.1135>\
+  *Verified (2026-10-09).* Across 15 advertising experiments, common observational methods often failed
+  to reproduce the lift measured by the randomized experiments. This is the evidence behind "attribution
+  is not incrementality" in Module 6.
+
+### Geo-experiments and quasi-experiments (Module 7)
+
+- Vaver, J., & Koehler, J. (2011). *Measuring ad effectiveness using geo experiments.* Google Inc.
+  <https://research.google/pubs/measuring-ad-effectiveness-using-geo-experiments/>\
+  *Verified (2026-10-09).* Randomly assigning non-overlapping regions to treatment and control is a
+  simple way to measure the incremental effect of advertising.
+
+- Abadie, A., Diamond, A., & Hainmueller, J. (2010). Synthetic control methods for comparative case
+  studies: Estimating the effect of California's tobacco control program. *Journal of the American
+  Statistical Association*, 105(490), 493–505. <https://doi.org/10.1198/jasa.2009.ap08746>\
+  *Verified (2026-10-09).* A weighted combination of untreated units can stand in for a single treated
+  unit; for Proposition 99 the authors estimate per-capita cigarette sales about 26 packs lower than the
+  synthetic California by 2000. Module 7 replicates the method on these data.
+
+- Ben-Michael, E., Feller, A., & Rothstein, J. (2021). The augmented synthetic control method. *Journal
+  of the American Statistical Association*, 116(536), 1789–1803.
+  <https://doi.org/10.1080/01621459.2021.1929245>\
+  *Verified (2026-10-09).* Adding an outcome model (ridge regression) corrects synthetic control's bias
+  when the treated unit's pre-period cannot be matched closely; implemented in the augsynth R package,
+  which GeoLift builds on.
+
+- Brodersen, K. H., Gallusser, F., Koehler, J., Remy, N., & Scott, S. L. (2015). Inferring causal impact
+  using Bayesian structural time-series models. *The Annals of Applied Statistics*, 9(1), 247–274.
+  <https://doi.org/10.1214/14-AOAS788>\
+  *Verified (2026-10-09).* A Bayesian structural time-series model forecasts the counterfactual from
+  control series and estimates how a campaign's effect evolves; implemented in the CausalImpact R package.
+
+- Cunningham, S. *Causal inference: The remix* (online second edition, work in progress), chapter
+  "Difference-in-differences fundamentals". <https://mixtape.scunning.com/09-difference_in_differences>\
+  *Verified (2026-10-09).* Difference-in-differences identifies the effect on the treated only under
+  parallel trends, which can be checked only indirectly (event-study leads, falsification tests). The
+  page shows no publication year.
+
+## Day 4 · Where should the next dollar go? {#day-4}
+
+### Marketing mix models, calibration and Bayesian workflow (Modules 8–10)
+
+- Jin, Y., Wang, Y., Sun, Y., Chan, D., & Koehler, J. (2017). *Bayesian methods for media mix modeling
+  with carryover and shape effects.* Google Inc.
+  <https://research.google/pubs/bayesian-methods-for-media-mix-modeling-with-carryover-and-shape-effects/>\
+  *Verified (2026-10-09).* Advertising has lagged effects (carryover, or adstock) and diminishing returns
+  (shape, or saturation) that linear regression misses; a Bayesian MMM with flexible forms captures them,
+  and priors matter a lot in small samples. (Module 8.)
+
+- Chan, D., & Perry, M. (2017). *Challenges and opportunities in media mix modeling.* Google.
+  <https://research.google/pubs/challenges-and-opportunities-in-media-mix-modeling/>\
+  *Verified (2026-10-09).* MMMs are widely used but often struggle to give valid answers, because of
+  limited data, correlated inputs and confounding. (Module 9.)
+
+- Wang, Y., Jin, Y., Sun, Y., Chan, D., & Koehler, J. (2017). *A hierarchical Bayesian approach to improve
+  media mix models using category data.* Google Inc.
+  <https://research.google/pubs/a-hierarchical-bayesian-approach-to-improve-media-mix-models-using-category-data/>\
+  *Verified (2026-10-09).* Pooling data across brands in a category, or passing what it learns on as
+  informative priors, improves estimates when one brand's data are thin. (Module 9 briefing.)
+
+- Zhang, Y., Wurm, M., Li, E., Wakim, A., Kelly, J., Price, B., & Liu, Y. (2024). *Media mix model
+  calibration with Bayesian priors.* Google.
+  <https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/>\
+  *Verified (2026-10-09).* Making ROAS a model parameter lets experiment results calibrate an MMM through
+  its prior, which reduces bias and uncertainty in ROAS. Module 9 does the related thing in PyMC-Marketing,
+  adding lift tests to the likelihood.
+
+- Gelman, A., Vehtari, A., Simpson, D., Margossian, C. C., Carpenter, B., Yao, Y., Kennedy, L., Gabry, J.,
+  Bürkner, P.-C., & Modrák, M. (2020). *Bayesian workflow.* arXiv:2011.01808.
+  <https://doi.org/10.48550/arXiv.2011.01808>\
+  *Verified (2026-10-09).* Bayesian analysis is an iterative workflow of prior checks, fitting,
+  computational diagnostics, posterior predictive checks and model comparison. Modules 8 and 9 follow it.
+
+- Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). Rank-normalization,
+  folding, and localization: An improved R̂ for assessing convergence of MCMC (with discussion). *Bayesian
+  Analysis*, 16(2), 667–718. <https://doi.org/10.1214/20-BA1221>\
+  *Verified (2026-10-09).* The rank-normalized split-R̂ and bulk and tail effective sample sizes that
+  the labs check before reading a posterior.
+
+## Day 5 · Whom should we target? {#day-5}
+
+### Heterogeneous treatment effects and uplift (Module 11)
+
+- Wager, S., & Athey, S. (2018). Estimation and inference of heterogeneous treatment effects using random
+  forests. *Journal of the American Statistical Association*, 113(523), 1228–1242.
+  <https://doi.org/10.1080/01621459.2017.1319839>\
+  *Verified (2026-10-09).* Causal forests estimate how a treatment effect varies across individuals and
+  give valid confidence intervals for those effects.
+
+- Athey, S., Tibshirani, J., & Wager, S. (2019). Generalized random forests. *The Annals of Statistics*,
+  47(2), 1148–1178. <https://doi.org/10.1214/18-AOS1709>\
+  *Verified (2026-10-09).* The general forest framework behind causal forests and the grf package.
+
+- Athey, S., & Wager, S. (2019). Estimating treatment effects with causal forests: An application.
+  *Observational Studies*, 5(2), 37–51. <https://doi.org/10.1353/obs.2019.0001>\
+  *Verified (2026-10-09).* A worked application of causal forests to real data, covering propensity
+  scores, clustering and tests for heterogeneity.
+
+- Yadlowsky, S., Fleming, S., Shah, N., Brunskill, E., & Wager, S. (2025). Evaluating treatment
+  prioritization rules via rank-weighted average treatment effects. *Journal of the American Statistical
+  Association*, 120(549), 38–51. <https://doi.org/10.1080/01621459.2024.2393466>\
+  *Verified (2026-10-09).* RATE metrics, with the Qini coefficient as a special case, measure how well a
+  targeting rule picks out the people who benefit most; grf's `rank_average_treatment_effect` implements
+  them.
+
+- Künzel, S. R., Sekhon, J. S., Bickel, P. J., & Yu, B. (2019). Metalearners for estimating heterogeneous
+  treatment effects using machine learning. *Proceedings of the National Academy of Sciences*, 116(10),
+  4156–4165. <https://doi.org/10.1073/pnas.1804597116>\
+  *Verified (2026-10-09).* Meta-learners turn any regression method into an estimator of individual
+  treatment effects; the X-learner is efficient when one group is much larger than the other, as with
+  marketing holdouts.
+
+- Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018).
+  Double/debiased machine learning for treatment and structural parameters. *The Econometrics Journal*,
+  21(1), C1–C68. <https://doi.org/10.1111/ectj.12097>\
+  *Verified (2026-10-09).* Orthogonal scores with cross-fitting remove the bias that regularized
+  machine-learning models introduce, the basis of EconML's `CausalForestDML`.
+
+- Radcliffe, N. J., & Surry, P. D. (2011). *Real-world uplift modelling with significance-based uplift
+  trees* (Portrait Technical Report TR-2011-1, Stochastic Solutions white paper).
+  <https://stochasticsolutions.com/pdf/sig-based-up-trees.pdf>\
+  *Verified (2026-10-09).* Uplift modelling targets the change in behaviour caused by a treatment, needs a
+  randomized control group, and is judged with incremental gains (Qini) curves; Qini measures are based on
+  the area under the incremental gains curve.
+
+- Radcliffe, N. J. (2007). Using control groups to target on predicted lift: Building and assessing
+  uplift model. *Direct Marketing Analytics Journal*, 14–21.\
+  *Not read.* We could not find the text online. The citation details come from the reference list of
+  Radcliffe & Surry (2011) above, which says Qini curves and measures are discussed in detail in this
+  paper. The title ends "uplift model" in every record we found.
+
+## Library documentation {#library-docs}
+
+Versions are the ones the labs pin (see `_variables.yml`).
+
+- **PyMC-Marketing** (PyMC Labs; version 1.2.0 on PyPI, released 2026-09-29).
+  CLV quickstart <https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html>;
+  MMM example <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_example.html>;
+  lift-test calibration <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html>;
+  budget allocation <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_budget_allocation_example.html>;
+  MMM API <https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.mmm.MMM.html>\
+  *Verified (2026-10-09).* Bayesian BG/NBD, Pareto/NBD (with covariates), Gamma-Gamma and sBG models;
+  an MMM class with lift-test calibration (`add_lift_test_measurements`) and an SLSQP budget optimizer.
+  The lift-test page adds tests "to the model likelihood". The older `pymc_marketing.mmm.multidimensional`
+  module is marked deprecated in favour of `pymc_marketing.mmm.mmm`.
+
+- **PyMC** <https://www.pymc.io/> and **nutpie** <https://pymc-devs.github.io/nutpie/>\
+  *Verified (2026-10-09).* PyMC is the probabilistic programming library under PyMC-Marketing; nutpie is
+  a fast NUTS sampler for PyMC and Stan models (version 0.16.11 on PyPI).
+
+- **ArviZ** <https://python.arviz.org/projects/base/en/stable/api/index.html>\
+  *Verified (2026-10-09).* In ArviZ 1.x the default credible interval is an 89% equal-tailed interval
+  (`stats.ci_prob = 0.89`, `stats.ci_kind = "eti"`). The labs therefore always state the interval type and
+  probability, for example "94% HDI".
+
+- **EconML** (PyWhy) <https://www.pywhy.org/EconML/reference.html>\
+  *Verified (2026-10-09).* `CausalForestDML` and the S-, T- and X-learners (`econml.metalearners`). The
+  online documentation is labelled 0.16.0; the labs pin 0.17.0, whose signatures we checked in the
+  installed package.
+
+- **CLVTools** <https://cran.r-project.org/package=CLVTools>; reference pages for
+  [`SetStaticCovariates`](https://www.clvtools.com/reference/SetStaticCovariates.html) and
+  [`pnbd`](https://www.clvtools.com/reference/pnbd.html)\
+  *Verified (2026-10-09).* Bachmann, P., Kuebler, N., Meierer, M., Näf, J., Oblander, E. S., & Schilter, P.
+  CLVTools: Tools for customer lifetime value estimation, R package version 0.12.1 (CRAN, 2025-11-06).
+  Fits Pareto/NBD, BG/NBD, GGom/NBD and Gamma/Gamma models; `SetStaticCovariates()` then `pnbd()` adds
+  time-invariant covariates to the purchase and attrition processes.
+
+- **grf** <https://grf-labs.github.io/grf/reference/index.html> and <https://CRAN.R-project.org/package=grf>\
+  *Verified (2026-10-09).* Version 2.6.1 (CRAN, 2026-03-04). `causal_forest`, doubly robust
+  `average_treatment_effect` (AIPW or TMLE) and `rank_average_treatment_effect` (AUTOC and QINI targets).
+
+- **CausalImpact** <https://CRAN.R-project.org/package=CausalImpact> (docs <https://google.github.io/CausalImpact/>)
+  and **bsts** <https://CRAN.R-project.org/package=bsts>\
+  *Verified (2026-10-09).* CausalImpact 1.4.1 (CRAN, 2025-09-26) on bsts 0.9.11 (CRAN, 2025-09-05). The
+  documentation states its two key assumptions: the control series are not affected by the intervention,
+  and their relationship to the outcome stays stable afterwards.
+
+- **GeoLift** <https://github.com/facebookincubator/GeoLift> (docs <https://facebookincubator.github.io/GeoLift/>)
+  and **augsynth** <https://github.com/ebenmichael/augsynth>\
+  *Verified (2026-10-09).* GeoLift 2.7.5 implements augmented synthetic controls for geo tests, with power
+  analysis and market selection; its DESCRIPTION recommends at least 25 pre-treatment periods and more
+  than 20 geographic units. augsynth 0.2.0 implements the augmented synthetic control method. Both are
+  GitHub-only, MIT-licensed.
+
+- **Robyn** <https://facebookexperimental.github.io/Robyn/> and <https://cran.r-project.org/package=Robyn>\
+  *Verified (2026-10-09).* Meta's open-source MMM, version 3.12.1 on CRAN (2025-07-02). It uses the
+  Python library Nevergrad (through reticulate) for hyperparameter search and nloptr for its budget
+  allocator; the main functions are `robyn_inputs`, `robyn_run`, `robyn_outputs` and `robyn_allocator`.
+  Used in Module 9 only if the Robyn spike passes.
+
+- **Meridian** <https://developers.google.com/meridian>\
+  *Verified (2026-10-09).* Google's open-source Bayesian geo-level MMM (google-meridian 2.1.0 on PyPI).
+  Its installation guide recommends running on GPUs. Mentioned in the Module 9 briefing only; see
+  DECISIONS.md for why there is no lab.
+
+- **SciPy SLSQP** <https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html>\
+  *Verified (2026-10-09).* `scipy.optimize.minimize(method="SLSQP")` accepts bounds and equality and
+  inequality constraints: everything Module 10's allocator needs.
+
+## Datasets {#datasets}
+
+- **CDNOW** (1/10th sample), distributed by Bruce Hardie. <https://www.brucehardie.com/datasets/>\
+  *Verified (2026-10-09).* 2,357 customers, a systematic 1/10th sample of the 23,570 people who first
+  bought at CDNOW in the first quarter of 1997, with their purchases to the end of June 1998 (6,919
+  records: customer, date, number of CDs, dollar value), according to the readme in the archive.
+  Real data. Modules 1–4.
+
+- **Online Retail II**. Chen, D. (2012). UCI Machine Learning Repository.
+  <https://doi.org/10.24432/C5CG6D>\
+  *Verified (2026-10-09).* Transactions of a UK-based online gift-ware retailer, many of whose customers
+  are wholesalers, from 01/12/2009 to 09/12/2011; 1,067,371 rows; licence CC BY 4.0; donated 2019 (the
+  citation line gives 2012). Real data. Module 1.
+
+- **Online Retail** (the one-year predecessor). Chen, D. (2015). UCI Machine Learning Repository.
+  <https://doi.org/10.24432/C5BW33>. Introductory paper: Chen, D., Sain, S. L., & Guo, K. (2012). Data
+  mining for the online retail industry: A case study of RFM model-based customer segmentation using data
+  mining. *Journal of Database Marketing & Customer Strategy Management*, 19(3), 197–208.
+  <https://doi.org/10.1057/dbm.2012.17>\
+  *Verified (2026-10-09)* for the dataset page and the paper's record; we did not read the paper's
+  abstract. Background for Module 1 only.
+
+- **Hillstrom e-mail experiment**. Hillstrom, K. (2008, March 20). *The MineThatData e-mail analytics and
+  data mining challenge.* MineThatData blog.
+  <https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html>\
+  *Verified (2026-10-09).* 64,000 customers who bought in the past twelve months, randomly split into
+  thirds: Mens e-mail, Womens e-mail, no e-mail; outcomes are visit, conversion and spend in the following
+  two weeks. Real, randomized data. Modules 6 and 11.
+
+- **Proposition 99 panel** (California and 38 control states, 1970–2000), as the `smoking` dataset in the
+  tidysynth R package. Dunford, E. tidysynth, version 0.2.1 (CRAN, 2025-03-24).
+  <https://CRAN.R-project.org/package=tidysynth>\
+  *Verified (2026-10-09).* 1,209 rows: state, year, cigarette sales and predictors; the package README
+  replicates Abadie et al. (2010). The manual labels the unit of `cigsale` differently from the paper's
+  "per-capita packs", so the lab states the unit it uses. The Synth R package does not contain these data.
+  Real data. Module 7.
+
+- **Fader–Hardie retention data**, in Fader & Hardie (2007), [above](#day-2).\
+  *Verified (2026-10-09).* Table 1 gives the percentage of a cohort surviving at least 0–12 years for
+  "Regular" and "High End" customers; Table B1 gives counts for 1,000 High End customers for years 1–7.
+  Counts for Regular customers are not printed and are derived from the percentages (out of 1,000).
+  Module 4.
+
+- **PyMC-Marketing `mmm_example.csv`**.
+  <https://github.com/pymc-labs/pymc-marketing/blob/main/data/mmm_example.csv>\
+  *Verified (2026-10-09).* A demo file in the PyMC-Marketing repository (179 weekly rows: `date_week`,
+  `y`, `x1`, `x2`, `event_1`, `event_2`, `dayofyear`, `t`) used by its README and MMM quickstart. The
+  pages that use it point to a "simulated example", and no real-world source is given; the file itself is
+  not labelled. We treat it as simulated demo data whose true parameters we do not have. Module 8.
+
+- **Robyn `dt_simulated_weekly`**, documented in the Robyn package source
+  (<https://github.com/facebookexperimental/Robyn>).\
+  *Verified (2026-10-09).* Documented as "Simulated MMM data"; Robyn's analyst guide says its outputs are
+  based on simulated data and are for illustration only. Module 9 (conditional).
+
+- **Synthetic retailer** (this workshop). Generated by `mktstats.synth` with the true parameters in
+  `data/synthetic/truth.json`. Simulated, with known truth; every module.
+
+## How the entries were checked {#how-checked}
+
+- Every entry above was opened on 2026-10-09: the DOI or publisher page, the Crossref record, arXiv, the
+  author's own page, or the documentation site. Several publisher pages (INFORMS, ACM, Taylor & Francis,
+  PNAS) refused automated access; for those we took the bibliographic details from Crossref and read the
+  abstract on arXiv, an author or institution page, or Semantic Scholar.
+- The sentence after each tag says what the page we read supports in this workshop. Where the page
+  differed from a commonly quoted version (a title, a year, an author list, a parameter value), we
+  give what the page says and note the difference.
+- *Not read* marks an entry we cite because other sources rely on it, but whose text we could not open.
+  Entries we could not confirm at all are left out.
+- Where a source reports estimates that a lab uses as a checkpoint, we refitted them. On 2026-10-09,
+  PyMC-Marketing 1.2.0 with flat priors (MAP) reproduced the BG/NBD estimates for CDNOW in note 004 and
+  the Gamma-Gamma estimates in note 025, and a direct maximum-likelihood fit reproduced the sBG estimates
+  in Fader & Hardie (2007). These were laptop runs while writing the lab briefs, not workshop run records.
+- Software versions agree with `_variables.yml`. A library's documentation changes with each release; the
+  labs are checked against the installed version, not against these pages.
