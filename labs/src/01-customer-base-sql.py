@@ -578,7 +578,10 @@ with workshop.checkpoint(4):
         f" {toy_counts}. Positive = flagged churned; the truth is positive when NOT alive."
     )
     counts = confusion(recency_rule(synth_rfm, 90), synth_rfm["true_alive_at_cal_end"])
-    assert sum(counts.values()) == len(synth_rfm), "The four counts must add up to the customers."
+    assert sum(counts.values()) == len(synth_rfm), (
+        f"The four counts add up to {sum(counts.values()):,}, not the {len(synth_rfm):,}"
+        " customers: each customer belongs in exactly one of tp, fp, fn, tn."
+    )
     reference_90 = {"tp": 2566, "fp": 832, "fn": 153, "tn": 1449}  # measured 2026-10-09
     assert counts == reference_90, (
         f"With days=90 you get {counts}; the reference gives {reference_90}. Check the"
