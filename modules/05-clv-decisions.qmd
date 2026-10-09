@@ -5,13 +5,272 @@ title: "{{< var modules.m05.title >}}"
 {{< include /_includes/module-05.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 4 put a dollar value on the customer base with an interval: $477k of revenue over 12 months from 5,000 customers, with the horizon as the assumption that moves it most. A number on its own does not tell anyone what to spend. This module turns posterior CLV into four things a business acts on: the most it can pay to acquire a customer in each channel, which segments are really worth more, whether a retention offer can pay for itself, and a scores table other systems can read. The numbers then go into a one-page memo for the CFO, written in the afternoon clinic.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-05.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. From a value to a decision
+
+Every decision in this module has the same shape: a quantity computed from the posterior, a rule stated before the quantity is read, and a recommendation that carries the uncertainty. Three habits make that work.
+
+- **Margin, not revenue.** A customer who spends $100 is worth the margin on $100. The lab assumes a gross margin of 30% of spend; it is an assumption shown as a parameter, and the memo must say so. Every CLV in this module is **margin CLV**: spend times the margin rate, discounted month by month.
+- **Decide with draws, not with summaries.** A posterior is a set of draws. A decision rule applied to each draw gives the probability that the decision is right; a rule applied to the posterior mean throws that away.
+- **Say what the model cannot know.** A CLV model can value a customer. It cannot say whether a channel *caused* that customer to arrive, or whether an offer *caused* a purchase. Both questions return on Day 3.
+
+The data are the synthetic retailer of Module 4, whose true value of a new customer in each channel is known. No real dataset is used: these decisions need a known answer to be scored against, and CDNOW has no acquisition channel.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $m$ | gross margin rate (assumed 0.30) |
+| $c$ | an acquisition channel: search, social, referral |
+| $\bar s$ | population mean spend per purchase, $p v / (q - 1)$ (Module 4), one value per posterior draw |
+| $n_{ck}$ | expected **repeat** purchases of a new channel-$c$ customer in month $k$ |
+| $V_c$ | 12-month margin value of a new channel-$c$ customer |
+| $\text{CAC}_c$ | customer acquisition cost: what marketing currently spends, on average, to win one channel-$c$ customer (assumed in the lab) |
+| $\bar V_g$ | mean CLV per customer of segment $g$ |
+| $\kappa$ | cost of the retention offer per targeted customer ($2 in the lab) |
+| $\ell_i$ | break-even lift of customer $i$ |
+| superscript $(j)$ | the $j$-th posterior draw, $j = 1, \dots, J$ |
+
+## 2. What can we pay to acquire a customer?
+
+**Objective for this section:** compute a customer acquisition cost (CAC) cap per channel from the posterior of new-customer CLV and a stated risk rule.
+
+### The value of a new customer
+
+A CAC cap is about a customer the retailer has not acquired yet, so it needs the value of a **new** customer of each channel, not of the customers it already has. The transaction model is a BG/NBD with the channel indicators on both the purchase and the dropout process (Module 3's covariates), fitted by MCMC; the spend model is Module 4's Gamma-Gamma. For a new customer of channel $c$,
+
+$$
+V_c = m\, \bar s \left( 1 + \sum_{k=1}^{H} \frac{n_{ck}}{(1 + d)^k} \right),
+$$ {#eq-new-value}
+
+with $H = 12$ months and $d = 0.8\%$ a month. The **1** is the acquisition purchase itself, in month 0, not discounted. It must be added by hand: BTYD models count only **repeat** purchases, so a forecast from them leaves out the purchase that made the customer a customer. Here $m \bar s$ is about $9 of margin, a large share of a social customer's value. The channel covariates change $n_{ck}$ (how often a channel's customers buy and how soon they leave); the spend per purchase is the same population mean for every channel, because the Gamma-Gamma model here has no covariates.
+
+Each draw $j$ of the purchase posterior is paired with draw $j$ of the spend posterior, so $V_c^{(j)}$ carries both uncertainties. FULL run, 12-month margin value of a new customer:
+
+| Channel | Posterior mean | 94% HDI | Truth | Gap |
+|---|---|---|---|---|
+| search | $51.12 | $48.11 to $54.42 | $50.21 | +1.8% |
+| social | $32.65 | $30.93 to $34.78 | $31.79 | +2.7% |
+| referral | $69.30 | $63.29 to $75.91 | $74.41 | −6.9% |
+
+All three true values lie inside their intervals and the ranking is right: a referral customer is worth about twice a social one. The truth is revenue over 52 weeks discounted continuously at 10% a year, times the margin; the lab's months-and-monthly-discounting convention differs from it by well under 1%. The rest of the gap is the BG/NBD approximating data generated by a Pareto/NBD, which is why the checkpoint's tolerance is 15% rather than a recovery check's interval.
+
+::: {.self-check}
+**Check yourself.** Suppose you forgot the acquisition purchase in @eq-new-value. Roughly what would the social value become, and what would you then conclude about acquiring social customers at the assumed current CAC of $32?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The acquisition purchase is worth $m \bar s \approx \$9$ of margin, so the social value would drop from about $32.65 to about $23.50, well below $32. You would conclude that social customers cost far more than they are worth and stop acquiring them. With the purchase included, social is roughly break-even. The repeat-only forecast is the right input to a model of *existing* customers and the wrong one for a *new* customer.
 :::
+:::
+
+### A cap with a stated risk rule
+
+A **CAC cap** is the most the retailer is willing to pay, on average, per acquired customer. Two rules:
+
+- **Mean rule:** $\text{cap}_c = \frac{1}{J}\sum_j V_c^{(j)}$. Pays, on average, what a new customer is worth.
+- **Quantile rule:** $\text{cap}_c = Q_{0.2}\big(V_c^{(1)}, \dots, V_c^{(J)}\big)$, the 20th percentile of the posterior draws. The expected value of a new customer then exceeds the cap with posterior probability 0.8. It protects against estimation error.
+
+For a channel with a current $\text{CAC}_c$, the posterior probability that acquiring through it pays back on average is
+
+$$
+P(V_c > \text{CAC}_c) = \frac{1}{J} \sum_{j=1}^{J} \mathbb{1}\big[ V_c^{(j)} > \text{CAC}_c \big].
+$$ {#eq-p-beats-cac}
+
+FULL run, with the lab's assumed current CACs:
+
+| Channel | Current CAC (assumed) | Cap, mean rule | Cap, 20th percentile | 20th pct below mean | $P(V_c > \text{CAC}_c)$ |
+|---|---|---|---|---|---|
+| search | $45 | $51.12 | $49.69 | 2.8% | 1.00 |
+| social | $32 | $32.65 | $31.79 | 2.6% | 0.74 |
+| referral | $55 | $69.30 | $66.40 | 4.2% | 1.00 |
+
+The quantile rule moves each cap by only 3 to 4%. The interval is narrow because it is about the **expected** value of a new customer, a function of population parameters that thousands of customers pin down. Individual customers differ far more, but a cap is a limit on the average cost per acquired customer, so the uncertainty that matters is the uncertainty about the average.
+
+Two assumptions sit under every number in that table, and the memo must state them:
+
+1. **The CACs are the retailer's averages.** The cap applies to the average customer acquired. The *next* customer bought in a channel usually costs more than the average one, because the cheapest customers are acquired first. A cap on the average is not a cap on the margin.
+2. **Each channel's acquisitions are incremental.** A cap assumes that the customers credited to a channel would not have arrived anyway. If half of the "search" customers would have come through the door regardless, the value search creates is half what the table says. Nothing on Days 1 and 2 tests this. Day 3 does.
+
+## 3. Which segments are really worth more?
+
+**Objective for this section:** report segment value with 94% credible intervals and say which differences between segments are supported by the data.
+
+The lab segments the existing customers by acquisition channel and by how many repeat purchases they made in 2024 (0, 1 to 3, 4 or more). Tenure would not separate anyone: all customers were acquired in the first half of 2024. For each customer, 12-month margin CLV draws come from Module 4's `discounted_clv`; the base is worth $142,185 in margin over 12 months (94% HDI $137,049 to $146,633; FULL run).
+
+FULL run, mean 12-month margin CLV per customer:
+
+| Segment | Customers | Mean per customer | 94% HDI | Segment total |
+|---|---|---|---|---|
+| referral · 4+ repeat | 420 | $95.8 | $90.0 to $101.5 | $40,243 |
+| search · 4+ repeat | 727 | $78.6 | $75.0 to $82.4 | $57,152 |
+| social · 4+ repeat | 346 | $50.5 | $46.0 to $55.3 | $17,488 |
+| referral · 1–3 repeat | 322 | $16.3 | $15.2 to $17.1 | $5,245 |
+| search · 1–3 repeat | 761 | $11.6 | $11.1 to $12.1 | $8,845 |
+| social · 1–3 repeat | 577 | $9.6 | $8.9 to $10.2 | $5,536 |
+| referral · 0 repeat | 249 | $4.5 | $4.2 to $4.7 | $1,109 |
+| search · 0 repeat | 741 | $4.3 | $4.1 to $4.5 | $3,187 |
+| social · 0 repeat | 857 | $3.9 | $3.7 to $4.1 | $3,380 |
+
+The 1,493 customers with four or more repeat purchases (30% of the base) carry $114,883, about 81% of the base's value.
+
+### Overlapping intervals are not "no difference"
+
+Look at the zero-repeat segments: referral $4.5 (4.2 to 4.7) and search $4.3 (4.1 to 4.5). The intervals overlap. Yet the posterior probability that the referral segment's mean exceeds the search segment's is 1.0 (FULL run, computed draw by draw).
+
+The reason is that the two segment means are not independent. Every customer's CLV in draw $j$ comes from the same draw of the population parameters, so when a draw has a high purchase rate, every segment's value is high in it. For the difference,
+
+$$
+\operatorname{Var}(\bar V_a - \bar V_b) = \operatorname{Var}(\bar V_a) + \operatorname{Var}(\bar V_b) - 2\operatorname{Cov}(\bar V_a, \bar V_b),
+$$ {#eq-var-diff}
+
+and a large positive covariance makes the difference far more certain than either mean. Comparing two separate intervals by eye ignores the covariance. The right comparison is the posterior of the difference, or the probability that one exceeds the other:
+
+$$
+P(\bar V_a > \bar V_b) = \frac{1}{J} \sum_{j=1}^{J} \mathbb{1}\big[ \bar V_a^{(j)} > \bar V_b^{(j)} \big].
+$$ {#eq-p-greater}
+
+The same holds for comparing channels, campaigns or model versions: whenever two quantities come from the same posterior draws, compare them draw by draw.
+
+::: {.self-check}
+**Check yourself.** A colleague's slide says "the zero-repeat segments of search and referral are statistically indistinguishable: their 94% intervals overlap". The lab printed a probability of 1.0 that referral's is higher. Is the difference worth acting on?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The difference is real in the sense the slide meant: the posterior is certain about its sign, because the two means move together across draws (@eq-var-diff), so the colleague's test was the wrong one. Whether it matters is a separate question. The gap is about 20 cents of margin per customer over 12 months, which no decision should turn on. "Supported by the data" and "large enough to act on" are two tests; report both.
+:::
+:::
+
+## 4. Can a retention offer pay for itself?
+
+**Objective for this section:** find the retention improvement a campaign needs to break even, and judge whether it is plausible.
+
+A retention offer costs $\kappa = \$2$ per targeted customer. It pays back for customer $i$ if it raises their purchases over the next 12 months by enough margin to cover the $2. With $s_i$ their expected spend per purchase and $E[N_i]$ their expected purchases over the 12 months (posterior means, undiscounted), the **break-even lift** is the relative increase in purchases needed:
+
+$$
+\ell_i = \frac{\kappa}{m\, s_i\, E[N_i]} .
+$$ {#eq-breakeven}
+
+A customer expected to buy 5 more times at $40 a purchase brings $60 of margin, so the $2 offer needs a lift of 3.3%; a customer expected to buy half a time needs 33%. FULL run:
+
+| Segment | Customers | Median break-even lift | Customers needing under 10% |
+|---|---|---|---|
+| referral · 4+ repeat | 420 | 3.0% | 351 |
+| search · 4+ repeat | 727 | 3.8% | 581 |
+| social · 4+ repeat | 346 | 5.4% | 258 |
+| referral · 1–3 repeat | 322 | 16.3% | 100 |
+| search · 1–3 repeat | 761 | 23.6% | 128 |
+| social · 1–3 repeat | 577 | 28.9% | 68 |
+| referral · 0 repeat | 249 | 44.0% | 0 |
+| search · 0 repeat | 741 | 45.7% | 0 |
+| social · 0 repeat | 857 | 49.2% | 0 |
+
+Across all 5,000 customers the median break-even lift is 34%, and 1,486 customers need less than 10%.
+
+Two readings, and the second is the important one.
+
+- **Expected purchases matter, not P(alive) alone.** The BG/NBD gives every customer without a repeat purchase P(alive) = 1 (Module 2), yet these customers need a 44 to 49% lift, because they buy rarely. The break-even depends on the margin a customer is expected to produce.
+- **The cheapest customers to win back are the ones you may not need to.** The customers with the smallest break-even lift are frequent, likely-alive buyers: exactly the customers who would probably buy anyway. A 3% lift sounds easy, but the offer must *cause* 3% more purchases, not be redeemed by people who were going to buy. Whether an offer causes purchases, and for whom, is not something a CLV model can tell. Day 3 measures a campaign's effect with an experiment; Module 11 asks which customers it changes.
+
+So the decision rule is: run the offer for a segment only if its break-even lift is below what an experiment has shown is plausible. Today there is no experiment, so the retention decision is provisional.
+
+## 5. Scores in the warehouse
+
+**Objective for this section:** write customer scores (P(alive), CLV mean and interval, segment, model version, date) to a DuckDB table with a fixed schema.
+
+A model's output is useful only when other systems can read it: the CRM that sends the offer, the dashboard that tracks the base. The lab writes one row per customer to a table `customer_scores` in a DuckDB file standing in for the warehouse:
+
+```sql
+customer_id VARCHAR, p_alive DOUBLE, clv_mean DOUBLE, clv_hdi_low DOUBLE,
+clv_hdi_high DOUBLE, segment VARCHAR, model_version VARCHAR, scored_at DATE,
+PRIMARY KEY (customer_id, model_version)
+```
+
+Each column earns its place.
+
+- **The interval next to the mean** keeps the uncertainty with the number. A CRM rule like "target customers with CLV above $50" can then be written as "with a 94% lower bound above $50" when that matters.
+- **`model_version`** says which model and settings produced the score. A new model version adds rows next to the old ones, so the two can be compared before anyone switches.
+- **`scored_at`** is the as-of date of the data, not the date the job ran: here 2024-12-29, the end of the calibration period.
+- **The primary key and `INSERT OR REPLACE`** make the job **idempotent**: rerunning it for the same model version replaces rows instead of duplicating them. A job that may be retried must be safe to rerun.
+
+The checkpoint tests exactly these properties: the schema from `DESCRIBE`, one row per customer, no nulls, $0 \le$ `p_alive` $\le 1$, `clv_hdi_low` $\le$ `clv_mean` $\le$ `clv_hdi_high`, and an unchanged row count after a rerun. On Colab the file lives in the runtime's working directory and disappears with it; in production it would be a warehouse table.
+
+## 6. The numbers for the memo
+
+**Objective for this section:** collect the numbers, intervals and assumptions a one-page decision memo needs; the memo itself is written and peer-reviewed in the Day 2 clinic.
+
+The lab's last provided cell gathers every number above into one structure and prints a memo template with the numbers filled in by code. You do not write the memo in the lab. The afternoon clinic starts with 15 minutes of writing it from this output, then peer review in groups of three, one of whom plays the CFO.
+
+A memo that survives a finance review has:
+
+1. **One sentence at the top** that states the decision in dollars.
+2. **The numbers with their intervals**, and what the interval does not cover (model error; Module 4).
+3. **The assumptions that would change the answer**, in order of how much they move it: the margin rate, the horizon, the current CACs, and the two untested causal assumptions (incremental acquisitions, an offer that causes purchases).
+4. **What would settle the open questions**: the experiment you would run next.
+
+Numbers are filled in by code so that a rerun with new data or a new assumption updates the memo without retyping. Copy the template into your notes before the runtime disconnects.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Two rules, stated before the numbers.
+
+**CAC caps.** Keep acquiring through a channel while its current CAC is below its cap under the risk rule you chose (say which). FULL run, with the lab's assumed current CACs:
+
+- **search:** current $45 against a cap of $51.12 (mean) or $49.69 (20th percentile); $P(V > \text{CAC}) = 1.00$. Keep acquiring.
+- **referral:** current $55 against $69.30 or $66.40; $P = 1.00$. Keep acquiring; there is room to pay more for referrals.
+- **social:** current $32 against $32.65 or $31.79; $P = 0.74$. **The close call.** It passes the mean rule and fails the 20th-percentile rule. Under a risk-averse rule, hold social spending at or below about $31.80 per customer until the acquisition is shown to be incremental.
+
+**Retention offer.** Run it for a segment only if its break-even lift is below what an experiment has shown is plausible. The candidates are the frequent-buyer segments (median break-even lift 3.0 to 5.4%), but they are also the customers most likely to buy anyway, and no experiment has measured the offer's lift. **The decision is provisional until Day 3.**
+
+Both decisions assume what nothing so far has tested: that channels cause the customers credited to them, and that the offer causes purchases. Your sentences follow the form "Based on [number and interval], I would [action], because [rule, with its cost or margin], unless [what would change it]".
+:::
+
+## Summary
+
+- The value of a new customer is margin on the acquisition purchase plus discounted margin on expected repeat purchases (@eq-new-value). BTYD forecasts leave out the first purchase; add it.
+- On the synthetic retailer, new-customer value by channel came within 7% of the truth, with every true value inside its 94% HDI.
+- A CAC cap needs a stated risk rule; the probability that a channel pays back is the share of posterior draws in which the value exceeds the CAC (@eq-p-beats-cac). Social was the close call ($P = 0.74$).
+- Overlapping intervals do not mean "no difference" when the quantities share posterior draws (@eq-var-diff); compare draw by draw (@eq-p-greater), then ask whether the difference is large enough to matter.
+- The break-even lift of a retention offer (@eq-breakeven) is smallest for frequent buyers, who may buy anyway. Only an experiment can say whether the offer causes the lift.
+- Scores belong in a table with the interval, the model version and the as-of date, written idempotently.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 5 |
+|---|---|---|
+| @eq-new-value | 12-month margin value of a new customer | **Exercise 1**: `new_customer_clv(model, gg_idata, channel_rows, months, monthly_rate, margin)`; Checkpoint 1 tests a toy model before any fit, then each channel within 15% of the truth |
+| Mean and quantile caps | CAC caps under a risk rule | **Exercise 2**: `cac_cap(clv_draws, q)`; Checkpoint 2 checks that caps rise with $q$ and sit below the mean for $q < 0.5$ |
+| @eq-p-beats-cac | probability a channel pays back | Provided: the Decision cell |
+| @eq-p-greater (and @eq-var-diff) | segment comparison | **Exercise 3**: `segment_value(clv_draws, segments)` and `prob_greater(...)`; Checkpoint 3 checks that segments add up in every draw and that $P(a > b) + P(b > a) = 1$ |
+| @eq-breakeven | break-even lift | **Exercise 4**: `breakeven_lift(cost, margin_per_purchase, expected_purchases)` and `campaign_table(lift, segments)`; Checkpoint 4 checks hand cases and monotonicity |
+| The scores schema | warehouse write-back | **Exercise 5**: `write_scores(con, scores, model_version, scored_at)`; Checkpoint 5 checks the schema, no nulls, ranges and idempotency |
+| The memo numbers | the CFO memo | Provided: the memo template; the memo is written in the clinic |
+
+## Gotchas
+
+- **Forgetting the acquisition purchase** undervalues a new customer by about $9 of margin here, enough to flip the social decision.
+- **Revenue in, margin out.** Multiply by the margin rate once, and say which rate.
+- **Average versus marginal CAC.** A cap on the average cost per acquired customer is not the most you should pay for the next one.
+- **Overlapping intervals are not a test.** Compare quantities from the same posterior draw by draw.
+- **P(alive) = 1 for customers with no repeat purchase** under the BG/NBD; their expected purchases are still low. Use expected margin, not P(alive), to rank customers for an offer.
+- **The as-of date is the data's date**, not the run's.
+- **Colab files vanish** with the runtime, including the DuckDB file.
+- **Two untested causal assumptions** sit under every number here: incremental acquisitions and an offer that causes purchases. Say so in the memo.
+
+## Next steps
+
+Every decision on Day 2 rests on a causal claim nobody has checked. The CAC caps assume each channel caused the customers credited to it; the retention break-even assumes the offer causes the extra purchases. A model fitted to what customers did cannot tell what they would have done otherwise. Day 3 asks whether marketing causes sales, starting in Module 6 with the cleanest answer there is, a randomized experiment, and with everything that goes wrong in practice: too few customers, broken randomization, peeking at results, and attribution reports that credit sales that would have happened anyway.
+
+## Further reading
+
+1. Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S. (2006). [Modeling customer lifetime value](https://doi.org/10.1177/1094670506293810). *Journal of Service Research*, 9(2), 139–155. How CLV is used for segmentation and for spending on acquisition and retention.
+2. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). [RFM and CLV: Using iso-value curves for customer base analysis](https://doi.org/10.1509/jmkr.2005.42.4.415). *Journal of Marketing Research*, 42(4), 415–430. CLV from the RFM table, and how value varies across customers.
+3. Bachmann, P., Meierer, M., & Näf, J. (2021). [The role of time-varying contextual factors in latent attrition models for customer base analysis](https://doi.org/10.1287/mksc.2020.1254). *Marketing Science*, 40(4), 783–809. Covariates in BTYD models, the basis of channel-level values.
+4. PyMC-Marketing, [CLV quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html). The models and prediction methods the lab calls.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.
