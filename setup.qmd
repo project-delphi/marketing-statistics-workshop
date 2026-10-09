@@ -1,0 +1,127 @@
+---
+title: "Setup"
+subtitle: "Colab (Python and R), your own Linux machine, or AWS"
+---
+
+Every lab is a notebook that opens in Google Colab with one click and installs what it needs in
+its first cell. You do not need to install anything locally to take the workshop. The local and AWS
+routes exist for people who prefer their own machine or must keep data inside their company's cloud.
+
+::: {.callout-note appearance="simple"}
+**What is measured and what is not.** Install times on this page come from runs we recorded (where,
+when and on which runtime is stated next to each number). The AWS instructions are written and
+scripted but **have not been run by the workshop authors**. The [Readiness](readiness.qmd) page says,
+notebook by notebook, what has run where.
+:::
+
+## Colab, Python notebooks {#colab-python}
+
+1. Open a lab from the [Notebooks](notebooks.qmd) page or the **Open in Colab** button on a module page.
+2. Colab shows *"Warning: This notebook was not authored by Google"*. The notebooks come from this
+   workshop's public GitHub repository; read the first cells if you want to see what they do, then
+   choose **Run anyway**.
+3. Run the first cell (**Install**). It installs the pinned versions of the few libraries Colab does not
+   have (for example pymc-marketing and EconML), using the workshop's
+   [pinned requirements]({{< var repo.url >}}/blob/main/environment/requirements.txt) as constraints, so
+   you get exactly the versions the labs were tested with.
+4. If the install cell says **"Runtime > Restart session, then Run all"**, do that. It happens only if a
+   different version of PyMC or ArviZ was already imported in the session.
+
+**Measured on Colab** (2026-10-09, Colab runtime `release-colab-external-images_20261007-060045_RC00`,
+2 CPUs, Python 3.13.16, recorded in [`spikes/results/s2-colab-python-2026-10-09.json`]({{< var repo.url >}}/blob/main/spikes/results/s2-colab-python-2026-10-09.json)):
+installing pymc-marketing 1.2.0, EconML 0.17.0 and nutpie with constraints took **31 s**; importing
+pymc-marketing took **17 s**; the first model fit in a fresh session adds roughly **35–45 s** of one-off
+compilation. These were measured in a test notebook with the same stack as the labs, not in a lab
+itself; each lab's own install time appears below once that lab has a recorded Colab run.
+
+**GPU?** Not needed. These models run on the CPU, and the labs are sized for Colab's free CPU runtime.
+A GPU runtime does not make them meaningfully faster and uses up your GPU quota for nothing.
+
+## Colab, R notebooks {#colab-r}
+
+The R labs (Modules 3, 7, 9 and 11, plus the optional Module 0 warm-up) are R notebooks: Colab opens
+them in its **R runtime** automatically (Runtime > Change runtime type shows *R*). If a notebook opens
+in Python by mistake, switch the runtime type to R and run it again.
+
+The first cell installs the R packages from a dated snapshot of the Posit Public Package Manager
+(binary packages, so nothing compiles), adds the GSL system library that CLVTools needs, and installs
+GeoLift and augsynth from fixed GitHub commits.
+
+**Measured on Colab** (2026-10-09, same runtime, R 4.6.1, recorded in
+[`spikes/results/s3-colab-r-2026-10-09.json`]({{< var repo.url >}}/blob/main/spikes/results/s3-colab-r-2026-10-09.json)):
+GSL 9 s; CLVTools 5 s; grf 4 s; CausalImpact with bsts 46 s; GeoLift's dependencies 15 s; augsynth and
+GeoLift from GitHub 24 s — about **1 min 45 s** for everything. A lab installs only what it uses.
+
+### Mixing R into a Python notebook (optional)
+
+If you prefer one notebook, the `rpy2` package lets a Python notebook run R cells with the `%%R`
+magic. The workshop does not use this route: separate R notebooks are simpler to install and
+debug on Colab. If you try it, install the R packages from R first (as the R notebooks do), then
+`%pip install rpy2` and `%load_ext rpy2.ipython`.
+
+## Measured install times per lab {#install-times}
+
+{{< include /_includes/install-times.md >}}
+
+## Your own Linux machine {#local}
+
+The same image runs locally, in CI and on AWS: R 4.6.1, Python 3.13, JupyterLab and Quarto, defined in
+[`environment/Dockerfile`]({{< var repo.url >}}/blob/main/environment/Dockerfile).
+
+**Docker (recommended).**
+
+```bash
+git clone {{< var repo.url >}}.git
+cd marketing-statistics-workshop
+docker build -f environment/Dockerfile -t mktstats-env .
+docker run --rm -p 127.0.0.1:8888:8888 \
+  -e MKTSTATS_REPO_ROOT=/home/sagemaker-user/work -e PYTHONPATH=/home/sagemaker-user/work/src \
+  -v "$PWD":/home/sagemaker-user/work mktstats-env
+```
+
+Open the URL with the token that JupyterLab prints. The first build took about 16 minutes on an
+Apple Silicon laptop (linux/arm64, 2026-10-09); later builds reuse the cache. On Windows, use WSL 2
+(Ubuntu) and follow the same steps.
+
+**VS Code or Codespaces.** The repository has a [devcontainer]({{< var repo.url >}}/tree/main/.devcontainer)
+that builds the same image.
+
+**Without Docker (Python only).** With [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv venv --python 3.13
+uv pip install -r environment/requirements.txt
+uv pip install -e . --no-deps
+.venv/bin/jupyter lab
+```
+
+For the R labs without Docker you need R 4.6, the packages in
+[`environment/r-packages.txt`]({{< var repo.url >}}/blob/main/environment/r-packages.txt) and IRkernel;
+the Docker image is the tested route.
+
+## AWS {#aws}
+
+Two documented routes, both using the same image: **SageMaker Studio** with the workshop image as a
+custom image (or a lifecycle configuration for Python only), and **EC2** running JupyterLab from the
+image, reached through an SSH tunnel. The step-by-step guide, least-privilege IAM policies, an optional
+S3 data bucket and a teardown script are in
+[`environment/aws/`]({{< var repo.url >}}/tree/main/environment/aws).
+
+::: {.callout-warning}
+**Cost.** Instances, Studio apps and spaces, EBS volumes, ECR images, S3 storage and data transfer are
+billed while they exist. Run the teardown script when you finish. See the
+[SageMaker AI pricing](https://aws.amazon.com/sagemaker/ai/pricing/) and
+[EC2 On-Demand pricing](https://aws.amazon.com/ec2/pricing/on-demand/) pages; this site does not quote prices.
+The AWS route **has not been run by the workshop authors**.
+:::
+
+## Troubleshooting {#troubleshooting}
+
+| Symptom | What to do |
+|---|---|
+| "Runtime > Restart session, then Run all" | Do exactly that: an older PyMC or ArviZ was imported before the install cell ran. |
+| An R notebook opens with Python | Runtime > Change runtime type > R, then run the first cell again. |
+| A download fails (dataset or package) | Run the cell again; the loaders retry and fall back to a mirror where the licence allows. Tell the instructor if it keeps failing. |
+| A model fit is much slower than the lab says | Check you are not on a TPU/GPU runtime by mistake, and that `QUICK` is as the lab says. First fits in a session include compilation. |
+| A checkpoint fails on the reference solution | That is a problem with the lab or the runtime, not your code: tell the instructor. |
+| "TODO n is not written yet" | Write the exercise, run its cell, then rerun the checkpoint; or continue with `workshop.use_reference(n)`. |

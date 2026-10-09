@@ -1,0 +1,22 @@
+{
+  // The workshop image (environment/Dockerfile): R 4.6.1, Python 3.13, JupyterLab, Quarto 1.10.19.
+  // VS Code "Reopen in Container" or GitHub Codespaces builds it from source; the first build takes
+  // about 15 minutes on a laptop (DECISIONS.md, spike S4).
+  "name": "Statistics for Marketing",
+  "build": {
+    "dockerfile": "../environment/Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "sagemaker-user",
+  "containerEnv": {
+    "MKTSTATS_REPO_ROOT": "${containerWorkspaceFolder}",
+    "PYTHONPATH": "${containerWorkspaceFolder}/src"
+  },
+  "forwardPorts": [8888],
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-toolsai.jupyter", "ms-python.python", "quarto.quarto", "REditorSupport.r"],
+      "settings": {"python.defaultInterpreterPath": "/opt/venv/bin/python"}
+    }
+  }
+}
