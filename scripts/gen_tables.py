@@ -856,8 +856,8 @@ def readiness_summary(v: dict, report: dict, link: str | None = "/readiness.qmd"
         f"**{head}: {verdict}.**",
         f"{s['ready']} of its {s['notebooks']} notebooks have a current, passing, worked,"
         " full-settings run of the whole notebook on Colab"
-        + (f" ({not_written} are not written yet)." if not_written else "."),
-        f"{s['elsewhere_passed']} have passed on another machine"
+        + (f" ({not_written} {_are(not_written)} not written yet)." if not_written else "."),
+        f"{s['elsewhere_passed']} {_have(s['elsewhere_passed'])} passed on another machine"
         f" ({s['elsewhere_full']} with full settings), and {s['ci_passed']} on CI.",
     ]
     x = s.get("extensions") or {}
@@ -869,14 +869,23 @@ def readiness_summary(v: dict, report: dict, link: str | None = "/readiness.qmd"
         )
         if x["written"]:
             line += (
-                f"; {x['elsewhere_passed']} have passed on another machine and"
+                f"; {x['elsewhere_passed']} {_have(x['elsewhere_passed'])} passed on another"
+                " machine and"
                 f" {x['ci_passed']} on CI"
             )
-        line += f" ({ext_missing} are not written yet)." if ext_missing else "."
+        line += f" ({ext_missing} {_are(ext_missing)} not written yet)." if ext_missing else "."
         parts.append(line)
     if link:
         parts.append(f"[What has run, where]({link}).")
     return " ".join(parts)
+
+
+def _have(n: int) -> str:
+    return "has" if n == 1 else "have"
+
+
+def _are(n: int) -> str:
+    return "is" if n == 1 else "are"
 
 
 def readiness_rows(v: dict, report: dict, core: bool) -> str:
