@@ -31,7 +31,7 @@ retailer's clean purchases into a log with **exactly the schema of `load_online_
 labeled errors at **rates measured on Online Retail II** (the labels live only in the truth file). The
 learner writes the cleaning rules in DuckDB SQL and proves them by reproducing the clean RFM table
 exactly. A one-rule-at-a-time sweep then measures what each error does. Because dozens of fits are needed,
-the sweep uses a closed-form maximum-likelihood helper that maximizes the same likelihoods as
+the sweep uses a maximum-likelihood helper (numerical optimization of closed-form likelihoods) that maximizes the same likelihoods as
 PyMC-Marketing (prototype agreement: largest relative difference 1.2 × 10⁻⁴), confirmed once in the lab
 with PyMC-Marketing itself. The same pipeline is then applied unchanged to Online Retail II.
 
