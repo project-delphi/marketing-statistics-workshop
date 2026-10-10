@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, reproduce it with EconML's LinearDML, find out whose effect the estimate describes, and check the method against a randomized benchmark built from the Hillstrom experiment.
+Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, find out whose effect the estimate describes, then reproduce it with EconML's LinearDML and check the method against a randomized benchmark built from the Hillstrom experiment.
 :::
 
 ::: {.module-actions}
@@ -40,8 +40,8 @@ Data
 
 - Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls.
 - Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval.
-- Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models.
 - Check overlap with propensity scores, trim, and state which customers the estimate describes.
+- Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models.
 - Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate.
 
 **You leave with:**
