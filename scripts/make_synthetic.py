@@ -306,8 +306,18 @@ def _subscriptions() -> tuple[dict[str, pd.DataFrame], dict]:
             {**res.truth, "tolerances": SUBSCRIPTIONS_TOLERANCES})
 
 
+def _mta() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 16: user journeys with targeted exposure (seed 2036, 100,000 users). The CSV
+    writes one letter per touch (truth "path_codes"), so it stays under 1.5 MB."""
+    from mktstats.synth import mta
+
+    res = mta.mta_journeys()
+    return {"mta_journeys.csv": mta.encode_paths(res.journeys)}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
     "subscriptions": _subscriptions,
+    "mta": _mta,
 }
 
 
