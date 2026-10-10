@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 17]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 17]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -56,7 +56,8 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd) and its lab.
+- [Module 8](/modules/08-bayesian-mmm.qmd): the Bayesian MMM, adstock, saturation, ROAS and the sampler diagnostics
+- [Module 9](/modules/09-mmm-calibration.qmd): what an MMM cannot identify, and lift tests in the model's units
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::
