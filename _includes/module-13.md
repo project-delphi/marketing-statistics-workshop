@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 13]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 13]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); maximum-likelihood fits of the closed-form likelihoods for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4.
+:   Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); maximum-likelihood fits of the closed-form likelihoods for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4.
 
 Labs
 :   Python: `labs/python/13-messy-real-data.ipynb` (in preparation)
@@ -55,7 +55,10 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd) and its lab.
+- [Module 1](/modules/01-customer-base.qmd): cleaning Online Retail II in SQL, purchase days and the RFM table
+- [Module 2](/modules/02-btyd.qmd): BG/NBD, the calibration/holdout split and MAP fits
+- [Module 4](/modules/04-monetary-clv.qmd): Gamma-Gamma, its independence assumption and expected spend per customer
+- Helpful: [Module 5](/modules/05-clv-decisions.qmd)'s break-even lift for a retention campaign
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

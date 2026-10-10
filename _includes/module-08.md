@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. PyMC-Marketing 1.2.0 is a Bayesian MMM that runs on Colab's CPU; Google's Meridian conflicts with it on package versions and its docs recommend a GPU (see DECISIONS.md).
+:   Python. PyMC-Marketing 1.2.0 is a Bayesian MMM that runs on Colab's CPU; Google's Meridian conflicts with it on package versions and its docs recommend a GPU (see DECISIONS.md).
 
 Labs
 :   Python: `labs/python/08-bayesian-mmm.ipynb`

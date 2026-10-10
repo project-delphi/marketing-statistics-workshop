@@ -1,0 +1,18 @@
+---
+title: "{{< var modules.m15.title >}}"
+---
+
+<!--
+Stub so the sidebar, the Extensions page and the internal link check resolve (Technical Expert,
+2026-10-10). The Academic Director replaces it with the briefing; keep the two includes.
+-->
+
+{{< include /_includes/module-15.md >}}
+
+::: {.callout-note appearance="simple"}
+The briefing for this optional extension is being written.
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-15.md >}}

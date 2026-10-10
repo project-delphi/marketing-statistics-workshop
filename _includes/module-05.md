@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production.
+:   Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production.
 
 Labs
 :   Python: `labs/python/05-clv-decisions.ipynb`

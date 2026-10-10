@@ -142,7 +142,9 @@ def test_readiness_never_reads_the_clock():
 def test_build_summary():
     report = readiness.build(V, [rec(), rec(notebook=R)], DAY)
     s = report["summary"]
-    assert s["ready"] == 2 and s["notebooks"] == len(common.notebooks(V))
+    core = [e for e in common.notebooks(V) if e["track"] == common.CORE]
+    assert s["ready"] == 2 and s["notebooks"] == len(core)
+    assert s["extensions"]["notebooks"] == len(common.notebooks(V)) - len(core)
     assert s["all_ready"] == (s["ready"] == s["notebooks"])
 
 
