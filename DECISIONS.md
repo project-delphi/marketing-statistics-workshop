@@ -3,6 +3,36 @@
 Each entry: what was decided, why, and the evidence (a command, a run, a URL with the date it was read).
 Newest first within each section.
 
+## Extensions track
+
+### Five optional modules after the core week, built without staling the core (2026-10-10)
+- The user asked for five additions: BTYD and Gamma-Gamma on messy real data, double machine
+  learning for observational data, multi-touch attribution (Markov chains, Shapley values),
+  survival analysis for contractual churn, and an MMM with time-varying effects and a Prophet
+  baseline. They become Modules 13-17 on a new day `d6` ("Extensions") with no timed blocks,
+  like the pre-work. The five timed days are full (a test checks 09:00-17:00) and were
+  released at `v2026.10.1` and swept on Colab, so nothing was cut from them. Each extension
+  keeps the core module format (briefing, 55-minute lab, debrief), so an instructor can swap
+  one into a custom schedule.
+- The core's run records hash each module's declared deps (`scripts/common.py` `deps_sha`).
+  Modules 1, 3, 4 and 5 listed the whole `src/mktstats/synth` directory, so any new generator
+  there would have staled them. They now list the same files one by one, in the same order;
+  `deps_sha` of all 18 core notebooks was checked unchanged after the edit.
+- Extension datasets keep their truth out of `truth.json`, which nine core modules hash: each
+  writes `data/synthetic/truth_<name>.json` through the `EXTENSIONS` table in
+  `scripts/make_synthetic.py`. Labs read them with `mktstats.data.repo_file`, and new helpers
+  live in new files, so `data.py`, `checks.py` and `synth/__init__.py` are unchanged.
+- Pins: `lifelines==0.30.3` (pure Python; PyPI, uploaded 2026-03-05) and `prophet==1.4.0`
+  (Colab's preinstalled version, `environment/colab-constraints.txt`; PyPI has wheels for
+  manylinux x86_64 and aarch64 and macOS arm64), with their dependencies autograd-gamma,
+  cmdstanpy, holidays and stanio. Recompiling with the Colab constraints moved no existing
+  pin. Module 9 lists `environment/requirements.txt` in its deps (the Robyn notebook reads
+  nevergrad's pin from it), so its two run records read stale although nevergrad did not
+  change; they are re-run in the next Colab sweep.
+- The extension notebooks cannot run on Colab until a release tag contains them: Colab
+  badges, the mktstats install and the data all point at `repo.ref`. A new tag changes every
+  notebook's `deps_sha`, so it needs a full Colab sweep of the core as well.
+
 ## Environment
 
 ### Python pins follow Colab's own package list (2026-10-09)

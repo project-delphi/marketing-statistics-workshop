@@ -12,6 +12,8 @@
 Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II.
 :::
 
+[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
+
 ::: {.module-actions}
 [Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Python lab in preparation]{.chip}
 :::
@@ -26,6 +28,8 @@ Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day 
 ::: {.module-summary}
 Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars.
 :::
+
+[Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
 [Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Python lab in preparation]{.chip}
@@ -42,6 +46,8 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment.
 :::
 
+[Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.module-builds-on}
+
 ::: {.module-actions}
 [Open the briefing](/modules/15-double-ml.qmd){.btn-quiet} [Python lab in preparation]{.chip}
 :::
@@ -57,6 +63,8 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
 :::
 
+[Builds on [Module 6](/modules/06-experiments.qmd) and [Module 8](/modules/08-bayesian-mmm.qmd).]{.module-builds-on}
+
 ::: {.module-actions}
 [Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Python lab in preparation]{.chip}
 :::
@@ -71,6 +79,8 @@ Credit conversions to channels along user journeys with last-click, first-click,
 ::: {.module-summary}
 Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS.
 :::
+
+[Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
 [Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Python lab in preparation]{.chip}

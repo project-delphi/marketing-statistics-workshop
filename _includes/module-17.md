@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 17]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 17]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses.
+:   Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses.
 
 Labs
 :   Python: `labs/python/17-mmm-time-varying.ipynb` (in preparation)
@@ -52,7 +52,8 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd) and its lab.
+- [Module 8](/modules/08-bayesian-mmm.qmd): the Bayesian MMM
+- [Module 9](/modules/09-mmm-calibration.qmd): calibration and what an MMM cannot identify
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

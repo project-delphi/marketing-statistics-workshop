@@ -58,10 +58,10 @@
 ::: {.day-card}
 [Extensions]{.eyebrow}
 
-[Beyond the core week](/modules/13-messy-real-data.qmd){.day-card-title}
+[Beyond the core week](/extensions.qmd){.day-card-title}
 
 [What changes when the data are messy, observational, path-shaped or drifting?]{.day-card-question}
 
-[Module 13, 14, 15, 16, 17, optional]{.day-card-span}
+[Modules 13–17, optional]{.day-card-span}
 :::
 :::

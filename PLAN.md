@@ -184,3 +184,18 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 
 ### Phase 7 — release
 - [x] [Lead] `repo.ref` → tag; full Colab sweep; `release_check.py` passes; final report (`v2026.10.1`, which also pins the Python labs' data; all 18 notebooks swept on Colab 2026-10-10; `release_check.py` passes through `--as-of 2026-10-31`)
+
+### Phase 8 — Extensions track (Modules 13–17, optional; DECISIONS.md "Extensions track")
+Day `d6`, no timed blocks. Each module: brief [AD] → review [PE] → build + run [TE] → module page [AD].
+Nothing here may change a file the 18 core notebooks' run records hash.
+- [x] [Lead] scaffold: `d6` and `m13`–`m17` in `_variables.yml`, per-file synth deps for m01/m03/m04/m05 (deps_sha unchanged), `EXTENSIONS` + `truth_<name>.json` in `make_synthetic.py`, lifelines and prophet pins
+- [ ] [TE] site machinery: core vs extensions readiness verdict and release check, counts, `extensions.qmd` and Days menu, module page stubs, notebook footers
+- [ ] M13 messy real data (dirtied synthetic retailer → Online Retail II; BG/NBD, Gamma-Gamma, capping)
+- [ ] M14 survival analysis (Kaplan–Meier, Cox, proportional-hazards check, RMST; KM vs sBG)
+- [ ] M15 double machine learning (partialling out by hand, EconML LinearDML, overlap; Hillstrom benchmark)
+- [ ] M16 multi-touch attribution (heuristics, Markov removal effect, Shapley) scored against true incrementality
+- [ ] M17 time-varying MMM and a Prophet baseline, scored against truth
+- [ ] [PE] review of briefs and notebooks; teach.qmd and knowledge checks for the track
+- [ ] [AD] module pages from the recorded runs; references.qmd entries
+- [ ] [UI] browser check of the track's pages (desktop and phone width, both themes)
+- [ ] [Lead] new release tag + full Colab sweep (core and extensions) — needs the user's go-ahead

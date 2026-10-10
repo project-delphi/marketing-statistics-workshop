@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. NumPy, SciPy and statsmodels cover everything here, and each method is short enough to write from scratch and check.
+:   Python. NumPy, SciPy and statsmodels cover everything here, and each method is short enough to write from scratch and check.
 
 Labs
 :   Python: `labs/python/06-experiments.ipynb`

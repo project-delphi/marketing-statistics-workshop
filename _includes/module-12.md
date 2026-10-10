@@ -26,7 +26,7 @@ Time
 :   255 minutes (15 briefing, 180 lab, 60 debrief)
 
 Languages
-:   Python. Python, so the whole pipeline runs in one notebook on one runtime; results from the R notebooks (Modules 3, 7 and 11) can be carried in as numbers.
+:   Python, so the whole pipeline runs in one notebook on one runtime; results from the R notebooks (Modules 3, 7 and 11) can be carried in as numbers.
 
 Labs
 :   Python: `labs/python/12-capstone.ipynb`

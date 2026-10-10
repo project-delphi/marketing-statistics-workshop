@@ -288,9 +288,20 @@ Reuse the class names of project-delphi/nlp-llms so includes and styles agree: `
 `.path-day-label`, `.path-step`, `.path-step-optional`, `.path-num`, `.path-body`, `.path-title`, `.chip`,
 `.module-header`, `.module-meta`, `.module-num`, `.module-time`, `.module-clock`, `.module-summary`,
 `.module-actions`, `.btn-colab`, `.btn-quiet`, `.module-details`, `.module-outcomes`, `.prerequisites`,
-`.module-decision`, `.recap`, `.lab-steps`, `.challenge`, `.self-check`, `.predict`, `.timetable`,
+`.module-decision`, `.module-builds-on`, `.path-builds-on`, `.recap`, `.lab-steps`, `.challenge`, `.self-check`, `.predict`, `.timetable`,
 `.slot-briefing`, `.slot-lab`, `.slot-debrief`, `.slot-break`, `.module-cards`, `.module-card`,
 `.readiness-table`, `.outcomes`, `.rhythm`, `.prose`, `.section-lede`.
+
+## The core workshop and the optional extensions
+
+A day with `track: extensions` in `_variables.yml` (`days.d6`) holds optional modules outside the
+five timed days. Its modules keep the module format and numbering (`m13`...), the same notebook
+contract and the same run records, but everything that summarizes the workshop counts them apart:
+the landing-page counts, the readiness verdict and README status line (core only, plus one line
+for the extensions), the notebooks table, the schedule (a list, no timetable) and
+`scripts/release_check.py` (fails on the core; `--extensions` also requires the extensions).
+Footers never lead from the core into the extensions: the capstone's says it is the last notebook
+of the core workshop and points to the extensions page (`extensions.qmd`, the day's page).
 
 ## Pages and the explicit render list
 

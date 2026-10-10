@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   R, Python. R for grf, the reference implementation of causal forests and of RATE; Python for EconML's double machine learning causal forest and the meta-learners.
+:   R for grf, the reference implementation of causal forests and of RATE; Python for EconML's double machine learning causal forest and the meta-learners.
 
 Labs
 :   R: `labs/r/11-grf-causal-forest.ipynb`<br>Python: `labs/python/11-uplift-econml.ipynb`
