@@ -17,9 +17,12 @@
 # number, every checkpoint and the decision are the same in both modes. With QUICK on, the
 # bootstrap intervals are rougher; that is a lesson about the number of resamples, not a bug.
 #
-# The data are simulated: one month of a retailer's online marketing, 100,000 users and five
-# channels. Because the simulation knows which conversions each channel caused, you can score
-# every attribution method against the truth, which real tracking data never allow.
+# The data are simulated: one month of a retailer's online marketing to 100,000 users through
+# five channels: **display** (prospecting banner ads), **social** (paid social ads), **search**
+# (paid search ads), **email** (sent to the retailer's subscribers) and **retargeting** (display
+# ads shown to recent visitors of the retailer's site). Because the simulation knows which
+# conversions each channel caused, you can score every attribution method against the truth,
+# which real tracking data never allow.
 
 # %%
 import io
@@ -216,7 +219,9 @@ print(journey_states(TINY.loc[4, "path"], TINY.loc[4, "converted"]))
 # **Task.** Write `transition_matrix(journeys, channels)` returning a `pd.DataFrame` of transition
 # probabilities with index and columns `["start", *channels, "conv", "null"]`. Each journey adds
 # start → first touch, touch → next touch, and last touch → conv or null; conv and null go to
-# themselves with probability 1; each row adds up to 1.
+# themselves with probability 1; each row adds up to 1. Tip:
+# `pd.Series(pairs).unstack(fill_value=0)` turns a `Counter` of (from, to) pairs into a table of
+# counts, with a row per "from" state and a column per "to" state.
 
 # %% tags=["exercise"]
 def transition_matrix(journeys, channels):
@@ -392,17 +397,21 @@ with workshop.checkpoint(label="Markov credit"):
 # %% [markdown]
 # **Explain.** Compare the sum with your guess. In `TINY` the removal effects are 1/2 and 1,
 # adding up to 1.5. Which converting journeys pass through both A and B, and what happens to them
-# when A is removed, and when B is removed? Then: what does dividing each removal effect by their
-# sum (the Markov credit above) assume?
+# when A is removed, and when B is removed? Then: the Markov credit above divides each removal
+# effect by their sum. Without that division, what would the credit on the journeys add up to
+# (the sum printed above times the 3,020 conversions), and is the division measured from the data
+# or chosen?
 #
 # <details><summary>Why this solution works</summary>
 #
 # Removing one channel breaks every path through it, so a converting journey through three
 # channels is lost in three removal scenarios: the effects overlap and add up to more than 1. In
 # `TINY`, journeys 1 and 5 (A > B and A > A > B) pass through both channels and are lost whichever
-# channel is removed. Dividing by the sum is a choice, not a law. And the removal effect asks what
-# the *fitted chain* predicts if journeys stopped at c: it treats "on the path to a conversion" as
-# "caused the conversion".
+# channel is removed. Without the division the credit would add up to about 1.97 × 3,020 ≈ 5,950,
+# twice the conversions there are. Dividing by the sum is a convention: it shares the overlap in
+# proportion to each channel's removal effect, and nothing in the data says it should be shared
+# that way. And the removal effect asks what the *fitted chain* predicts if journeys stopped at
+# c: it treats "on the path to a conversion" as "caused the conversion".
 # </details>
 
 # %% [markdown]
@@ -432,9 +441,11 @@ with workshop.checkpoint(label="Markov credit"):
 # %% [markdown]
 # ## Exercise 4 · Exact Shapley values (9 minutes)
 #
-# **Predict.** In the three-player game below, C adds nothing to any coalition. Write C's Shapley
-# value (0, between 0 and 0.10, or above 0.10), and say whether A and B will split v(ABC) = 0.40
-# equally (yes or no).
+# **Predict.** In the three-player game below, C adds nothing to any coalition, so the null-player
+# property gives it 0, and A and B share v(ABC) = 0.40. Alone, A makes 0.10 and B makes 0.20;
+# together they make 0.10 more than that. What will B's Shapley value be: 0.20 (an equal split),
+# 0.25 (each keeps what it makes alone and the extra 0.10 is split equally), about 0.27 (a split
+# in proportion to what each makes alone) or 0.30 (B keeps the extra)? Write your choice.
 #
 # | S | ∅ | A | B | C | AB | AC | BC | ABC |
 # |---|---|---|---|---|---|---|---|---|
@@ -494,8 +505,9 @@ with workshop.checkpoint(4):
 # The channels on the journey. With v(∅) = 0, the whole conversion rate of each set, the 1%
 # baseline included, is shared out among its channels (efficiency). Shapley's properties are rules
 # for sharing a value; they say nothing about whether v measures what a channel causes. That
-# depends on v, and v here is an observed conversion rate. In the game above A and B do not split
-# equally: B adds more to every coalition it joins, so it gets more.
+# depends on v, and v here is an observed conversion rate. In the game above B gets 0.25 and A
+# 0.15: averaged over the join orders, each keeps what it makes alone (0.20 and 0.10), and the
+# 0.10 they make only together is split equally, not in proportion to what each makes alone.
 # </details>
 #
 # The next cell builds v(S) for every set of channels that occurs (`coalitions`: journeys,
@@ -581,9 +593,9 @@ show(fig)
 # ## Exercise 5 · Score the methods against the truth (7 minutes)
 #
 # **Predict.** Under Markov and Shapley, retargeting gets about as much credit as display or
-# social (the table above), and the users it reached converted far more often than those it did
-# not reach (the plot). How many conversions did retargeting truly cause: about as many as its
-# Markov credit, about half of it, or close to none? Write your guess.
+# social (the credit table above), and the users it reached converted far more often than those
+# it did not reach (the plot). How many conversions did retargeting truly cause: about as many as
+# its Markov credit, about half of it, or close to none? Write your guess.
 #
 # The **share error** of a method m is the share of credit that would have to move between
 # channels for its shares to match the true incremental shares (the total variation distance):
@@ -597,7 +609,8 @@ show(fig)
 # **Task.** Write `credit_vs_truth(credit, incremental)` returning a `pd.DataFrame` with one row
 # per method (the columns of `credit`) and the columns `tvd` (D_m), `largest_gap_channel` (the
 # channel whose credit share is furthest from its true share) and `largest_gap` (credit share −
-# true share for that channel, with its sign).
+# true share for that channel, with its sign). Tip: with `gap` a table of channels × methods,
+# `gap.abs().idxmax()` gives each method's channel, and `gap.loc[channel, method]` its signed gap.
 
 # %% tags=["exercise"]
 def credit_vs_truth(credit, incremental):
@@ -653,11 +666,12 @@ ax.set_title("Who each channel reaches: intent to buy before any ad")
 show(fig)
 
 # %% [markdown]
-# **Explain.** Compare with your guess (the truth for retargeting is in the last column above).
-# Which mechanism earns retargeting its credit: it sits late in journeys, it reaches users who would
-# buy anyway, or it has the most touches? Rule out what you can first: Shapley's v uses only the
-# set of channels on a journey, not their order or number, and Exercise 2 showed that repeated
-# touches in a row do not change where a journey goes next. Point to the plot of intent.
+# **Explain.** Compare with your guess: the truth is the `true_incremental` column of the
+# checkpoint's output above. Which mechanism earns retargeting its credit: it sits late in
+# journeys, it reaches users who would buy anyway, or it has the most touches? Rule out what you
+# can first: Shapley's v uses only the set of channels on a journey, not their order or number,
+# and Exercise 2 showed that repeated touches in a row do not change where a journey goes next.
+# Point to the plot of intent.
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -674,8 +688,8 @@ show(fig)
 # replacement, recomputes every method's credit shares, and takes the 2.5th and 97.5th percentiles
 # over the resamples. The next cell does this `N_BOOT` times (seed shown). It counts the methods on
 # the distinct (path, converted) rows, so each resample is fast, and it calls your
-# `removal_effects` and `shapley_values`. Look at whether any true share (black mark) falls inside
-# a method's interval.
+# `removal_effects` and `shapley_values`. Look at whether any true share (the black line) falls
+# inside a method's interval.
 
 # %%
 boot = attribution.bootstrap_credit(journeys, CHANNELS, N_BOOT, np.random.default_rng(SEED + 5),
@@ -714,15 +728,6 @@ print(f"{int(inside.sum())} of {inside.size} true shares lie inside their method
 # The attribution report says one paid channel is the cheapest per conversion. Move budget toward
 # it, or run a holdout test first?
 #
-# **The rule**, fixed before any number: attribution credit cannot separate a channel's effect
-# from the intent of the users it reaches. Move budget toward a channel only when an experiment
-# (Modules 6 and 7) or a lift-calibrated MMM (Module 9) shows that its cost per incremental
-# conversion is below the \$9 margin per conversion. Run a holdout first when it can tell a channel
-# that pays back from one that does not: its minimum detectable effect, scaled to all the users the
-# channel reaches, must be below the **break-even** (spend ÷ margin per conversion: the
-# incremental conversions a month the channel must cause to pay back). If it is not, make the
-# holdout larger or longer before running it.
-#
 # A **holdout** withholds the channel from a randomly chosen share of the users it would reach.
 # The **minimum detectable effect (MDE)** is the smallest true effect a test of this size detects
 # with 80% power at α = 0.05, two-sided (Module 6). For a conversion rate p with n₁ users served
@@ -732,10 +737,18 @@ print(f"{int(inside.sum())} of {inside.size} true shares lie inside their method
 #
 # The margin per conversion is one order at the retailer's mean spend of \$30 times its 30% gross
 # margin, \$9 (repeat purchases ignored). The monthly spend per channel is an assumption of the
-# simulated world. Email is sent to a list and cannot scale, so it is left out.
+# simulated world. Email is sent to a list and cannot scale, so it is left out. A channel's
+# **break-even** is its spend ÷ \$9: the incremental conversions a month it must cause to pay back.
+#
+# **The rule**, fixed before any number: attribution credit cannot separate a channel's effect
+# from the intent of the users it reaches. Move budget toward a channel only when an experiment
+# (Modules 6 and 7) or a lift-calibrated MMM (Module 9) shows that its cost per incremental
+# conversion is below the \$9 margin per conversion. Run a holdout first when it can tell a channel
+# that pays back from one that does not: its MDE, scaled to all the users the channel reaches,
+# must be below the break-even. If it is not, make the holdout larger or longer before running it.
 #
 # Decide as you would at work, where there is no `truth`: use only the credit, the spend, the
-# margin and the test's minimum detectable effect. The reveal comes after your sentence.
+# margin and the test's MDE. The reveal comes after your sentence.
 
 # %%
 ECON = truth["economics"]  # business inputs (spend, margin), not truth about effects
@@ -807,11 +820,11 @@ print(f"  Mode: {'QUICK run: treat the intervals as rough' if QUICK else 'FULL r
 # margin at risk, and what result would justify moving budget.
 #
 # ```text
-# Your sentence: Before moving budget to ____ (cheapest by attribution, $____ per credited
+# Your sentence: Before moving budget to ____ (cheapest by Markov credit, $____ per credited
 # conversion), withhold it from ____% of the users it reaches for one month. The test can detect
-# ____ points (about ____ conversions) and puts about $____ of margin at risk. Move budget only if
-# it shows more than ____ incremental conversions a month (a cost per incremental conversion
-# below $9).
+# ____ points (about ____ conversions a month, scaled to all the users it reaches) and puts about
+# $____ of margin at risk. Move budget only if it shows more than ____ incremental conversions a
+# month (a cost per incremental conversion below $9).
 # ```
 #
 # Then run the next cell, which reveals the truth the data were generated from.
@@ -835,6 +848,12 @@ else:
     print(f"Each extra ${true_cost[channel]:.2f} on {channel} buys about one more conversion.")
 
 # %% [markdown]
+# **About this simulation.** Retargeting's zero effect is an assumption of this simulated world,
+# chosen to make the mechanism visible; it is not a claim about retargeting in general. The
+# simulation also simplifies: whether a user buys depends on their intent and on which channels
+# reached them, not on the order or the number of their touches. In your own data, only an
+# experiment (Modules 6 and 7) or a lift-calibrated MMM (Module 9) tells you what a channel causes.
+#
 # ## Stretch (optional) · Random exposure, a real holdout, and a counting game
 #
 # 1. **Same reach, random exposure.** `mta_journeys(SEED, random_exposure=True)` simulates the
