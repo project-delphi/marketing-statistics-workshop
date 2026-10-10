@@ -5,6 +5,7 @@
 | Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-09 |
 | Colab (Python runtime, CPU) | `python/01-customer-base-sql` | 13 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/02-btyd` | 39 s | 2026-10-10 |
+| Colab (Python runtime, CPU) | `python/03-btyd-vs-ml` | 28 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/04-monetary-clv` | 41 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/05-clv-decisions` | 53 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/06-experiments` | 16 s | 2026-10-10 |
@@ -14,7 +15,7 @@
 | Colab (Python runtime, CPU) | `python/10-budget-allocation` | 43 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/11-uplift-econml` | 35 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/12-capstone` | 33 s | 2026-10-10 |
-| Colab (R runtime, CPU) | `r/00-setup-warmup` | 5 s | 2026-10-09 |
+| Colab (R runtime, CPU) | `r/00-setup-warmup` | 6 s | 2026-10-10 |
 | Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 6 s | 2026-10-09 |
 
 Measured by each notebook's install cell on a fresh runtime and read from its run record. On your own machine or in the workshop's Docker image nothing is installed.

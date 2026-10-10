@@ -130,7 +130,7 @@ PyMC-Marketing plans a budget for a future window of dates: `mmm.budget_optimize
 - **Units.** In pymc-marketing 1.2.0, `total_budget` is a budget **per period** (per week here): the optimizer repeats it for each of the 13 weeks (read in the installed source). Pass a quarterly total and it recommends spending the quarter's budget every week, 13 times too much.
 - **Time.** The optimizer scores whole weeks, not the steady state: its window includes 8 weeks of history before the quarter (their spend still carries in) and 8 weeks after it (so the carry-over of the last weeks' spend counts).
 
-FULL run: the library's plan is TV $36,509, search $25,609, social $6,086, display $3,796. It differs from your model-curve plan by 0.4% of the budget, on TV and search only. Two implementations of the same idea, with different handling of time, agree to a fraction of a percent; that is the reconciliation the checkpoint asks for.
+FULL run: the library's plan is TV $36,510, search $25,608, social $6,086, display $3,796. It differs from your model-curve plan by 0.4% of the budget, on TV and search only. Two implementations of the same idea, with different handling of time, agree to a fraction of a percent; that is the reconciliation the checkpoint asks for.
 
 ## 5. Uncertainty: the bad case
 
@@ -152,14 +152,14 @@ The 10% quantile says how bad the bad case is; CVaR (conditional value at risk) 
 |---|---|---|---|
 | current | 121,462 | 105,910 | 102,673 |
 | mean-optimal (PyMC-Marketing) | 129,081 | 113,546 | 110,026 |
-| risk-averse (best 10% quantile) | 129,081 | 113,555 | 110,019 |
+| risk-averse (best 10% quantile) | 129,025 | 113,732 | 110,154 |
 
 Two lessons.
 
 - **Even is not safe.** The current plan spreads money more evenly, yet its whole distribution, tail included, sits lower: it keeps money on channels with low marginal returns.
-- **The risk-averse plan barely moves** ($52 of the weekly budget). At the mean-optimal plan, TV and search share one marginal ROAS, and most of the uncertainty is in search's overall level, which every allowed plan carries. No reallocation within the bounds removes it. A lift test that narrows search's curve would (Module 9).
+- **The risk-averse plan moves little**: $1,385 of the weekly budget, from search to TV. That raises the 10% quantile by $186 a week and costs $56 of expected sales. At the mean-optimal plan TV and search share one marginal ROAS, so a small shift costs almost nothing on average, and it trims exposure to search, the less certain curve. Most of that uncertainty is in search's overall level, which every allowed plan carries, so no reallocation within the bounds removes it. A lift test that narrows search's curve would (Module 9).
 
-Note the levels: the model's expected sales for a plan are about 10% below the true ones (129,081 against 143,062 for the mean-optimal plan), because its curves are biased low in level. Its estimate of the **gain** over the current plan, $7,620 a week (94% HDI $3,738 to $10,848), contains the true gain of $6,161. For a decision between plans the gain is what matters, and differences between plans cancel much of the shared error.
+Note the levels: the model's expected sales for a plan are about 10% below the true ones (129,081 against 143,062 for the mean-optimal plan), because its curves are biased low in level. Its estimate of the **gain** over the current plan, $7,620 a week (94% HDI $3,739 to $10,848), contains the true gain of $6,161. For a decision between plans the gain is what matters, and differences between plans cancel much of the shared error.
 
 ## 6. The long run: a CLV-weighted objective
 
@@ -173,33 +173,33 @@ $$ {#eq-clv-objective}
 
 where $n_c$ is the number of new customers a dollar on channel $c$ acquires and $\text{CLV}_c$ a new customer's future margin, **excluding the first purchase**, which the MMM's short-run sales already contain. The long-run term is linear in spend, so it adds a constant $n_c \text{CLV}_c$ to each channel's marginal value, $m\, m_c(s) + n_c \text{CLV}_c$, and the optimum moves money toward channels where that is largest until diminishing short-run returns or a bound stop it.
 
-The lab's inputs are **partly made up**, and the lab says so. The CLVs come from the retailer's truth (Module 5's data), mapped to media channels (search and social to their namesakes; TV and display, which have no acquisition-channel counterpart, get the mean of the two). The costs per new customer (TV $300, search $150, social $100, display $250) are assumptions: no workshop dataset measured acquisitions per media dollar when the lab was built. Resulting long-run margin per dollar of spend: TV 0.107, search 0.275, social 0.228, display 0.128.
+The lab reads $n_c$ and $\text{CLV}_c$ from the synthetic world's truth file, and says so. Media channels (where money is spent) and acquisition channels (how the CRM records a new customer's first visit: search, social, referral) are different lists, and the synthetic world links them: TV viewers mostly arrive by word of mouth (recorded as referral) or by searching for the brand, so a TV-acquired customer is valued as that mix. Cost per new customer: TV $150, search $150, social $100, display $300. Future margin per new customer: TV $58, search $41, social $27, display $34. Resulting long-run margin per dollar of spend: TV 0.388, search 0.275, social 0.271, display 0.113. In practice the cost per new customer comes from attribution in the CRM and the CLV from Module 5's model, both with uncertainty.
 
-FULL run: the CLV-weighted plan moves $15,499 a week from TV to search and social: TV $21,010, search $37,255, social $9,939, display $3,796. On short-run sales alone it is worse than the mean-optimal plan (true 135,854 against 143,062 a week) and beats the current plan with posterior probability only 0.70. The trade it makes, less short-run sales for more valuable customers, is exactly what @eq-clv-objective asks for, and its size rests on two numbers we made up.
+FULL run: the CLV-weighted plan moves $5,982 a week from search to TV: TV $42,492, search $19,626, social $6,086, display $3,796. TV gains although a new customer costs as much there as on search, because its customers arrive mostly by referral, the most loyal acquisition channel. The short-run curves are nearly flat around the optimum, so a modest difference in long-run value per dollar moves thousands of dollars a week. On short-run sales alone the plan gives up a little (true 141,348 against 143,062 a week) and still beats the current plan with posterior probability 1.00. On the true curves the long-run optimum is TV $40,336, search $21,782: the model's curves put $2,156 a week (3% of the budget) more on TV.
 
 ::: {.self-check}
-**Check yourself.** With $m = 0.30$ and long-run margin per dollar of 0.107 for TV and 0.275 for search, at what difference in short-run marginal ROAS do TV and search have equal marginal value under @eq-clv-objective? Which way does that move money compared with the short-run optimum?
+**Check yourself.** With $m = 0.30$ and long-run margin per dollar of 0.388 for TV and 0.275 for search, at what difference in short-run marginal ROAS do TV and search have equal marginal value under @eq-clv-objective? Which way does that move money compared with the short-run optimum?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Equal marginal value means $0.30\, m_{\text{TV}} + 0.107 = 0.30\, m_{\text{search}} + 0.275$, so $m_{\text{TV}} - m_{\text{search}} = 0.168 / 0.30 = 0.56$. At the short-run optimum the two marginal ROAS are equal; now search's must be 0.56 lower than TV's, so money moves to search until its curve has flattened that much more. The size of the move depends on the 0.275 and 0.107, which rest on made-up acquisition costs.
+Equal marginal value means $0.30\, m_{\text{TV}} + 0.388 = 0.30\, m_{\text{search}} + 0.275$, so $m_{\text{search}} - m_{\text{TV}} = 0.113 / 0.30 \approx 0.38$. At the short-run optimum the two marginal ROAS are equal; now TV's must be about 0.38 lower than search's, so money moves to TV until its curve has flattened that much more. The size of the move depends on the 0.388 and 0.275, which a real business would have to measure.
 :::
 :::
 
 ## 7. The decision
 
 ::: {.module-decision}
-**Decision.** The rule, stated before the numbers: recommend the mean-optimal plan unless its 10% quantile is below the current plan's; then recommend the risk-averse plan if its 10% quantile beats the current plan's, and otherwise keep the current plan. Use the CLV-weighted plan only if the cost per new customer and the CLV by channel are measured; here the costs are made up, so it is a sensitivity, not a recommendation.
+**Decision.** The rule, stated before the numbers: recommend the mean-optimal plan unless its 10% quantile is below the current plan's; then recommend the risk-averse plan if its 10% quantile beats the current plan's, and otherwise keep the current plan. Use the CLV-weighted plan only if the cost per new customer and the CLV by channel are measured (Module 5's model and an acquisition count per channel). Here they come from the synthetic world's truth file, not from a model you fitted, so the CLV-weighted plan is shown as the long-run alternative, not recommended.
 
 FULL run, weekly budget $72,000 for 13 weeks:
 
-- The 10% quantile of the mean-optimal plan ($113,546) is above the current plan's ($105,910), so the rule picks **the mean-optimal plan**: **TV $36,509, search $25,609, social $6,086, display $3,796 a week.**
-- Expected incremental sales $129,081 a week (94% HDI $105,343 to $157,483); a gain over the current plan of $7,620 a week (94% HDI $3,738 to $10,848); posterior probability that it beats the current plan 1.00.
-- The risk-averse plan is the same to within $52. The CLV-weighted plan (TV $21,010, search $37,255, social $9,939) shows how far long-run value could move the split if the acquisition costs were measured.
+- The 10% quantile of the mean-optimal plan ($113,546) is above the current plan's ($105,910), so the rule picks **the mean-optimal plan**: **TV $36,510, search $25,608, social $6,086, display $3,796 a week.**
+- Expected incremental sales $129,081 a week (94% HDI $105,344 to $157,483); a gain over the current plan of $7,620 a week (94% HDI $3,739 to $10,848); posterior probability that it beats the current plan 1.00.
+- The risk-averse plan moves $1,385 a week from search to TV for a 10% quantile $186 higher; the rule keeps the mean-optimal plan because its own 10% quantile already beats the current plan's. The CLV-weighted plan (TV $42,492, search $19,626) shows how far long-run value could move the split once acquisition costs and CLVs are measured.
 
-The truth confirms the choice: the plan's true weekly sales from media are $143,062, against $143,069 at the true optimum and $136,901 for the current plan. What would change it: a lift test that narrows search's response curve (the widest band), measured acquisition costs for the CLV-weighted plan, or new bounds.
+The truth confirms the choice: the plan's true weekly sales from media are $143,062, against $143,069 at the true optimum and $136,901 for the current plan. What would change it: a lift test that narrows search's response curve (the widest band), measured acquisition costs and CLVs for the CLV-weighted plan, or new bounds.
 :::
 
-**One more question the allocation does not answer.** At the optimum the shared marginal ROAS is about 1.53 on the true curves: the last dollar returns $1.53 of sales, which at a 30% margin is $0.46 of margin. On short-run sales alone, the last dollars of this budget lose money, which matches Module 8's finding that no channel pays back at a break-even ROAS of 3.33. Whether to spend less in total, or whether the long-run value of new customers (@eq-clv-objective) justifies the spend, is a decision about the size of the budget. It needs the measured acquisition costs this lab assumed.
+**One more question the allocation does not answer.** At the optimum the shared marginal ROAS is about 1.53 on the true curves: the last dollar returns $1.53 of sales, which at a 30% margin is $0.46 of margin. On short-run sales alone, the last dollars of this budget lose money, which matches Module 8's finding that no channel pays back at a break-even ROAS of 3.33. Adding the truth file's long-run value does not close the gap: the last dollar returns about $0.30 \times 1.53 + 0.39 \approx \$0.85$ of margin on TV and $0.30 \times 1.53 + 0.28 \approx \$0.73$ on search. Whether to spend less in total is a decision about the size of the budget, not its split, and with real data it needs measured acquisition costs and CLVs.
 
 ## Summary
 
@@ -207,8 +207,8 @@ The truth confirms the choice: the plan's true weekly sales from media are $143,
 - Budget decisions need the marginal ROAS (@eq-marginal), which is below the average ROAS on every concave curve.
 - At the optimal split of a fixed budget, every channel inside its bounds has the same marginal ROAS (@eq-allocate, @eq-kkt). Here social and display sat at their lower bounds and TV and search shared the rest.
 - SLSQP finds the optimum of this concave problem. Your allocator, PyMC-Marketing's (whose `total_budget` is per period) and the exact optimum agreed to within 0.4% of the budget.
-- Evaluate plans draw by draw. The mean-optimal plan beat the current one with probability 1.00 and had the better bad case too (@eq-risk); a risk-averse objective barely moved it.
-- A CLV-weighted objective (@eq-clv-objective) moves money toward channels that bring valuable customers; how far depends on acquisition costs that must be measured.
+- Evaluate plans draw by draw. The mean-optimal plan beat the current one with probability 1.00 and had the better bad case too (@eq-risk); a risk-averse objective moved it little ($1,385 a week).
+- A CLV-weighted objective (@eq-clv-objective) moves money toward channels that bring valuable customers; how far depends on acquisition costs and CLVs that a real business must measure.
 
 ### Equations and where you implement them
 
@@ -229,7 +229,7 @@ The truth confirms the choice: the plan's true weekly sales from media are $143,
 - **SLSQP is local.** These curves are concave, so one start suffices; with other curve shapes, start from several points.
 - **Compare plans draw by draw.** The level of every plan carries the model's shared error; the difference between plans carries much less of it.
 - **"Even" is not "safe".** Spreading money across low-return channels lowers the whole distribution, tail included.
-- **A CLV-weighted plan is only as good as its acquisition costs and CLVs.** Here the costs are assumptions.
+- **A CLV-weighted plan is only as good as its acquisition costs and CLVs.** Here they come from the truth file; a real plan needs them measured, with their uncertainty.
 - **Allocation is not budget size.** The optimal split of a budget can still be a budget whose last dollars lose money.
 
 ## Next steps
