@@ -316,6 +316,15 @@ td code:not(.sourceCode) {
   border-radius: 4px;
 }
 
+// Quarto wraps inline code at spaces in p, dd and td (white-space: pre-wrap) but leaves
+// Bootstrap's `pre` elsewhere, so a long call in a bullet pushed the page sideways at phone
+// width (Module 3's gotchas, 375 px).
+li code:not(.sourceCode),
+th code:not(.sourceCode),
+dt code:not(.sourceCode) {
+  white-space: pre-wrap;
+}
+
 div.sourceCode,
 pre:not(.sourceCode) {
   border: 1px solid $ms-border;
@@ -369,6 +378,7 @@ details.code-fold > summary {
   overflow-x: auto;
   overflow-y: hidden;
 }
+
 
 // Figures.
 main.content figcaption,
