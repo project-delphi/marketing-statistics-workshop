@@ -5,13 +5,304 @@ title: "{{< var modules.m09.title >}}"
 {{< include /_includes/module-09.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 8's marketing mix model recovered every channel's true return on clean synthetic data, because nothing in those data could fool it. Real budgets are not set that way: search ads are bought when people are already searching, so search spend rises in the weeks when sales would have risen anyway. A model that sees only spend and sales cannot tell the two apart, and it can fit the data well, pass every diagnostic, and still be wrong. This module builds that failure on purpose, repairs it with the lift tests of Module 7, checks the model on weeks it has not seen, and decides which channels' returns are reliable enough to move money on.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-09.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+The Python notebook is the lab; it stands alone. The R notebook is a 10-minute comparison with Meta's Robyn on Robyn's own example data. It installs the Python library Nevergrad on first use, so open it early and start its first cell while you work on the Python notebook. If that install fails, skip the R notebook. Its Colab run has not been recorded yet; the [Readiness](/readiness.qmd) page shows where each notebook has run and how long it took.
+
+## 1. When spend follows demand
+
+**Objective for this section:** show on synthetic data how a demand-following channel biases its ROAS in an uncalibrated MMM.
+
+The data are Module 8's retailer with one change. A **demand shock** $d_t$, say a competitor's stockout or a product that goes viral, raises sales in some weeks, and the retailer's search spend rises in the same weeks. The shock is not in the data. TV, social, display, price and holidays are exactly as in Module 8. The generator (true values in `truth.json`) is
+
+$$
+y_t = \underbrace{\gamma_0 + \boldsymbol\gamma^{\top}\mathbf{z}_t + \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big)}_{\text{Module 8's model}} \;+\; \kappa\, d_t \;+\; \varepsilon_t ,
+\qquad
+x_{\text{search},t} = x^{\circ}_{\text{search},t}\; e^{0.15\, d_t},
+$$ {#eq-confounded}
+
+where $d_t$ follows an AR(1) process with coefficient 0.7, standardized to mean 0 and standard deviation 1, $\kappa$ = $9,000 of weekly sales per standard deviation, and $x^{\circ}$ is the search spend the plan would have set. The other symbols are Module 8's ($\mathbf{z}_t$: trend, seasonality, price, holiday; $a_{c,t}$: adstocked spend; $s$: logistic saturation). The **true** ROAS of search is still 3.0: it counts only the sales search caused. In the data, search spend and the hidden shock have a correlation of 0.61.
+
+A variable that drives both a channel's spend and sales, and is missing from the model, is a **confounder**. Leaving it out biases the channel's coefficient by the familiar omitted-variable formula of linear regression:
+
+$$
+\hat\beta_c^{\,\text{without } d} \;=\; \hat\beta_c^{\,\text{with } d} \;+\; \hat\kappa\, \hat\delta_c ,
+$$ {#eq-ovb}
+
+where $\hat\kappa$ is the shock's coefficient in the regression that includes it, and $\hat\delta_c$ is channel $c$'s coefficient when $d_t$ itself is regressed on all the model's inputs. Search's spend predicts the shock ($\hat\delta > 0$) and the shock raises sales ($\hat\kappa > 0$), so the model without $d_t$ gives search the shock's sales. The truth file runs this regression with the true adstock and saturation: search's ROAS is 5.26 without $d_t$ and 2.54 with it, a bias of +2.71. (2.54 rather than 3.0 because three years of noisy weeks do not pin any estimate exactly; the difference between the two regressions is the bias.)
+
+The lab fits Module 8's model, unchanged, to these data: 2 chains of 2,000 draws with `target_accept=0.98` (with lift tests added later, 0.9 and 0.95 left a few divergent draws in the workshop's test fits). The diagnostics gate passes: **0 divergences, max $\hat R$ = 1.005, min bulk ESS = 573.** FULL run:
+
+| Channel | Mean ROAS | 94% HDI | True ROAS | Relative bias | Truth inside? |
+|---|---|---|---|---|---|
+| TV | 1.60 | 1.49 to 1.71 | 1.6 | −0.1% | yes |
+| search | **5.38** | **4.12 to 6.63** | 3.0 | **+79%** | **no** |
+| social | 1.95 | 0.58 to 3.80 | 1.4 | +39% | yes |
+| display | 0.52 | 0.00 to 1.50 | 0.6 | −13% | yes |
+
+Search's ROAS is overstated by 79%, and the whole 94% interval lies above the truth. Nothing in Module 8's workflow warns you: the sampler converged, and the model predicts sales well, because "search drives sales" and "demand drives both search and sales" predict the same sales (Chan and Perry 2017). At a break-even ROAS of 3.33 this model says search pays back with near certainty, and a planner would move money into it.
+
+::: {.self-check}
+**Check yourself.** Another retailer's display budget runs out in its busiest weeks, so display spend is *lowest* when demand is highest. What does an MMM without demand do to display's ROAS? Would $\hat R$ or a posterior predictive check tell you?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Display's spend now predicts the shock negatively ($\hat\delta < 0$) while the shock still raises sales ($\hat\kappa > 0$), so by @eq-ovb display's coefficient is pushed *down*: the model understates display and may call a channel that pays back useless. Neither check would tell you. $\hat R$ checks that the chains agree; the posterior predictive check compares simulated and observed sales, and a confounded model can predict sales well. Only outside evidence about the cause, such as a randomized test of display, reveals the bias.
 :::
+:::
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $y_t$, $x_{c,t}$ | sales and spend on channel $c$ in week $t$ |
+| $d_t$, $\kappa$ | the unobserved demand shock (in standard deviations) and its effect on weekly sales |
+| $r_c(x)$ | channel $c$'s steady-state weekly sales at a constant weekly spend $x$ (Module 10's response curve: Module 8's saturation curve in dollars) |
+| $W$ | length of a lift test in weeks |
+| $x$, $\Delta x$, $\Delta y$, $\sigma$ | a lift-test row: weekly spend before the test, change in weekly spend, incremental weekly sales, and its standard error |
+| $\text{ROAS}_c$ | sales caused by channel $c$'s spend over all 156 weeks, divided by that spend (Module 8) |
+| $n_0$, $h$, $f$ | training weeks of the first cross-validation fold (124), weeks forecast per fold (8), fold index |
+| $\hat y_t$, $[\ell_t, u_t]$ | posterior mean forecast of week $t$'s sales and its 94% HDI |
+| $m$ | gross margin rate (30%); break-even ROAS $1/m = 3.33$ |
+
+## 2. From a geo test to the likelihood
+
+**Objective for this section:** convert a geo-test result into a lift-test row (channel, $x$, $\Delta x$, $\Delta y$, $\sigma$) and add it to the model with `add_lift_test_measurements`.
+
+A **lift test** is a randomized experiment, usually across regions as in Module 7, that changes one channel's spend and measures the sales the change caused. Because the change is randomized, hidden demand cannot bias it. Test teams report totals over the test; the model works in weeks. For a test of $W$ weeks,
+
+$$
+x = \text{weekly spend before the test},
+\qquad
+\Delta x = \frac{\text{extra spend over the test}}{W},
+\qquad
+\Delta y = \frac{\text{incremental sales over the test}}{W},
+\qquad
+\sigma = \frac{\text{standard error of the incremental sales}}{W},
+$$ {#eq-lift-row}
+
+in national dollars (a regional test is scaled up first; the capstone does this). A total divided by a constant has its standard error divided by the same constant.
+
+PyMC-Marketing adds each row to the model as one more observation (the method's docstring and source, pymc-marketing 1.2.0):
+
+$$
+|\Delta y| \;\sim\; \text{Gamma}\Big(\text{mean} = \big|\, r_c(x + \Delta x) - r_c(x) \,\big|,\ \ \text{sd} = \sigma\Big).
+$$ {#eq-lift-likelihood}
+
+Parameter values whose response curve disagrees with the experiment now make the data less likely, so the posterior moves away from them. The comparison is with the **steady-state** curve (saturation only, no adstock), so the test should run long relative to the channel's carryover: in a short test the effect has not yet built up, and the measured lift is too small for the curve. The call order matters: `build_model(X, y)`, then `add_lift_test_measurements(rows)`, then `fit`; the method raises an error if the model is not built. Pass the rows in dollars; the method scales them to the model's units itself.
+
+The retailer's test team ran five 8-week tests over the three years, one per channel plus a second search test that **switched search off** in the test regions. In weekly units (Exercise 1):
+
+| Test | Ended | $x$ | $\Delta x$ | $\Delta y$ | $\sigma$ |
+|---|---|---|---|---|---|
+| search +30% | 2024-03-04 | 18,200 | 5,500 | 13,312 | 1,079 |
+| TV +30% | 2024-08-19 | 53,200 | 16,000 | 20,309 | 1,593 |
+| search off | 2024-12-02 | 18,300 | −18,300 | −55,874 | 4,535 |
+| social +30% | 2025-01-27 | 13,200 | 4,000 | 4,531 | 386 |
+| display +30% | 2025-07-14 | 7,100 | 2,100 | 684 | 55 |
+
+The two search rows probe different parts of the curve. A +30% test measures $r(1.3x) - r(x)$: the slope just above current spend. A switch-off measures $r(x) - r(0)$: the whole contribution of current spend, the **level** of the curve, which is exactly what the demand shock inflates. The calibrated model uses the two search rows; the other three are the lab's stretch.
+
+::: {.self-check}
+**Check yourself.** A 4-week test raised TV spend by $60,000 in total from $50,000 a week and measured $48,000 of incremental sales (standard error $16,000). Write the row. TV's true adstock decay is 0.6 (normalized, 8-week maximum lag, Module 8): why might this test understate TV's effect?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$x$ = 50,000, $\Delta x$ = 15,000, $\Delta y$ = 12,000, $\sigma$ = 4,000 (@eq-lift-row). With normalized weights proportional to $0.6^l$, the extra spend's effect reaches about 41% of its steady state in the first week, 65% in the second, 80% in the third and 89% in the fourth: on average about two thirds over the four test weeks. Read as a steady-state lift, the test understates TV by about a third, and the calibrated curve would be pulled too low. Run longer tests for channels with long carryover, or measure sales for some weeks after the test ends.
+:::
+:::
+
+## 3. Before and after calibration
+
+**Objective for this section:** compare ROAS intervals before and after calibration against the truth.
+
+The calibrated model is the same specification with the two search rows added (@eq-lift-likelihood). It also passes the gate: **0 divergences, max $\hat R$ = 1.002, min bulk ESS = 808.** FULL run:
+
+| Channel | Mean before → after | 94% HDI after | Width before → after | Truth | Inside after? |
+|---|---|---|---|---|---|
+| TV | 1.60 → 1.62 | 1.51 to 1.74 | 0.22 → 0.23 | 1.6 | yes |
+| search | **5.38 → 3.07** | **2.76 to 3.37** | **2.51 → 0.61** | 3.0 | **yes** (was no) |
+| social | 1.95 → 2.89 | 0.97 to 5.38 | 3.23 → 4.41 | 1.4 | yes |
+| display | 0.52 → 1.43 | 0.00 to 4.71 | 1.50 → 4.71 | 0.6 | yes |
+
+Two experiments on one channel moved its ROAS from 79% too high to within 3% of the truth, and cut its interval to a quarter of its width. That is what calibration is for.
+
+The other rows are the warning. The sales the uncalibrated model gave to search still have to be explained, and the model hands them to the baseline and to the channels that can absorb them. Social's and display's means moved *away* from their truths and their intervals widened; all four truths are still inside, but the model is now less sure about the two untested channels than before. That is consistent with the truth file's regression (@eq-ovb): with the other inputs held fixed, social's and display's spend is slightly higher in high-demand weeks ($\hat\delta_c > 0$, by chance in this sample, since their budgets do not depend on demand), so once search is pinned, part of the leftover demand finds them. **Calibration fixes what was tested, not everything.**
+
+Experiments can enter a Bayesian MMM in two ways: as extra likelihood terms, as here, or as priors on each channel's ROAS. Google's researchers describe the second (Zhang et al. 2024), and Google's Meridian works that way (section 5). Either way the experiment constrains the tested channel directly and the others only through the model.
+
+## 4. Out of sample: time-slice cross-validation
+
+**Objective for this section:** run time-slice cross-validation and judge out-of-sample error and parameter stability across folds.
+
+A model can fit the weeks it was trained on and still forecast badly. **Time-slice cross-validation** refits the model on the first weeks only, forecasts the next ones, then moves the cut forward and repeats (also known as evaluation on a rolling forecasting origin; Hyndman and Athanasopoulos 2021). Fold $f = 0, 1, 2, 3$ trains on the weeks $t < n_0 + f h$ and forecasts the $h$ weeks after them, with $n_0 = 124$ and $h = 8$, so the last fold forecasts the last 8 weeks of the data. A lift test may be used in a fold only if it ended before the fold's cut, or the fold would learn from the future; both search tests end by week 101, so every fold has both. Each fold is scored on its held-out weeks:
+
+$$
+\text{MAPE}_f = \frac{1}{h} \sum_{t \in \text{test}_f} \frac{|\hat y_t - y_t|}{y_t},
+\qquad
+\text{coverage}_f = \frac{1}{h} \sum_{t \in \text{test}_f} \mathbb{1}\big[\ell_t \le y_t \le u_t\big].
+$$ {#eq-cv}
+
+MAPE (mean absolute percentage error) says how far the forecast is from sales; coverage says whether the 94% intervals are honest, about 94% if they are. FULL run, the calibrated model, 2 chains of 500 draws per fold, 0 divergences in every fold:
+
+| Fold | 1 | 2 | 3 | 4 | All 32 weeks |
+|---|---|---|---|---|---|
+| MAPE | 3.9% | 3.6% | 2.4% | 1.4% | 2.8% |
+| 94% coverage | 7 of 8 | 5 of 8 | 7 of 8 | 8 of 8 | 27 of 32 (0.84) |
+
+PyMC-Marketing samples each fold's forecast without a fixed seed, so the per-fold coverage changes a little between runs (a second FULL run gave 6, 6, 7 and 8 of 8, again 0.84 overall). With 32 held-out weeks, one week is 3 percentage points of coverage, and neighboring weeks are not independent: 0.84 against a nominal 0.94 says the intervals are somewhat too narrow, not much more.
+
+**Parameter stability** asks whether a fold that sees fewer weeks tells the same story. The channels' effect ceilings $\beta_c$ move between folds (TV's from 0.37 to 0.54 in scaled units), but Module 8 showed that $\beta$ and $\lambda$ trade off along a ridge, so the lab compares each fold's ROAS over its own training weeks instead. The range of the fold means as a share of the calibrated ROAS:
+
+$$
+\text{spread}_c = \frac{\max_f \overline{\text{ROAS}}_{c,f} - \min_f \overline{\text{ROAS}}_{c,f}}{\overline{\text{ROAS}}_c}
+\qquad = \quad \text{TV } 3\%, \quad \text{search } 1\%, \quad \text{social } 25\%, \quad \text{display } 72\%.
+$$ {#eq-stability}
+
+Search, pinned by two experiments, barely moves; TV, which switches on and off, is stable; social and display depend on which weeks the model sees.
+
+### What cross-validation cannot tell you
+
+The lab's stretch runs the same cross-validation on the **uncalibrated** model. We ran the stretch code at FULL settings on a laptop while writing this page (not a workshop run record):
+
+| Model | MAPE, all folds | 94% coverage | Search ROAS by fold (truth 3.0) |
+|---|---|---|---|
+| calibrated | 2.9% | 0.84 | 3.02 to 3.05 |
+| uncalibrated | **2.3%** | **0.94** | **5.20 to 5.46** |
+
+The model that is wrong about search forecasts held-out weeks *better*. In the held-out weeks search spend still rises with hidden demand, so a model that reads search spend as a demand signal predicts sales well, for the wrong reason. Cross-validation checks **prediction**, not **cause**. It catches a model that overfits or drifts; it cannot catch a confounded one. Only an experiment can.
+
+::: {.self-check}
+**Check yourself.** A vendor shows you their MMM: held-out MAPE of 2%, 94% interval coverage of 95%, and a search ROAS twice what your last geo test measured. They say the cross-validation proves their model right. What do you answer?
+
+::: {.callout-tip collapse="true" title="Answer"}
+That the cross-validation shows the model forecasts sales well, which is not the same as attributing them correctly. If search spend follows demand, a model that credits demand to search forecasts just as well, or better, as the uncalibrated model did here (2.3% MAPE, 0.94 coverage, search ROAS 5.2 to 5.5 against a truth of 3.0). The geo test is the evidence about cause; ask them to add it to the model as a lift test and show what happens to search's ROAS and interval.
+:::
+:::
+
+## 5. What the model cannot identify, and the next test
+
+**Objective for this section:** name what the MMM cannot identify from these data, and the test that would resolve it.
+
+Spend and sales alone cannot identify:
+
+- **The effect of a channel whose spend follows something unobserved.** No amount of data or sampling fixes @eq-ovb; a measurement of the confounder (here, demand) or an experiment does.
+- **Channels whose spend barely moves on its own.** Display is small and slowly growing; social comes in a few pushes. After calibration their intervals are wide and their fold-by-fold ROAS moves by 25% and 72%.
+- **The shape of a curve away from the spend levels observed or tested.** The switch-off fixes search's level at current spend and the +30% test its slope just above it; nothing in these data says how search behaves at twice today's spend. Module 10 and the capstone lean on exactly that shape.
+- **Untested channels after calibration.** The sales a lift test takes away from one channel go somewhere (section 3).
+
+What resolves each is outside information: an experiment on the channel, a measured control for the confounder, or information pooled across brands or markets when one brand's data are thin (Wang et al. 2017). The decision below asks which channel's experiment is worth running next.
+
+### Another tool, another answer: Robyn
+
+The R notebook runs **Robyn**, Meta's open-source MMM package, on its own example data `dt_simulated_weekly` (208 weeks; documented as simulated, with no published true parameters, so nothing can be scored against truth). Robyn fits a **ridge regression** (linear regression with coefficients shrunk toward zero) of revenue on adstocked, saturated media plus Prophet's trend, season and holidays. The adstock and saturation parameters are searched by the Python library Nevergrad, and each candidate is scored on two errors at once:
+
+$$
+\text{NRMSE} = \frac{\sqrt{\tfrac{1}{T}\sum_t (y_t - \hat y_t)^2}}{\max_t y_t - \min_t y_t},
+\qquad
+\text{DECOMP.RSSD} = \sqrt{\sum_{c} \big(\text{effect share}_c - \text{spend share}_c\big)^2},
+$$ {#eq-rssd}
+
+prediction error relative to the range of revenue, and how far the media's shares of the modeled effect are from their shares of spend (read in Robyn 3.12.1's installed source; Robyn inflates DECOMP.RSSD when a channel gets no effect at all). The models no other candidate beats on both form the **Pareto front**, and the analyst picks among them. Robyn's uncertainty is the spread across those models, not a posterior.
+
+Exercise 5 computes each channel's **marginal ROAS**, the revenue of the next dollar, from two calls to `robyn_response` at the channel's mean weekly spend $s_1$ and $s_2 = 1.1\, s_1$:
+
+$$
+\text{marginal ROAS}_c = \frac{R_c(s_2) - R_c(s_1)}{s_2 - s_1},
+$$ {#eq-mroas}
+
+where $R_c$ is the selected model's response curve. FULL run, 500 iterations × 1 trial, which is far below the 2,000 × 5 Robyn's demo recommends; Robyn warned about it, reported NRMSE as converged and DECOMP.RSSD as not converged, and found 9 Pareto-optimal models. The table gives the model with the lowest NRMSE (0.050) and the range across the five best:
+
+| Channel | Marginal ROAS, selected | Lowest to highest, five best models | Against break-even 3.33 |
+|---|---|---|---|
+| TV | 1.63 | 1.54 to 1.93 | all below |
+| out-of-home | 0.35 | 0.35 to 0.54 | all below |
+| print | 7.01 | 6.22 to 7.18 | all above |
+| Facebook | 5.19 | 1.79 to 9.98 | models disagree |
+| search | 1.19 | 0.72 to 6.73 | models disagree |
+
+The five models fit revenue about equally well, yet three name print as the best next dollar and two name Facebook, and for search the next dollar is worth anything from $0.72 to $6.73. More iterations would explore the front better, but they cannot add information the data do not have. Robyn takes experiments through the `calibration_input` argument of `robyn_inputs`, for the same reason PyMC-Marketing adds them to the likelihood. Two cautions: the 3.33 break-even assumes our 30% margin (Robyn's data come with none), and Robyn is effectively unmaintained: the last commit on its GitHub main branch is from 2025-06-27 and its CRAN release 3.12.1 from 2025-07-02.
+
+### Why Meridian is not a lab
+
+Google's **Meridian** is another open-source Bayesian MMM. It calibrates with experiments by turning their results into priors on each channel's ROI (its "ROI priors and calibration" guide), the idea of Zhang et al. (2024), where PyMC-Marketing adds them to the likelihood. It is not a lab here for two reasons. Its package (google-meridian 2.1.0) requires ArviZ below 0.20 and a pinned nightly build of TensorFlow Probability, while PyMC-Marketing 1.2.0 needs ArviZ 1.2 or later, so the two cannot share one environment. And its installation guide recommends "a minimum of 1 GPU", while every lab here runs on Colab's default CPU runtime. Its documentation is on the [References](/references.qmd#library-docs) page.
+
+## 6. The decision
+
+The rule, stated before the numbers, extends Module 8's. A channel **pays back** if $P(\text{ROAS} > 1/m) \ge 0.9$ and **does not pay back** if $P(\text{ROAS} > 1/m) \le 0.1$, in the calibrated model; otherwise it is **undecided**. Then
+
+$$
+\text{act now on channel } c \iff c \text{ is decided} \;\text{ and }\; \text{spread}_c \le 0.10,
+$$ {#eq-decision}
+
+and the next lift test goes to the channel to test first with the most spend at stake (spend over the last 52 weeks).
+
+::: {.module-decision}
+**Decision.** FULL run, calibrated on the two search tests; break-even ROAS 3.33 at a 30% margin:
+
+| Channel | ROAS (94% HDI) | $P(\text{ROAS} > 3.33)$ | Calibrated verdict | Uncalibrated verdict | Fold spread | Spend at stake (52 weeks) | Act now? |
+|---|---|---|---|---|---|---|---|
+| TV | 1.62 (1.51 to 1.74) | 0.000 | does not pay back | does not pay back | 3% | $1,634,464 | act |
+| search | 3.07 (2.76 to 3.37) | 0.058 | **does not pay back** | **pays back** | 1% | $1,068,379 | act |
+| social | 2.89 (0.97 to 5.38) | 0.276 | undecided | does not pay back | 25% | $632,927 | test first |
+| display | 1.43 (0.00 to 4.71) | 0.136 | undecided | does not pay back | 72% | $394,804 | test first |
+
+- **Act now on TV and search**: neither pays back on short-run sales, and both estimates are stable. For search the lift tests reversed the verdict: without them the model said search pays back with near certainty, and a planner would have moved money into a channel that returns $3.00 of sales per dollar against a break-even of $3.33.
+- **Test social first**, then display. Social is undecided with $632,927 a year at stake; a social lift test would settle it.
+- **Robyn's comparison** gives the same kind of answer on its own data: act on TV, out-of-home and print; test Facebook and search first.
+
+The truth confirms the calibrated verdicts it could reach: no true ROAS reaches 3.33 (TV 1.6, search 3.0, social 1.4, display 0.6). The uncalibrated model called social and display correctly but search wrong; the calibrated one calls search correctly and is unsure about social and display, which is honest, since calibration loosened them. What would change it: a lift test on social (the stretch adds tests on all channels), or a different margin.
+:::
+
+## Summary
+
+- A channel whose spend follows unobserved demand is overcredited by an amount the omitted-variable formula gives (@eq-confounded, @eq-ovb). Here search's ROAS was 5.38 against a truth of 3.0, with the truth outside the 94% HDI and every diagnostic passed.
+- A lift test enters the model as one more observation of the response curve (@eq-lift-row, @eq-lift-likelihood), in weekly units, and should run long relative to the channel's carryover. A switch-off pins the curve's level; a spend increase pins its slope near current spend.
+- Calibration on two search tests brought search to 3.07 (2.76 to 3.37), within 3% of the truth, with an interval a quarter as wide. Untested channels moved and widened: calibration fixes what was tested, not everything.
+- Time-slice cross-validation (@eq-cv) gave 2.8% MAPE and 0.84 coverage of 94% intervals. The uncalibrated model forecast held-out weeks better (2.3%, 0.94) while its search ROAS stayed wrong: cross-validation checks prediction, not cause.
+- Fold-by-fold ROAS (@eq-stability) was stable for TV and search and not for social and display.
+- Robyn's five best models (@eq-rssd, @eq-mroas) disagreed on the best next dollar; its uncertainty is the spread across a Pareto front, not a posterior.
+- Act now on TV and search (neither pays back on short-run sales); run the next lift test on social.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 9 |
+|---|---|---|
+| @eq-lift-row | a test report in weekly units | **Python Exercise 1**: `lift_test_row(channel, base_weekly_spend, total_extra_spend, total_incremental_sales, total_se, weeks)`; Checkpoint 1 checks the Predict example and rebuilds all five rows of the data; first checkpoint, before any fit |
+| @eq-lift-likelihood | the lift-test likelihood | Provided: `build_model`, `add_lift_test_measurements(search_rows)`, `fit` |
+| @eq-confounded, @eq-ovb | confounding and its bias | **Python Exercise 2**: `bias_table(roas_draws, true_roas, prob)`; Checkpoint 2 checks the 94% HDI, the relative bias, search's truth outside its interval, and 2 of the other 3 truths inside |
+| ROAS before and after | what calibration changed | **Python Exercise 3**: `calibration_effect(roas_before, roas_after, true_roas, prob)`; Checkpoint 3 checks the shifts and widths, and search's truth inside a narrower HDI |
+| @eq-cv | MAPE and coverage per fold | **Python Exercise 4**: `cv_scorecard(pred)`; Checkpoint 4 checks a toy table exactly, then one row per fold plus overall |
+| @eq-stability | fold-by-fold ROAS spread | Provided: `fold_roas(cv, cv_idata)` and the spread |
+| @eq-decision | act now or test first | Provided: the Decision cell |
+| @eq-mroas | Robyn's marginal ROAS | **R Exercise 1**: `robyn_marginal_roas(InputCollect, OutputCollect, select_model, channel, spend1, spend2)`; Checkpoint 1 checks finite, non-negative values for every channel, the swap of the two spends, and Robyn's demo formula |
+| @eq-rssd | Robyn's two errors | Inside `robyn_run` (provided) |
+
+## Gotchas
+
+- **`add_lift_test_measurements` needs a built model.** Call `build_model` first, and pass `name=` if you add a second set of rows.
+- **Rows in weekly units, in dollars.** Divide totals and their standard error by the test's weeks; the method scales dollars to model units itself. $\sigma$ must be positive and $\Delta x$ non-zero; a cut has negative $\Delta x$ and $\Delta y$, which is accepted ($\Delta x \cdot \Delta y \ge 0$).
+- **Short tests understate channels with long carryover** when read as steady-state lifts.
+- **Calibration moves untested channels.** Read every channel's row after calibrating, not only the tested one's.
+- **Cross-validation is not a causal check.** A confounded model can forecast held-out weeks as well as, or better than, a calibrated one.
+- **Lift tests and folds.** A fold uses only tests that ended before its cut, and the cross-validator raises an error if a fold has none; date each row by the test's last week.
+- **PyMC-Marketing's cross-validation summary** reads a column named exactly `date` and needs `original_scale_vars=["y"]`; it samples forecasts without a seed, so coverage moves a little between runs.
+- **`target_accept=0.98`** for the two main fits: 0.9 and 0.95 left a few divergences on these data in testing.
+- **Robyn:** `seed` must be an integer (`123L`), or Nevergrad's search is not seeded; `robyn_run(quiet = TRUE)` fails in 3.12.1; 500 × 1 iterations is far below the recommended 2,000 × 5.
+
+## Next steps
+
+A calibrated MMM says what each channel returned and which returns can be trusted. It does not say what to do next quarter: how to split a fixed budget across channels whose returns diminish, within the bounds the business has agreed, when the curves are uncertain. Module 10 turns the response curves into a budget, compares your own allocator with PyMC-Marketing's, chooses between plans by their bad case as well as their mean, and adds the long-run value of the customers each channel brings.
+
+## Further reading
+
+1. Chan, D., & Perry, M. (2017). [*Challenges and opportunities in media mix modeling*](https://research.google/pubs/challenges-and-opportunities-in-media-mix-modeling/). Google. Why MMMs struggle: limited data, correlated inputs and confounding.
+2. Zhang, Y., Wurm, M., Li, E., Wakim, A., Kelly, J., Price, B., & Liu, Y. (2024). [*Media mix model calibration with Bayesian priors*](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/). Google. Experiments as priors on ROAS, the alternative to this lab's likelihood terms.
+3. PyMC-Marketing, [lift-test calibration](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html) and [time-slice cross-validation and parameter stability](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_time_slice_cross_validation.html). The library's own walk-throughs of the two methods this lab uses.
+4. Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and practice* (3rd ed.), section [5.10 "Time series cross-validation"](https://otexts.com/fpp3/tscv.html). OTexts. Evaluation on a rolling forecasting origin.
+5. Robyn, [documentation](https://facebookexperimental.github.io/Robyn/). Meta's MMM package: ridge regression with Nevergrad's hyperparameter search, calibration and the budget allocator.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.
