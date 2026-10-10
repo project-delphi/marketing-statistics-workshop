@@ -105,9 +105,12 @@ Newest first within each section.
 - `links.yml` (monthly) replaces the weekly `links-external` job in `publish.yml`. It checks the
   live site (pages from its `sitemap.xml`, plus `404.html`, which the sitemap leaves out) instead of
   rebuilding it, so a link check no longer renders and redeploys the site; the weekly redeploy still
-  happens through the notebooks cron → publish. It also checks every dataset source in
-  `mktstats.data.DATASETS`, fallbacks included: the loaders move to the next source silently, so the
-  notebooks run does not notice a dead one.
+  happens through the notebooks cron → publish. It also downloads every dataset source in
+  `mktstats.data.DATASETS`, fallbacks included, with the loaders' own `_download` and checks its
+  sha256: the loaders move to the next source silently when one fails or its hash differs, so the
+  notebooks run does not notice a dead or changed source, and an HTTP status alone would not show a
+  changed file. By hand in a clean container on 2026-10-10, all 9 sources matched. The site URL is
+  read from `repo.site` in `_variables.yml`.
 - First run, by hand with lychee 0.24.2 on 2026-10-10: 29 pages, 2,017 links, 57 errors. 49 were
   403s from journal publishers behind doi.org (they refuse non-browser clients), 6 were
   online.stat.psu.edu (incomplete certificate chain; the pages load with curl), 2 were transient 503s
@@ -115,8 +118,9 @@ Newest first within each section.
   (a private S3 object, say), so only those two hosts are treated differently: DOIs are checked at
   doi.org without following the redirect (a registered DOI answers 302, a wrong one 404, both
   checked), and online.stat.psu.edu with `--insecure`. Every other link must give 200, 203, 206
-  or 429. With these settings, by hand: 2,053 links (30 pages and 9 dataset URLs) with 0 errors,
-  66 DOI links and 6 Penn State links all pass.
+  or 429; 429 is accepted because it means the host is up but throttling the runner, and failing
+  on it would make the run red for links that work. With these settings, by hand: 2,044 links on
+  30 pages with 0 errors, and the 66 DOI links and 6 Penn State links all pass.
 - lychee is pinned to v0.24.2, the default of lychee-action v2 when checked
   (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
   default cannot change the status handling these settings rely on; publish.yml's blocking

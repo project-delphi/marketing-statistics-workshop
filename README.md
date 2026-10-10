@@ -54,7 +54,7 @@ Details: [Setup](https://project-delphi.github.io/marketing-statistics-workshop/
 | `modules/`, `*.qmd`, `days/`, `slides/` | The Quarto site; `_includes/` is generated |
 | `briefs/` | Lab briefs and the lab standard (author-facing) |
 | `environment/` | Pinned requirements (compiled against Colab's own package list), R packages, Dockerfile, AWS |
-| `.github/workflows/` | `notebooks.yml` (runs every notebook), `publish.yml` (tests, render, link check, deploy), `image.yml` |
+| `.github/workflows/` | `notebooks.yml` (runs every notebook), `publish.yml` (tests, render, internal link check, deploy), `image.yml`, `links.yml` (monthly: external links and dataset sources), `release.yml` (monthly and on demand: release check) |
 
 Contributors and agents: [AGENTS.md](AGENTS.md) (roles and conventions), [CONTRIBUTING.md](CONTRIBUTING.md)
 (the contracts between parts), [PLAN.md](PLAN.md) (plan and task list), [DECISIONS.md](DECISIONS.md)

@@ -116,7 +116,8 @@ run record, footer. Targets on Colab FULL: install ≤ 3 min, any cell ≤ 4 min
   pytest (unit, checks-can-fail, readiness rules, quick recovery), checkout `evidence` into `runs/ci/`, gen readiness, `quarto render`
   (`freeze: auto`, figures mostly script-made), lychee `--offline` (blocking), upload-pages-artifact → deploy-pages.
 - `links.yml`: monthly lychee over every page of the live site (from its sitemap, plus 404.html), external links included,
-  and every dataset source URL; non-blocking (separate from deploy), job summaries list failures. `release.yml`: monthly and on demand (with a class date), `release_check.py` on main
+  and every dataset source, downloaded and checked against its sha256; non-blocking (separate from deploy), job summaries
+  list failures. `release.yml`: monthly and on demand (with a class date), `release_check.py` on main
   with the `evidence` records (see DECISIONS.md, 2026-10-10: why main and not a tag push).
 - Readiness: per notebook, evidence lanes CI / local Docker / Colab / AWS ("not run"). Staleness = notebook code-cell hash **plus** a
   hash of the module's declared deps (mktstats files, R helpers, synthetic data, pins) and the install ref. Ready to teach = Colab,
