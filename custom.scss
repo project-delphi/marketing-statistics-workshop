@@ -316,6 +316,15 @@ td code:not(.sourceCode) {
   border-radius: 4px;
 }
 
+// Quarto wraps inline code at spaces in p, dd and td (white-space: pre-wrap) but leaves
+// Bootstrap's `pre` elsewhere, so a long call in a bullet pushed the page sideways at phone
+// width (Module 3's gotchas, 375 px).
+li code:not(.sourceCode),
+th code:not(.sourceCode),
+dt code:not(.sourceCode) {
+  white-space: pre-wrap;
+}
+
 div.sourceCode,
 pre:not(.sourceCode) {
   border: 1px solid $ms-border;
@@ -368,6 +377,33 @@ details.code-fold > summary {
   padding: 0.15rem 0;
   overflow-x: auto;
   overflow-y: hidden;
+}
+
+// KaTeX pins an equation number to the right edge of the box (position: absolute), so an
+// equation wider than the column ran underneath it. As a flex row the number keeps its place
+// at the right while there is room and otherwise follows the equation, inside the scroll box.
+// The empty ::before and the number share the free space, which keeps the equation centered.
+// Anchored on pandoc's .math.display wrapper to outrank katex.min.css, which loads later.
+.math.display > .katex-display > .katex > .katex-html {
+  display: flex;
+  align-items: baseline;
+
+  &::before {
+    content: "";
+    flex: 1 1 0;
+  }
+
+  > .katex-base {
+    flex: none;
+  }
+
+  > .katex-tag {
+    position: static;
+    flex: 1 1 0;
+    padding-left: 1.5em;
+    text-align: right;
+    white-space: nowrap;
+  }
 }
 
 // Figures.

@@ -49,9 +49,11 @@ PyMC-Marketing scales each channel's spend by its maximum and sales by their max
 The model for weekly sales is
 
 $$
+\begin{gathered}
 y_t = \underbrace{\gamma_0 + \boldsymbol\gamma^{\top}\mathbf{z}_t}_{\text{baseline: trend, seasonality, price, holiday}}
-\;+\; \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big) \;+\; \varepsilon_t ,
-\qquad \varepsilon_t \sim \text{Normal}(0, \sigma^2),
+\;+\; \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big) \;+\; \varepsilon_t , \\[4pt]
+\varepsilon_t \sim \text{Normal}(0, \sigma^2),
+\end{gathered}
 $$ {#eq-mmm}
 
 where $\mathbf{z}_t$ holds the controls and two orders of yearly sine and cosine terms. Each channel's spend passes through two transforms.
@@ -183,9 +185,10 @@ Without truth, three things stand between you and a wrong answer: the sampler di
 A dollar of sales earns the retailer its gross margin, 30% here, so a channel pays back on short-run sales if $m \times \text{ROAS} > 1$:
 
 $$
-\text{break-even ROAS} = \frac{1}{m} = \frac{1}{0.30} \approx 3.33 ,
-\qquad
-P(\text{ROAS}_c > 3.33) = \frac{1}{J}\sum_{j=1}^{J} \mathbb{1}\big[\text{ROAS}_c^{(j)} > 3.33\big].
+\begin{aligned}
+\text{break-even ROAS} &= \frac{1}{m} = \frac{1}{0.30} \approx 3.33 , \\[4pt]
+P(\text{ROAS}_c > 3.33) &= \frac{1}{J}\sum_{j=1}^{J} \mathbb{1}\big[\text{ROAS}_c^{(j)} > 3.33\big].
+\end{aligned}
 $$ {#eq-breakeven-roas}
 
 ::: {.module-decision}

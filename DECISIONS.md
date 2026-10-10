@@ -28,6 +28,23 @@ Newest first within each section.
 - GeoLift and augsynth are GitHub-only and pure R → built at pinned commits into `cran/` and served
   from the site, so a class does not hit GitHub's anonymous API limit.
 
+### KaTeX pinned to 0.19.0; equation numbers never cover an equation (2026-10-10)
+- The site loaded KaTeX from `cdn.jsdelivr.net/npm/katex@latest`, pandoc's default (pandoc 3.10 in
+  Quarto 1.10.19), so the maths on every page followed KaTeX's releases with no commit here: six
+  between 2026-09-23 and 2026-10-01, the last (0.19.0) with a breaking change to `strict`
+  handling. `_quarto.yml` now sets `html-math-method: {method: katex, url: …katex@0.19.0/dist/}`
+  (Quarto's schema allows `url`, `share/schema/document-options.yml`). 0.19.0 is what the live
+  site already served and was checked with in Chrome on 2026-10-10: 74 of 74 formulas on
+  Module 8 rendered, none as `.katex-error`, no console messages.
+- KaTeX places an equation number with `position: absolute; right: 0`, so a display equation
+  wider than the text column ran under its number. In Chrome at 1280 px (a 714 px column), 18
+  numbered equations on Modules 3 and 7–12 overlapped their number, by up to 749 px (Module 9's
+  lift-test row). Two fixes: `custom.scss` makes the number a flex item that stays at the right
+  when there is room and otherwise follows the equation inside its scroll box (it uses 0.19's
+  class names `katex-base` and `katex-tag`, another reason to pin); and the 15 widest equations,
+  which joined several definitions with `\qquad`, now put one definition per line (`aligned` or
+  `gathered`), with no symbol changed.
+
 ## Open issues found while building labs
 
 ### GeoLift() fails with two or more test markets at the pinned commits (2026-10-09, Module 7 build)

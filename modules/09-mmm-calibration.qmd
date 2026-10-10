@@ -21,9 +21,10 @@ The Python notebook is the lab; it stands alone. The R notebook is a 10-minute c
 The data are Module 8's retailer with one change. A **demand shock** $d_t$, say a competitor's stockout or a product that goes viral, raises sales in some weeks, and the retailer's search spend rises in the same weeks. The shock is not in the data. TV, social, display, price and holidays are exactly as in Module 8. The generator (true values in `truth.json`) is
 
 $$
-y_t = \underbrace{\gamma_0 + \boldsymbol\gamma^{\top}\mathbf{z}_t + \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big)}_{\text{Module 8's model}} \;+\; \kappa\, d_t \;+\; \varepsilon_t ,
-\qquad
+\begin{gathered}
+y_t = \underbrace{\gamma_0 + \boldsymbol\gamma^{\top}\mathbf{z}_t + \sum_{c} \beta_c\, s\big(a_{c,t};\, \lambda_c\big)}_{\text{Module 8's model}} \;+\; \kappa\, d_t \;+\; \varepsilon_t , \\[4pt]
 x_{\text{search},t} = x^{\circ}_{\text{search},t}\; e^{0.15\, d_t},
+\end{gathered}
 $$ {#eq-confounded}
 
 where $d_t$ follows an AR(1) process with coefficient 0.7, standardized to mean 0 and standard deviation 1, $\kappa$ = $9,000 of weekly sales per standard deviation, and $x^{\circ}$ is the search spend the plan would have set. The other symbols are Module 8's ($\mathbf{z}_t$: trend, seasonality, price, holiday; $a_{c,t}$: adstocked spend; $s$: logistic saturation). The **true** ROAS of search is still 3.0: it counts only the sales search caused. In the data, search spend and the hidden shock have a correlation of 0.61.
@@ -76,13 +77,12 @@ Display's spend now predicts the shock negatively ($\hat\delta < 0$) while the s
 A **lift test** is a randomized experiment, usually across regions as in Module 7, that changes one channel's spend and measures the sales the change caused. Because the change is randomized, hidden demand cannot bias it. Test teams report totals over the test; the model works in weeks. For a test of $W$ weeks,
 
 $$
-x = \text{weekly spend before the test},
-\qquad
-\Delta x = \frac{\text{extra spend over the test}}{W},
-\qquad
-\Delta y = \frac{\text{incremental sales over the test}}{W},
-\qquad
-\sigma = \frac{\text{standard error of the incremental sales}}{W},
+\begin{aligned}
+x &= \text{weekly spend before the test}, \\[4pt]
+\Delta x &= \frac{\text{extra spend over the test}}{W}, \\[4pt]
+\Delta y &= \frac{\text{incremental sales over the test}}{W}, \\[4pt]
+\sigma &= \frac{\text{standard error of the incremental sales}}{W},
+\end{aligned}
 $$ {#eq-lift-row}
 
 in national dollars (a regional test is scaled up first; the capstone does this). A total divided by a constant has its standard error divided by the same constant.
@@ -158,8 +158,10 @@ PyMC-Marketing samples each fold's forecast without a fixed seed, so the per-fol
 **Parameter stability** asks whether a fold that sees fewer weeks tells the same story. The channels' effect ceilings $\beta_c$ move between folds (TV's from 0.37 to 0.54 in scaled units), but Module 8 showed that $\beta$ and $\lambda$ trade off along a ridge, so the lab compares each fold's ROAS over its own training weeks instead. The range of the fold means as a share of the calibrated ROAS:
 
 $$
-\text{spread}_c = \frac{\max_f \overline{\text{ROAS}}_{c,f} - \min_f \overline{\text{ROAS}}_{c,f}}{\overline{\text{ROAS}}_c}
-\qquad = \quad \text{TV } 3\%, \quad \text{search } 1\%, \quad \text{social } 25\%, \quad \text{display } 72\%.
+\begin{aligned}
+\text{spread}_c &= \frac{\max_f \overline{\text{ROAS}}_{c,f} - \min_f \overline{\text{ROAS}}_{c,f}}{\overline{\text{ROAS}}_c} \\[4pt]
+&= \text{TV } 3\%, \quad \text{search } 1\%, \quad \text{social } 25\%, \quad \text{display } 72\%.
+\end{aligned}
 $$ {#eq-stability}
 
 Search, pinned by two experiments, barely moves; TV, which switches on and off, is stable; social and display depend on which weeks the model sees.
@@ -201,9 +203,10 @@ What resolves each is outside information: an experiment on the channel, a measu
 The R notebook runs **Robyn**, Meta's open-source MMM package, on its own example data `dt_simulated_weekly` (208 weeks; documented as simulated, with no published true parameters, so nothing can be scored against truth). Robyn fits a **ridge regression** (linear regression with coefficients shrunk toward zero) of revenue on adstocked, saturated media plus Prophet's trend, season and holidays. The adstock and saturation parameters are searched by the Python library Nevergrad, and each candidate is scored on two errors at once:
 
 $$
-\text{NRMSE} = \frac{\sqrt{\tfrac{1}{T}\sum_t (y_t - \hat y_t)^2}}{\max_t y_t - \min_t y_t},
-\qquad
-\text{DECOMP.RSSD} = \sqrt{\sum_{c} \big(\text{effect share}_c - \text{spend share}_c\big)^2},
+\begin{aligned}
+\text{NRMSE} &= \frac{\sqrt{\tfrac{1}{T}\sum_t (y_t - \hat y_t)^2}}{\max_t y_t - \min_t y_t}, \\[4pt]
+\text{DECOMP.RSSD} &= \sqrt{\sum_{c} \big(\text{effect share}_c - \text{spend share}_c\big)^2},
+\end{aligned}
 $$ {#eq-rssd}
 
 prediction error relative to the range of revenue, and how far the media's shares of the modeled effect are from their shares of spend (read in Robyn 3.12.1's installed source; Robyn inflates DECOMP.RSSD when a channel gets no effect at all). The models no other candidate beats on both form the **Pareto front**, and the analyst picks among them. Robyn's uncertainty is the spread across those models, not a posterior.

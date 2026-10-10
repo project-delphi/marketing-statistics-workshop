@@ -112,9 +112,10 @@ Abadie et al. report about 26 fewer packs per capita by 2000, with weights that 
 With one treated unit there is no sampling distribution to compute a standard error from. An **in-space placebo test** makes one: pretend each control geo was treated, fit its synthetic control from the other controls, and see how often a fake treatment looks as large as the real one. The statistic for unit $u$ is the **RMSPE ratio**,
 
 $$
-\text{ratio}_u = \frac{\text{RMSPE}_u(\text{test})}{\text{RMSPE}_u(\text{pre})},
-\qquad
-p = \frac{1 + \#\{\text{placebos with ratio} \ge \text{ratio}_{\text{treated}}\}}{1 + \#\{\text{placebos}\}},
+\begin{aligned}
+\text{ratio}_u &= \frac{\text{RMSPE}_u(\text{test})}{\text{RMSPE}_u(\text{pre})}, \\[4pt]
+p &= \frac{1 + \#\{\text{placebos with ratio} \ge \text{ratio}_{\text{treated}}\}}{1 + \#\{\text{placebos}\}},
+\end{aligned}
 $$ {#eq-placebo}
 
 where RMSPE is the root mean squared gap between a series and its synthetic control over the weeks named. A large ratio means the fit was good before and broke in the test window. Dividing by the pre-period error keeps placebo geos that are hard to fit everywhere from looking like effects.
