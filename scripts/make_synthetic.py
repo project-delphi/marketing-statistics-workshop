@@ -205,7 +205,109 @@ def build() -> tuple[dict[str, object], dict]:
 # Extension datasets: {name: builder}. A builder runs its generator with the default seed and
 # returns ({filename: DataFrame}, truth); the truth goes to truth_<name>.json, with the CSV names
 # under "files". Every filename starts with the dataset's name. One entry per extension module.
+# Module 14's checkpoint rules, applied with the reference solutions (mktstats.survival
+# .checkpoint_outcomes) to datasets from other generator seeds at the default settings.
+# Measured 2026-10-10 with lifelines 0.30.3, numpy 2.1.3, pandas 2.2.3 on macOS arm64;
+# tests/test_synth_subscriptions.py re-measures the first block (pytest -m slow).
+SUBSCRIPTIONS_TOLERANCES = {
+    "basis": (
+        "How often each checkpoint rule of Module 14 holds when the reference solutions are run "
+        "on data from other seeds of the same generator (n = 8,000, default settings). A rule "
+        "that holds in nearly every seed passes on a correct solution and still fails on the "
+        "wrong ones it targets. Intervals are named: 95% pointwise (exponential Greenwood) for "
+        "Kaplan-Meier, 95% Wald confidence intervals for Cox hazard ratios, and the 95% "
+        "bootstrap percentile interval (stratified by plan x onboarding, seed 14) for the RMST "
+        "gain."
+    ),
+    "measured": "2026-10-10, lifelines 0.30.3, numpy 2.1.3, pandas 2.2.3",
+    "seed_sets": {
+        "1000-1039": {
+            "n_seeds": 40,
+            "km_truth_3_of_4": 39,
+            "km_truth_all_4": 34,
+            "km_s12_inside": 40,
+            "dashboards_outside": 40,
+            "cox_onboarded_inside_and_2_of_3": 39,
+            "cox_all_3_inside": 34,
+            "cox_unadjusted_outside_and_lower": 40,
+            "ph_offer_flagged_p_below_0_01": 40,
+            "ph_other_covariate_flagged": 1,
+            "landmark_3_of_4": 40,
+            "landmark_all_4": 33,
+            "landmark_each": {"offer_before": 38, "offer_after": 40, "onboarded_before": 37,
+                              "onboarded_after": 38},
+            "rmst_truth_inside_B100": 38,
+            "rmst_truth_inside_B200": 38,
+            "rmst_unadjusted_outside_B100": 40,
+            "rmst_unadjusted_outside_B200": 40,
+            "means": {"hr_standard": 0.7822, "hr_premium": 0.5493, "hr_onboarded": 0.6694,
+                      "hr_offer_full_period": 1.3823, "hr_onboarded_unadjusted": 0.5698,
+                      "rmst_gain": 2.8974, "rmst_unadjusted": 4.0525,
+                      "dashboard_a": 0.5341, "dashboard_b": 0.4285},
+            "note": "the seeds of the brief's prototype; this generator reproduces its draws",
+        },
+        "3000-3039": {
+            "n_seeds": 40,
+            "km_truth_3_of_4": 39,
+            "km_truth_all_4": 34,
+            "km_s12_inside": 39,
+            "dashboards_outside": 40,
+            "cox_onboarded_inside_and_2_of_3": 34,
+            "cox_all_3_inside": 32,
+            "cox_unadjusted_outside_and_lower": 40,
+            "ph_offer_flagged_p_below_0_01": 40,
+            "ph_other_covariate_flagged": 0,
+            "landmark_3_of_4": 40,
+            "landmark_all_4": 32,
+            "landmark_each": {"offer_before": 40, "offer_after": 37, "onboarded_before": 37,
+                              "onboarded_after": 38},
+            "rmst_truth_inside_B100": 34,
+            "rmst_truth_inside_B200": 35,
+            "rmst_unadjusted_outside_B100": 40,
+            "rmst_unadjusted_outside_B200": 40,
+            "means": {"hr_standard": 0.7793, "hr_premium": 0.5493, "hr_onboarded": 0.6618,
+                      "hr_offer_full_period": 1.3932, "hr_onboarded_unadjusted": 0.5640,
+                      "rmst_gain": 2.9712, "rmst_unadjusted": 4.1146,
+                      "dashboard_a": 0.5343, "dashboard_b": 0.4294},
+            "note": "an independent check; checkpoints 3 and 5 failed together on the same "
+                    "seeds (3000, 3028, 3034, 3035, 3037), where the onboarding effect came "
+                    "out stronger than the truth by chance",
+        },
+    },
+    "summary": (
+        "Over 80 seeds: Kaplan-Meier truth 3 of 4 in 78, dashboards outside in 80; checkpoint 3 "
+        "in 73 and its unadjusted check in 80; checkpoint 4 (3 of 4) in 80; checkpoint 5's "
+        "truth inside in 72 (B = 100) and 73 (B = 200), the unadjusted gain outside in 80. "
+        "Checkpoints 3 and 5 rest on one 95% interval each, so about 1 seed in 10 misses: "
+        "roughly the nominal 5% plus some undercoverage of the percentile bootstrap. On the "
+        "committed seed (2034) every rule holds with the reference in QUICK and FULL, and a "
+        "correct solution reproduces the reference's numbers exactly."
+    ),
+    "rules": {
+        "km_vs_truth": "true S(t) at 6, 12, 18 and 24 months inside the 95% pointwise interval "
+                       "for at least 3 of 4; dashboards A and B outside it at 12 months",
+        "checkpoint_3": "true onboarding HR (0.670) inside its 95% CI and at least 2 of the 3 "
+                        "true HRs (standard, premium, onboarded) inside theirs; with onboarding "
+                        "alone, the truth outside the CI and the HR below the adjusted one",
+        "checkpoint_4": "at least 3 of 4 inside their 95% CIs: offer HR 2.014 before month 3, "
+                        "1.0 after, onboarding HR 0.670 before and after",
+        "checkpoint_5": "true target-population gain (2.907 months) inside the 95% bootstrap "
+                        "percentile interval; the unadjusted Kaplan-Meier gain outside it",
+    },
+}
+
+
+def _subscriptions() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 14: the subscription program (seed 2034) and its checkpoint coverage."""
+    from mktstats.synth.subscriptions import subscriptions
+
+    res = subscriptions()
+    return ({"subscriptions_subscribers.csv": res.subscribers},
+            {**res.truth, "tolerances": SUBSCRIPTIONS_TOLERANCES})
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
+    "subscriptions": _subscriptions,
 }
 
 
