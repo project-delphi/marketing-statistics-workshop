@@ -16,6 +16,9 @@
 | Colab (Python runtime, CPU) | `python/11-uplift-econml` | 35 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/12-capstone` | 33 s | 2026-10-10 |
 | Colab (R runtime, CPU) | `r/00-setup-warmup` | 6 s | 2026-10-10 |
-| Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 6 s | 2026-10-09 |
+| Colab (R runtime, CPU) | `r/03-clvtools-covariates` | 18 s | 2026-10-10 |
+| Colab (R runtime, CPU) | `r/07-causalimpact-geolift` | 89 s | 2026-10-10 |
+| Colab (R runtime, CPU) | `r/09-robyn` | 75 s | 2026-10-10 |
+| Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 6 s | 2026-10-10 |
 
 Measured by each notebook's install cell on a fresh runtime and read from its run record. On your own machine or in the workshop's Docker image nothing is installed.

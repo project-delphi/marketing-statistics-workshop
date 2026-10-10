@@ -677,7 +677,14 @@ def lane_text(v: dict, lane: dict) -> str:
 
 def readiness_summary(report: dict, link: str | None = "/readiness.qmd") -> str:
     s = report["summary"]
-    verdict = "ready to teach" if s["all_ready"] else "not yet ready to teach"
+    if s["all_ready"] and s["ci_passed"] == s["notebooks"]:
+        verdict = "ready to teach"
+    elif s["all_ready"]:
+        # CI records live on the evidence branch: a checkout without them must not claim more.
+        verdict = ("Colab evidence complete; ready to teach once CI passes on the current code"
+                   " (the live readiness page counts CI runs)")
+    else:
+        verdict = "not yet ready to teach"
     when = f"As of {s['as_of']}" if s["as_of"] else "No runs are recorded yet"
     not_written = s["notebooks"] - s["written"]
     parts = [

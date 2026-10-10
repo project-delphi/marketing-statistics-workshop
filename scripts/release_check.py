@@ -10,7 +10,7 @@ A release needs, as of the given date (scripts/readiness.py has the rules):
 
 Records dated after the release date (plus one day of slack: records carry the recorder's
 date) are ignored. The same commit and date always give the same answer. This gates the
-"ready to teach" release (.github/workflows/release.yml), not the site deploy.
+"ready to teach" release (run it before tagging one), not the site deploy.
 
     python scripts/release_check.py [--as-of 2026-10-30]
 """

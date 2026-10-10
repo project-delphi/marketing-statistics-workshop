@@ -89,6 +89,14 @@ def test_the_summary_never_claims_readiness_without_colab_runs():
     assert "not yet ready to teach" in g.readiness_summary(report)
 
 
+def test_the_summary_needs_ci_as_well_as_colab():
+    s = {"notebooks": 2, "written": 2, "ready": 2, "ci_passed": 0, "elsewhere_passed": 0,
+         "elsewhere_full": 0, "as_of": "2026-10-09", "max_age": 21, "all_ready": True}
+    assert ": ready to teach.**" not in g.readiness_summary({"summary": s})
+    assert "once CI passes" in g.readiness_summary({"summary": s})
+    assert ": ready to teach.**" in g.readiness_summary({"summary": {**s, "ci_passed": 2}})
+
+
 def test_the_readiness_page_marks_documented_envs():
     report = readiness.build(V, [], None)
     assert "documented, not run" in g.readiness_page(V, report)
