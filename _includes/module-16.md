@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
+Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 :::
 
 ::: {.module-decision}
-**The decision.** Decide whether to move budget toward the channels data-driven attribution credits most, or to run a holdout test first, and name the channel where credit and incrementality disagree most.
+**The decision.** Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, and name the channel where attributed credit and true incrementality disagree most.
 :::
 
 ::: {.module-details}
@@ -26,27 +26,29 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. The Markov removal effect and Shapley values are short enough to write from scratch with NumPy and check by hand.
+:   Python. Written from scratch with NumPy and pandas: the removal effect is one linear solve and exact Shapley values over five channels need 32 coalitions, so you write each method and check it by hand. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell.
 
 Labs
 :   Python: `labs/python/16-multi-touch-attribution.ipynb` (in preparation)
 
 Data
-:   *To be written.*
+:   [Synthetic user journeys with targeted exposure (mta_journeys.csv from mktstats.synth.mta, seed 2036; truth in truth_mta.json; specified in briefs/16-multi-touch-attribution.md, not yet generated)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic)
 :::
 
 ::: {.module-outcomes}
 ## What you will be able to do
 
-- Compute last-click, first-click and linear attribution from journey paths.
-- Build a first-order Markov transition matrix from journeys and compute each channel's removal effect.
-- Compute Shapley values from conversion rates of channel coalitions and check the efficiency property.
-- Compare every method's credit with the true incremental conversions per channel and explain the gap.
+- Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand.
+- Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion.
+- Compute exact Shapley values from the conversion rates of channel sets and verify the efficiency, symmetry and null-player properties.
+- Score five attribution methods against each channel's true incremental conversions, with 95% bootstrap intervals, and explain why targeted exposure and the efficiency property keep credit away from incrementality.
+- Decide, with Module 6's minimum detectable effect, whether a holdout test should come before any budget move.
 
 **You leave with:**
 
-- Your own markov_removal_effects() and shapley_values() functions, checked on hand-worked examples
-- A table of credit by channel under five methods next to true incrementality
+- Your own heuristic_credit(), transition_matrix(), conversion_probability() and shapley_values() functions, each checked on a hand-worked example
+- A table of credited conversions under five methods next to the true incremental conversions, with 95% bootstrap intervals
+- A test-or-move recommendation for retargeting, with the holdout's minimum detectable effect and the margin at risk
 :::
 
 ::: {.prerequisites}

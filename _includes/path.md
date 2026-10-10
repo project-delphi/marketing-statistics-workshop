@@ -178,7 +178,7 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 ::: {.path-body}
 [Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd){.path-title} [Optional]{.chip}
 
-Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
+Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway.
 :::
 :::
 ::: {.path-step .path-step-optional}
