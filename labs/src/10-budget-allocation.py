@@ -614,9 +614,11 @@ def allocation_risk(draws, q=0.10):
 # keeps money on channels with low marginal ROAS, so its whole distribution, tail included,
 # sits lower. A risk-averse objective would move money away from a channel whose response is
 # uncertain *at the margin*, giving up a little expected sales for a better bad case. Here it
-# barely moves: at the mean-optimal plan tv and search have the same marginal ROAS, and most of
-# the uncertainty is in search's overall level (the wide band in the response-curve plot),
-# which every allowed plan carries, so no reallocation within the bounds removes it. A lift
+# moves little next to the \$72,000 budget (the line above the table says how much), and its
+# 10% quantile is barely higher: at the mean-optimal plan tv and search have the same marginal
+# ROAS, and most of the uncertainty is in search's overall level (the wide band in the
+# response-curve plot), which every allowed plan carries, so no reallocation within the bounds
+# removes it. A lift
 # test that narrows search's curve would (Module 9). Whether a better tail is worth lower
 # expected sales is a business choice; the rule in the Decision states it. With QUICK on,
 # quantiles from 600 draws are rough.
