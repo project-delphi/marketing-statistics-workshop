@@ -191,7 +191,12 @@ def credit_vs_truth(credit: pd.DataFrame, incremental: pd.Series) -> pd.DataFram
 # ----------------------------------------------------------------------- the bootstrap
 class PathCounts:
     """The journeys aggregated by (path, converted), with what each distinct row adds to every
-    method's counts, so that a resample (a weight per row) is a few matrix products."""
+    method's counts, so that a resample (a weight per row) is a few weighted counts.
+
+    Counting uses ``np.bincount``, not matrix products: a BLAS matrix-vector product starts
+    one thread per visible core, and under a container CPU quota smaller than the core count
+    (``docker run --cpus 2`` on a 10-core laptop) those threads made the bootstrap ten times
+    slower (measured 2026-10-10, OpenBLAS 0.3.27)."""
 
     def __init__(self, journeys: pd.DataFrame, channels: list[str]):
         self.channels = list(channels)
@@ -202,21 +207,25 @@ class PathCounts:
         labels = states(channels)
         self.labels = labels
         idx = {s: i for i, s in enumerate(labels)}
-        S, K = len(labels), len(channels)
-        self.trans = np.zeros((len(agg), S * S))
-        self.heur = {r: np.zeros((len(agg), K)) for r in ("last", "first", "linear")}
-        sets = []
+        S = len(labels)
         cidx = {c: i for i, c in enumerate(channels)}
+        t_row, t_pair, l_row, l_chan, l_share, last, first, sets = ([] for _ in range(8))
         for k, (path, y) in enumerate(zip(agg["path"], agg["converted"], strict=True)):
             p = path.split(SEPARATOR)
             s = journey_states(path, y)
             for a, b in zip(s[:-1], s[1:], strict=True):
-                self.trans[k, idx[a] * S + idx[b]] += 1
-            self.heur["last"][k, cidx[p[-1]]] = 1
-            self.heur["first"][k, cidx[p[0]]] = 1
+                t_row.append(k)
+                t_pair.append(idx[a] * S + idx[b])
             for c in p:
-                self.heur["linear"][k, cidx[c]] += 1 / len(p)
+                l_row.append(k)
+                l_chan.append(cidx[c])
+                l_share.append(1 / len(p))
+            last.append(cidx[p[-1]])
+            first.append(cidx[p[0]])
             sets.append(frozenset(p))
+        self.t_row, self.t_pair = np.array(t_row), np.array(t_pair)
+        self.l_row, self.l_chan, self.l_share = np.array(l_row), np.array(l_chan), np.array(l_share)
+        self.last, self.first = np.array(last), np.array(first)
         self.sets = sorted(set(sets), key=lambda s: (len(s), sorted(s)))
         where = {s: i for i, s in enumerate(self.sets)}
         self.set_index = np.array([where[s] for s in sets])
@@ -224,10 +233,15 @@ class PathCounts:
     def credit(self, w: np.ndarray, removal_fn: Callable = removal_effects,
                shapley_fn: Callable = shapley_values) -> pd.DataFrame:
         """Credited conversions per channel (rows) and method (columns) for row weights w."""
-        S = len(self.labels)
+        S, K = len(self.labels), len(self.channels)
         conv_w = w * self.converted
-        out = {r: conv_w @ self.heur[r] for r in ("last", "first", "linear")}
-        counts = (w @ self.trans).reshape(S, S)
+        out = {
+            "last": np.bincount(self.last, weights=conv_w, minlength=K),
+            "first": np.bincount(self.first, weights=conv_w, minlength=K),
+            "linear": np.bincount(self.l_chan, weights=conv_w[self.l_row] * self.l_share,
+                                  minlength=K),
+        }
+        counts = np.bincount(self.t_pair, weights=w[self.t_row], minlength=S * S).reshape(S, S)
         counts[self.labels.index("conv"), self.labels.index("conv")] = 1.0
         counts[self.labels.index("null"), self.labels.index("null")] = 1.0
         P = pd.DataFrame(counts / counts.sum(axis=1, keepdims=True), index=self.labels,
