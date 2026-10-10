@@ -1,0 +1,165 @@
+{
+  "about": "True parameters of the mta extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "mta_journeys.csv"
+  ],
+  "seed": 2036,
+  "n_users": 100000,
+  "channels": [
+    "display",
+    "social",
+    "search",
+    "email",
+    "retargeting"
+  ],
+  "path_separator": " > ",
+  "path_codes": {
+    "D": "display",
+    "S": "social",
+    "P": "search",
+    "E": "email",
+    "R": "retargeting"
+  },
+  "csv_encoding": "In mta_journeys.csv each touch of `path` is one letter (path_codes: P is paid search), in time order with no separator, so the file stays small; decode a path with ' > '.join(path_codes[k] for k in path). The generator's journeys table has decoded paths.",
+  "dgp": {
+    "description": "One month, one market of n_users users. Intent z ~ Normal(0, 1). Channel c reaches a user with probability expit(a_c + g_c z), independently across channels given z (g_c > 0: the channel targets users who already intend to buy; random_exposure replaces this with the constant E_z[expit(a_c + g_c z)]). A reached user gets 1 + Poisson(m_c) touches from c at times drawn from Beta(e_c, f_c) on [0, 1]; the path lists touches in time order. The user converts at the end of the month when U < expit(theta0 + delta z + sum_c theta_c R_c), with U ~ Uniform(0, 1) and R_c = 1 if c reached the user: only which channels reached the user matters, not the order or number of touches. Retargeting has theta = 0 by construction. Users with no touch have no tracked journey, but their conversions count in the truth.",
+    "intent": "z ~ Normal(0, 1)",
+    "reach_a": {
+      "display": -0.6,
+      "social": -0.9,
+      "search": -2.2,
+      "email": -2.0,
+      "retargeting": -2.4
+    },
+    "reach_g": {
+      "display": 0.0,
+      "social": 0.2,
+      "search": 1.2,
+      "email": 0.8,
+      "retargeting": 1.8
+    },
+    "extra_touches_poisson_mean": {
+      "display": 1.5,
+      "social": 1.0,
+      "search": 0.5,
+      "email": 1.0,
+      "retargeting": 2.0
+    },
+    "timing_beta": {
+      "display": [
+        1.5,
+        4.0
+      ],
+      "social": [
+        2.0,
+        3.0
+      ],
+      "search": [
+        3.0,
+        2.0
+      ],
+      "email": [
+        1.0,
+        1.0
+      ],
+      "retargeting": [
+        4.0,
+        1.5
+      ]
+    },
+    "theta0": -4.2,
+    "delta": 1.0,
+    "theta": {
+      "display": 0.3,
+      "social": 0.4,
+      "search": 0.35,
+      "email": 0.15,
+      "retargeting": 0.0
+    },
+    "random_exposure": false,
+    "holdout": null
+  },
+  "n_journeys": 69410,
+  "conversions_total": 3425,
+  "conversions_in_journeys": 3020,
+  "conversions_untracked": 405,
+  "incremental_conversions": {
+    "display": 358,
+    "social": 448,
+    "search": 340,
+    "email": 114,
+    "retargeting": 0
+  },
+  "incremental_conversions_expected": {
+    "display": 339.119,
+    "social": 429.6,
+    "search": 329.574,
+    "email": 115.895,
+    "retargeting": 0.0
+  },
+  "incremental_conversions_all_channels": 1077,
+  "incremental_conversions_all_channels_expected": 1084.03,
+  "definition": "incremental_conversions[c] = sum over all n_users users of [Y_i - Y_i^(-c)], where Y_i^(-c) is the user's outcome had channel c not reached them, with intent, the other channels and the user's uniform draw U_i unchanged (common random numbers). incremental_conversions_expected[c] is the same sum of conversion probabilities.",
+  "reach_share": {
+    "display": 0.35468,
+    "social": 0.29157,
+    "search": 0.14761,
+    "email": 0.14285,
+    "retargeting": 0.16741
+  },
+  "mean_intent_reached": {
+    "display": 0.000797263,
+    "social": 0.144083,
+    "search": 0.85915,
+    "email": 0.640166,
+    "retargeting": 1.05173
+  },
+  "conversion_rate_reached": {
+    "display": 0.0407128,
+    "social": 0.048839,
+    "search": 0.0847504,
+    "email": 0.0646832,
+    "retargeting": 0.0830297
+  },
+  "conversion_rate_not_reached": {
+    "display": 0.0306979,
+    "social": 0.0282456,
+    "search": 0.0255048,
+    "email": 0.0291781,
+    "retargeting": 0.0244418
+  },
+  "economics": {
+    "spend": {
+      "display": 4000.0,
+      "social": 3500.0,
+      "search": 2500.0,
+      "email": 300.0,
+      "retargeting": 2500.0
+    },
+    "mean_order_value": 30.0,
+    "gross_margin": 0.3,
+    "margin_per_conversion": 9.0,
+    "scalable": {
+      "display": true,
+      "social": true,
+      "search": true,
+      "email": false,
+      "retargeting": true
+    },
+    "note": "Monthly spend is an assumption of the synthetic world. Margin per conversion = one order at the retailer's population mean spend (truth.json retailer.population_mean_spend) x the workshop's gross margin (truth.json channel_value.margin); repeat purchases are ignored. Email is list-limited and cannot scale."
+  },
+  "true_cost_per_incremental_conversion": {
+    "display": 11.1732,
+    "social": 7.8125,
+    "search": 7.35294,
+    "email": 2.63158,
+    "retargeting": null
+  },
+  "random_exposure_reach_prob": {
+    "display": 0.354344,
+    "social": 0.29076,
+    "search": 0.146604,
+    "email": 0.143351,
+    "retargeting": 0.16846
+  }
+}

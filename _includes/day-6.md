@@ -60,13 +60,13 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 **[Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd)**
 
 ::: {.module-summary}
-Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
+Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway.
 :::
 
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 8](/modules/08-bayesian-mmm.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
