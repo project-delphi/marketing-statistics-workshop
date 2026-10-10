@@ -45,7 +45,7 @@ website:
     - section: Extensions · Beyond the core week
       contents:
       - href: modules/13-messy-real-data.qmd
-        text: '13 · Messy real data: BTYD and spend models on a real transaction log'
+        text: '13 · Messy real data: cleaning a real log for BTYD and spend models'
       - href: modules/14-survival-churn.qmd
         text: 14 · Survival analysis for subscription churn
       - href: modules/15-double-ml.qmd

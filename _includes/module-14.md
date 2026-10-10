@@ -54,7 +54,7 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 13 · Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd) and its lab.
+- [Module 13 · Messy real data: cleaning a real log for BTYD and spend models](/modules/13-messy-real-data.qmd) and its lab.
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::
