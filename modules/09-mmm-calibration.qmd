@@ -45,7 +45,7 @@ The lab fits Module 8's model, unchanged, to these data: 2 chains of 2,000 draws
 | social | 1.95 | 0.58 to 3.80 | 1.4 | +39% | yes |
 | display | 0.52 | 0.00 to 1.50 | 0.6 | −13% | yes |
 
-Search's ROAS is overstated by 79%, and the whole 94% interval lies above the truth. Nothing in Module 8's workflow warns you: the sampler converged, and the model predicts sales well, because "search drives sales" and "demand drives both search and sales" predict the same sales (Chan and Perry 2017). At a break-even ROAS of 3.33 this model says search pays back with near certainty, and a planner would move money into it.
+Search's ROAS is overstated by 79%, and the whole 94% interval lies above the truth. Nothing in Module 8's workflow warns you: the sampler converged, and the model predicts sales well (section 4 measures it on weeks the model has not seen), because "search drives sales" and "demand drives both search and sales" predict the same sales (Chan and Perry 2017). At a break-even ROAS of 3.33 this model says search pays back with near certainty, and a planner would move money into it.
 
 ::: {.self-check}
 **Check yourself.** Another retailer's display budget runs out in its busiest weeks, so display spend is *lowest* when demand is highest. What does an MMM without demand do to display's ROAS? Would $\hat R$ or a posterior predictive check tell you?
@@ -166,7 +166,7 @@ Search, pinned by two experiments, barely moves; TV, which switches on and off, 
 
 ### What cross-validation cannot tell you
 
-The lab's stretch runs the same cross-validation on the **uncalibrated** model. We ran the stretch code at FULL settings on a laptop while writing this page (not a workshop run record):
+The lab's stretch runs the same cross-validation on the **uncalibrated** model. We ran the stretch code at FULL settings on a laptop while writing this page (not a workshop run record), with the calibrated model cross-validated again in the same run so the two rows compare like with like (this is the second run mentioned above):
 
 | Model | MAPE, all folds | 94% coverage | Search ROAS by fold (truth 3.0) |
 |---|---|---|---|
@@ -190,7 +190,7 @@ That the cross-validation shows the model forecasts sales well, which is not the
 Spend and sales alone cannot identify:
 
 - **The effect of a channel whose spend follows something unobserved.** No amount of data or sampling fixes @eq-ovb; a measurement of the confounder (here, demand) or an experiment does.
-- **Channels whose spend barely moves on its own.** Display is small and slowly growing; social comes in a few pushes. After calibration their intervals are wide and their fold-by-fold ROAS moves by 25% and 72%.
+- **Channels whose spend barely moves on its own.** Social comes in a few pushes; display is small and slowly growing. After calibration their intervals are wide and their fold-by-fold ROAS moves by 25% and 72%.
 - **The shape of a curve away from the spend levels observed or tested.** The switch-off fixes search's level at current spend and the +30% test its slope just above it; nothing in these data says how search behaves at twice today's spend. Module 10 and the capstone lean on exactly that shape.
 - **Untested channels after calibration.** The sales a lift test takes away from one channel go somewhere (section 3).
 
@@ -208,7 +208,7 @@ $$ {#eq-rssd}
 
 prediction error relative to the range of revenue, and how far the media's shares of the modeled effect are from their shares of spend (read in Robyn 3.12.1's installed source; Robyn inflates DECOMP.RSSD when a channel gets no effect at all). The models no other candidate beats on both form the **Pareto front**, and the analyst picks among them. Robyn's uncertainty is the spread across those models, not a posterior.
 
-Exercise 5 computes each channel's **marginal ROAS**, the revenue of the next dollar, from two calls to `robyn_response` at the channel's mean weekly spend $s_1$ and $s_2 = 1.1\, s_1$:
+The R notebook's exercise computes each channel's **marginal ROAS**, the revenue of the next dollar, from two calls to `robyn_response` at the channel's mean weekly spend $s_1$ and $s_2 = 1.1\, s_1$:
 
 $$
 \text{marginal ROAS}_c = \frac{R_c(s_2) - R_c(s_1)}{s_2 - s_1},
@@ -224,7 +224,7 @@ where $R_c$ is the selected model's response curve. FULL run, 500 iterations × 
 | Facebook | 5.19 | 1.79 to 9.98 | models disagree |
 | search | 1.19 | 0.72 to 6.73 | models disagree |
 
-The five models fit revenue about equally well, yet three name print as the best next dollar and two name Facebook, and for search the next dollar is worth anything from $0.72 to $6.73. More iterations would explore the front better, but they cannot add information the data do not have. Robyn takes experiments through the `calibration_input` argument of `robyn_inputs`, for the same reason PyMC-Marketing adds them to the likelihood. Two cautions: the 3.33 break-even assumes our 30% margin (Robyn's data come with none), and Robyn is effectively unmaintained: the last commit on its GitHub main branch is from 2025-06-27 and its CRAN release 3.12.1 from 2025-07-02.
+These are the five Pareto-optimal models with the lowest prediction error, yet three name print as the best next dollar and two name Facebook, and for search the next dollar is worth anything from $0.72 to $6.73. More iterations would explore the front better, but they cannot add information the data do not have. Robyn takes experiments through the `calibration_input` argument of `robyn_inputs`, for the same reason PyMC-Marketing adds them to the likelihood. Two cautions: the 3.33 break-even assumes our 30% margin (Robyn's data come with none), and Robyn is effectively unmaintained: the last commit on its GitHub main branch is from 2025-06-27 and its CRAN release 3.12.1 from 2025-07-02.
 
 ### Why Meridian is not a lab
 
