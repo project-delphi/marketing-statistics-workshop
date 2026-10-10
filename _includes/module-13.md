@@ -15,7 +15,7 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 :::
 
 ::: {.module-decision}
-**The decision.** Decide which Online Retail II customers get a retention contact (when the assumed lift times margin times expected 26-week revenue exceeds the contact cost), and state which cleaning choice moves that list most and by how many customers.
+**The decision.** Decide which Online Retail II customers get a retention contact (when the assumed lift times margin times expected 26-week revenue exceeds the contact cost), and state which cleaning or counting choice moves that list most and by how many customers.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); a closed-form maximum-likelihood fit for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4.
+:   Python. Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); maximum-likelihood fits of the closed-form likelihoods for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4.
 
 Labs
 :   Python: `labs/python/13-messy-real-data.ipynb` (in preparation)
@@ -42,14 +42,14 @@ Data
 - Measure, one rule at a time, how leaving each error in moves BG/NBD and Gamma-Gamma estimates, total expected revenue and individual customer scores, against the clean answer and the known truth.
 - Cap extreme order values at a stated percentile and show what the cap does to the spend parameters and to the value of the capped wholesale customers.
 - Fit BG/NBD and Gamma-Gamma to cleaned UCI Online Retail II, check them on a holdout period, and test the spend-independence assumption with Pearson and rank correlations.
-- Turn the fitted models into a retention-contact list and report which cleaning choice moves it most.
+- Turn the fitted models into a retention-contact list and report which cleaning or counting choice moves it most.
 
 **You leave with:**
 
 - A tested DuckDB cleaning pipeline that turns an Online-Retail-II-style line log into purchase days and an RFM table
 - A table of how each data error moves model parameters, total expected revenue and individual scores, against known truth
 - A capping comparison for the spend model, with what it costs the wholesale customers' value
-- Holdout tracking, an independence check and a retention-contact list for Online Retail II, with how much each cleaning choice moves the list
+- Holdout tracking, an independence check and a retention-contact list for Online Retail II, with how much each cleaning or counting choice moves the list
 :::
 
 ::: {.prerequisites}
