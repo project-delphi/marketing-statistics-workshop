@@ -74,6 +74,13 @@ Newest first within each section.
 - **Cross-validation checks prediction, not cause:** the uncalibrated model forecast held-out weeks as well
   as the calibrated one while its search ROAS stayed wrong (5.2–5.5 vs 3.0) — the lab's main lesson.
 
+### PyMC-Marketing's budget optimizer: tolerance in dollars, not 1e-9 (2026-10-10, Module 10)
+- `BudgetOptimizer.allocate_budget` defaults to SLSQP with absolute `ftol=1e-9` on an objective of about
+  $2.6M; that is below the rounding error of the sum, so SLSQP's line search fails ("Positive directional
+  derivative") depending on the posterior draws: 5 of 20 seeds on arm64 and 5 of 20 on amd64. It failed on
+  Colab and in CI, passed on the laptop by chance. With `ftol=0.01` (one cent) and a feasible start,
+  0 of 40 failed and plans agreed within $1. The lab passes these options explicitly and explains why.
+
 ## Spikes
 
 (Results are added below as each spike runs.)
