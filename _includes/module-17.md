@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses.
+:   Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses.
 
 Labs
 :   Python: `labs/python/17-mmm-time-varying.ipynb` (in preparation)

@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. PyMC-Marketing implements BG/NBD and Pareto/NBD with full posteriors, in the same library we use for the marketing mix model on Day 4.
+:   Python. PyMC-Marketing implements BG/NBD and Pareto/NBD with full posteriors, in the same library we use for the marketing mix model on Day 4.
 
 Labs
 :   Python: `labs/python/02-btyd.ipynb`

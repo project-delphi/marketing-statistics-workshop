@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python with DuckDB for cleaning and PyMC-Marketing for the models, the same stack as Modules 1, 2 and 4.
+:   Python with DuckDB for cleaning and PyMC-Marketing for the models, the same stack as Modules 1, 2 and 4.
 
 Labs
 :   Python: `labs/python/13-messy-real-data.ipynb` (in preparation)

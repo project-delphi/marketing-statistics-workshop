@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. EconML implements double machine learning (LinearDML, CausalForestDML) on scikit-learn and LightGBM models, the same library as Module 11.
+:   Python. EconML implements double machine learning (LinearDML, CausalForestDML) on scikit-learn and LightGBM models, the same library as Module 11.
 
 Labs
 :   Python: `labs/python/15-double-ml.ipynb` (in preparation)

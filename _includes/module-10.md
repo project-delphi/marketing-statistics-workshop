@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. The optimizer works directly on PyMC-Marketing's posterior draws, and SciPy's SLSQP, which you call yourself, is the algorithm the library uses.
+:   Python. The optimizer works directly on PyMC-Marketing's posterior draws, and SciPy's SLSQP, which you call yourself, is the algorithm the library uses.
 
 Labs
 :   Python: `labs/python/10-budget-allocation.ipynb`

@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. The Markov removal effect and Shapley values are short enough to write from scratch with NumPy and check by hand.
+:   Python. The Markov removal effect and Shapley values are short enough to write from scratch with NumPy and check by hand.
 
 Labs
 :   Python: `labs/python/16-multi-touch-attribution.ipynb` (in preparation)

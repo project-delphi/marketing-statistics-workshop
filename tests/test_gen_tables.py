@@ -153,6 +153,22 @@ def test_two_different_notebooks_share_the_slot():
     assert len(entries) == 2 and not g.alternatives(entries)
 
 
+def test_the_language_is_not_repeated():
+    m = {"language": ["python"], "language_why": "Python. PyMC-Marketing fits it."}
+    assert g.languages_text(m) == "Python. PyMC-Marketing fits it."
+    m = {"language": ["python", "r"], "language_why": "Python for A; R for B."}
+    assert g.languages_text(m) == "Python for A; R for B."
+    # A why that does not open with a language, or leaves one out, keeps the list.
+    m = {"language": ["python", "r"], "language_why": "Both. One harness."}
+    assert g.languages_text(m) == "Python, R. Both. One harness."
+    m = {"language": ["python", "r"], "language_why": "Python for everything."}
+    assert g.languages_text(m) == "Python, R. Python for everything."
+    assert g.languages_text({"language": ["r"]}) == "R"
+    for key in V["modules"]:
+        text = g.module_header(V, key)
+        assert "Python. Python" not in text and ":   R. R " not in text, key
+
+
 def test_a_core_module_needs_the_module_before_it():
     text = g.module_header(V, "m02").split("## Before you start", 1)[1]
     assert f"[Module 1 · {V['modules']['m01']['title']}](/modules/" in text

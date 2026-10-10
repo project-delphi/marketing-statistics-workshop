@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python, R. Python for difference-in-differences and synthetic control written from scratch with SciPy; R because CausalImpact (bsts) and GeoLift are R packages and the reference implementations (the Python port of CausalImpact has had no release since 2023).
+:   Python for difference-in-differences and synthetic control written from scratch with SciPy; R because CausalImpact (bsts) and GeoLift are R packages and the reference implementations (the Python port of CausalImpact has had no release since 2023).
 
 Labs
 :   Python: `labs/python/07-synthetic-control-did.ipynb`<br>R: `labs/r/07-causalimpact-geolift.ipynb`

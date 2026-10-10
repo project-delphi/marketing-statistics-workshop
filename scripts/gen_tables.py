@@ -611,6 +611,19 @@ def run_sheet(v: dict, dkey: str) -> str:
 # ---- module pages ----------------------------------------------------------------------------
 
 
+def languages_text(m: dict) -> str:
+    """The 'Languages' detail: 'Python. <why>', or the why alone when it already opens with
+    one of the module's languages and names every one ('Python. PyMC-Marketing ...', not
+    'Python. Python. PyMC-Marketing ...')."""
+    langs = [LANG.get(x, x) for x in m.get("language", [])]
+    why = (m.get("language_why") or "").strip()
+    if not why:
+        return ", ".join(langs)
+    opens = any(re.match(rf"{re.escape(lang)}\b", why) for lang in langs)
+    names_all = all(re.search(rf"\b{re.escape(lang)}\b", why) for lang in langs)
+    return why if langs and opens and names_all else f"{', '.join(langs)}. {why}"
+
+
 def module_header(v: dict, key: str) -> str:
     m = v["modules"][key]
     d = v["days"][m["day"]]
@@ -621,7 +634,6 @@ def module_header(v: dict, key: str) -> str:
     meta = f"{day_text} [Module {n}]{{.module-num}} [{minutes_text(m)}]{{.module-time}}"
     if when:
         meta += f" [{when}]{{.module-clock}}"
-    langs = [LANG.get(x, x) for x in m.get("language", [])]
     nb_lines = []
     for e in notebooks_of(v, key):
         state = "" if exists(e) else " (in preparation)"
@@ -636,10 +648,7 @@ def module_header(v: dict, key: str) -> str:
     details = [
         ("Day", f"{d['label']} · {d['title']}" + (f" ({module_clock(v, key)})" if when else "")),
         ("Time", minutes_text(m) + (" · optional" if m.get("optional") else "")),
-        (
-            "Languages",
-            ", ".join(langs) + (f". {m['language_why']}" if m.get("language_why") else ""),
-        ),
+        ("Languages", languages_text(m)),
         ("Labs", "<br>".join(nb_lines) if nb_lines else "No lab"),
         ("Data", ", ".join(data) if data else f"*{TBW[0].upper()}{TBW[1:]}.*"),
     ]

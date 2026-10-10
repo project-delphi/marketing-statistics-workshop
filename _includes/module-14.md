@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python with lifelines, which implements Kaplan-Meier and Cox models with the same data-frame interface as the rest of the week.
+:   Python with lifelines, which implements Kaplan-Meier and Cox models with the same data-frame interface as the rest of the week.
 
 Labs
 :   Python: `labs/python/14-survival-churn.ipynb` (in preparation)
