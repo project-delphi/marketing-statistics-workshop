@@ -484,13 +484,24 @@ def pymc_allocation(opt, weekly_total, bounds, x0=None, minimize_kwargs=SLSQP_OP
 # @title Solution 4 — try it yourself first { display-mode: "form" }
 @workshop.solution(4)
 def pymc_allocation(opt, weekly_total, bounds, x0=None, minimize_kwargs=SLSQP_OPTIONS):
-    result = opt.allocate_budget(
-        total_budget=weekly_total,
-        budget_bounds=bounds,
-        x0=None if x0 is None else plan_array(x0),
-        minimize_kwargs=minimize_kwargs,
-    )
-    return result.budgets.to_series()
+    from pymc_marketing.mmm.budget_optimizer import MinimizeException
+
+    # The reference tries a second feasible start (the current plan) if SLSQP still fails;
+    # a second failure is raised, never hidden.
+    starts = [x0] if x0 is None else [x0, CURRENT]
+    for i, start in enumerate(starts):
+        try:
+            result = opt.allocate_budget(
+                total_budget=weekly_total,
+                budget_bounds=bounds,
+                x0=None if start is None else plan_array(start),
+                minimize_kwargs=minimize_kwargs,
+            )
+            return result.budgets.to_series()
+        except MinimizeException as exc:
+            if i == len(starts) - 1:
+                raise
+            print(f"SLSQP failed from the first start ({exc}); retrying from the current plan.")
 
 
 # %% [markdown]
