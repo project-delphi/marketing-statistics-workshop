@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab or its generator exists. Every number below marked *prototype* comes from a throwaway script run on a laptop while writing this brief (Apple M1 Pro, Python 3.13.2, NumPy 2.1.3, pandas 2.2.3, SciPy 1.16.3); it is not a run record, and the Technical Expert re-measures everything after building the generator. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab or its generator exists. Every number below marked *prototype* comes from a throwaway script run on a laptop while writing this brief (Apple M1 Pro, Python 3.13.2, NumPy 2.1.3, pandas 2.2.3, SciPy 1.16.3); it is not a run record, and the Technical Expert re-measures everything after building the generator. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the changes and their reasons are under "Pedagogy review" below. |
 | Notebook | `labs/src/16-multi-touch-attribution.py` → `labs/python/16-multi-touch-attribution.ipynb` |
-| Lab slot | 55 min (`modules.m16.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
+| Lab slot | 55 min (`modules.m16.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it. Minutes are estimates until a pilot. |
 | Day | Extensions track (`d6`), optional; outside the five timed days. Builds on Modules 6 and 8. |
 
 ## Question and decision
@@ -157,22 +157,61 @@ Only a comparison with a counterfactual (a holdout, a geo test, a lift-calibrate
 
 None. Every method is counting, one small linear solve, or exact enumeration over 32 coalitions.
 
+## Terms the notebook defines, where they are first used
+
+The Notation above is for the Technical Expert. The notebook introduces each definition in the part that
+uses it, in one plain sentence, never as an opening glossary: Part A (touch, journey, credit, the three
+rules), Part B (Markov chain, transition probability, absorbing state, removal effect), Part C (Shapley
+value, coalition, the three properties, the journey value function v), Part D (incremental conversions,
+share error, bootstrap interval, holdout, MDE). Suggested wording:
+
+| Term | One sentence for the notebook |
+|---|---|
+| touch | One ad impression, click or email that the tracking records for a user. |
+| journey (path) | All of one user's touches in the month, in time order, for example `display > search > retargeting`. |
+| credit | The conversions a method assigns to a channel. Every method hands out all the tracked conversions. |
+| last-click, first-click | Give each conversion to the last (first) touch of its journey. |
+| linear | Split each conversion equally over the touches of its journey, so a channel touched twice gets two shares. |
+| first-order Markov chain | A model of the journey in which the next state depends only on the current one. |
+| transition probability | The share of departures from state a that go next to state b. |
+| absorbing state | A state the journey never leaves: conversion (`conv`) or the end without conversion (`null`). |
+| removal effect | The share of the chain's conversion probability that is lost when every journey that reaches channel c stops there without converting. |
+| Shapley value | A channel's added value, averaged over every order in which the channels could have joined. |
+| coalition | A set of channels. |
+| efficiency, symmetry, null player | A set's values add up to its value; two channels that add the same to every coalition get the same; a channel that adds nothing to any coalition gets 0. |
+| incremental conversions | Conversions that would not have happened had the channel not reached the user. Known here only because the data are simulated. |
+| share error | The share of credit that would have to move between channels for a method's shares to match the true incremental shares (0 = same shares, 1 = no overlap). |
+| targeted exposure (selection) | A channel reaches users who were already more likely to buy, so its users convert more often whether or not it works. |
+| 95% bootstrap percentile interval | Resample journeys with replacement, recompute, and take the 2.5th and 97.5th percentiles. |
+| holdout | A randomly chosen share of the users a channel would reach, from whom it is withheld. |
+| minimum detectable effect (MDE) | The smallest true effect a test of this size detects with 80% power at α = 0.05, two-sided (Module 6). |
+
 ## Parts and exercises
 
 | Part | Exercise | Minutes |
 |---|---|---|
-| A · Rules of thumb | 1 · Last-click, first-click and linear credit | 7 |
+| A · Rules of thumb | 1 · Last-click, first-click and linear credit | 8 |
 | B · The journey as a Markov chain | 2 · The transition matrix | 8 |
-| | 3 · Conversion probability and removal effects | 9 |
+| | *Run: the probability of reaching conversion (provided solver and check)* | — |
+| | 3 · Removal effects | 8 |
+| | *Run: Markov credit (provided)* | — |
 | C · Shapley values | 4 · Exact Shapley values | 9 |
 | | *Run: coalition conversion rates and Shapley credit (provided)* | — |
-| D · Credit against the truth | 5 · Score the methods | 7 |
+| D · Credit against the truth | *Run: the credit table and who each channel reaches (provided)* | — |
+| | 5 · Score the methods | 7 |
 | | *Run: is the gap noise? 95% bootstrap intervals (provided)* | — |
 | **Exercises** | | **40** |
 | Decision | Move budget or test first? | 5 |
 
-Provided before Exercise 1: load `journeys` and `truth`; print counts (journeys, conversions, conversion share)
-and ten example paths; define `CHANNELS` and `TINY`, a five-journey example used by Exercises 1–3:
+The minutes of each exercise include reading the provided cells immediately before it, so those cells print
+short summaries, not long tables (the full tables stay in variables for anyone who wants them).
+
+Provided before Exercise 1 (nothing in it, or anywhere before Exercise 5's Predict, prints
+`truth["incremental_conversions"]`): load `journeys` and `truth`; print counts (journeys, conversions,
+conversion share) and ten example paths; a table with, for each channel, the share of journeys it appears in
+and how often it is the first and the last touch in the journeys with two or more channels that it appears in
+(Exercise 1's Predict and Explain use it); define `CHANNELS` and `TINY`, a five-journey example used by
+Exercises 1–3:
 
 | Journey | Path | Converted |
 |---|---|---|
@@ -182,19 +221,28 @@ and ten example paths; define `CHANNELS` and `TINY`, a five-journey example used
 | 4 | B > A | 0 |
 | 5 | A > A > B | 1 |
 
-### Exercise 1 · Last-click, first-click and linear credit (7 minutes)
+### Exercise 1 · Last-click, first-click and linear credit (8 minutes)
 
-- **Predict.** Retargeting reaches about one user in six and its touches come late in the month (the provided
-  table shows, for each channel, how often it opens and how often it closes the journeys with more than one
-  channel that it appears in). Under last-click, what share of the conversions will retargeting get: under
-  20%, 20 to 35%, or over 35%?
+- **Predict.** Retargeting reaches about one user in six, appears in about a quarter of the tracked journeys
+  (the table above; prototype 24%), and its touches come late in the month (the same table: how often each
+  channel is the first and the last touch). Under last-click, what share of the conversions will retargeting
+  get: under 20%, 20 to 30%, or over 30%? Write your guess.
+  (A guess from reach alone lands in the first two bins. The prototype's 38% is 8 points above the top
+  boundary; if the committed data put the answer within 3 points of a boundary, move the boundaries.)
 - **Function.** `heuristic_credit(journeys: pd.DataFrame, rule: str, channels: list[str]) -> pd.Series`:
   credited conversions per channel (index `channels`, zeros included) for `rule` in `{"last", "first",
-  "linear"}`; only converting journeys give credit; linear gives each touch 1/L_i.
+  "linear"}`; only converting journeys give credit; linear gives each touch 1/L_i. Hints in the stub: split
+  paths with `.str.split(" > ")`; for linear, `explode` the touches and give each 1/L_i.
 - **Checkpoint.** On `TINY` (worked by hand): last {A: 0, B: 3}; first {A: 2, B: 1}; linear {A: 7/6, B: 11/6}
   to 1e-12. On `journeys`, for each rule: credit adds up to the number of converting journeys
   (`truth["conversions_in_journeys"]`) to 1e-9 and no value is negative. First checkpoint; runs in under a
   second (prototype: all three rules 0.10 s).
+- **Failure messages** (the four parts of `briefs/_lab-standard.md` §5, each ending with
+  `workshop.use_reference(1)`). Credit that adds up to the number of journeys (prototype 69,410) instead of
+  the converting journeys: "only converting journeys give credit; keep the rows with `converted == 1`".
+  Linear on `TINY` = {A: 1, B: 2}: "linear here is per touch, not per distinct channel; journey 5 (A > A > B)
+  gives A two shares of 1/3". A channel missing or NaN: "return every channel in `channels`, with 0 where it
+  got no credit (`reindex(channels, fill_value=0)`)".
 - **Explain.** Compare with your guess (prototype: 38%). Last-click and first-click disagree most about
   retargeting and display. Which feature of the journeys decides it: when each channel's touches happen, how
   many users each channel reaches, or how often reached users convert? Point to the table of opening and
@@ -205,45 +253,94 @@ and ten example paths; define `CHANNELS` and `TINY`, a five-journey example used
 
 ### Exercise 2 · The transition matrix (8 minutes)
 
+*Provided before it:* `journey_states(path: str, converted: int) -> list[str]`, which turns one journey into
+its states, shown on `TINY`'s journey 1: `["start", "A", "B", "conv"]`. The string handling is not the lesson;
+counting transitions is.
+
 - **Predict.** In the display row, which next state will be most likely: another display touch, a touch from
   another channel, conversion, or the end of the journey without conversion (null)?
 - **Function.** `transition_matrix(journeys: pd.DataFrame, channels: list[str]) -> pd.DataFrame`: the
   first-order transition probabilities with index and columns `["start", *channels, "conv", "null"]`; each
   journey adds start → first touch, touch → next touch, last touch → conv or null; conv and null map to
-  themselves with probability 1.
+  themselves with probability 1. Hints in the stub: use `journey_states`; count consecutive pairs
+  (`collections.Counter` or `pd.crosstab`); add the conv → conv and null → null entries; divide each row by
+  its total.
 - **Checkpoint.** On `TINY` (by hand): start → (A 3/5, B 2/5); A → (A 1/5, B 2/5, null 2/5); B → (A 1/4,
   conv 3/4); conv and null absorbing; to 1e-12. On `journeys`: every row sums to 1 (1e-12), the start column is
   zero, labels in the stated order, conv and null rows are unit rows.
-- **Explain.** Compare with your guess (prototype: display → display 0.51). A long run of display touches is a
-  self-loop. Does a self-loop change the chance of eventually reaching conversion from display? Write x_display
-  in terms of the other states to check. *Why:* x_c = p_cc x_c + Σ_{d≠c} p_cd x_d gives
-  x_c = Σ_{d≠c} p_cd x_d / (1 − p_cc), so self-loops cancel; in the prototype, collapsing repeated touches left
-  every removal effect unchanged to six decimals.
+- **Failure messages** (four parts, ending with `workshop.use_reference(2)`). A row that does not sum to 1:
+  "divide each row by its own total (`M.div(M.sum(axis=1), axis=0)`), not by column totals or the grand
+  total". NaN in the conv or null row: "a row of zeros divided by its total of 0 gives NaN; set conv → conv
+  and null → null to 1 before dividing". `TINY`'s start row wrong: "each journey adds exactly one start →
+  first-touch transition". Labels out of order: "reindex rows and columns to `["start", *channels, "conv",
+  "null"]`".
+- **Explain.** Compare with your guess (prototype: display → display 0.51). A run of display touches shows up
+  as the display → display entry, a **self-loop**. Divide the other entries of the display row by
+  1 − p(display → display): these are the chances of each next state once the journey leaves display. Does the
+  self-loop change where the journey goes after display, or only how long it stays there?
+  *Why:* once the journey leaves c, it goes to d with probability p_cd / (1 − p_cc), whatever p_cc is; a
+  self-loop only delays the next step. So the probability of eventually converting from c (x_c, Exercise 3)
+  does not depend on repeated touches in a row: x_c = p_cc x_c + Σ_{d≠c} p_cd x_d gives
+  x_c = Σ_{d≠c} p_cd x_d / (1 − p_cc). In the prototype, collapsing repeated touches left every removal effect
+  unchanged to six decimals: Markov credit does not reward a channel for repeating itself.
 
-### Exercise 3 · Conversion probability and removal effects (9 minutes)
+*Provided after Exercise 2 · The probability of reaching conversion.* One paragraph and a provided function,
+read inside Exercise 3's minutes. x_a, the probability that a journey now in state a eventually converts,
+satisfies x_a = p_a,conv + Σ_b p_ab x_b over the transient states b: take one step, then carry on from where
+you land. In matrix form x = Q x + r, so x = (I − Q)⁻¹ r (Notation). `conversion_probability(P: pd.DataFrame)
+-> float` returns x_start with `np.linalg.solve(np.eye(len(T)) - Q, r)`, with T = start and the channels,
+Q = P[T × T] and r = P[T, conv]. A labeled check (`workshop.checkpoint(label="chain")`): on `TINY`, p = 3/5
+(worked by hand in a folded block); on `journeys`, p equals the share of converting journeys to 1e-9. One
+sentence states the identity ("a chain estimated by counting reproduces the observed conversion share
+exactly"); a `<details>` block gives the reason: with n_a = Σ_b n_ab departures from state a, the chain's
+equations are n_a x_a = Σ_b n_ab x_b. Summed over the transient states, every channel term cancels (each
+channel state is entered as often as it is left), leaving n_start · x_start = Y with n_start = N. The check
+can fail only through the learner's `transition_matrix`; its message: "The chain's conversion probability is
+0.071, but 4.35% of journeys converted, and a chain estimated by counting must reproduce that share exactly.
+Your transition_matrix passed Checkpoint 2, so it counts transitions differently from the reference: check
+that every journey adds exactly one start → first-touch transition and exactly one last-touch → conv or null
+transition. To move on now, run `workshop.use_reference(2)` and rerun from Exercise 2's checkpoint."
 
-- **Predict.** Before solving: will the chain's probability of reaching conversion from start be lower than,
-  about equal to, or exactly equal to the share of journeys that converted (printed above)?
-- **Function.** `conversion_probability(P: pd.DataFrame, removed: str | None = None) -> float`: x_start from
-  x = (I − Q)⁻¹ r (`np.linalg.solve`); with `removed=c`, row c of Q and entry c of r are set to 0 first.
-  Provided after it: RE_c = 1 − p₋c / p for each channel and Markov credit Y · RE_c / Σ RE.
-- **Checkpoint.** On `TINY` (by hand): p = 3/5, p₋A = 3/10, p₋B = 0, so RE = {A: 1/2, B: 1} and Markov credit
-  {A: 1, B: 2}; to 1e-12. On `journeys`: p equals the share of converting journeys to 1e-9 (an exact identity,
-  below), and p₋c ≤ p for every channel.
-- **Explain.** Compare with your guess. Why must a chain estimated by counting reproduce the observed conversion
-  share exactly? Then: the removal effects add up to about 2 (prototype 1.97), not 1. Why?
-  *Why:* with n_a = Σ_b n_ab departures from state a, the chain's equations are n_a x_a = Σ_b n_ab x_b. Summed
-  over the transient states, every channel term cancels (each channel state is entered as often as it is left),
-  leaving n_start · x_start = Y with n_start = N. Removing one channel
-  breaks every path through it, and a converting path through three channels is "lost" in three removal
-  scenarios, so the effects overlap; dividing by their sum is a choice, not a law. The removal effect asks what
-  the *fitted chain* predicts if journeys stopped at c, which treats "on the path to conversion" as "caused the
-  conversion".
+### Exercise 3 · Removal effects (8 minutes)
+
+The Markdown before the Predict defines the removal effect (Terms) and RE_c = 1 − p₋c / p, where p₋c is the
+chain's conversion probability with c removed.
+
+- **Predict.** Will the five channels' removal effects add up to less than 1, about 1, or more than 1? Write
+  your guess.
+- **Function.** `removal_effects(P: pd.DataFrame, channels: list[str]) -> pd.Series`: RE_c for each channel
+  (index `channels`), using the provided `conversion_probability`. For channel c, work on a copy of P, set row
+  c to 0 and `P.loc[c, "null"] = 1` (every journey that reaches c ends there without converting; the same
+  counterfactual as x_c = 0 in Notation), compute p₋c, and return 1 − p₋c / p. The function must not change
+  `P`. Provided after it: Markov credit Y · RE_c / Σ_k RE_k, printed per channel.
+- **Checkpoint.** On `TINY` (by hand): p = 3/5, p₋A = 3/10, p₋B = 0, so RE = {A: 1/2, B: 1}, to 1e-12; `P` is
+  unchanged after the call. On `journeys`: every RE between 0 and 1, and equal to the reference to 1e-9. After
+  the provided Markov credit cell, a labeled check: `TINY` credit {A: 1, B: 2} (Y = 3, removal effects adding
+  up to 1.5).
+- **Failure messages** (four parts, ending with `workshop.use_reference(3)`; each wrong value below was
+  computed on `TINY` during review). RE_A = −0.67: "a negative removal effect usually means the channel was
+  deleted and the other transitions renormalized, which reroutes journeys around it instead of stopping them;
+  set row c to 0 and `P.loc[c, 'null'] = 1`". RE_B = 0 instead of 1: "the removal effect is 1 − p₋c / p, not
+  p₋c / p; removing B loses every conversion in TINY". `P` changed by the call: "your function changed P, so
+  each channel after the first was removed from an already changed chain; work on `P.copy()` for each
+  channel".
+- **Explain.** Compare with your guess (prototype: 1.97). In `TINY` the removal effects are 1/2 and 1, adding
+  up to 1.5. Which converting journeys pass through both A and B, and what happens to them when A is removed,
+  and when B is removed? Then: what does dividing each removal effect by their sum (the Markov credit above)
+  assume?
+  *Why:* removing one channel breaks every path through it, and a converting path through three channels is
+  "lost" in three removal scenarios, so the effects overlap; dividing by their sum is a choice, not a law. The
+  removal effect asks what the *fitted chain* predicts if journeys stopped at c, which treats "on the path to
+  conversion" as "caused the conversion".
 
 ### Exercise 4 · Exact Shapley values (9 minutes)
 
-- **Predict.** In the three-player game below, C adds nothing to any coalition. What Shapley value will C get,
-  and will A and B split v(ABC) = 0.40 equally?
+The Markdown before the Predict defines the Shapley value, coalition and the three properties (Terms), and
+says in words what the game will be for journeys (v(S) = the conversion rate of journeys whose set of
+channels is exactly S, v(∅) = 0), so that the Explain can use it.
+
+- **Predict.** In the three-player game below, C adds nothing to any coalition. Write C's Shapley value (0,
+  between 0 and 0.10, or above 0.10), and say whether A and B will split v(ABC) = 0.40 equally (yes or no).
 
   | S | ∅ | A | B | C | AB | AC | BC | ABC |
   |---|---|---|---|---|---|---|---|---|
@@ -255,54 +352,84 @@ and ten example paths; define `CHANNELS` and `TINY`, a five-journey example used
   above: φ = {A: 0.15, B: 0.25, C: 0} (by hand, averaging over the six orders). On a provided random five-player
   game (seed shown): efficiency Σφ = v(N) − v(∅) to 1e-12; equal to a provided brute-force average over all
   120 orders to 1e-12; swapping two players in v swaps their values.
-- **Explain.** Compare with your guess. Efficiency says a path's values add up to v(S) − v(∅), and here
-  v(∅) = 0. What does that force onto the channels of a converting journey, including a conversion that would
-  have happened with no marketing at all?
-  *Why:* with v(∅) = 0 the whole conversion rate of each set, baseline included, is shared out. Shapley's
-  properties (efficiency, symmetry, a player who adds nothing gets nothing) are rules for sharing a value; they
-  say nothing about whether v measures what a channel causes. That depends on v, and v here is an observed
-  conversion rate.
+- **Failure messages** (four parts, ending with `workshop.use_reference(4)`; the wrong values were computed
+  during review). The two-player example giving {A: 0.175, B: 0.100}, which adds up to 0.275 instead of
+  v(AB) − v(∅) = 0.20: "the weight is |T|! (n − |T| − 1)! / n! for a coalition T that leaves c out;
+  (n − |T|)! in place of (n − |T| − 1)! gives these numbers". C ≠ 0 in the three-player game: "sum over the
+  coalitions T that do not contain c, and compare v(T ∪ {c}) with v(T)". A `KeyError` or `TypeError` from v:
+  "v takes a frozenset; call `v(frozenset(T) | {c})`" (the checkpoint catches these and prints the message
+  instead of a bare traceback).
+- **Explain.** Compare with your guess. Your function passed the efficiency check: a set's Shapley values add
+  up to v(S) − v(∅). For journeys, v(S) is the conversion rate of journeys whose set of channels is exactly S,
+  and v(∅) = 0 because users with no touch are not in the data. Suppose users would convert at 1% with no
+  marketing at all. Under Shapley, who gets the credit for those conversions: nobody, the channels on each
+  converting journey, or only its last channel?
+  *Why:* the channels on the journey. With v(∅) = 0 the whole conversion rate of each set, baseline included,
+  is shared out. Shapley's properties (efficiency, symmetry, a player who adds nothing gets nothing) are rules
+  for sharing a value; they say nothing about whether v measures what a channel causes. That depends on v, and
+  v here is an observed conversion rate.
 
 *Provided after Exercise 4:* the table of v(S) for the 31 non-empty channel sets (rate, conversions,
 journeys; the cell stops with a clear message if any set needed by a converting journey has no journeys,
-instead of filling in 0) and the Shapley credit, calling the learner's `shapley_values` once per set; it prints
-that each set's shares sum to 1. Prototype: all 31 sets occur (smallest 177 journeys); the smallest φ over
-all sets was +0.012, so no negative shares (at 60,000 users one of five seeds gave −0.004: report negative
-values, never clip them). Then one sentence and a plot: "Look at the conversion rate of users each channel
-reached against those it did not reach" (from `truth`, because users with no touch are not in `journeys`;
-prototype retargeting 8.3% against 2.4%).
+instead of filling in 0) and the Shapley credit, calling the learner's `shapley_values` once per set. It
+prints a summary, not the 31 rows: the number of sets, the fewest journeys in a set, the smallest φ over all
+sets, and that each set's shares sum to 1; the table stays in `coalitions` for anyone who wants it.
+Prototype: all 31 sets occur (smallest 177 journeys); the smallest φ over all sets was +0.012, so no
+negative shares (at 60,000 users one of five seeds gave −0.004: report negative values, never clip them).
 
 ### Exercise 5 · Score the methods against the truth (7 minutes)
 
-*Provided before it:* `credit`, a DataFrame (index `CHANNELS`, columns `last, first, linear, markov,
-shapley`) of credited conversions, and `incremental = pd.Series(truth["incremental_conversions"])`.
+*Provided before it (Part D's opening, read inside this exercise's minutes):* `credit`, a DataFrame (index
+`CHANNELS`, columns `last, first, linear, markov, shapley`) of credited conversions, shown; and
+`incremental = pd.Series(truth["incremental_conversions"])`, loaded but not printed until the checkpoint.
+One sentence on why the lab compares shares: credit always adds up to the tracked conversions, while
+incremental conversions are fewer and do not add up across channels, so each method's credit shares are
+compared with the true incremental shares. Then one sentence and a plot: "Look at the conversion rate of
+users each channel reached against those it did not reach" (from `truth`, because users with no touch are not
+in `journeys`; prototype retargeting 8.3% against 2.4%).
 
-- **Predict.** In this simulation retargeting changes nobody's decision to buy: its true incremental
-  conversions are 0. What share of the credit will the Markov and Shapley methods give it: under 5%, 5 to
-  15%, or over 15%?
+- **Predict.** Under Markov and Shapley, retargeting gets about as much credit as display or social (the
+  table above; prototype 708 and 744 conversions), and the users it reached converted far more often than
+  those it did not reach (the plot). How many conversions did retargeting truly cause: about as many as its
+  Markov credit, about half of it, or close to none? Write your guess.
 - **Function.** `credit_vs_truth(credit: pd.DataFrame, incremental: pd.Series) -> pd.DataFrame`, one row per
   method with `tvd` (D_m), `largest_gap_channel` and `largest_gap` (credit share − true share for that channel,
   signed).
 - **Checkpoint.** Hand example: credit m1 {A: 5, B: 3, C: 2}, m2 {A: 2, B: 2, C: 6}; incremental {A: 6, B: 2,
   C: 0}: m1 → tvd 0.25, largest gap A, −0.25; m2 → tvd 0.60, largest gap C, +0.60. On the data: equals the
   reference to 1e-9, and `largest_gap_channel` is retargeting for `markov` and `shapley` (prototype: true on all
-  five seeds).
-- **Explain.** Compare with your guess (prototype: 23% and 25%). Look at the provided plot of mean true intent
-  among the users each channel reaches (prototype: display 0.00, social 0.14, email 0.64, search 0.86,
-  retargeting 1.05 standard deviations). Which mechanism earns retargeting its credit: it sits late in journeys,
-  it reaches users who would buy anyway, or it has the most touches?
-  *Why:* mostly selection. Retargeting reaches users who already intend to buy, so journeys that contain it
+  five seeds). After it passes, the cell prints `incremental` beside each method's credit.
+- **Failure messages** (four parts, ending with `workshop.use_reference(5)`; the wrong values were computed
+  during review). m1's tvd = 2.0: "compare shares, not counts; divide each column of `credit` by its total
+  and `incremental` by its total". m1's tvd = 0.50: "the share error has a factor ½, because each misplaced
+  share is counted once where it is missing and once where it is extra". m1's largest gap reported as C
+  (+0.20) instead of A (−0.25): "pick the channel with the largest absolute gap, then report its gap with
+  its sign".
+- **Explain.** Compare with your guess (prototype truth: 0 for retargeting). Look at the provided plot of mean
+  true intent among the users each channel reaches (prototype: display 0.00, social 0.14, email 0.64, search
+  0.86, retargeting 1.05 standard deviations). Which mechanism earns retargeting its credit: it sits late in
+  journeys, it reaches users who would buy anyway, or it has the most touches? Rule out what you can first:
+  Shapley's v uses only the set of channels on a journey, not their order or number, and Exercise 2 showed
+  that repeated touches in a row do not change where a journey goes next.
+  *Why:* mostly selection. Position and touch count cannot explain Shapley's credit, and repeated touches in
+  a row cannot explain Markov's. Retargeting reaches users who already intend to buy, so journeys that contain it
   convert more often, and every method reads that as credit. The stretch removes the targeting and shows how
   much remains: the efficiency rule still shares out conversions that would have happened anyway. Module 6's
   experiment avoided both problems by comparing with a randomized control group.
 
 *Provided after Exercise 5 · Is the gap noise?* Resample journeys with replacement (`N_BOOT` = 200 FULL, 50
 QUICK, seed shown), recompute every method's credit shares (counts vectorized over distinct paths, calling the
-learner's `conversion_probability` and `shapley_values`), and plot each method's share with its 95% bootstrap
-percentile interval and the true share marked. Sentence before the plot: "Look at whether any true share
-(black mark) falls inside a method's interval." Prototype: 200 resamples in 0.71 s; 0 of 25 inside.
+provided `conversion_probability` and the learner's `removal_effects` and `shapley_values`), and plot each
+method's share with its 95% bootstrap percentile interval and the true share marked. Sentence before the
+plot: "Look at whether any true share (black mark) falls inside a method's interval." Sentence after it:
+these intervals show sampling noise only; a method that is wrong in the same direction on every resample
+(bias) stays wrong however many journeys you have. Prototype: 200 resamples in 0.71 s; 0 of 25 inside.
 
 ### Decision · Move budget or test first? (5 minutes)
+
+The Markdown before the cell states the rule (below) before any number is printed, as Module 6's lab does,
+and adds: "Decide as you would at work, where there is no `truth`: use only the credit, the spend, the
+margin and the test's minimum detectable effect. The reveal comes after your sentence."
 
 Provided cell, in the standard order:
 
@@ -315,14 +442,27 @@ Provided cell, in the standard order:
   rate (α = 0.05 two-sided, 80% power): withholding retargeting from 20% of the users it reaches for one month detects a change of
   (z₀.₉₇₅ + z₀.₈) · √(p(1 − p)(1/n₁ + 1/n₀)) in conversion rate. Prototype: 16,741 users reached, conversion
   rate 8.3%, MDE 1.5 points = about 200 conversions among served users, against about 708 credited; margin at
-  risk if the credit were real: 20% × 708 × $9 ≈ $1,270.
+  risk if the credit were real: 20% × 708 × $9 ≈ $1,270. Also per channel, the break-even: spend ÷ $9, the
+  incremental conversions a month the channel must cause to pay back (retargeting: $2,500 ÷ $9 ≈ 278). Beside
+  the bootstrap intervals, one line: they cover sampling noise in the credit, not the bias Exercise 5 found.
 - **Rule** (stated before the numbers): "Attribution credit cannot separate a channel's effect from the intent
   of the users it reaches. Move budget toward a channel only when an experiment (Modules 6 and 7) or a
   lift-calibrated MMM (Module 9) shows that its cost per incremental conversion is below the $9 margin per
   conversion. If a holdout can detect an effect as large as the credit (MDE below the credited conversions),
   run it first."
-- **Recommendation:** the learner's sentence: test or move, which channel, the holdout share and its MDE, the
-  margin at risk, and what result would justify moving budget. The cell prints the mode.
+- **Recommendation:** the cell prints what the rule gives (prototype: test retargeting first, because the
+  holdout's MDE of about 200 conversions is below its roughly 708 credited), the margin at risk, what would
+  change it (a holdout showing a cost per incremental conversion below $9, that is more incremental
+  conversions a month than the break-even), and the mode ("QUICK changes only the bootstrap intervals").
+  Then the learner writes one sentence: test or move, which channel, the holdout share and its MDE, the
+  margin at risk, and what result would justify moving budget. The Markdown gives a template to fill in:
+
+  ```text
+  Your sentence: Before moving budget to ____ (cheapest by attribution, $____ per credited conversion),
+  withhold it from ____% of the users it reaches for one month. The test can detect ____ points (about
+  ____ conversions) and puts about $____ of margin at risk. Move budget only if it shows more than ____
+  incremental conversions a month (a cost per incremental conversion below $9).
+  ```
 
 Then a reveal cell: true incremental conversions, true cost per incremental conversion against the $9 margin
 (prototype: display $11.17, social $7.81, search $7.35, email $2.63, retargeting none, because Δ = 0), the
@@ -386,7 +526,9 @@ would fit an R notebook, with the package added to the R image.
 ## Names used in the lab
 
 `journeys`, `truth` (from `truth_mta.json`), `CHANNELS`, `TINY`, `P` (transition matrix), `credit`
-(channels × methods), `incremental`, `SEED`, `N_BOOT`, `QUICK`.
+(channels × methods), `incremental`, `coalitions` (the v(S) table), `SEED`, `N_BOOT`, `QUICK`.
+Learner functions: `heuristic_credit`, `transition_matrix`, `removal_effects`, `shapley_values`,
+`credit_vs_truth`. Provided helpers: `journey_states`, `conversion_probability`.
 
 ## References (verified)
 
@@ -448,10 +590,40 @@ Read on 2026-10-10 unless stated. For `references.qmd` (proposed entries are in 
   (harmless if it does, but confusing).
 - `modules.m16.deps`: add `src/mktstats/synth/mta.py`, `data/synthetic/mta_journeys.csv` and
   `data/synthetic/truth_mta.json`; install list `[numpy, pandas, scipy, matplotlib]` (SciPy for the MDE).
-- Write the bootstrap and the provided Shapley-credit cell so they call the learner's functions (after their
-  checkpoints passed or `use_reference`), with counts vectorized over distinct paths.
-- Checkpoint failure messages need the four parts of `briefs/_lab-standard.md` §5, for example for Exercise 3:
-  "Checkpoint 3: your conversion probability is 0.071; the share of journeys that converted is 0.0435, and a
-  chain estimated by counting must reproduce it exactly. This usually means conv or null is still in Q, or the
-  start row was left out. Check that Q has only start and the channels, and that r is the conv column. To move
-  on now, run `workshop.use_reference(3)`."
+- Write the bootstrap and the provided Shapley-credit cell so they call the learner's functions
+  (`removal_effects`, `shapley_values`; after their checkpoints passed or `use_reference`), with counts
+  vectorized over distinct paths.
+- Checkpoint failure messages need the four parts of `briefs/_lab-standard.md` §5. Each exercise above lists
+  its likely wrong answers and what the message says about them; the labeled `chain` check after Exercise 2
+  has its full message written out. Add a `mktstats.checks`-style test, or a verify-mode run, that feeds each
+  listed wrong answer and expects the message.
+
+## Pedagogy review (2026-10-10)
+
+Checked against `briefs/_lab-standard.md` §11 before any code exists. What changed, and why:
+
+1. **The linear solve is provided; the learner writes the removal effect.** Exercise 3 asked for two new
+   ideas at once (absorption probabilities by a linear solve, and the removal counterfactual) and its
+   Explain asked two questions, one of them a proof. For analysts who know regression but not Markov chains,
+   the solve is machinery; the removal counterfactual is the attribution idea, and its common mistake
+   (delete the channel and renormalize, which gives a negative removal effect on `TINY`) is worth meeting at
+   a checkpoint. `conversion_probability(P)` is now a provided cell with a labeled check (p equals the
+   observed share; the proof moved into its folded block). Exercise 3 is `removal_effects(P, channels)`.
+2. **Predicts ask about what has not been shown yet.** Exercise 5 asked for retargeting's Markov and Shapley
+   credit share, which the provided cells after Exercises 3 and 4 already print. It now asks for
+   retargeting's true incremental conversions, which nothing shows before the checkpoint. Exercise 3's
+   Predict now asks about the sum of removal effects, which its Explain then uses.
+3. **Explains use only what the learner has seen.** Exercise 2's Explain needed x (defined only in Exercise
+   3); it now works from the display row. Exercise 4's Explain needed the journey value function before the
+   notebook defined it; Part C now defines v(S) in words before Exercise 4, and the question has three
+   options.
+4. **Budget.** 8 + 8 + 8 + 9 + 7 = 40 (limit 40). Exercise 1 goes from 7 to 8 minutes (first exercise,
+   three rules, two provided tables to read); Exercise 3 from 9 to 8 (one idea instead of two, with the
+   solver cell read inside it). Provided cells between exercises print summaries, not long tables, because
+   their reading time comes out of the next exercise's minutes.
+5. **Failure messages** for every checkpoint, with the likely wrong answers computed on the hand examples.
+6. **Decision.** The rule comes first in Markdown; "what would change it" gets a number (break-even =
+   spend ÷ margin); the learner fills in a one-sentence template; the cell says the bootstrap intervals
+   cover noise, not bias.
+7. **Exercise 1's bins** moved from 20 / 35% to 20 / 30%, so that the prototype's 38% is not near a
+   boundary and a guess from reach alone falls in a different bin from the answer.

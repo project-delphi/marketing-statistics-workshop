@@ -46,7 +46,7 @@ Data
 
 **You leave with:**
 
-- Your own heuristic_credit(), transition_matrix(), conversion_probability() and shapley_values() functions, each checked on a hand-worked example
+- Your own heuristic_credit(), transition_matrix(), removal_effects() and shapley_values() functions, each checked on a hand-worked example
 - A table of credited conversions under five methods next to the true incremental conversions, with 95% bootstrap intervals
 - A test-or-move recommendation for retargeting, with the holdout's minimum detectable effect and the margin at risk
 :::
