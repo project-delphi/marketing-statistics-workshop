@@ -15,7 +15,7 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 [Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd), [Module 4](/modules/04-monetary-clv.qmd) and [Module 5](/modules/05-clv-decisions.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}

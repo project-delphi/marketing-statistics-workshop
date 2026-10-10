@@ -107,7 +107,8 @@ def test_a_ready_extension_never_counts_toward_the_core():
     report = readiness.build(v, all_passed(common.notebooks(v), current), DAY)
     s = report["summary"]
     assert s["notebooks"] == len(CORE_NB) - len(moved)
-    assert s["extensions"]["ready"] == len(moved)
+    written = [e for e in EXT_NB if e["id"] in current]  # extension notebooks that exist
+    assert s["extensions"]["ready"] == len(moved) + len(written)
     assert {e["id"] for e in report["notebooks"] if e["track"] != common.CORE} >= {
         e["id"] for e in moved
     }

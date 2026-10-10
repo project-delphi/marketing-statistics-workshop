@@ -18,7 +18,7 @@ What the labs run, and the docs or source each pin was checked against. Python p
 
 | Package | Version | Checked | Against | Docs |
 |---|---|---|---|---|
-| pymc-marketing | 1.2.0 | 2026-10-09 | installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer) | https://www.pymc-marketing.io/ |
+| pymc-marketing | 1.2.0 | 2026-10-10 | installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer; 2026-10-10: clv/distributions.py BetaGeoNBD.logp, clv/models/gamma_gamma.py GammaGammaModel.build_model and expected_customer_spend, clv/models/beta_geo.py BetaGeoModel.expected_purchases, transcribed in mktstats.mle and tested against them) | https://www.pymc-marketing.io/ |
 | econml | 0.17.0 | 2026-10-09 | https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py | https://www.pywhy.org/EconML/ |
 | nutpie | 0.16.11 | 2026-10-09 | PyPI | https://pymc-devs.github.io/nutpie/ |
 | lifelines | 0.30.3 | 2026-10-10 | PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13 | https://lifelines.readthedocs.io/ |
