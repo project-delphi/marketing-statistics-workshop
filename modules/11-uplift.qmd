@@ -58,11 +58,12 @@ A **causal forest** (Wager and Athey 2018; Athey, Tibshirani and Wager 2019) is 
 Even when the target is the average effect, the forest helps. The **augmented inverse probability weighting** (AIPW, "doubly robust") estimator averages a score per customer,
 
 $$
-\Gamma_i = \hat\mu_1(X_i) - \hat\mu_0(X_i)
+\begin{aligned}
+\Gamma_i &= \hat\mu_1(X_i) - \hat\mu_0(X_i)
 + \frac{W_i\,\big(Y_i - \hat\mu_1(X_i)\big)}{e}
-- \frac{(1 - W_i)\,\big(Y_i - \hat\mu_0(X_i)\big)}{1 - e},
-\qquad
-\widehat{\text{ATE}} = \frac{1}{n}\sum_i \Gamma_i ,
+- \frac{(1 - W_i)\,\big(Y_i - \hat\mu_0(X_i)\big)}{1 - e}, \\[4pt]
+\widehat{\text{ATE}} &= \frac{1}{n}\sum_i \Gamma_i ,
+\end{aligned}
 $$ {#eq-aipw}
 
 the model's predicted effect plus a correction from the customer's own outcome. It is unbiased if either the outcome models $\hat\mu$ or the propensity $e$ is right, hence "doubly robust"; here the email was assigned at random with $e = 0.5$, which the lab passes to grf (`W.hat = 0.5`), so the correction is exact. The scores have a second use: their average over **any** group of customers estimates that group's average effect, which section 5 uses to value targeting rules.
@@ -146,9 +147,10 @@ where $Y_T(k)$ and $Y_C(k)$ are the total spend of treated and control customers
 **TOC and RATE.** grf's version asks the same question with the doubly robust scores of @eq-aipw. For the top share $q$ of the ranked list, the **targeting operator characteristic** is
 
 $$
-\text{TOC}(q) = E\big[\tau(X) \mid \text{top } q \text{ of the ranking}\big] - E\big[\tau(X)\big],
-\qquad
-\text{RATE}_{\text{Qini}} = \int_0^1 q \,\text{TOC}(q)\, dq ,
+\begin{aligned}
+\text{TOC}(q) &= E\big[\tau(X) \mid \text{top } q \text{ of the ranking}\big] - E\big[\tau(X)\big], \\[4pt]
+\text{RATE}_{\text{Qini}} &= \int_0^1 q \,\text{TOC}(q)\, dq ,
+\end{aligned}
 $$ {#eq-rate}
 
 the extra effect among the top $q$ over the average, and the **rank-weighted average treatment effect** summarizes the curve (Yadlowsky et al. 2025). With the Qini weighting it is the analogue of the Qini coefficient; a RATE of 0 means the ranking does no better than random. Crucially, it comes with a standard error. **The forest must not grade itself**: the lab ranks the evaluation customers with the forest fitted on the training half, and estimates the TOC with a second forest fitted only on the evaluation half.

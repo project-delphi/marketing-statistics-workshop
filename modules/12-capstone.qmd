@@ -120,11 +120,11 @@ The retailer switched paid search off in 8 regions for 10 weeks (2025-10-20 to 2
 The mix model is national and weekly, so the test must be restated as a national weekly lift-test row. The scenario says each region responds as a scaled copy of the national curve; then eight regions holding a share $f$ of sales, over $W$ weeks, stand for the whole country over $fW$ weeks:
 
 $$
-\Delta x = \frac{\text{spend change}}{f\,W},
-\qquad
-\Delta y = \frac{\text{sales change}}{f\,W},
-\qquad
-\sigma = \frac{\operatorname{sd}\big(\text{placebo relative effects}\big) \times \text{synthetic sales of the treated regions}}{f\,W},
+\begin{aligned}
+\Delta x &= \frac{\text{spend change}}{f\,W}, \\[4pt]
+\Delta y &= \frac{\text{sales change}}{f\,W}, \\[4pt]
+\sigma &= \frac{\operatorname{sd}\big(\text{placebo relative effects}\big) \times \text{synthetic sales of the treated regions}}{f\,W},
+\end{aligned}
 $$ {#eq-national-row}
 
 with $x$ the national weekly search spend before the test ($18,000) and $f$ computed from the panel's pre-test weeks. Both $\Delta x$ and $\Delta y$ are negative for a cut, which `add_lift_test_measurements` accepts. The standard error comes from the placebos, each measured **relative to its own level** so that large and small regions are comparable, and leaving out placebos whose synthetic control fitted poorly before the test (pre-period error more than twice the median placebo's), because their gaps measure misfit, not noise.
@@ -177,9 +177,10 @@ All four truths lie inside the calibrated intervals. Search fell from 3.96, with
 Module 10's long-run objective values a steady weekly plan $s$ as one week's short-run margin plus the future margin of the customers that week's spend acquires:
 
 $$
-V(s) = m \sum_c r_c(s_c) \;+\; \sum_c s_c\, n_c\, \text{CLV}^{\text{media}}_c ,
-\qquad
-\text{CLV}^{\text{media}}_c = \sum_a \pi_{c,a}\, \text{CLV}^{\text{repeat}}_a ,
+\begin{aligned}
+V(s) &= m \sum_c r_c(s_c) \;+\; \sum_c s_c\, n_c\, \text{CLV}^{\text{media}}_c , \\[4pt]
+\text{CLV}^{\text{media}}_c &= \sum_a \pi_{c,a}\, \text{CLV}^{\text{repeat}}_a ,
+\end{aligned}
 $$ {#eq-long-run}
 
 where $r_c$ is the calibrated model's posterior-mean response curve and $\text{CLV}^{\text{repeat}}_a$ is Stage 1's value **without** the first purchase. You maximize @eq-long-run with the toolkit's SLSQP allocator, subject to the $75,000 budget and the bounds. The objective is concave plus linear, so it has one optimum, at which every channel inside its bounds has the same marginal value $m\, r_c'(s_c) + n_c\, \text{CLV}^{\text{media}}_c$ (Module 10's condition with a constant added per channel). Near the optimum TV's and search's short-run curves have almost the same slope, so a few cents per dollar of future margin can move thousands of dollars a week between them.
@@ -221,11 +222,12 @@ The long-run plan's 10% quantile ($87,086 a week) is above the current plan's ($
 An offer earns the margin on the spend it causes and costs $0.75 for every customer who gets it. So it pays for a customer exactly when
 
 $$
+\begin{gathered}
 m\, \hat\tau_i > c_{\text{offer}}
 \iff
-\hat\tau_i > \frac{0.75}{0.30} = \$2.50,
-\qquad
+\hat\tau_i > \frac{0.75}{0.30} = \$2.50, \\[4pt]
 \text{value of a rule} = \frac{1}{n} \sum_{i=1}^{n} \mathbb{1}[\text{send}_i] \big(m\, \tau_i - c_{\text{offer}}\big),
+\end{gathered}
 $$ {#eq-target}
 
 where the value is per held-out customer, relative to sending no one. A causal forest (EconML's `CausalForestDML`, Module 11) is fitted on the training half of the experiment and estimates $\hat\tau_i$ for each held-out customer. Your function applies the rule, strictly (at equality the offer only breaks even). What a customer would spend anyway does not enter: a loyal customer with a high probability of being alive (Module 2) may have no uplift at all.

@@ -134,7 +134,12 @@ format:
     code-summary: "Show the code"
     # An adaptive style: Quarto emits a light and a dark variant.
     syntax-highlighting: a11y
-    html-math-method: katex
+    # KaTeX at a fixed version: pandoc's default URL is katex@latest, which moved to 0.19.0 on
+    # 2026-10-01 without a commit here. 0.19.0 is the version the pages were checked with
+    # (2026-10-10), and custom.scss's equation-number rules use its class names.
+    html-math-method:
+      method: katex
+      url: "https://cdn.jsdelivr.net/npm/katex@0.19.0/dist/"
     link-external-newwindow: true
     # pedagogy.lua adds classes (section objectives, optional callouts); disclosure.lua
     # writes collapsed callouts as native <details>; inline-svg.lua inlines figures so

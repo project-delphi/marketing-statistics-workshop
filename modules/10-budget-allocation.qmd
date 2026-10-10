@@ -91,11 +91,11 @@ $$ {#eq-allocate}
 Its solution has a simple shape. Attach a multiplier $\mu$ to the budget constraint. At the optimum,
 
 $$
-m_c(s_c^*) = \mu \ \text{ if } \ell_c < s_c^* < u_c,
-\qquad
-m_c(\ell_c) \le \mu \ \text{ if } s_c^* = \ell_c,
-\qquad
-m_c(u_c) \ge \mu \ \text{ if } s_c^* = u_c .
+\begin{aligned}
+m_c(s_c^*) &= \mu && \text{if } \ell_c < s_c^* < u_c, \\[4pt]
+m_c(\ell_c) &\le \mu && \text{if } s_c^* = \ell_c, \\[4pt]
+m_c(u_c) &\ge \mu && \text{if } s_c^* = u_c .
+\end{aligned}
 $$ {#eq-kkt}
 
 Every channel strictly inside its bounds earns the same marginal ROAS; otherwise moving a dollar from the lower one to the higher one would add sales. A channel at its lower bound returns less than $\mu$ even there, so it would get less if the bound allowed. Because every $r_c$ is concave, the problem has a single optimum, and a local method finds it.
@@ -141,9 +141,10 @@ A plan's sales are uncertain because the model's parameters are. For each poster
 Two summaries of the bad case:
 
 $$
-q_{0.1} = \text{the 10\% quantile of the draws},
-\qquad
-\text{CVaR}_{0.1} = \text{mean of the draws at or below } q_{0.1} .
+\begin{aligned}
+q_{0.1} &= \text{the 10\% quantile of the draws}, \\[4pt]
+\text{CVaR}_{0.1} &= \text{mean of the draws at or below } q_{0.1} .
+\end{aligned}
 $$ {#eq-risk}
 
 The 10% quantile says how bad the bad case is; CVaR (conditional value at risk) also says how bad the tail is beyond it. A **risk-averse plan** maximizes $q_{0.1}$ instead of the mean. FULL run, weekly incremental sales from media:

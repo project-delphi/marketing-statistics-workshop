@@ -179,9 +179,11 @@ The BTYD forecaster is the Pareto/NBD (flat priors, MAP; with the channel covari
 For each method and each group of customers by calibration frequency, the lab reports
 
 $$
+\begin{gathered}
 \text{MAE} = \frac{1}{n}\sum_i |\hat y_i - y_i|, \qquad
-\text{RMSE} = \sqrt{\frac{1}{n}\sum_i (\hat y_i - y_i)^2}, \qquad
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_i (\hat y_i - y_i)^2}, \\[4pt]
 \text{bias} = \sum_i \hat y_i - \sum_i y_i .
+\end{gathered}
 $$ {#eq-scorecard}
 
 MAE weighs every error equally; RMSE weighs large errors more; bias shows whether a method forecasts too many or too few purchases in total, which matters for planning stock or budget. FULL run, MAE per customer (purchases in 13 weeks):
