@@ -146,7 +146,10 @@ def header_source(v: dict, entry: dict) -> str:
     day = v["days"][m["day"]]
     lab = m["minutes"]["lab"]
     when = day["label"]
-    optional = " (optional pre-work)" if m.get("optional") else ""
+    if entry["track"] != common.CORE:
+        optional = " (optional, beyond the core week)"
+    else:
+        optional = " (optional pre-work)" if m.get("optional") else ""
     lines = [
         NOTICE,
         f"# Module {entry['n']} · {m['title']}",
@@ -426,8 +429,10 @@ def record_source(entry: dict) -> str:
 
 
 def next_notebook(v: dict, entry: dict) -> dict | None:
-    """The next notebook in the same language, else the next one at all."""
-    order = common.notebooks(v)
+    """The next notebook of the same track (the core week, or the extensions) in the same
+    language, else the next one of that track at all. The core never leads into the
+    optional extensions."""
+    order = [e for e in common.notebooks(v) if e["track"] == entry["track"]]
     later = [e for e in order if (e["n"], e["index"]) > (entry["n"], entry["index"])]
     same = [e for e in later if e["language"] == entry["language"]]
     return (same or later or [None])[0]
@@ -436,16 +441,30 @@ def next_notebook(v: dict, entry: dict) -> dict | None:
 def footer_source(v: dict, entry: dict) -> str:
     site = v["repo"]["site"].rstrip("/")
     nxt = next_notebook(v, entry)
+    core = entry["track"] == common.CORE
     lines = [NOTICE, "---"]
-    if nxt is None:
-        lines.append("**This is the last notebook.**")
+    if nxt is None and core:
+        lines.append("**This is the last notebook of the core workshop.**")
+        for dkey in common.extension_days(v):
+            d = v["days"][dkey]
+            page = f"{site}/{common.day_track(v, dkey)}.html"
+            lines += [
+                "",
+                f"**Optional, after the week:** [{d['label']} · {d['title']}]({page})"
+                f" ({common.module_range(common.day_module_numbers(v, dkey))}), self-paced"
+                " modules beyond the core week.",
+            ]
+    elif nxt is None:
+        page = f"{site}/{entry['track']}.html"
+        lines.append(f"**This is the last extension notebook.** [All extensions]({page})")
     else:
         title = f"Module {nxt['n']} · {v['modules'][nxt['module']]['title']}"
         lang = LANGUAGE_NAMES[nxt["language"]]
+        label = "Next" if core else "Next extension"
         if (ROOT / nxt["path"]).exists():
-            lines.append(f"**Next:** [{title}]({colab_url(v, nxt['path'])}) ({lang})")
+            lines.append(f"**{label}:** [{title}]({colab_url(v, nxt['path'])}) ({lang})")
         else:
-            lines.append(f"**Next:** {title} ({lang}, in preparation)")
+            lines.append(f"**{label}:** {title} ({lang}, in preparation)")
     lines += [
         "",
         f"[Workshop site]({site}/) · [All notebooks]({site}/notebooks.html) ·"

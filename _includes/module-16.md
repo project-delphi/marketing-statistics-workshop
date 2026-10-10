@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 16]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 16]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -54,7 +54,8 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 15 · Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd) and its lab.
+- [Module 6](/modules/06-experiments.qmd): the minimum detectable effect, and why attribution is not incrementality
+- [Module 8](/modules/08-bayesian-mmm.qmd): ROAS per channel from a marketing mix model
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

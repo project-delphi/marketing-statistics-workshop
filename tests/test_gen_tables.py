@@ -61,7 +61,8 @@ def test_filled_content_is_shown():
 
 
 def test_facts_count_exercises_from_the_notebooks():
-    expected = sum(len(lab_steps.exercises(e)) for e in common.existing_notebooks(V))
+    core = [e for e in common.existing_notebooks(V) if e["track"] == common.CORE]
+    expected = sum(len(lab_steps.exercises(e)) for e in core)
     assert f"**{expected}** hands-on exercises" in g.facts(V)
 
 
@@ -86,15 +87,15 @@ def test_install_times_come_only_from_hosted_runtimes():
 
 def test_the_summary_never_claims_readiness_without_colab_runs():
     report = readiness.build(V, [record(env="docker-arm64", source="test_notebooks")], None)
-    assert "not yet ready to teach" in g.readiness_summary(report)
+    assert "not yet ready to teach" in g.readiness_summary(V, report)
 
 
 def test_the_summary_needs_ci_as_well_as_colab():
     s = {"notebooks": 2, "written": 2, "ready": 2, "ci_passed": 0, "elsewhere_passed": 0,
          "elsewhere_full": 0, "as_of": "2026-10-09", "max_age": 21, "all_ready": True}
-    assert ": ready to teach.**" not in g.readiness_summary({"summary": s})
-    assert "once CI passes" in g.readiness_summary({"summary": s})
-    assert ": ready to teach.**" in g.readiness_summary({"summary": {**s, "ci_passed": 2}})
+    assert ": ready to teach.**" not in g.readiness_summary(V, {"summary": s})
+    assert "once CI passes" in g.readiness_summary(V, {"summary": s})
+    assert ": ready to teach.**" in g.readiness_summary(V, {"summary": {**s, "ci_passed": 2}})
 
 
 def test_the_readiness_page_marks_documented_envs():
@@ -150,3 +151,24 @@ def test_a_lab_in_two_languages_is_one_choice():
 def test_two_different_notebooks_share_the_slot():
     entries = g.notebooks_of(V, "m03")
     assert len(entries) == 2 and not g.alternatives(entries)
+
+
+def test_the_language_is_not_repeated():
+    m = {"language": ["python"], "language_why": "Python. PyMC-Marketing fits it."}
+    assert g.languages_text(m) == "Python. PyMC-Marketing fits it."
+    m = {"language": ["python", "r"], "language_why": "Python for A; R for B."}
+    assert g.languages_text(m) == "Python for A; R for B."
+    # A why that does not open with a language, or leaves one out, keeps the list.
+    m = {"language": ["python", "r"], "language_why": "Both. One harness."}
+    assert g.languages_text(m) == "Python, R. Both. One harness."
+    m = {"language": ["python", "r"], "language_why": "Python for everything."}
+    assert g.languages_text(m) == "Python, R. Python for everything."
+    assert g.languages_text({"language": ["r"]}) == "R"
+    for key in V["modules"]:
+        text = g.module_header(V, key)
+        assert "Python. Python" not in text and ":   R. R " not in text, key
+
+
+def test_a_core_module_needs_the_module_before_it():
+    text = g.module_header(V, "m02").split("## Before you start", 1)[1]
+    assert f"[Module 1 · {V['modules']['m01']['title']}](/modules/" in text

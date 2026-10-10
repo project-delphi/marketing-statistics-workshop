@@ -14,6 +14,11 @@ on:
         description: "Date to check, YYYY-MM-DD (empty: today)"
         required: false
         default: ""
+      extensions:
+        description: "Also require the optional extension notebooks (Modules 13-17)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -36,6 +41,12 @@ jobs:
             echo "No evidence branch: the release check will list every notebook as having no CI run."
           fi
       - name: Release check
+        # The core workshop decides the result; the extensions are reported, and required
+        # only when the dispatch ticks `extensions` (release_check.py --extensions).
         env:
           AS_OF: ${{ inputs.as_of }}
-        run: uv run --no-project --with pyyaml python scripts/release_check.py --as-of "${AS_OF:-$(date -u +%F)}"
+          EXTENSIONS: ${{ inputs.extensions }}
+        run: |
+          flags=()
+          if [ "$EXTENSIONS" = "true" ]; then flags+=(--extensions); fi
+          uv run --no-project --with pyyaml python scripts/release_check.py --as-of "${AS_OF:-$(date -u +%F)}" "${flags[@]}"
