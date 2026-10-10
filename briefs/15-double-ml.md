@@ -429,7 +429,7 @@ the true effect: all customers (ATE), installers (ATT), non-installers (ATC). De
   big spenders the kept share is within 0.90 ± 0.02, among the others within 0.20 ± 0.02 (binomial standard
   errors 0.003 and 0.004 at FULL, with 11,357 and 10,030 treated customers in the two groups; about 0.004
   and 0.006 at QUICK). Then a provided cell runs `baseline_estimates` and `fit_linear_dml` (same boosted
-  models and 5 stratified folds) on the sample, and a second labelled checkpoint asserts: the naive 95% CI
+  models and 5 stratified folds) on the sample, and a second labeled checkpoint asserts: the naive 95% CI
   excludes the benchmark, and the `LinearDML` 95% CI contains it. Prototype FULL: benchmark 4.52 pp (se 0.32), sample of
   33,526 customers (36.4% e-mailed), naive 6.18 pp [5.39, 6.96], regression 4.76 pp, `LinearDML` 4.65 pp
   [3.83, 5.46]; QUICK: benchmark 4.60, naive 6.02 [4.92, 7.12], `LinearDML` 4.69 [3.54, 5.84]. Over 20
@@ -458,7 +458,7 @@ Provided cells, in the standard order:
   excluding the truth; without `email_open_rate` +$0.13. One sentence before the output: "`mobile_share`
   drives both install and spend; `email_open_rate` drives only install." Across seeds the shift without
   `mobile_share` was at least +$5.06 at FULL and +$4.62 at QUICK (40 LightGBM seeds each) and +$5.34 with
-  histogram boosting (30 seeds); a labelled check may assert a shift above +$3. 5.8 s on the laptop.
+  histogram boosting (30 seeds); a labeled check may assert a shift above +$3. 5.8 s on the laptop.
 - **Number:** incremental margin per persuaded install over 26 weeks, $m\,\hat\theta$, with its 95% CI.
   Prototype FULL: 0.30 × $13.51 = $4.05 ($3.15 to $4.95); QUICK $4.27 ($2.94 to $5.59). Also the break-even
   effect, credit ÷ margin = $8.33 of spend, and how far the estimate is above it.
@@ -473,9 +473,9 @@ Provided cells, in the standard order:
   `mobile_share` shift, against the break-even) and prints whether it would flip the decision. Prototype
   FULL: "a confounder as strong as `mobile_share`, pushing in the same direction and still unobserved,
   would lower the estimate by about $6.4 to about $7.1, below the $8.33 break-even: the decision would
-  flip." Prototype QUICK: $14.22 − $5.50 = $8.72, just above the break-even, so it would not; the cell must
-  not hard-code either sentence (a decision near its threshold, `briefs/_lab-standard.md`). The learner names the
-  confounder they fear most (for example: purchase intent at launch, when customers about to buy install the
+  flip." Prototype QUICK: $14.22 − $5.50 = $8.72, slightly above the break-even, so it would not; the
+  cell must not hard-code either sentence (a decision near its threshold, `briefs/_lab-standard.md`). The
+  learner names the confounder they fear most (for example: purchase intent at launch, when customers about to buy install the
   app to do it; or phone use, if the extract lacks it). The cell prints the mode ("QUICK run: treat this as a
   rough answer").
 - **Then the truth** (separate cell): the true effect on the customers a credit that doubles the odds of
@@ -583,13 +583,14 @@ every call in the prototype (econml 0.17.0, scikit-learn 1.6.1, statsmodels 0.15
   and of the Hillstrom check over at least 30 seeds, and write the measured tolerances into
   `truth_app_install.json`. Replace every prototype number in the notebook's markdown with recorded ones.
 - `modules.m15.notebooks[0].install`: `[econml, scikit-learn, statsmodels, matplotlib]` (drop `lightgbm`
-  from the list, see Model fits; econml still pulls it in as a dependency, at the pinned 4.6.0). `deps`: add `data/synthetic/app_install_customers.csv` and
-  `data/synthetic/truth_app_install.json` (not `truth.json`).
+  from the list, see Model fits; econml still pulls it in as a dependency, at the pinned 4.6.0).
+  `deps`: add `data/synthetic/app_install_customers.csv` and `data/synthetic/truth_app_install.json`
+  (not `truth.json`).
 - `scripts/gen_tables.py` lists the previous module ("Module 14 … and its lab") under "Before you start"
   for every module. For the optional extension modules this is wrong; consider rendering
   `modules.mNN.prerequisites` for modules with `optional: true`. (Also, every module page renders
   "Python. Python." because `language_why` starts with the language; the core modules do the same.)
-- Decide whether the overfit and hidden-confounder demonstrations get labelled checkpoints (only on
+- Decide whether the overfit and hidden-confounder demonstrations get labeled checkpoints (only on
   quantities that were stable across seeds: the standard-error ratio, and a shift above +$3).
 - Confirm that histogram boosting with `random_state` gives identical results with the folds passed to
   both the hand version and EconML on Colab and in Docker (it did on the laptop, to 2e-15).
@@ -648,7 +649,7 @@ Each was opened on the date shown; the note says what the page supports here. Pr
 - **EconML** (PyWhy): `LinearDML` reference
   <https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html> and the double machine learning
   user guide <https://www.pywhy.org/EconML/spec/estimation/dml.html>\
-  *Verified (2026-10-10)*: both pages are labelled econml 0.16.0; the lab pins 0.17.0, whose source was
+  *Verified (2026-10-10)*: both pages are labeled econml 0.16.0; the lab pins 0.17.0, whose source was
   checked (APIs verified, above). The guide writes the model as $Y = \theta(X) T + g(X, W) + \varepsilon$,
   residualizes $Y$ and $T$ on $(X, W)$ and regresses residual on residual, requires cross-fitted nuisance
   estimates, and attributes the robustness to Neyman orthogonality; `LinearDML`'s final stage is
