@@ -39,7 +39,7 @@ Each day answers one question, and each module ends in a business decision. A mo
 {{< include /_includes/days.md >}}
 
 ::: {.prose}
-See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd). Before Day 1, [Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd) is optional pre-work: it checks that Colab runs for you and warms up the SQL and data-frame skills Day 1 uses.
+See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd). Before Day 1, [Module 0 · {{< var modules.m00.title >}}](modules/00-prework.qmd) is optional pre-work: it checks that Colab runs for you and warms up the SQL and data-frame skills Day 1 uses. After the week, the optional [extensions](extensions.qmd) go further, on your own or in a custom schedule.
 :::
 
 ## The path {#path}
@@ -49,6 +49,14 @@ Each step fixes a failure of the one before it. The same retailer and its data c
 :::
 
 {{< include /_includes/path.md >}}
+
+## Beyond the week {#extensions}
+
+::: {.section-lede}
+Optional, self-paced [extensions](extensions.qmd), outside the five days. Each starts from the core modules named under it, not from the capstone.
+:::
+
+{{< include /_includes/path-extensions.md >}}
 
 ## How the parts connect {#integration}
 

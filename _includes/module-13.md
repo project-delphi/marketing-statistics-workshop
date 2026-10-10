@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 13]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 13]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -53,7 +53,9 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 12 · Capstone: one decision pipeline for the retailer](/modules/12-capstone.qmd) and its lab.
+- [Module 1](/modules/01-customer-base.qmd): the RFM table in SQL
+- [Module 2](/modules/02-btyd.qmd): BG/NBD and the calibration/holdout split
+- [Module 4](/modules/04-monetary-clv.qmd): Gamma-Gamma and discounted CLV
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

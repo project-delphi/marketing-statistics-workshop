@@ -149,7 +149,12 @@ days:
       - {kind: wrapup, minutes: 20}
   # Extensions: optional modules outside the five timed days, done on your own after the week
   # or swapped into a custom schedule (each keeps the 45-55 / 55 / 10 module format).
+  # `track` (Technical Expert): a day without it is the core workshop. Modules on a day with
+  # `track: extensions` are counted, judged for readiness and released separately from the
+  # core (scripts/readiness.py, scripts/release_check.py --extensions); the day's page is
+  # extensions.qmd (<track>.qmd).
   d6:
+    track: extensions
     label: "Extensions"
     title: "Beyond the core week"
     question: "What changes when the data are messy, observational, path-shaped or drifting?"

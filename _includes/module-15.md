@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 15]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 15]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -54,7 +54,9 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd) and its lab.
+- [Module 6](/modules/06-experiments.qmd): randomized experiments and confidence intervals
+- [Module 11](/modules/11-uplift.qmd): EconML and treatment effects
+- Gradient boosting at the level of fit and predict
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

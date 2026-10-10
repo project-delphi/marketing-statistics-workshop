@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 14]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 14]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -54,7 +54,8 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 13 · Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd) and its lab.
+- [Module 4](/modules/04-monetary-clv.qmd): the shifted-beta-geometric model and contractual churn
+- Logistic regression coefficients read as multiplicative effects
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

@@ -52,6 +52,11 @@ that is all of:
   record in the repository (so they never change with the calendar); the release check
   judges it against the release date.
 
+The verdict ("ready to teach") is about the core workshop: pre-work and Days 1-5. Notebooks of
+the optional extensions (modules on a day with `track: extensions`) are judged by the same rules
+but reported apart, on their own line and in their own table; `release_check.py` requires them
+only with `--extensions`.
+
 Envs with `documented_only: true` (the AWS paths) cannot have records and are always shown
 as "documented, not run". Laptop, Docker and CI times are shown on their own lanes and are
 never labelled as Colab times.

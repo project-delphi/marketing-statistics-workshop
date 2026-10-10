@@ -3,13 +3,15 @@ the run records. Never edit the outputs by hand: change the inputs and rerun.
 
   _includes/facts.md              counts for the landing page
   _includes/days.md               the days as cards
-  _includes/path.md               the numbered modules, by day
+  _includes/path.md               the numbered modules of the core workshop, by day
+  _includes/path-extensions.md    the optional extension modules, with what each builds on
   _includes/schedule.md           one whole-day timetable per day, with clock times
   _includes/day-N.md              the module cards of day N
   _includes/run-N.md              the run sheet of day N (facilitators)
   _includes/module-NN.md          the header of module NN's page
   _includes/lab-NN.md             the lab steps of module NN, from its sources' headings
-  _includes/notebooks.md          every notebook with its Colab link and measured time
+  _includes/notebooks.md          every core notebook with its Colab link and measured time
+  _includes/notebooks-extensions.md  the same for the optional extension notebooks
   _includes/readiness.md          what has run where, per notebook (scripts/readiness.py)
   _includes/readiness-summary.md  one paragraph of the same
   _includes/install-times.md      measured install times by runtime
@@ -21,6 +23,12 @@ Missing content keys (an empty summary, objectives or decision) render as "to be
 never as an empty element. The readiness outputs judge age against the newest record's
 date, never today's, so they change only when the repository does.
 
+The core workshop (pre-work and Days 1-5) and the optional extensions (modules on a day
+with `track: extensions`) are counted apart everywhere: the landing-page counts, the
+readiness verdict and the notebooks table are the core's; the extensions get their own
+line, table or section, and their day has a page of its own (extensions.qmd) instead of a
+timetable.
+
 Run:   python scripts/gen_tables.py           write
        python scripts/gen_tables.py --check   exit 1 if any output would change
 """
@@ -28,6 +36,7 @@ Run:   python scripts/gen_tables.py           write
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -225,6 +234,88 @@ def day_link(dkey: str) -> str:
     return f"/day-{day_number(dkey)}.qmd"
 
 
+def is_core(v: dict, dkey: str) -> bool:
+    return common.day_track(v, dkey) == common.CORE
+
+
+def day_page(v: dict, dkey: str) -> str | None:
+    """The page of a day: day-N.qmd for a timed day, <track>.qmd for the extensions, none
+    for the pre-work (its one module page stands in for it)."""
+    if v["days"][dkey].get("blocks"):
+        return day_link(dkey)
+    if not is_core(v, dkey):
+        return f"/{common.day_track(v, dkey)}.qmd"
+    return None
+
+
+def core_modules(v: dict) -> list[tuple[str, dict]]:
+    return [(k, m) for k, m in modules(v) if is_core(v, m["day"])]
+
+
+def extension_modules(v: dict) -> list[tuple[str, dict]]:
+    return [(k, m) for k, m in modules(v) if not is_core(v, m["day"])]
+
+
+def core_scope(v: dict) -> str:
+    """'pre-work and Days 1–5': the days the core workshop's verdict is about."""
+    untimed = [d["title"].lower() for k, d in days(v) if is_core(v, k) and not d.get("blocks")]
+    timed = [day_number(k) for k, d in days(v) if is_core(v, k) and d.get("blocks")]
+    return " and ".join([*untimed, *([common.module_range(timed, "Day")] if timed else [])])
+
+
+def extensions_scope(v: dict) -> str:
+    """'Modules 13–17': the optional extension modules."""
+    return common.module_range([module_number(k) for k, _ in extension_modules(v)])
+
+
+MODULE_REF = re.compile(r"\bModules?\s+(\d+(?:\s*(?:,|and|–|-)\s*\d+)*)")
+
+
+def referenced_modules(text: str) -> list[int]:
+    """Module numbers a sentence names: 'Module 4: ...' -> [4]; 'Modules 8–10' -> [8, 9, 10]."""
+    nums: list[int] = []
+    for match in MODULE_REF.finditer(text):
+        for part in re.split(r"\s*(?:,|and)\s*", match.group(1)):
+            ends = [int(x) for x in re.split(r"\s*[–-]\s*", part) if x]
+            nums += list(range(ends[0], ends[-1] + 1))
+    return nums
+
+
+def builds_on(v: dict, key: str) -> list[str]:
+    """The other modules a module's `prerequisites` name, in order (module keys)."""
+    known = {module_number(k): k for k in v["modules"]}
+    out = []
+    for item in v["modules"][key].get("prerequisites") or []:
+        for n in referenced_modules(str(item)):
+            if n in known and known[n] != key and known[n] not in out:
+                out.append(known[n])
+    return out
+
+
+def builds_on_text(v: dict, key: str) -> str:
+    """'Builds on [Module 1](...), [Module 2](...) and [Module 4](...).' or ''."""
+    links = [
+        f"[Module {module_number(k)}]({module_link(k, v['modules'][k])})" for k in builds_on(v, key)
+    ]
+    if not links:
+        return ""
+    joined = links[0] if len(links) == 1 else f"{', '.join(links[:-1])} and {links[-1]}"
+    return f"Builds on {joined}."
+
+
+def link_modules(v: dict, text: str) -> str:
+    """Link each 'Module N' in a plain sentence to that module's page."""
+    if "](" in text:
+        return text  # already has links
+    known = {module_number(k): k for k in v["modules"]}
+
+    def repl(match: re.Match) -> str:
+        k = known.get(int(match.group(1)))
+        return f"[{match.group(0)}]({module_link(k, v['modules'][k])})" if k else match.group(0)
+
+    return re.sub(r"\bModule (\d+)\b", repl, text)
+
+
 def text_or(value, fallback: str) -> str:
     value = (value or "").strip() if isinstance(value, str) else value
     return value if value else f"*{fallback[0].upper()}{fallback[1:]}.*"
@@ -246,9 +337,14 @@ def colab_buttons(v: dict, key: str) -> str:
 # ---- landing page ------------------------------------------------------------------------
 
 
+def track_notebooks(v: dict, core: bool) -> list[dict]:
+    """The core workshop's notebooks, or the optional extensions'."""
+    return [e for e in common.notebooks(v) if (e["track"] == common.CORE) == core]
+
+
 def exercise_counts(v: dict) -> tuple[int, int]:
-    """(exercises in the written notebooks, written notebooks)."""
-    written = [e for e in common.notebooks(v) if exists(e)]
+    """(exercises in the written core notebooks, written core notebooks)."""
+    written = [e for e in track_notebooks(v, core=True) if exists(e)]
     return sum(len(lab_steps.exercises(e)) for e in written), len(written)
 
 
@@ -260,9 +356,11 @@ def range_text(values: list[int]) -> str:
 
 
 def facts(v: dict) -> str:
-    entries = common.notebooks(v)
-    taught = [(k, m) for k, m in modules(v) if not m.get("optional")]
-    optional = [(k, m) for k, m in modules(v) if m.get("optional")]
+    """The core workshop's counts, then the optional extensions as one separate fact."""
+    entries = track_notebooks(v, core=True)
+    core = core_modules(v)
+    taught = [(k, m) for k, m in core if not m.get("optional")]
+    optional = [(k, m) for k, m in core if m.get("optional")]
     n_py = sum(e["language"] == "python" for e in entries)
     n_r = sum(e["language"] == "r" for e in entries)
     n_ex, written = exercise_counts(v)
@@ -280,6 +378,16 @@ def facts(v: dict) -> str:
         f"**{range_text([m['minutes']['briefing'] for m in standard])}** min briefings,"
         f" **{range_text([m['minutes']['lab'] for m in standard])}** min labs",
     ]
+    extensions = extension_modules(v)
+    if extensions:
+        ext_nb = track_notebooks(v, core=False)
+        ext_written = sum(exists(e) for e in ext_nb)
+        text = f"**+{len(extensions)}** optional extension modules"
+        if ext_nb and not ext_written:
+            text += " (notebooks in preparation)"
+        elif ext_written < len(ext_nb):
+            text += f" ({ext_written} of {len(ext_nb)} notebooks written)"
+        items.append(text)
     return "::: {.facts}\n" + "\n".join(f"[{x}]{{.fact}}" for x in items) + "\n:::"
 
 
@@ -293,9 +401,11 @@ def days_cards(v: dict) -> str:
             what = f"Modules {nums[0]}–{nums[-1]}" if len(nums) > 1 else f"Module {nums[0]}"
             span_text = f"{what} · {span(plan(v, dkey))}"
         else:
-            link = module_link(keys[0], v["modules"][keys[0]]) if keys else "/index.qmd"
+            link = day_page(v, dkey) or (
+                module_link(keys[0], v["modules"][keys[0]]) if keys else "/index.qmd"
+            )
             optional = all(v["modules"][k].get("optional") for k in keys)
-            span_text = f"Module {', '.join(map(str, nums))}" + (", optional" if optional else "")
+            span_text = common.module_range(nums) + (", optional" if optional else "")
         out += [
             "::: {.day-card}",
             f"[{d['label']}]{{.eyebrow}}",
@@ -311,23 +421,25 @@ def days_cards(v: dict) -> str:
     return "\n".join(out)
 
 
-def path(v: dict) -> str:
+def path(v: dict, core: bool = True) -> str:
+    """The numbered modules by day: the core workshop's path (pre-work and Days 1-5), or,
+    with core=False, the optional extensions, each with the modules it builds on."""
     out = ["::: {.path}"]
     for dkey, d in days(v):
         keys = day_modules(v, dkey)
-        if not keys:
+        if not keys or is_core(v, dkey) != core:
             continue
         label = f"{d['label']} · {d['title']}"
-        label = (
-            f"[{label}]({day_link(dkey)}){{.path-day-label}}"
-            if d.get("blocks")
-            else (f"[{label}]{{.path-day-label}}")
-        )
+        page = day_page(v, dkey)
+        label = f"[{label}]({page}){{.path-day-label}}" if page else f"[{label}]{{.path-day-label}}"
         out += ["::: {.path-day}", label, ""]
         for key in keys:
             m = v["modules"][key]
             optional = bool(m.get("optional"))
             chip = " [Optional]{.chip}" if optional else ""
+            body = [text_or(m.get("summary"), f"summary {TBW}")]
+            if not core and builds_on_text(v, key):
+                body += ["", f"[{builds_on_text(v, key)}]{{.path-builds-on}}"]
             out += [
                 "::: {.path-step" + (" .path-step-optional" if optional else "") + "}",
                 f"[{module_number(key)}]{{.path-num}}",
@@ -335,7 +447,7 @@ def path(v: dict) -> str:
                 "::: {.path-body}",
                 f"[{m['title']}]({module_link(key, m)}){{.path-title}}{chip}",
                 "",
-                text_or(m.get("summary"), f"summary {TBW}"),
+                *body,
                 ":::",
                 ":::",
             ]
@@ -362,6 +474,9 @@ def schedule(v: dict) -> str:
     out = []
     for dkey, d in days(v):
         n = day_number(dkey)
+        if not is_core(v, dkey):
+            out += extensions_schedule(v, dkey)
+            continue
         if not d.get("blocks"):
             keys = day_modules(v, dkey)
             mods = ", ".join(
@@ -402,11 +517,38 @@ def schedule(v: dict) -> str:
     return "\n".join(out)
 
 
+def extensions_schedule(v: dict, dkey: str) -> list[str]:
+    """The extensions on the schedule: a list, never a timetable (they are self-paced)."""
+    d = v["days"][dkey]
+    page = day_page(v, dkey)
+    items = [
+        f"- [Module {module_number(k)} · {v['modules'][k]['title']}]"
+        f"({module_link(k, v['modules'][k])}): {minutes_text(v['modules'][k])}"
+        for k in day_modules(v, dkey)
+    ]
+    return [
+        f"## [{d['label']} · {d['title']}]({page}) {{#{common.day_track(v, dkey)}}}",
+        "",
+        f"*{d['question']}*",
+        "",
+        "Optional and self-paced, with no timetable: they are not part of the"
+        f" {v['workshop']['length']}. Do them on your own after the week, or swap one into a"
+        " custom schedule in place of a core module. Each is one module, a briefing, a lab"
+        " and a debrief:",
+        "",
+        *items,
+        "",
+    ]
+
+
 def module_cards(v: dict, dkey: str) -> str:
     out = ["::: {.module-cards}"]
     for key in day_modules(v, dkey):
         m = v["modules"][key]
         when = module_clock(v, key) or minutes_text(m)
+        extra = []
+        if not is_core(v, dkey) and builds_on_text(v, key):
+            extra = ["", f"[{builds_on_text(v, key)}]{{.module-builds-on}}"]
         out += [
             "::: {.module-card}",
             f"[{when}]{{.module-clock}}",
@@ -418,6 +560,7 @@ def module_cards(v: dict, dkey: str) -> str:
             "::: {.module-summary}",
             text_or(m.get("summary"), f"summary {TBW}"),
             ":::",
+            *extra,
             "",
             "::: {.module-actions}",
             f"[Open the briefing]({module_link(key, m)}){{.btn-quiet}} {colab_buttons(v, key)}",
@@ -431,6 +574,11 @@ def module_cards(v: dict, dkey: str) -> str:
 def run_sheet(v: dict, dkey: str) -> str:
     d = v["days"][dkey]
     segs = plan(v, dkey)
+    if not segs and not is_core(v, dkey):
+        return (
+            "No timetable: these modules are optional and self-paced. Swapped into a custom"
+            " schedule, each takes a module's usual briefing, lab and debrief."
+        )
     if not segs:
         return f"{d['label']} has no timetable: the pre-work is done on your own."
     rows = ["| Time | Session | What happens |", "|---|---|---|"]
@@ -468,11 +616,8 @@ def module_header(v: dict, key: str) -> str:
     d = v["days"][m["day"]]
     n = module_number(key)
     when = part_times(v, key)
-    day_text = (
-        f"[{d['label']}]({day_link(m['day'])}){{.eyebrow}}"
-        if d.get("blocks")
-        else (f"[{d['label']}]{{.eyebrow}}")
-    )
+    page = day_page(v, m["day"])
+    day_text = f"[{d['label']}]({page}){{.eyebrow}}" if page else f"[{d['label']}]{{.eyebrow}}"
     meta = f"{day_text} [Module {n}]{{.module-num}} [{minutes_text(m)}]{{.module-time}}"
     if when:
         meta += f" [{when}]{{.module-clock}}"
@@ -534,9 +679,14 @@ def module_header(v: dict, key: str) -> str:
 
 
 def prerequisites(v: dict, key: str) -> list[str]:
+    """'Before you start': a core module needs the module before it; an extension needs
+    what its `prerequisites` name (it builds on core modules, not on the capstone)."""
     items = []
     earlier = [k for k, _ in modules(v) if module_number(k) < module_number(key)]
-    if earlier:
+    if not is_core(v, v["modules"][key]["day"]):
+        declared = v["modules"][key].get("prerequisites") or []
+        items += [link_modules(v, str(p)) for p in declared] or [f"*Prerequisites {TBW}.*"]
+    elif earlier:
         prev = earlier[-1]
         pm = v["modules"][prev]
         items.append(
@@ -640,13 +790,14 @@ def teaching_time(v: dict, entry: dict, records: list[dict]) -> str:
     return f"{readiness.duration(r.get('seconds'))} on Colab ({r['date']})"
 
 
-def notebooks_table(v: dict, records: list[dict]) -> str:
+def notebooks_table(v: dict, records: list[dict], core: bool = True) -> str:
+    """The core workshop's notebooks (core=True) or the optional extensions'."""
     envs = v["readiness"]["envs"]
     rows = [
         "| Module | Notebook | Language | Runtime | Open | Time on Colab |",
         "|---|---|---|---|---|---|",
     ]
-    for e in common.notebooks(v):
+    for e in track_notebooks(v, core):
         m = v["modules"][e["module"]]
         env = readiness.teaching_env(v, e["kernel"])
         runtime = envs[env]["label"] if env else "—"
@@ -664,6 +815,8 @@ def notebooks_table(v: dict, records: list[dict]) -> str:
         " Colab ([readiness](/readiness.qmd)); laptop, Docker and CI times are never shown as"
         " Colab times."
     )
+    if not core:
+        note = "Times on Colab come from run records, as for the core notebooks above."
     return "\n".join(rows) + "\n\n" + note
 
 
@@ -675,7 +828,9 @@ def lane_text(v: dict, lane: dict) -> str:
     return readiness.describe(lane["record"])
 
 
-def readiness_summary(report: dict, link: str | None = "/readiness.qmd") -> str:
+def readiness_summary(v: dict, report: dict, link: str | None = "/readiness.qmd") -> str:
+    """The verdict on the core workshop, then one sentence on the optional extensions,
+    which never count toward it."""
     s = report["summary"]
     if s["all_ready"] and s["ci_passed"] == s["notebooks"]:
         verdict = "ready to teach"
@@ -685,25 +840,42 @@ def readiness_summary(report: dict, link: str | None = "/readiness.qmd") -> str:
                    " (the live readiness page counts CI runs)")
     else:
         verdict = "not yet ready to teach"
-    when = f"As of {s['as_of']}" if s["as_of"] else "No runs are recorded yet"
+    scope = f"the core workshop ({core_scope(v)})"
+    head = f"As of {s['as_of']}, {scope}" if s["as_of"] else f"No runs are recorded yet; {scope}"
     not_written = s["notebooks"] - s["written"]
     parts = [
-        f"**{when}: {verdict}.**",
-        f"{s['ready']} of {s['notebooks']} notebooks have a current, passing, worked,"
+        f"**{head}: {verdict}.**",
+        f"{s['ready']} of its {s['notebooks']} notebooks have a current, passing, worked,"
         " full-settings run of the whole notebook on Colab"
         + (f" ({not_written} are not written yet)." if not_written else "."),
         f"{s['elsewhere_passed']} have passed on another machine"
         f" ({s['elsewhere_full']} with full settings), and {s['ci_passed']} on CI.",
     ]
+    x = s.get("extensions") or {}
+    if x.get("notebooks"):
+        ext_missing = x["notebooks"] - x["written"]
+        line = (
+            f"**Optional extensions** ({extensions_scope(v)}), not part of that verdict:"
+            f" {x['ready']} of {x['notebooks']} notebooks have a current, passing Colab run"
+        )
+        if x["written"]:
+            line += (
+                f"; {x['elsewhere_passed']} have passed on another machine and"
+                f" {x['ci_passed']} on CI"
+            )
+        line += f" ({ext_missing} are not written yet)." if ext_missing else "."
+        parts.append(line)
     if link:
         parts.append(f"[What has run, where]({link}).")
     return " ".join(parts)
 
 
-def readiness_page(v: dict, report: dict) -> str:
+def readiness_rows(v: dict, report: dict, core: bool) -> str:
     envs = v["readiness"]["envs"]
     rows = ["| Notebook | Ready to teach | Evidence |", "|---|---|---|"]
     for e in report["notebooks"]:
+        if (e["track"] == common.CORE) != core:
+            continue
         m = v["modules"][e["module"]]
         ready = "**Yes**" if e["ready"] else f"No: {e['why']}"
         lines = [f"**{envs[k]['label']}:** {lane_text(v, lane)}" for k, lane in e["lanes"].items()]
@@ -719,7 +891,31 @@ def readiness_page(v: dict, report: dict) -> str:
             f"`{e['id']}`<br>[Module {module_number(e['module'])}]({module_link(e['module'], m)})"
         )
         rows.append(f"| {name} | {ready} | {'<br>'.join(lines)} |")
+    return "::: {.readiness-table}\n" + "\n".join(rows) + "\n:::"
+
+
+def readiness_page(v: dict, report: dict) -> str:
+    """The verdict, one table for the core workshop, one for the optional extensions."""
     s = report["summary"]
+    sections = [
+        readiness_summary(v, report, link=None),
+        "",
+        f"## The core workshop: {core_scope(v)} {{#core}}",
+        "",
+        readiness_rows(v, report, core=True),
+        "",
+    ]
+    if (s.get("extensions") or {}).get("notebooks"):
+        sections += [
+            f"## Optional extensions: {extensions_scope(v)} {{#extensions}}",
+            "",
+            "Judged by the same rules, and never counted in the core workshop's verdict. The"
+            " release check requires them only when asked to (`release_check.py"
+            " --extensions`).",
+            "",
+            readiness_rows(v, report, core=False),
+            "",
+        ]
     legend = [
         "## How to read this page {#legend}",
         "",
@@ -738,17 +934,7 @@ def readiness_page(v: dict, report: dict) -> str:
         "*Learner mode* runs the notebook with nothing written: it must stop at the first"
         " checkpoint with the message that tells a participant how to go on.",
     ]
-    return "\n".join(
-        [
-            readiness_summary(report, link=None),
-            "",
-            "::: {.readiness-table}",
-            "\n".join(rows),
-            ":::",
-            "",
-            *legend,
-        ]
-    )
+    return "\n".join([*sections, *legend])
 
 
 def install_times(v: dict, records: list[dict]) -> str:
@@ -908,10 +1094,15 @@ def outputs(v: dict) -> dict[Path, str]:
         INCLUDES / "facts.md": (var_notice, facts(v)),
         INCLUDES / "days.md": (var_notice, days_cards(v)),
         INCLUDES / "path.md": (var_notice, path(v)),
+        INCLUDES / "path-extensions.md": (var_notice, path(v, core=False)),
         INCLUDES / "schedule.md": (var_notice, schedule(v)),
         INCLUDES / "notebooks.md": (runs_notice, notebooks_table(v, records)),
+        INCLUDES / "notebooks-extensions.md": (
+            runs_notice,
+            notebooks_table(v, records, core=False),
+        ),
         INCLUDES / "readiness.md": (runs_notice, readiness_page(v, report)),
-        INCLUDES / "readiness-summary.md": (runs_notice, readiness_summary(report)),
+        INCLUDES / "readiness-summary.md": (runs_notice, readiness_summary(v, report)),
         INCLUDES / "install-times.md": (runs_notice, install_times(v, records)),
         ROOT / "environment" / "VERSIONS.md": (
             NOTICE.format(src="environment/requirements.txt and _variables.yml"),
@@ -931,7 +1122,7 @@ def outputs(v: dict) -> dict[Path, str]:
     readme = ROOT / "README.md"
     if readme.exists():
         site = v["repo"]["site"].rstrip("/")
-        status = "> " + readiness_summary(report, link=f"{site}/readiness.html")
+        status = "> " + readiness_summary(v, report, link=f"{site}/readiness.html")
         out[readme] = replace_region(readme.read_text(encoding="utf-8"), "status", status)
     return out
 
