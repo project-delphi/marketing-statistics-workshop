@@ -10,7 +10,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python. Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell.
 
 Labs
-:   Python: `labs/python/16-multi-touch-attribution.ipynb` (in preparation)
+:   Python: `labs/python/16-multi-touch-attribution.ipynb`
 
 Data
-:   [Synthetic user journeys with targeted exposure (mta_journeys.csv from mktstats.synth.mta, seed 2036; truth in truth_mta.json; specified in briefs/16-multi-touch-attribution.md, not yet generated)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic)
+:   [Synthetic user journeys with targeted exposure: 69,410 journeys of 100,000 users over five channels, with each channel's true incremental conversions (mta_journeys.csv from mktstats.synth.mta, seed 2036, one letter per touch; truth in truth_mta.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic)
 :::
 
 ::: {.module-outcomes}

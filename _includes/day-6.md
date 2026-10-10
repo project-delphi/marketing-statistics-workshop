@@ -58,7 +58,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}

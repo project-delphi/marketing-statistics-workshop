@@ -689,10 +689,10 @@ modules:
     recap: "Module 6 showed with one randomized email test that last-touch credit counts conversions that would have happened anyway; data-driven multi-touch attribution shares credit across every touch in a journey instead, but nothing so far tested whether that credit measures what a channel causes."
     next: "Attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM, where a channel's effect can drift over time."
     notebooks:
-      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
+      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/attribution.py, src/mktstats/synth/_common.py, src/mktstats/synth/mta.py, data/synthetic/mta_journeys.csv, data/synthetic/truth_mta.json]
     data:
-      - {name: "Synthetic user journeys with targeted exposure (mta_journeys.csv from mktstats.synth.mta, seed 2036; truth in truth_mta.json; specified in briefs/16-multi-touch-attribution.md, not yet generated)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Synthetic user journeys with targeted exposure: 69,410 journeys of 100,000 users over five channels, with each channel's true incremental conversions (mta_journeys.csv from mktstats.synth.mta, seed 2036, one letter per touch; truth in truth_mta.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
   m17:
     slug: 17-mmm-time-varying
     title: "MMM with drifting effects and a Prophet baseline"
