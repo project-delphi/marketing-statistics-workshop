@@ -205,7 +205,17 @@ def build() -> tuple[dict[str, object], dict]:
 # Extension datasets: {name: builder}. A builder runs its generator with the default seed and
 # returns ({filename: DataFrame}, truth); the truth goes to truth_<name>.json, with the CSV names
 # under "files". Every filename starts with the dataset's name. One entry per extension module.
+def _mta() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 16: user journeys with targeted exposure (seed 2036, 100,000 users). The CSV
+    writes one letter per touch (truth "path_codes"), so it stays under 1.5 MB."""
+    from mktstats.synth import mta
+
+    res = mta.mta_journeys()
+    return {"mta_journeys.csv": mta.encode_paths(res.journeys)}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
+    "mta": _mta,
 }
 
 
