@@ -1,6 +1,7 @@
-# Monthly check of every link on the live site, external ones included. Non-blocking: it runs
-# apart from publish.yml, so a dead link elsewhere never holds up a deploy; a failed run and its
-# job summary list what broke. publish.yml checks internal links on every build.
+# Monthly check of every link on the live site, external ones included, and of every dataset
+# source the loaders can download. Non-blocking: it runs apart from publish.yml, so a dead link
+# elsewhere never holds up a deploy; a failed run and its job summaries list what broke.
+# publish.yml checks internal links on every build.
 name: links
 
 on:
@@ -17,28 +18,59 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
       - id: pages
-        name: Pages in the live site's sitemap
+        name: Pages of the live site, and the dataset sources
         run: |
           site=$(sed -n -E 's/^[[:space:]]*site-url:[[:space:]]*//p' _quarto.yml)
           # Assign first so a failed download fails the step instead of checking nothing.
           sitemap=$(curl -sfL --retry 3 "${site%/}/sitemap.xml")
           pages=$(grep -o '<loc>[^<]*' <<< "$sitemap" | sed 's/<loc>//' | tr '\n' ' ')
           if [ -z "${pages// }" ]; then echo "::error::No pages in ${site%/}/sitemap.xml"; exit 1; fi
+          pages="$pages ${site%/}/404.html" # not in the sitemap, but has links of its own
           echo "Checking $(wc -w <<< "$pages") pages."
           echo "list=${pages}" >> "$GITHUB_OUTPUT"
-      # 403 is accepted: journal publishers behind doi.org refuse non-browser clients with 403
-      # (checked 2026-10-10); a wrong DOI still fails, because doi.org itself answers 404. Data
-      # URLs are covered by the weekly notebooks run, which downloads them.
-      # online.stat.psu.edu sends an incomplete certificate chain, which browsers repair and
-      # lychee rejects; its pages loaded with curl on macOS on 2026-10-10.
-      - name: Links on every page
+          # Every source of every dataset, fallbacks included: the loaders move to the next
+          # source without saying so, so the notebooks run does not notice a dead one.
+          uv run --no-project --with pandas python -I -c 'import sys; sys.path.insert(0, "src")
+          from mktstats.data import DATASETS
+          print("\n".join(s["url"] for d in DATASETS.values() for s in d["sources"]))' > data-urls.txt
+          echo "Checking $(wc -l < data-urls.txt) dataset URLs."
+      - name: Links on every page and dataset URLs
         uses: lycheeverse/lychee-action@v2
         with:
+          lycheeVersion: v0.24.2
           args: >-
             --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
-            --accept 200,203,206,403,429
+            --accept 200,203,206,429
             --exclude '^https://colab\.research\.google\.com/'
+            --exclude '^https://doi\.org/'
             --exclude '^https://online\.stat\.psu\.edu/'
+            ${{ steps.pages.outputs.list }} data-urls.txt
+          fail: true
+      # Journal publishers behind doi.org refuse non-browser clients (403), so DOIs are checked
+      # at doi.org without following the redirect: a registered DOI answers 302, a wrong one 404.
+      - name: DOIs
+        if: ${{ !cancelled() }}
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --no-progress --max-retries 3
+            --exclude '.*' --include '^https://doi\.org/'
+            --max-redirects 0 --accept 200,302
+            ${{ steps.pages.outputs.list }}
+          fail: true
+      # online.stat.psu.edu sends an incomplete certificate chain, which browsers repair and
+      # lychee rejects. Its pages are still checked, without verifying the certificate.
+      - name: Penn State pages
+        if: ${{ !cancelled() }}
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --no-progress --max-retries 3
+            --exclude '.*' --include '^https://online\.stat\.psu\.edu/'
+            --insecure
             ${{ steps.pages.outputs.list }}
           fail: true

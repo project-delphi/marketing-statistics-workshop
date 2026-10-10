@@ -46,14 +46,14 @@ and whether that evidence is still current.
 | 3 Did marketing cause sales? | 6 Power/MDE, SRM, peeking & sequential, CUPED, delta method, attribution ≠ incrementality | `python/06-experiments` | Py |
 | | 7 Synthetic control + DiD + power-by-simulation; CausalImpact (bsts); GeoLift market selection demo; placebo tests on known-lift geo panel; real: Prop 99 | `python/07-synthetic-control-did`, `r/07-causalimpact-geolift` | R reference (CausalImpact, GeoLift) |
 | 4 Where should the next dollar go? | 8 Bayesian MMM: adstock, saturation, seasonality, priors from spend share, PPCs, divergences, ROAS intervals | `python/08-bayesian-mmm` | Py |
-| | 9 Lift-test calibration, time-slice CV, parameter stability, what MMM can't identify; Robyn comparison | `python/09-mmm-calibration`, `r/09-robyn` (only if spike passes) | Py; R (Robyn) |
+| | 9 Lift-test calibration, time-slice CV, parameter stability, what MMM can't identify; Robyn comparison | `python/09-mmm-calibration`, `r/09-robyn` (conditional on spike S5, which passed) | Py; R (Robyn) |
 | | 10 Budget allocation: PyMC-Marketing optimizer + from-scratch SLSQP, constraints, risk-aware via draws, CLV-weighted objective | `python/10-budget-allocation` | Py |
 | 5 Whom to target, how to spend? | 11 Uplift on Hillstrom: grf causal forest (ATE, RATE/TOC); EconML `CausalForestDML(discrete_treatment=True)` + meta-learners; Qini on held-out; target where margin > offer cost | `r/11-grf-causal-forest`, `python/11-uplift-econml` | R reference (grf) + Py |
 | | 12 Capstone (11:25–17:00): CLV → geo test → calibrated MMM → allocation + uplift → 5-slide brief; rubric | `python/12-capstone` | Py |
 
 Two-module days (2, 3) get the upper-bound lab slots plus a 60-min applied clinic tied to that day's decision (Day 2: CFO-memo peer
 review; Day 3: geo-test design review using the GeoLift market-selection demo). A generated test checks every day fits 09:00–17:00.
-Total: 13 Python + 5 R notebooks (R Robyn conditional). Real data: CDNOW, UCI Online Retail II, Hillstrom, Prop 99, Fader–Hardie sBG
+Total: 13 Python + 5 R notebooks (R Robyn was conditional on S5; it passed in Docker and on Colab). Real data: CDNOW, UCI Online Retail II, Hillstrom, Prop 99, Fader–Hardie sBG
 retention counts; simulated: PyMC-Marketing `mmm_example.csv`, Robyn `dt_simulated_weekly` (labelled as simulated).
 
 ## Repository layout (changes vs. the prompt, with reasons)
@@ -115,8 +115,8 @@ run record, footer. Targets on Colab FULL: install ≤ 3 min, any cell ≤ 4 min
 - `publish.yml` (push to main, `workflow_run` of notebooks, dispatch): drift gates (gen_tables, gen_notebooks, synthetic data), ruff,
   pytest (unit, checks-can-fail, readiness rules, quick recovery), checkout `evidence` into `runs/ci/`, gen readiness, `quarto render`
   (`freeze: auto`, figures mostly script-made), lychee `--offline` (blocking), upload-pages-artifact → deploy-pages.
-- `links.yml`: monthly lychee over every page of the live site (from its sitemap), external links included; non-blocking
-  (separate from deploy), job summary lists failures. `release.yml`: monthly and on demand (with a class date), `release_check.py` on main
+- `links.yml`: monthly lychee over every page of the live site (from its sitemap, plus 404.html), external links included,
+  and every dataset source URL; non-blocking (separate from deploy), job summaries list failures. `release.yml`: monthly and on demand (with a class date), `release_check.py` on main
   with the `evidence` records (see DECISIONS.md, 2026-10-10: why main and not a tag push).
 - Readiness: per notebook, evidence lanes CI / local Docker / Colab / AWS ("not run"). Staleness = notebook code-cell hash **plus** a
   hash of the module's declared deps (mktstats files, R helpers, synthetic data, pins) and the install ref. Ready to teach = Colab,

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since run (Notebooks row). Review: Pedagogy Expert. |
 | Notebooks | `labs/src/09-mmm-calibration.py` → `labs/python/09-mmm-calibration.ipynb` (core, decision); `labs/src/09-robyn.R` → `labs/r/09-robyn.ipynb` (short paired notebook; it was conditional on the Robyn spike, which passed in Docker, and on a Colab R run, which passed on 2026-10-10: `runs/2026-10-10-colab-r-r-09-robyn.json`) |
 | Lab slot | 55 min (`modules.m09.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (Python 30 + R 10; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Order | Open the **R** notebook first and start its install cell (Robyn plus the Python library Nevergrad through reticulate; 66–75 s on Colab in the 2026-10-10 runs). Work the **Python** notebook's Parts A–C while it installs, then the R notebook's Part D, then the Python decision. If the R install fails or is not ready, skip Part D: the Python notebook stands alone and Exercise 5 becomes a stretch. |
