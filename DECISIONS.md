@@ -104,10 +104,10 @@ Newest first within each section.
   warning. Checking ahead for a class is the on-demand run with the class date.
 - `links.yml` (monthly) replaces the weekly `links-external` job in `publish.yml`. It checks the
   live site (pages from its `sitemap.xml`, plus `404.html`, which the sitemap leaves out) instead of
-  rebuilding it, so a link check no longer renders and redeploys the site; the weekly redeploy still
-  happens through the notebooks cron → publish. It also downloads every dataset source in
-  `mktstats.data.DATASETS`, fallbacks included, with the loaders' own `_download` and checks its
-  sha256: the loaders move to the next source silently when one fails or its hash differs, so the
+  rebuilding it, so a link check no longer renders and redeploys the site; the scheduled redeploy
+  still happens through the notebooks cron → publish (monthly since 2026-10-10, the user's choice).
+  It also downloads every dataset source in `mktstats.data.DATASETS`, fallbacks included, with the
+  loaders' own `_download` and checks its sha256: the loaders move to the next source silently when one fails or its hash differs, so the
   notebooks run does not notice a dead or changed source, and an HTTP status alone would not show a
   changed file. By hand in a clean container on 2026-10-10, all 9 sources matched. The site URL is
   read from `repo.site` in `_variables.yml`.
@@ -138,6 +138,12 @@ Newest first within each section.
   raw.githubusercontent.com with the same owner, repository, ref and path. By hand with lychee
   0.24.2 in Docker: 2,046 links on 30 pages, 0 errors, and a planted link to a missing file at
   the tag gave 404.
+- `notebooks.yml`'s schedule (the notebook matrix and the slow recovery tests) moved from weekly
+  to monthly on 2026-10-10 at the user's request: no scheduled job in this repository runs weekly.
+  It runs on the 1st at 04:17, before `links.yml` (05:41) and `release.yml` (06:23), so the release
+  check reads that day's CI records: `collect` pushes them once the notebook jobs finish (3.5 minutes
+  after the start in the dispatched run of 2026-10-10) and does not wait for the recovery job.
+
 ### Module 9's cross-validation cell reaches the 4-minute cell limit on Colab (2026-10-10)
 - PLAN.md's Colab targets include "any cell ≤ 4 min". The time-slice cross-validation cell (4 folds ×
   2 chains × 500 draws, FULL) took 215 s, 241 s and 252 s in the three Colab runs at `main`,

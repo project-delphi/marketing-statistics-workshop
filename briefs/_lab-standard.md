@@ -130,7 +130,7 @@ passed explicitly, never a library default. On real data, structural facts (row 
 ranges, monotonicity, a known published value where one exists) rather than a guessed number.
 
 **Tolerances are justified.** The brief says why a tolerance is what it is (for example, "the reference
-recovers r within 15% at FULL across 20 seeds in the weekly coverage test"). A tolerance must pass on the
+recovers r within 15% at FULL across 20 seeds in the monthly coverage test"). A tolerance must pass on the
 reference solution in both QUICK and FULL, or the check uses a stated mode-specific tolerance.
 
 **It must be able to fail.** Every checkpoint fails on its stub (verify mode in `scripts/test_notebooks.py`)
