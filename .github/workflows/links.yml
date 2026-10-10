@@ -1,0 +1,101 @@
+# Monthly check of every link on the live site, external ones included, and of every dataset
+# source the loaders can download, fetched and checked against its sha256. Non-blocking: it runs
+# apart from publish.yml, so a dead link elsewhere never holds up a deploy; a failed run and its
+# job summaries list what broke. publish.yml checks internal links on every build.
+name: links
+
+on:
+  schedule:
+    - cron: "41 5 1 * *" # the 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  external:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - id: pages
+        name: Pages of the live site
+        run: |
+          # Assign first so a failure stops the step instead of checking nothing.
+          site=$(uv run --no-project --with pyyaml python -I -c 'import yaml; print(yaml.safe_load(open("_variables.yml"))["repo"]["site"])')
+          sitemap=$(curl -sfL --retry 3 "${site%/}/sitemap.xml")
+          pages=$({ grep -o '<loc>[^<]*' <<< "$sitemap" || true; } | sed 's/<loc>//' | tr '\n' ' ')
+          if [ -z "${pages// }" ]; then echo "::error::No pages in ${site%/}/sitemap.xml"; exit 1; fi
+          pages="$pages ${site%/}/404.html" # not in the sitemap, but has links of its own
+          echo "Checking $(wc -w <<< "$pages") pages."
+          echo "list=${pages}" >> "$GITHUB_OUTPUT"
+      - name: Links on every page
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
+            --accept 200,203,206,429
+            --exclude '^https://colab\.research\.google\.com/'
+            --exclude '^https://doi\.org/'
+            --exclude '^https://online\.stat\.psu\.edu/'
+            ${{ steps.pages.outputs.list }}
+          fail: true
+      # Journal publishers behind doi.org refuse non-browser clients (403), so DOIs are checked
+      # at doi.org without following the redirect: a registered DOI answers 302, a wrong one 404.
+      - name: DOIs
+        if: ${{ !cancelled() && steps.pages.outcome == 'success' }}
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
+            --exclude '.*' --include '^https://doi\.org/'
+            --max-redirects 0 --accept 200,302,429
+            ${{ steps.pages.outputs.list }}
+          fail: true
+          failIfEmpty: false # a site with no DOIs is not an error
+      # online.stat.psu.edu sends an incomplete certificate chain, which browsers repair and
+      # lychee rejects. Its pages are still checked, without verifying the certificate.
+      - name: Penn State pages
+        if: ${{ !cancelled() && steps.pages.outcome == 'success' }}
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.24.2
+          args: >-
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
+            --exclude '.*' --include '^https://online\.stat\.psu\.edu/'
+            --insecure
+            ${{ steps.pages.outputs.list }}
+          fail: true
+          failIfEmpty: false # nor one with no Penn State links
+      # The loaders try each dataset's sources in order and move to the next one without saying
+      # so when a download fails or its sha256 differs, so the notebooks run does not notice a
+      # dead or changed source. This downloads every source with the loaders' own function and
+      # checks its hash. `--with .` installs mktstats with the dependencies its pyproject declares.
+      - name: Dataset sources (download and sha256)
+        if: ${{ !cancelled() }}
+        run: |
+          uv run --no-project --with . python -I - <<'EOF'
+          import os, sys, tempfile
+          from pathlib import Path
+          from mktstats.data import DATASETS, _download
+
+          rows, failed = [], 0
+          with tempfile.TemporaryDirectory() as tmp:
+              for name, d in DATASETS.items():
+                  for i, src in enumerate(d["sources"]):
+                      try:
+                          _download(src["url"], Path(tmp) / f"{name}-{i}", src["sha256"], 60, 3)
+                          rows.append(f"| {name} | {src['url']} | ok |")
+                      except OSError as e:
+                          failed += 1
+                          rows.append(f"| {name} | {src['url']} | **{e}** |")
+                          print(f"::error::{name}: {e}")
+          table = "\n".join(["## Dataset sources", "", "| Dataset | URL | Result |", "|---|---|---|", *rows])
+          print(table)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write(table + "\n")
+          sys.exit(1 if failed else 0)
+          EOF

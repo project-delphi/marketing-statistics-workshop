@@ -1,0 +1,41 @@
+# Is the release learners get (repo.ref) ready to teach? Runs scripts/release_check.py on main
+# with the CI records from the `evidence` branch. It runs on main, not on a tag push, because
+# the Colab records that make a tag ready are committed to main after the tag is cut.
+# Monthly, it checks today. Colab runs count only for readiness.max_run_age_days, so this run is
+# red in any month without a recent Colab sweep. Before a class, run it by hand with the class date.
+name: release
+
+on:
+  schedule:
+    - cron: "23 6 1 * *" # the 1st of each month
+  workflow_dispatch:
+    inputs:
+      as_of:
+        description: "Date to check, YYYY-MM-DD (empty: today)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main # what the release is checked against, whichever branch started the run
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: CI run records from the evidence branch
+        run: |
+          if git ls-remote --exit-code origin evidence > /dev/null; then
+            git fetch --depth=1 origin evidence
+            git archive FETCH_HEAD runs/ci | tar -x
+          else
+            echo "No evidence branch: the release check will list every notebook as having no CI run."
+          fi
+      - name: Release check
+        env:
+          AS_OF: ${{ inputs.as_of }}
+        run: uv run --no-project --with pyyaml python scripts/release_check.py --as-of "${AS_OF:-$(date -u +%F)}"

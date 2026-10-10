@@ -26,7 +26,7 @@ Time
 :   115 minutes (50 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python, R. Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation; a short R notebook runs Meta's Robyn, an R package, for comparison (its spike passed in Docker; the Colab run is pending).
+:   Python, R. Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation; a short R notebook runs Meta's Robyn, an R package, for comparison.
 
 Labs
 :   Python: `labs/python/09-mmm-calibration.ipynb`<br>R: `labs/r/09-robyn.ipynb`

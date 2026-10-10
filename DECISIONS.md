@@ -95,6 +95,37 @@ Newest first within each section.
   Readiness hashes main's files, not the tag's: if main's labs or deps move past the tag, the
   readiness page reports stale even though learners still get the tag. That errs on the safe side.
 
+### Release check and external link check run monthly (2026-10-10)
+- `release.yml` runs `release_check.py` on main with the `evidence` records, monthly and on demand
+  (with a date, e.g. the class's Day 1). Not on a tag push: a tag is cut first and its Colab records
+  are committed to main afterwards, so at the tag's own commit the check always fails. Monthly
+  (the user's choice) rather than weekly: Colab runs count for only `readiness.max_run_age_days`,
+  so the scheduled run is a reminder that is red in months without a recent sweep, not an early
+  warning. Checking ahead for a class is the on-demand run with the class date.
+- `links.yml` (monthly) replaces the weekly `links-external` job in `publish.yml`. It checks the
+  live site (pages from its `sitemap.xml`, plus `404.html`, which the sitemap leaves out) instead of
+  rebuilding it, so a link check no longer renders and redeploys the site; the weekly redeploy still
+  happens through the notebooks cron → publish. It also downloads every dataset source in
+  `mktstats.data.DATASETS`, fallbacks included, with the loaders' own `_download` and checks its
+  sha256: the loaders move to the next source silently when one fails or its hash differs, so the
+  notebooks run does not notice a dead or changed source, and an HTTP status alone would not show a
+  changed file. By hand in a clean container on 2026-10-10, all 9 sources matched. The site URL is
+  read from `repo.site` in `_variables.yml`.
+- First run, by hand with lychee 0.24.2 on 2026-10-10: 29 pages, 2,017 links, 57 errors. 49 were
+  403s from journal publishers behind doi.org (they refuse non-browser clients), 6 were
+  online.stat.psu.edu (incomplete certificate chain; the pages load with curl), 2 were transient 503s
+  from github.com. Accepting 403 everywhere would hide a dead link on any host that answers 403
+  (a private S3 object, say), so only those two hosts are treated differently: DOIs are checked at
+  doi.org without following the redirect (a registered DOI answers 302, a wrong one 404, both
+  checked), and online.stat.psu.edu with `--insecure`. Every other link must give 200, 203, 206
+  or 429; 429 is accepted because it means the host is up but throttling the runner, and failing
+  on it would make the run red for links that work. With these settings, by hand: 2,044 links on
+  30 pages with 0 errors, and the 66 DOI links and 6 Penn State links all pass.
+- lychee is pinned to v0.24.2, the default of lychee-action v2 when checked
+  (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
+  default cannot change the status handling these settings rely on; publish.yml's blocking
+  internal-link check uses the same version.
+
 ## Spikes
 
 (Results are added below as each spike runs.)
@@ -147,6 +178,9 @@ Newest first within each section.
 - Decision: keep `r/09-robyn` as a short paired notebook. Colab R still has to be proven (reticulate must
   find a Python with nevergrad inside Colab's R runtime); until a Colab run is recorded it is not
   "ready to teach". Robyn is effectively unmaintained (last commit 2025-06), which the briefing says.
+- Proven on Colab (2026-10-10): `r/09-robyn` passed worked, FULL, whole-notebook runs at `main`,
+  `v2026.10.0` and `v2026.10.1` (`runs/2026-10-10-colab-r-r-09-robyn.json`; at `v2026.10.1`
+  install 65.5 s, 172 s in all).
 
 ### S4 · Docker image (2026-10-09)
 - `rocker/r-ver:4.6.1` + uv Python 3.13 + pinned requirements + R packages from P3M 2026-10-01 + Quarto

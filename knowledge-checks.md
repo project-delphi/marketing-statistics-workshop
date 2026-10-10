@@ -334,7 +334,7 @@ When channels move together or a channel's spend barely varies, the data identif
 Either the channel's effect changed (new creative, saturation, a market change) or the data cannot pin it down. Either way, a budget decision that leans on that channel is fragile: widen its uncertainty in the allocation, constrain how far it can move, and make it the next lift test.
 :::
 
-[**9.5**]{#q9-5} Robyn and a Bayesian MMM give different answers for the same data. Name one difference in how they work. (Only if the Robyn comparison runs; see DECISIONS.md, spike S5.)
+[**9.5**]{#q9-5} Robyn and a Bayesian MMM give different answers for the same data. Name one difference in how they work.
 
 ::: {.callout-tip collapse="true" title="Answer"}
 Robyn fits ridge regressions, searches the adstock and saturation hyperparameters with an evolutionary optimizer, and returns a set of candidate models that trade off prediction error against how far the channel shares are from the spend shares, from which the analyst picks one. A Bayesian MMM puts priors on those parameters and returns one posterior, with intervals from the model. So the "uncertainty" means different things in each.
