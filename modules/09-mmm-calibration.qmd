@@ -12,7 +12,7 @@ title: "{{< var modules.m09.title >}}"
 
 {{< include /_includes/lab-09.md >}}
 
-The Python notebook is the lab; it stands alone. The R notebook is a 10-minute comparison with Meta's Robyn on Robyn's own example data. It installs the Python library Nevergrad on first use, so open it early and start its first cell while you work on the Python notebook. If that install fails, skip the R notebook. Its Colab run has not been recorded yet; the [Readiness](/readiness.qmd) page shows where each notebook has run and how long it took.
+The Python notebook is the lab; it stands alone. The R notebook is a 10-minute comparison with Meta's Robyn on Robyn's own example data. It installs the Python library Nevergrad on first use, so open it early and start its first cell while you work on the Python notebook. If that install fails, skip the R notebook. The [Readiness](/readiness.qmd) page shows where each notebook has run, Colab included, and how long it took.
 
 ## 1. When spend follows demand
 

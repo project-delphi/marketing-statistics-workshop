@@ -108,7 +108,7 @@ run record, footer. Targets on Colab FULL: install ≤ 3 min, any cell ≤ 4 min
 
 ## CI / publishing
 - `image.yml`: build amd64 image on `environment/**` changes → GHCR, tag = hash of env files.
-- `notebooks.yml` (push/PR, weekly cron, dispatch): setup job emits a matrix from `_variables.yml`; one job per notebook in the image
+- `notebooks.yml` (push/PR, monthly cron, dispatch): setup job emits a matrix from `_variables.yml`; one job per notebook in the image
   container; `scripts/test_notebooks.py` (nbclient, kernel from metadata — **replaces papermill** because verify mode must inject
   cells and settings are env vars) runs worked + verify-checkpoints (each checkpoint must fail on its stub) in one pass, then learner
   mode; uploads executed notebooks; on main a `collect` job appends run records to the `evidence` branch.
@@ -156,7 +156,7 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 
 ### Phase 2 — generators (freeze mktstats API at the end)
 - [x] [TE] synth: BTYD retailer (true r, α, a, b, alive status, acquisition channel effect), Gamma-Gamma spend, weekly MMM (adstock, saturation, true ROAS), geo panel (true lift), email experiment (true CATE); `truth.json`; drift gate
-- [x] [TE] recovery tests (MAP fast in CI; seeded multi-seed sweep is `pytest -m slow tests/test_synth_files.py`, to be scheduled weekly in CI)
+- [x] [TE] recovery tests (MAP fast in CI; slow tests (`pytest -m slow`) run monthly and on dispatch in `notebooks.yml`)
 - [x] [TE] loaders: CDNOW, Online Retail II, Hillstrom, mmm_example, Prop 99, sBG counts (sha256 + fallback)
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])

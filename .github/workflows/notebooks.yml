@@ -19,7 +19,7 @@ on:
       - .github/workflows/notebooks.yml
   pull_request:
   schedule:
-    - cron: "17 4 * * 1" # weekly: catches data URL rot and upstream breakage
+    - cron: "17 4 1 * *" # the 1st of each month, before links.yml and release.yml: catches data URL rot and upstream breakage
   workflow_dispatch:
 
 concurrency:
@@ -128,7 +128,7 @@ jobs:
           git push origin evidence
 
   recovery:
-    # Weekly (and on demand): the slow tests refit the models on the committed synthetic data
+    # Monthly (and on demand): the slow tests refit the models on the committed synthetic data
     # and on fresh seeds, checking the stated tolerances in data/synthetic/truth.json.
     needs: image
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

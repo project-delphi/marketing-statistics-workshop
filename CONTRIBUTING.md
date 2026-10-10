@@ -263,9 +263,8 @@ and `load_truth()`.
 
 Recovery helpers added for these: `recovery.sc_weights(y_pre, x_pre)` and
 `recovery.synthetic_control(panel, treated_geos, test_start)` (treated mean vs controls, in-space
-placebos, RMSPE-ratio p-value, relative placebo effects). The committed new CSVs are not yet in
-`mktstats.data.SYNTHETIC_TABLES`, so `load_synthetic` does not know them: call the generator in
-Python (identical output) or read the CSV directly until `data.py` lists them.
+placebos, RMSPE-ratio p-value, relative placebo effects). The committed CSVs are listed in
+`mktstats.data.SYNTHETIC_TABLES`, so `load_synthetic("capstone_geo_panel")` and the others read them.
 
 Data loaders (`mktstats.data`) read env `MKTSTATS_CACHE` (download cache, default
 `~/.cache/mktstats`), `MKTSTATS_OFFLINE` (no downloads), `MKTSTATS_REF` (git ref for committed files

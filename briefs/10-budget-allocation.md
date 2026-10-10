@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebook | `labs/src/10-budget-allocation.py` → `labs/python/10-budget-allocation.ipynb` |
 | Lab slot | 55 min (`modules.m10.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Day | Day 4, after lunch |
@@ -48,8 +48,9 @@ subject to Σ s_c = B and bounds, every channel not at a bound has the same marg
 One fit: the calibrated MMM from Module 9 (Module 8 specification + `add_lift_test_measurements` after
 `build_model`), nutpie, chains=2, QUICK draws=tune=300, FULL 1000, `progressbar=False`; estimated under a
 minute FULL on Colab plus the first-fit compile (estimate). Then `opt = mmm.budget_optimizer(start_date,
-end_date)` for a 13-week future window. The optimizer compiles a PyTensor function; its time is not yet
-measured.
+end_date)` for a 13-week future window. The optimizer compiles a PyTensor function: on Colab (2026-10-10,
+worked, FULL) building it took 1.4 s and the first `allocate_budget` call, compile included, 31–36 s
+over three runs (`runs/2026-10-10-colab-py-python-10-budget-allocation.json`).
 
 ## Parts and exercises
 

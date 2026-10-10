@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief by the Academic Director, 2026-10-09; updated the same day by the Technical Expert to match the built lab (`labs/src/12-capstone.py`) and the synthetic-data measurements (Stage 2 question, Stage 4 checkpoint, CLV without the first purchase, relative placebo spread). Built and run on a laptop and in Docker; Colab not yet run. Review: Pedagogy Expert (who writes the rubric, `briefs/12-capstone-rubric.md`). |
+| Status | Brief by the Academic Director, 2026-10-09; updated the same day by the Technical Expert to match the built lab (`labs/src/12-capstone.py`) and the synthetic-data measurements (Stage 2 question, Stage 4 checkpoint, CLV without the first purchase, relative placebo spread). Built and run on a laptop and in Docker; passed on Colab on 2026-10-10 (`runs/2026-10-10-colab-py-python-12-capstone.json`). Review: Pedagogy Expert (who writes the rubric, `briefs/12-capstone-rubric.md`). |
 | Notebook | `labs/src/12-capstone.py` → `labs/python/12-capstone.ipynb` |
 | Slot | Day 5 from 11:25 (lead's schedule): briefing 15, pair work 80, lunch 50, pair work 100, break 10, presentations 60, wrap-up 20. `modules.m12.minutes`: briefing 15, lab 180 (80 + 100 of pair work; lunch and the break are separate blocks in `days.d5.blocks`), debrief 60. |
 | Budget | Pair work 180 min: open 5 + stages 125 + brief 25 + slack 25 (15 in block 1, 10 in block 2). Minutes are estimates until a pilot. |

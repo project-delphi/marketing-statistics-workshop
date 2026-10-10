@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebook | `labs/src/02-btyd.py` → `labs/python/02-btyd.ipynb` |
 | Lab slot | 55 min (`modules.m02.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Day | Day 1, second module |

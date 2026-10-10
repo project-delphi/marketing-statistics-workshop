@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebook | `labs/src/01-customer-base-sql.py` → `labs/python/01-customer-base-sql.ipynb` |
 | Lab slot | 50 min (`modules.m01.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 35 (limit 35) + decision 5 + slack 5 = 50. Minutes are estimates until a pilot. |
 | Day | Day 1, first module after the warm-up |

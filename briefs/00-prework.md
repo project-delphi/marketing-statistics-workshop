@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebooks | `labs/src/00-setup-warmup.py` → `labs/python/00-setup-warmup.ipynb`; `labs/src/00-setup-warmup.R` → `labs/r/00-setup-warmup.ipynb` |
 | Lab slot | 60 min, optional, done before Day 1 (`modules.m00.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 44 (limit 45) + decision 5 + slack 5 = 59. Minutes are estimates until a pilot. |
 | Content keys | `modules.m00` in `_variables.yml` (summary, objectives, decision) |

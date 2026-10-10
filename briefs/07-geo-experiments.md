@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebooks | `labs/src/07-synthetic-control-did.py` → `labs/python/07-synthetic-control-did.ipynb` (Parts A–B, decision); `labs/src/07-causalimpact-geolift.R` → `labs/r/07-causalimpact-geolift.ipynb` (Part C in the lab; Part D in the clinic) |
 | Lab slot | 55 min for both notebooks (`modules.m07.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (Python 28 + R 12; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Order | Open the **R** notebook first and run its install cell (CausalImpact + GeoLift ≈ 90 s on Colab, lead's measurement 2026-10-09). While it installs, open the **Python** notebook, run its install (≈ 31 s + 17 s import) and work Parts A–B. Then do the R notebook's Part C. Return to the Python notebook for the decision. |
@@ -40,8 +40,8 @@ point of comparing difference-in-differences with synthetic control.
   (`scipy.optimize.minimize(method="SLSQP")`); placebos refit it once per control geo (about 40 small fits,
   seconds; estimate); power simulation reuses difference-in-differences (vectorized).
 - R: `CausalImpact(data, pre.period, post.period, model.args = list(niter = N))` with N = 1,000 QUICK and
-  5,000 FULL (bsts MCMC). A 100-point example with `niter = 1000` ran in our Docker image (2026-10-09,
-  not timed); Colab not yet measured.
+  5,000 FULL (bsts MCMC). On Colab at `v2026.10.1` (2026-10-10, worked, FULL) the whole R
+  notebook took 74 s after an 81 s install (`runs/2026-10-10-colab-r-r-07-causalimpact-geolift.json`).
 
 ## Parts and exercises
 

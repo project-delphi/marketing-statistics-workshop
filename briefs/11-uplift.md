@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebooks | `labs/src/11-grf-causal-forest.R` → `labs/r/11-grf-causal-forest.ipynb` (Part A, Hillstrom); `labs/src/11-uplift-econml.py` → `labs/python/11-uplift-econml.ipynb` (Part B, synthetic with truth; decision) |
 | Lab slot | 55 min for both notebooks (`modules.m11.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (R 20 + Python 20; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Order | Open the **Python** notebook first and run its install cell (≈ 31 s + 17 s import on Colab, lead's measurement). Then open the **R** notebook (grf installs in ≈ 5 s) and work Part A. Return to the Python notebook for Part B and the decision. |
@@ -40,7 +40,8 @@ profit) uses the held-out half only.
 
 - R: two causal forests on Hillstrom (training forest for priorities; evaluation forest for RATE), both with
   `W.hat = 0.5` because assignment was randomized with probability one half within the two arms used; QUICK
-  `num.trees = 500`, FULL 2,000 (grf's default). Not yet timed on Colab.
+  `num.trees = 500`, FULL 2,000 (grf's default). On Colab at `v2026.10.1` (2026-10-10, worked, FULL)
+  the whole R notebook took 116 s (`runs/2026-10-10-colab-r-r-11-grf-causal-forest.json`).
 - Python (provided cell): `SLearner(overall_model=HistGradientBoostingRegressor())`,
   `TLearner(models=HistGradientBoostingRegressor())`, `XLearner(models=HistGradientBoostingRegressor(),
   propensity_model=LogisticRegression())`, and `CausalForestDML(model_y=HistGradientBoostingRegressor(),

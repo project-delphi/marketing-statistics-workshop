@@ -104,10 +104,10 @@ Newest first within each section.
   warning. Checking ahead for a class is the on-demand run with the class date.
 - `links.yml` (monthly) replaces the weekly `links-external` job in `publish.yml`. It checks the
   live site (pages from its `sitemap.xml`, plus `404.html`, which the sitemap leaves out) instead of
-  rebuilding it, so a link check no longer renders and redeploys the site; the weekly redeploy still
-  happens through the notebooks cron → publish. It also downloads every dataset source in
-  `mktstats.data.DATASETS`, fallbacks included, with the loaders' own `_download` and checks its
-  sha256: the loaders move to the next source silently when one fails or its hash differs, so the
+  rebuilding it, so a link check no longer renders and redeploys the site; the scheduled redeploy
+  still happens through the notebooks cron → publish (monthly since 2026-10-10, the user's choice).
+  It also downloads every dataset source in `mktstats.data.DATASETS`, fallbacks included, with the
+  loaders' own `_download` and checks its sha256: the loaders move to the next source silently when one fails or its hash differs, so the
   notebooks run does not notice a dead or changed source, and an HTTP status alone would not show a
   changed file. By hand in a clean container on 2026-10-10, all 9 sources matched. The site URL is
   read from `repo.site` in `_variables.yml`.
@@ -125,6 +125,46 @@ Newest first within each section.
   (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
   default cannot change the status handling these settings rely on; publish.yml's blocking
   internal-link check uses the same version.
+- First CI runs, dispatched on main on 2026-10-10: `release.yml` with `as_of=2026-10-31` printed
+  "Ready to release as of 2026-10-31: no blockers" (run 38073181420). `links.yml` failed (run
+  38073188370): 2,046 links, 24 errors, every one a 503 from a github.com file page
+  (`/blob/<ref>/<path>`), 23 of them this repository's. The same URLs gave 503 by hand with curl,
+  one at a time and with a browser user agent, while repository and `/tree/` pages gave 200, the
+  same files at raw.githubusercontent.com gave 200, and githubstatus.com said all systems
+  operational. So github.com refuses many file pages to logged-out clients (not concurrency).
+  A GitHub token does not help: lychee 0.24.2's API fallback (`check_github` in
+  `lychee-lib/src/checker/website.rs`, read 2026-10-10) checks only that the repository exists
+  and reports any URL with a path as an error. Fix: `--remap` each `/blob/` link to
+  raw.githubusercontent.com with the same owner, repository, ref and path. By hand with lychee
+  0.24.2 in Docker: 2,046 links on 30 pages, 0 errors, and a planted link to a missing file at
+  the tag gave 404.
+- `notebooks.yml`'s schedule (the notebook matrix and the slow recovery tests) moved from weekly
+  to monthly on 2026-10-10 at the user's request: no scheduled job in this repository runs weekly.
+  It runs on the 1st at 04:17, before `links.yml` (05:41) and `release.yml` (06:23), so the release
+  check reads that day's CI records: `collect` pushes them once the notebook jobs finish (3.5 minutes
+  after the start in the dispatched run of 2026-10-10) and does not wait for the recovery job.
+  That dispatched run (38073363414, on main) was the recovery job's first run in CI: `pytest -m
+  slow`, 65 passed in 10 min 53 s; all 18 notebooks passed in the same run.
+
+### Module 9's cross-validation cell reaches the 4-minute cell limit on Colab (2026-10-10)
+- PLAN.md's Colab targets include "any cell ≤ 4 min". The time-slice cross-validation cell (4 folds ×
+  2 chains × 500 draws, FULL) took 215 s, 241 s and 252 s in the three Colab runs at `main`,
+  `v2026.10.0` and `v2026.10.1` (`runs/2026-10-10-colab-py-python-09-mmm-calibration.json`, the
+  21st timed cell). The same notebook's two main fits come next (up to 209 s); outside Module 9 no
+  cell took more than 161 s (the capstone). The whole notebook took 697 s at `v2026.10.1`, inside
+  the 15-minute total.
+- Not fixed in `v2026.10.1`: the overrun is 12 s, and changing the lab stales its Colab record
+  (and a new tag stales all 18). The brief's rule is to cut folds before draws, so the next release
+  should run 3 folds FULL (as QUICK does) or start the first fold later; then re-measure on Colab.
+
+### Queued for the next release (lab changes that need a Colab re-sweep)
+Changes to `labs/src`, `src/mktstats`, `R/` or the pins make the Colab records stale on main, and a
+new tag makes all 18 stale, so these wait until the next sweep instead of going to main one by one.
+- Module 9: the cross-validation cell (above).
+- R Module 0: the lab carries its own CDNOW loader with one URL (pymc-marketing's `main` branch) and
+  a visible `TODO(mktstats data loaders)` comment; `R/mktstats.R` has no CDNOW loader. Python's
+  `mktstats.data` reads the same file from pymc-marketing's `1.2.0` tag first and `main` second.
+  Move the loader into the R helpers with both sources in that order, and drop the comment.
 
 ## Spikes
 
