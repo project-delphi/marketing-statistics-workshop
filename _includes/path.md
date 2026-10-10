@@ -142,4 +142,53 @@ In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a ge
 :::
 :::
 :::
+::: {.path-day}
+[Extensions · Beyond the core week]{.path-day-label}
+
+::: {.path-step .path-step-optional}
+[13]{.path-num}
+
+::: {.path-body}
+[Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd){.path-title} [Optional]{.chip}
+
+Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II.
+:::
+:::
+::: {.path-step .path-step-optional}
+[14]{.path-num}
+
+::: {.path-body}
+[Survival analysis for subscription churn](/modules/14-survival-churn.qmd){.path-title} [Optional]{.chip}
+
+Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4.
+:::
+:::
+::: {.path-step .path-step-optional}
+[15]{.path-num}
+
+::: {.path-body}
+[Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd){.path-title} [Optional]{.chip}
+
+Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment.
+:::
+:::
+::: {.path-step .path-step-optional}
+[16]{.path-num}
+
+::: {.path-body}
+[Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd){.path-title} [Optional]{.chip}
+
+Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
+:::
+:::
+::: {.path-step .path-step-optional}
+[17]{.path-num}
+
+::: {.path-body}
+[MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd){.path-title} [Optional]{.chip}
+
+Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS.
+:::
+:::
+:::
 :::

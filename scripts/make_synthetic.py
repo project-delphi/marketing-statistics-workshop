@@ -1,5 +1,9 @@
 """Write the default-seed synthetic datasets to data/synthetic/ (CSV) and their truth to truth.json.
 
+The extension modules (13-17) each write their own CSVs and their own truth file,
+truth_<name>.json (EXTENSIONS below), so adding or changing an extension dataset leaves
+truth.json, which the core modules' run records hash, unchanged (DECISIONS.md).
+
     python scripts/make_synthetic.py            # (re)write the files
     python scripts/make_synthetic.py --check    # exit 1 if regenerating would change any file
 
@@ -14,7 +18,10 @@ import argparse
 import json
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
+
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -195,17 +202,46 @@ def build() -> tuple[dict[str, object], dict]:
     return frames, truth
 
 
-def write(outdir: Path) -> list[Path]:
-    outdir.mkdir(parents=True, exist_ok=True)
-    frames, truth = build()
+# Extension datasets: {name: builder}. A builder runs its generator with the default seed and
+# returns ({filename: DataFrame}, truth); the truth goes to truth_<name>.json, with the CSV names
+# under "files". Every filename starts with the dataset's name. One entry per extension module.
+EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
+}
+
+
+def build_extension(name: str) -> tuple[dict[str, pd.DataFrame], dict]:
+    frames, truth = EXTENSIONS[name]()
+    bad = [f for f in frames if not f.startswith(name)]
+    if bad:
+        raise ValueError(f"extension {name}: file names must start with {name!r}: {bad}")
+    about = (f"True parameters of the {name} extension dataset in data/synthetic/, written by "
+             "scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.")
+    return frames, {"about": about, "files": sorted(frames), **truth}
+
+
+def _write_frames(outdir: Path, frames: dict[str, pd.DataFrame]) -> list[Path]:
     paths = []
     for name, df in frames.items():
         p = outdir / name
         df.to_csv(p, index=False, date_format="%Y-%m-%d", lineterminator="\n")
         paths.append(p)
-    p = outdir / "truth.json"
-    p.write_text(json.dumps(truth, indent=2, sort_keys=False) + "\n")
-    paths.append(p)
+    return paths
+
+
+def _write_json(path: Path, obj: dict) -> Path:
+    path.write_text(json.dumps(obj, indent=2, sort_keys=False) + "\n")
+    return path
+
+
+def write(outdir: Path) -> list[Path]:
+    outdir.mkdir(parents=True, exist_ok=True)
+    frames, truth = build()
+    paths = _write_frames(outdir, frames)
+    paths.append(_write_json(outdir / "truth.json", truth))
+    for name in EXTENSIONS:
+        ext_frames, ext_truth = build_extension(name)
+        paths += _write_frames(outdir, ext_frames)
+        paths.append(_write_json(outdir / f"truth_{name}.json", ext_truth))
     return paths
 
 

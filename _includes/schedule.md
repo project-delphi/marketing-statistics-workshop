@@ -114,3 +114,9 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 | 15:40–16:40 | [Debrief · Presentations and scoring]{.slot-debrief} | Module 12 |
 | 16:40–17:00 | [Wrap-up]{.slot-debrief} |  |
 :::
+
+## Extensions · Beyond the core week {#day-6}
+
+*What changes when the data are messy, observational, path-shaped or drifting?*
+
+On your own, before the workshop: [Module 13 · Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd), [Module 14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd), [Module 15 · Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd), [Module 16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd), [Module 17 · MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd) (about 275 minutes).
