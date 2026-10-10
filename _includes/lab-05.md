@@ -2,7 +2,7 @@
 
 ### Python lab · `05-clv-decisions`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/05-clv-decisions.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/05-clv-decisions.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

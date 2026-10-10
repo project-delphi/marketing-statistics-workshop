@@ -13,7 +13,7 @@ Design and read randomized experiments correctly: power and minimum detectable e
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/06-experiments.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/06-experiments.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/06-experiments.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/06-experiments.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -28,7 +28,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/07-geo-experiments.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
+[Open the briefing](/modules/07-geo-experiments.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 :::

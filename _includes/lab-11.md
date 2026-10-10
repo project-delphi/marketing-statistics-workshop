@@ -2,7 +2,7 @@
 
 ### R lab · `11-grf-causal-forest`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/11-grf-causal-forest.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/r/11-grf-causal-forest.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |
@@ -21,7 +21,7 @@
 
 ### Python lab · `11-uplift-econml`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/11-uplift-econml.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/11-uplift-econml.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

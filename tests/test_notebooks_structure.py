@@ -74,6 +74,7 @@ def test_badge_and_install_point_at_the_ref(entry):
     install = cells[common.INSTALL_ID]
     if entry["kernel"] == "python3":
         assert f'MKTSTATS_REF = "{REF}"' in install
+        assert '_os.environ["MKTSTATS_REF"] = MKTSTATS_REF' in install  # data/ at the same ref
         assert f"{V['repo']['raw']}/{REF}/environment/requirements.txt" in install
         assert repr(common.python_pins(V, entry)) in install
     else:

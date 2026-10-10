@@ -132,6 +132,23 @@ def test_committed_real_files():
     assert (s[["regular", "highend"]].diff().dropna() < 0).all().all()
 
 
+def test_repo_file_downloads_at_mktstats_ref(cache, monkeypatch):
+    # On Colab there is no checkout: committed files come from raw GitHub at the install
+    # cell's ref, so a notebook pinned to a tag never reads data/ from main.
+    monkeypatch.setattr(data, "_local_data_dir", lambda: None)
+    monkeypatch.setenv("MKTSTATS_REF", "v9.9.9")
+    urls = []
+
+    def fake_download(url, dest, sha256, timeout, retries):
+        urls.append(url)
+        dest.write_text("{}")
+
+    monkeypatch.setattr(data, "_download", fake_download)
+    path = data.repo_file("synthetic/truth.json")
+    assert urls == [f"{data.REPO_RAW}/v9.9.9/data/synthetic/truth.json"]
+    assert path == cache / "repo" / "v9.9.9" / "synthetic" / "truth.json"
+
+
 def test_committed_synthetic_files_load():
     truth = data.load_truth()
     for key in ["retailer", "btyd_bgnbd", "mmm", "geo_panel", "email_experiment", "tolerances"]:

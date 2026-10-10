@@ -269,7 +269,7 @@ Python (identical output) or read the CSV directly until `data.py` lists them.
 
 Data loaders (`mktstats.data`) read env `MKTSTATS_CACHE` (download cache, default
 `~/.cache/mktstats`), `MKTSTATS_OFFLINE` (no downloads), `MKTSTATS_REF` (git ref for committed files
-when not in a checkout), `MKTSTATS_DATA_DIR` (override the local `data/` folder) and
+when not in a checkout; the install cell sets it to `repo.ref`), `MKTSTATS_DATA_DIR` (override the local `data/` folder) and
 `MKTSTATS_SABOTAGE=swap_rf` (the RFM helpers swap recency and frequency).
 
 ## Checks (`mktstats.checks`) — raise `AssertionError` with a message that says what to look at

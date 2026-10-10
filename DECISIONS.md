@@ -81,12 +81,16 @@ Newest first within each section.
   Colab and in CI, passed on the laptop by chance. With `ftol=0.01` (one cent) and a feasible start,
   0 of 40 failed and plans agreed within $1. The lab passes these options explicitly and explains why.
 
-### Notebooks pinned to the release tag `v2026.10.0` (2026-10-10)
-- `repo.ref` is `v2026.10.0`, so every Colab badge, the mktstats install, the constraints file and
-  the R helpers read that tag. A push to main no longer changes what learners get. The alternative,
+### Notebooks pinned to a release tag, now `v2026.10.1` (2026-10-10)
+- `repo.ref` is a release tag, so every Colab badge, the mktstats install, the constraints file,
+  the R helpers and the committed data read that tag. A push to main no longer changes what learners get. The alternative,
   freezing main for the class, would have blocked fixes and run records.
 - The ref is part of every notebook's deps_sha, so the switch made all 18 Colab records stale and
-  needed a full Colab sweep at the tag. A fix release (`v2026.10.1`) does the same.
+  needed a full Colab sweep at the tag. A fix release does the same.
+- `v2026.10.0` pinned the code but not the data: the Python install cell set `MKTSTATS_REF` as a
+  Python variable without exporting it, so `mktstats.data` fetched `data/synthetic` and
+  `truth.json` from main. `v2026.10.1` exports it (R already passed it as `mktstats.ref`). The data
+  had not changed between the two, so the `v2026.10.0` runs used the same files.
 - Run records are added on main after the tag (`repo.branch`), so links to `runs/` point at main.
   Readiness hashes main's files, not the tag's: if main's labs or deps move past the tag, the
   readiness page reports stale even though learners still get the tag. That errs on the safe side.

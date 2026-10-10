@@ -10,7 +10,7 @@ Add a Gamma-Gamma spend model after checking that spend is independent of purcha
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/04-monetary-clv.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/04-monetary-clv.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

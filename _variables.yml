@@ -22,7 +22,7 @@ repo:
   # Colab badges, the mktstats install, the constraints file and the R helpers all point at this
   # ref. `main` while building; a release tag when the workshop is frozen for delivery. Changing
   # it changes every notebook's deps_sha, so every run record goes stale (DECISIONS.md).
-  ref: v2026.10.0
+  ref: v2026.10.1
   # The branch that collects run records and builds the site; records added after the tag live here.
   branch: main
   raw: https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop

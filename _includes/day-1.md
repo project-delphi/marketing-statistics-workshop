@@ -13,7 +13,7 @@ Turn raw transaction logs into a customer table with DuckDB window functions, dr
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/01-customer-base.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/01-customer-base-sql.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/01-customer-base.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/01-customer-base-sql.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -28,7 +28,7 @@ Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the f
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/02-btyd.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/02-btyd.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/02-btyd.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/02-btyd.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -43,7 +43,7 @@ Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and rec
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/03-covariates-and-ml.qmd){.btn-quiet} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/03-clvtools-covariates.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/03-btyd-vs-ml.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/03-covariates-and-ml.qmd){.btn-quiet} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/r/03-clvtools-covariates.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/03-btyd-vs-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::

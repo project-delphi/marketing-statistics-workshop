@@ -11,7 +11,8 @@ Three kinds of data, with different rules.
 The download cache is `$MKTSTATS_CACHE`, default `~/.cache/mktstats`. `MKTSTATS_OFFLINE=1` forbids
 downloads; a missing file then raises with the URL to fetch by hand and the path to save it at.
 When `mktstats` runs outside a checkout (Colab), committed files are fetched from raw GitHub at
-`$MKTSTATS_REF` (default `main`).
+`$MKTSTATS_REF` (default `main`). Every notebook's install cell sets it to `repo.ref`, so a
+notebook pinned to a release tag reads the data committed at that tag.
 
 ## Synthetic data (`data/synthetic/`)
 

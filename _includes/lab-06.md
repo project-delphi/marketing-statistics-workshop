@@ -2,7 +2,7 @@
 
 ### Python lab · `06-experiments`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/06-experiments.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/06-experiments.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

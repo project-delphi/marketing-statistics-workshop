@@ -187,6 +187,7 @@ import time as _time
 
 _t0 = _time.time()
 MKTSTATS_REF = "__REF__"
+_os.environ["MKTSTATS_REF"] = MKTSTATS_REF  # committed data/ files are fetched at this ref too
 _REPO = "__REPO__"
 _PINS = __PINS__
 _CONSTRAINTS = "__CONSTRAINTS__"

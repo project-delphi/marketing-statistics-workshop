@@ -10,7 +10,7 @@ Turn response curves into a budget: write a constrained SLSQP allocator, compare
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/10-budget-allocation.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/10-budget-allocation.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
