@@ -9,7 +9,8 @@
 | Colab (Python runtime, CPU) | `python/05-clv-decisions` | 53 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/06-experiments` | 16 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/07-synthetic-control-did` | 15 s | 2026-10-10 |
-| Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 42 s | 2026-10-09 |
+| Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 35 s | 2026-10-10 |
+| Colab (Python runtime, CPU) | `python/09-mmm-calibration` | 43 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/11-uplift-econml` | 32 s | 2026-10-09 |
 | Colab (R runtime, CPU) | `r/00-setup-warmup` | 5 s | 2026-10-09 |
 | Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 6 s | 2026-10-09 |
