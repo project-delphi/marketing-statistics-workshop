@@ -15,7 +15,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 :::
 
 ::: {.module-decision}
-**The decision.** Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, and name the channel where attributed credit and true incrementality disagree most.
+**The decision.** Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, by checking that the holdout can detect the channel's break-even number of incremental conversions.
 :::
 
 ::: {.module-details}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Written from scratch with NumPy and pandas: the removal effect is one linear solve and exact Shapley values over five channels need 32 coalitions, so you write each method and check it by hand. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell.
+:   Python. Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell.
 
 Labs
 :   Python: `labs/python/16-multi-touch-attribution.ipynb` (in preparation)

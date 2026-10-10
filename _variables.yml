@@ -670,7 +670,7 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Written from scratch with NumPy and pandas: the removal effect is one linear solve and exact Shapley values over five channels need 32 coalitions, so you write each method and check it by hand. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
+    language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
     summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway."
     objectives:
       - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
@@ -685,8 +685,7 @@ modules:
     prerequisites:
       - "Module 6: the minimum detectable effect, and why attribution is not incrementality"
       - "Module 8: ROAS per channel from a marketing mix model"
-      - "Solving a small linear system with NumPy (np.linalg.solve)"
-    decision: "Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, and name the channel where attributed credit and true incrementality disagree most."
+    decision: "Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, by checking that the holdout can detect the channel's break-even number of incremental conversions."
     recap: "Module 6 showed with one randomized email test that last-touch credit counts conversions that would have happened anyway; data-driven multi-touch attribution shares credit across every touch in a journey instead, but nothing so far tested whether that credit measures what a channel causes."
     next: "Attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM, where a channel's effect can drift over time."
     notebooks:

@@ -448,10 +448,13 @@ Provided cell, in the standard order:
 - **Rule** (stated before the numbers): "Attribution credit cannot separate a channel's effect from the intent
   of the users it reaches. Move budget toward a channel only when an experiment (Modules 6 and 7) or a
   lift-calibrated MMM (Module 9) shows that its cost per incremental conversion is below the $9 margin per
-  conversion. If a holdout can detect an effect as large as the credit (MDE below the credited conversions),
-  run it first."
+  conversion. Run a holdout first when it can tell a channel that pays back from one that does not: its MDE,
+  scaled to all the users the channel reaches, must be below the break-even (spend ÷ margin per conversion).
+  If it is not, make the holdout larger or longer before running it."
 - **Recommendation:** the cell prints what the rule gives (prototype: test retargeting first, because the
-  holdout's MDE of about 200 conversions is below its roughly 708 credited), the margin at risk, what would
+  holdout's MDE scaled to all reached users, about 250 conversions a month, is below its break-even of about
+  278; comparing the MDE with the 708 credited would be a weaker bar that a test with an MDE of 600 would also
+  pass, though it could not tell a break-even channel from a useless one), the margin at risk, what would
   change it (a holdout showing a cost per incremental conversion below $9, that is more incremental
   conversions a month than the break-even), and the mode ("QUICK changes only the bootstrap intervals").
   Then the learner writes one sentence: test or move, which channel, the holdout share and its MDE, the
