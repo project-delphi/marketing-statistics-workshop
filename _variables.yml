@@ -450,7 +450,8 @@ modules:
     outcomes:
       - "A before/after table of ROAS intervals for the calibrated and uncalibrated model, next to the truth"
       - "A time-slice cross-validation scorecard and a parameter-stability plot"
-      - "A list of channels ranked by how much a new lift test would change the decision"
+      - "A decision table: which channels to act on now and which to test first, with the spend at stake and the channel for the next lift test"
+      - "Robyn's marginal ROAS per channel across its five best models (R notebook)"
     prerequisites:
       - "Module 8: the Bayesian MMM and its diagnostics"
       - "Module 7: reading a geo-test result as incremental sales with an interval"
@@ -549,7 +550,7 @@ modules:
       - "One notebook that runs the pipeline end to end, with a checkpoint at every stage"
       - "A five-slide decision brief, presented and scored against the rubric"
     prerequisites:
-      - "Modules 4, 5, 7, 9, 10 and 11 (their notebooks are the building blocks)"
+      - "Modules 2–5 and 7–11, whose notebooks are the building blocks: Stage 1 reuses Modules 2–5, Stage 2 Module 7, Stage 3 Modules 8–9, Stage 4 Module 10 and Stage 5 Module 11"
     decision: "Recommend next quarter's budget by channel and the customers to target with the retention offer, with expected value, a 94% interval and the main risk to the recommendation."
     recap: "Modules 1–11 each answer one question in isolation, each with its own data and its own notebook."
     next: "After the workshop: run the same pipeline on your own data, starting with the Module 1 SQL on your transaction log."
