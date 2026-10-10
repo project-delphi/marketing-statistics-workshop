@@ -205,7 +205,17 @@ def build() -> tuple[dict[str, object], dict]:
 # Extension datasets: {name: builder}. A builder runs its generator with the default seed and
 # returns ({filename: DataFrame}, truth); the truth goes to truth_<name>.json, with the CSV names
 # under "files". Every filename starts with the dataset's name. One entry per extension module.
+def _messy() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 13: the synthetic retailer as a messy line log (mktstats.synth.messy, seed 2033).
+    Only the lines are written; the per-line labels stay in memory for the tests."""
+    from mktstats.synth import messy
+
+    res = messy.messy_retailer()
+    return {"messy_lines.csv": res.lines}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
+    "messy": _messy,
 }
 
 
