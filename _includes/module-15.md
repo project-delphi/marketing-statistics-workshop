@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Extensions]{.eyebrow} [Module 15]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
+[Extensions](/extensions.qmd){.eyebrow} [Module 15]{.module-num} [110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. EconML's LinearDML, the double machine learning estimator, takes any scikit-learn model for its two prediction steps; the lab uses scikit-learn's histogram gradient boosting, as in Module 11, and statsmodels for the regression baseline.
+:   Python. EconML's LinearDML, the double machine learning estimator, takes any scikit-learn model for its two prediction steps; the lab uses scikit-learn's histogram gradient boosting, as in Module 11, and statsmodels for the regression baseline.
 
 Labs
 :   Python: `labs/python/15-double-ml.ipynb` (in preparation)
@@ -55,7 +55,9 @@ Data
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd) and its lab.
+- [Module 6](/modules/06-experiments.qmd): randomized experiments and 95% confidence intervals
+- [Module 11](/modules/11-uplift.qmd): treatment effects and EconML
+- Linear regression with control variables; gradient boosting at the level of fit and predict
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::
