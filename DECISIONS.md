@@ -143,6 +143,8 @@ Newest first within each section.
   It runs on the 1st at 04:17, before `links.yml` (05:41) and `release.yml` (06:23), so the release
   check reads that day's CI records: `collect` pushes them once the notebook jobs finish (3.5 minutes
   after the start in the dispatched run of 2026-10-10) and does not wait for the recovery job.
+  That dispatched run (38073363414, on main) was the recovery job's first run in CI: `pytest -m
+  slow`, 65 passed in 10 min 53 s; all 18 notebooks passed in the same run.
 
 ### Module 9's cross-validation cell reaches the 4-minute cell limit on Colab (2026-10-10)
 - PLAN.md's Colab targets include "any cell ≤ 4 min". The time-slice cross-validation cell (4 folds ×
