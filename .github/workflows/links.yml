@@ -25,7 +25,7 @@ jobs:
           # Assign first so a failure stops the step instead of checking nothing.
           site=$(uv run --no-project --with pyyaml python -I -c 'import yaml; print(yaml.safe_load(open("_variables.yml"))["repo"]["site"])')
           sitemap=$(curl -sfL --retry 3 "${site%/}/sitemap.xml")
-          pages=$(grep -o '<loc>[^<]*' <<< "$sitemap" | sed 's/<loc>//' | tr '\n' ' ')
+          pages=$({ grep -o '<loc>[^<]*' <<< "$sitemap" || true; } | sed 's/<loc>//' | tr '\n' ' ')
           if [ -z "${pages// }" ]; then echo "::error::No pages in ${site%/}/sitemap.xml"; exit 1; fi
           pages="$pages ${site%/}/404.html" # not in the sitemap, but has links of its own
           echo "Checking $(wc -w <<< "$pages") pages."
@@ -55,6 +55,7 @@ jobs:
             --max-redirects 0 --accept 200,302,429
             ${{ steps.pages.outputs.list }}
           fail: true
+          failIfEmpty: false # a site with no DOIs is not an error
       # online.stat.psu.edu sends an incomplete certificate chain, which browsers repair and
       # lychee rejects. Its pages are still checked, without verifying the certificate.
       - name: Penn State pages
@@ -68,6 +69,7 @@ jobs:
             --insecure
             ${{ steps.pages.outputs.list }}
           fail: true
+          failIfEmpty: false # nor one with no Penn State links
       # The loaders try each dataset's sources in order and move to the next one without saying
       # so when a download fails or its sha256 differs, so the notebooks run does not notice a
       # dead or changed source. This downloads every source with the loaders' own function and

@@ -206,7 +206,7 @@ What went wrong, or surprised us, while the labs were built and run, from the ru
 - [ ] **Three weeks before**, check that `repo.ref` in `_variables.yml` is the release tag you will teach from; the Colab badges and installs point at it.
 - [ ] **Within {{< var readiness.max_run_age_days >}} days of Day 1**, run every notebook on a fresh Colab runtime in worked mode, FULL, whole notebook. Record each run with `scripts/add_run_record.py` (its `--help` lists the arguments) so the readiness page shows it.
 - [ ] **Check the [readiness page](readiness.qmd).** Every notebook should be ready to teach: a current Colab run, CI passing on the current commit. Rerun anything marked stale (code or dependencies changed since its run, or older than the age limit). To check ahead for a class date, run the [release workflow]({{< var repo.url >}}/actions/workflows/release.yml) with that date; it also runs on the 1st of each month.
-- [ ] **Check the data URLs**: run each lab's data-loading cells once, or read the latest result of the monthly [link check]({{< var repo.url >}}/actions/workflows/links.yml).
+- [ ] **In the week before Day 1, check the data URLs**: run the [link check]({{< var repo.url >}}/actions/workflows/links.yml) by hand (Run workflow), which downloads every dataset source and checks its hash, or run each lab's data-loading cells once. The monthly run can be weeks old.
 - [ ] **A week before**, send participants the [Before Day 1](prepare.qmd) page: entry check, review, setup, Module 0.
 - [ ] **The day before**, remind them to check their setup and to send any error they cannot fix.
 - [ ] **Prepare**: the GeoLift demo output (Day 3), printed CFO cards and Analyst checklists (Day 2), the capstone pairs and answer key (Day 5).
