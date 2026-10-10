@@ -21,9 +21,9 @@ Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day 
 ::: {.path-body}
 [Survival analysis for subscription churn](/modules/14-survival-churn.qmd){.path-title} [Optional]{.chip}
 
-Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4.
+Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars.
 
-[Builds on [Module 4](/modules/04-monetary-clv.qmd).]{.path-builds-on}
+[Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.path-builds-on}
 :::
 :::
 ::: {.path-step .path-step-optional}

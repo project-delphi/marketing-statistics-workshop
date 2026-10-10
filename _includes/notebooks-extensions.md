@@ -3,7 +3,7 @@
 | Module | Notebook | Language | Runtime | Open | Time on Colab |
 |---|---|---|---|---|---|
 | [13 · Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd) | `13-messy-real-data` | Python | Colab (Python runtime, CPU) | in preparation | — |
-| [14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd) | `14-survival-churn` | Python | Colab (Python runtime, CPU) | in preparation | — |
+| [14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd) | `14-survival-churn` | Python | Colab (Python runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/14-survival-churn.ipynb) | not yet timed on Colab |
 | [15 · Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd) | `15-double-ml` | Python | Colab (Python runtime, CPU) | in preparation | — |
 | [16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd) | `16-multi-touch-attribution` | Python | Colab (Python runtime, CPU) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb) | not yet timed on Colab |
 | [17 · MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd) | `17-mmm-time-varying` | Python | Colab (Python runtime, CPU) | in preparation | — |
