@@ -30,6 +30,10 @@ jobs:
           pages="$pages ${site%/}/404.html" # not in the sitemap, but has links of its own
           echo "Checking $(wc -w <<< "$pages") pages."
           echo "list=${pages}" >> "$GITHUB_OUTPUT"
+      # github.com answers 503 to logged-out clients for many file pages (`/blob/<ref>/<path>`),
+      # from the runner and by hand, while the same file at raw.githubusercontent.com answers 200
+      # (and a wrong path 404). So a file link is checked at its raw URL: same repository, ref and
+      # path. A GitHub token would not help: lychee's API fallback only covers repository URLs.
       - name: Links on every page
         uses: lycheeverse/lychee-action@v2
         with:
@@ -37,6 +41,7 @@ jobs:
           args: >-
             --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
             --accept 200,203,206,429
+            --remap '^https://github\.com/([^/]+)/([^/]+)/blob/(.+)$ https://raw.githubusercontent.com/$1/$2/$3'
             --exclude '^https://colab\.research\.google\.com/'
             --exclude '^https://doi\.org/'
             --exclude '^https://online\.stat\.psu\.edu/'

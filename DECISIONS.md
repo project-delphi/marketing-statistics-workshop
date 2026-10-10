@@ -125,6 +125,19 @@ Newest first within each section.
   (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
   default cannot change the status handling these settings rely on; publish.yml's blocking
   internal-link check uses the same version.
+- First CI runs, dispatched on main on 2026-10-10: `release.yml` with `as_of=2026-10-31` printed
+  "Ready to release as of 2026-10-31: no blockers" (run 38073181420). `links.yml` failed (run
+  38073188370): 2,046 links, 24 errors, every one a 503 from a github.com file page
+  (`/blob/<ref>/<path>`), 23 of them this repository's. The same URLs gave 503 by hand with curl,
+  one at a time and with a browser user agent, while repository and `/tree/` pages gave 200, the
+  same files at raw.githubusercontent.com gave 200, and githubstatus.com said all systems
+  operational. So github.com refuses many file pages to logged-out clients (not concurrency).
+  A GitHub token does not help: lychee 0.24.2's API fallback (`check_github` in
+  `lychee-lib/src/checker/website.rs`, read 2026-10-10) checks only that the repository exists
+  and reports any URL with a path as an error. Fix: `--remap` each `/blob/` link to
+  raw.githubusercontent.com with the same owner, repository, ref and path. By hand with lychee
+  0.24.2 in Docker: 2,046 links on 30 pages, 0 errors, and a planted link to a missing file at
+  the tag gave 404.
 ### Module 9's cross-validation cell reaches the 4-minute cell limit on Colab (2026-10-10)
 - PLAN.md's Colab targets include "any cell ≤ 4 min". The time-slice cross-validation cell (4 folds ×
   2 chains × 500 draws, FULL) took 215 s, 241 s and 252 s in the three Colab runs at `main`,
