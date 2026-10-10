@@ -133,6 +133,57 @@
         10.3
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "c8e2f1bd6a91bd8d",
+      "install_seconds": 30.2,
+      "notebook": "python/11-uplift-econml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 60.3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 on the four models": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        2.22,
+        0.0,
+        0.0,
+        0.03,
+        0.54,
+        36.35,
+        4.05,
+        0.02,
+        0.0,
+        0.0,
+        0.0,
+        0.47,
+        0.38,
+        0.0,
+        0.0,
+        0.01,
+        0.01,
+        2.89,
+        0.0,
+        13.1
+      ],
+      "cell_errors": 0
     }
   ]
 }

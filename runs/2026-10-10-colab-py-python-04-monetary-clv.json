@@ -170,6 +170,75 @@
         58.11
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "4f40621cdc44dd08",
+      "install_seconds": 40.8,
+      "notebook": "python/04-monetary-clv",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 352.3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "CDNOW Gamma-Gamma benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        17.82,
+        0.0,
+        0.0,
+        0.01,
+        71.58,
+        0.0,
+        0.0,
+        0.05,
+        0.02,
+        6.14,
+        0.0,
+        54.35,
+        13.64,
+        50.71,
+        0.0,
+        0.0,
+        1.58,
+        0.0,
+        0.0,
+        0.0,
+        6.23,
+        0.25,
+        0.15,
+        0.0,
+        0.0,
+        11.06,
+        58.3,
+        0.22,
+        1.25,
+        58.65
+      ],
+      "cell_errors": 0
     }
   ]
 }

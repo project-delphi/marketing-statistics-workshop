@@ -65,6 +65,25 @@
           "whose": "the REFERENCE solution"
         }
       }
+    },
+    {
+      "ref": "v2026.10.1",
+      "deps_sha": "14cbdd763770eba4",
+      "install_seconds": 65.5,
+      "notebook": "r/09-robyn",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 172.3,
+      "checkpoints": {
+        "Nevergrad": {
+          "passed": true,
+          "whose": null
+        },
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
     }
   ]
 }

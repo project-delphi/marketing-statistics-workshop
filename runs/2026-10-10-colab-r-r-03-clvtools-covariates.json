@@ -80,6 +80,33 @@
           "whose": "the REFERENCE solution"
         }
       }
+    },
+    {
+      "ref": "v2026.10.1",
+      "deps_sha": "0141286a5d39f50d",
+      "install_seconds": 15.9,
+      "notebook": "r/03-clvtools-covariates",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 10,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1b": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
     }
   ]
 }

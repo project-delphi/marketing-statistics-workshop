@@ -148,6 +148,65 @@
         0.26
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "f60575c7759dfd7f",
+      "install_seconds": 11.5,
+      "notebook": "python/07-synthetic-control-did",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 21.6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Prop 99": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        1.06,
+        0.36,
+        0.0,
+        0.0,
+        0.01,
+        0.01,
+        0.0,
+        0.0,
+        0.06,
+        0.33,
+        0.36,
+        1.22,
+        0.0,
+        0.0,
+        0.07,
+        0.71,
+        0.02,
+        0.0,
+        0.0,
+        9.53,
+        5.22,
+        2.17,
+        0.0,
+        0.17
+      ],
+      "cell_errors": 0
     }
   ]
 }

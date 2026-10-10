@@ -156,6 +156,68 @@
         0.03
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "16934741fb71c703",
+      "install_seconds": 52.6,
+      "notebook": "python/09-mmm-calibration",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 697.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        14.36,
+        0.7,
+        0.05,
+        0.0,
+        0.0,
+        0.01,
+        0.03,
+        208.98,
+        14.38,
+        0.0,
+        0.0,
+        0.03,
+        0.04,
+        0.35,
+        199.25,
+        5.42,
+        0.0,
+        0.0,
+        0.02,
+        0.23,
+        251.69,
+        0.22,
+        0.0,
+        0.0,
+        0.0,
+        0.02,
+        0.02,
+        0.07,
+        0.57,
+        0.06,
+        0.02
+      ],
+      "cell_errors": 0
     }
   ]
 }

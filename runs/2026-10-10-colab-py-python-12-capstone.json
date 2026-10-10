@@ -189,6 +189,84 @@
         0.18
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "0bdbce8fafb58dcb",
+      "install_seconds": 53.3,
+      "notebook": "python/12-capstone",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 336.7,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 \u00b7 fitted values": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        10.81,
+        0.13,
+        0.02,
+        0.37,
+        0.0,
+        0.0,
+        0.01,
+        160.49,
+        1.94,
+        0.0,
+        0.24,
+        0.0,
+        0.0,
+        0.64,
+        0.19,
+        0.01,
+        0.02,
+        68.57,
+        10.3,
+        0.0,
+        0.0,
+        52.22,
+        3.36,
+        0.02,
+        0.4,
+        0.04,
+        0.0,
+        0.0,
+        0.19,
+        0.32,
+        0.24,
+        25.42,
+        0.0,
+        0.0,
+        0.01,
+        0.03,
+        0.02,
+        0.0,
+        0.12
+      ],
+      "cell_errors": 0
     }
   ]
 }

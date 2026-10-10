@@ -166,6 +166,73 @@
         0.17
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "e42f8472f7bace8a",
+      "install_seconds": 40.6,
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 181.8,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        14.96,
+        0.0,
+        0.0,
+        0.25,
+        0.06,
+        1.02,
+        0.0,
+        0.0,
+        0.07,
+        0.01,
+        81.75,
+        0.0,
+        0.0,
+        0.01,
+        0.1,
+        9.53,
+        0.05,
+        27.06,
+        28.85,
+        0.0,
+        0.0,
+        15.28,
+        0.03,
+        1.38,
+        0.0,
+        0.0,
+        0.81,
+        0.23
+      ],
+      "cell_errors": 0
     }
   ]
 }

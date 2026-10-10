@@ -80,6 +80,33 @@
           "whose": "the REFERENCE solution"
         }
       }
+    },
+    {
+      "ref": "v2026.10.1",
+      "deps_sha": "56b1e575c5a8eed6",
+      "install_seconds": 6.8,
+      "notebook": "r/11-grf-causal-forest",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 116.1,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 on Hillstrom": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
     }
   ]
 }

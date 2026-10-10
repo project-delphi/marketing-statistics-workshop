@@ -180,4 +180,4 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [AD] `faq.qmd`
 
 ### Phase 7 — release
-- [x] [Lead] `repo.ref` → tag; full Colab sweep; `release_check.py` passes; final report (`v2026.10.0`; all 18 notebooks swept on Colab 2026-10-10; `release_check.py` passes through `--as-of 2026-10-31`)
+- [x] [Lead] `repo.ref` → tag; full Colab sweep; `release_check.py` passes; final report (`v2026.10.1`, which also pins the Python labs' data; all 18 notebooks swept on Colab 2026-10-10; `release_check.py` passes through `--as-of 2026-10-31`)

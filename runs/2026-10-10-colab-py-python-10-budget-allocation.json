@@ -178,6 +178,79 @@
         0.03
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "6cbe7b40e8733b7c",
+      "install_seconds": 43.9,
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 158.6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        3.21,
+        0.0,
+        0.01,
+        0.01,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.02,
+        110.55,
+        0.01,
+        0.7,
+        0.0,
+        0.0,
+        0.05,
+        0.08,
+        1.4,
+        0.0,
+        0.0,
+        33.26,
+        0.02,
+        5.57,
+        0.0,
+        0.0,
+        0.01,
+        2.15,
+        0.24,
+        0.05,
+        0.0,
+        0.0,
+        0.66,
+        0.03,
+        0.09,
+        0.04
+      ],
+      "cell_errors": 0
     }
   ]
 }

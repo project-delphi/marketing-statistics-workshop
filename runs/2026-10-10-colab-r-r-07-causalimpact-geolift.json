@@ -67,6 +67,25 @@
           "whose": "the REFERENCE solution"
         }
       }
+    },
+    {
+      "ref": "v2026.10.1",
+      "deps_sha": "818c794b2c360b07",
+      "install_seconds": 80.7,
+      "notebook": "r/07-causalimpact-geolift",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 73.8,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
     }
   ]
 }

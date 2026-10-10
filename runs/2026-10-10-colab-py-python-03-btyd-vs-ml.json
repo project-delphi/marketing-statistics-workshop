@@ -115,6 +115,48 @@
         0.0
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "e6b94fca90a897af",
+      "install_seconds": 42.0,
+      "notebook": "python/03-btyd-vs-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 117.9,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "design": {
+          "passed": true,
+          "whose": null
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        19.98,
+        0.0,
+        0.01,
+        0.2,
+        0.09,
+        0.0,
+        96.58,
+        0.01,
+        0.0,
+        0.0,
+        0.03,
+        0.04,
+        0.6,
+        0.13,
+        0.0
+      ],
+      "cell_errors": 0
     }
   ]
 }

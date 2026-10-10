@@ -72,6 +72,29 @@
           "whose": "the REFERENCE solution"
         }
       }
+    },
+    {
+      "ref": "v2026.10.1",
+      "deps_sha": "2d4d267671c9b128",
+      "install_seconds": 8.1,
+      "notebook": "r/00-setup-warmup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
     }
   ]
 }

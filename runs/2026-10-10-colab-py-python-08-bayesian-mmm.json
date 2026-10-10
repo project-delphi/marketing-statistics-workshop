@@ -188,6 +188,84 @@
         0.02
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "2e0093b5987c2b70",
+      "install_seconds": 45.0,
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 209.3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "adstock alpha": {
+          "passed": true,
+          "whose": null
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        9.71,
+        0.94,
+        0.0,
+        0.0,
+        22.1,
+        0.0,
+        0.0,
+        0.65,
+        0.0,
+        0.0,
+        0.01,
+        23.17,
+        0.17,
+        108.16,
+        1.92,
+        0.01,
+        0.0,
+        0.0,
+        0.43,
+        0.0,
+        0.19,
+        10.76,
+        0.0,
+        0.0,
+        0.01,
+        0.13,
+        0.02,
+        30.29,
+        0.13,
+        0.0,
+        0.0,
+        0.08,
+        0.02,
+        0.04,
+        0.02
+      ],
+      "cell_errors": 0
     }
   ]
 }

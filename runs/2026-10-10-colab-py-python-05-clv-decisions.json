@@ -170,6 +170,75 @@
         2.47
       ],
       "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.1",
+      "mktstats_commit": "5cd14a6fc362168fe8528fccf792d3508cbe530b",
+      "deps_sha": "af84383f77a945a4",
+      "install_seconds": 42.3,
+      "notebook": "python/05-clv-decisions",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 211.3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 \u00b7 against the truth": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        17.06,
+        0.0,
+        0.15,
+        0.0,
+        0.0,
+        0.0,
+        0.41,
+        139.64,
+        29.33,
+        0.58,
+        0.0,
+        0.0,
+        0.05,
+        17.97,
+        0.0,
+        0.0,
+        0.19,
+        0.04,
+        0.26,
+        0.0,
+        0.0,
+        0.04,
+        1.75,
+        0.43,
+        0.0,
+        0.0,
+        0.5,
+        0.01,
+        0.02,
+        2.44
+      ],
+      "cell_errors": 0
     }
   ]
 }
