@@ -106,8 +106,9 @@ def test_a_ready_extension_never_counts_toward_the_core():
     moved = [e for e in common.notebooks(v) if e["module"] == "m00"]
     report = readiness.build(v, all_passed(common.notebooks(v), current), DAY)
     s = report["summary"]
+    written_extensions = [e for e in EXT_NB if e["id"] in current]  # also passed above
     assert s["notebooks"] == len(CORE_NB) - len(moved)
-    assert s["extensions"]["ready"] == len(moved)
+    assert s["extensions"]["ready"] == len(moved) + len(written_extensions)
     assert {e["id"] for e in report["notebooks"] if e["track"] != common.CORE} >= {
         e["id"] for e in moved
     }

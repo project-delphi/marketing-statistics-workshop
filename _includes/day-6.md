@@ -32,7 +32,7 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 [Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/14-survival-churn.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
