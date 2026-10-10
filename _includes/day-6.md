@@ -69,7 +69,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 **[MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd)**
 
 ::: {.module-summary}
-Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS.
+Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, recover the true decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS.
 :::
 
 ::: {.module-actions}

@@ -47,7 +47,7 @@ packages:
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
   # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
   lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13", docs: https://lifelines.readthedocs.io/}
-  prophet: {version: "1.4.0", checked: 2026-10-10, against: "PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); fits on Python 3.13 locally", docs: https://facebook.github.io/prophet/}
+  prophet: {version: "1.4.0", checked: 2026-10-10, against: "PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); installed source prophet/forecaster.py (Prophet defaults n_changepoints=25, changepoint_range=0.8, changepoint_prior_scale=0.05; predict() returns trend, yearly, holidays, additive_terms and yhat = trend * (1 + multiplicative_terms) + additive_terms; add_regressor); fitted on Python 3.13 locally (156 weekly rows, 0.04-0.16 s, identical results on repeated fits)", docs: https://facebook.github.io/prophet/}
 
 # R packages (versions come from the P3M snapshot; recorded here after the image build).
 r_packages:
@@ -697,26 +697,32 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses."
-    summary: "Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS."
+    language_why: "PyMC-Marketing 1.2.0 fits the MMM with a separate time-varying effectiveness multiplier for each channel (a Hilbert-space Gaussian process); Prophet 1.4.0, preinstalled on Colab, builds the trend, seasonality and holiday baseline that Robyn also builds from it."
+    summary: "Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, recover the true decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS."
     objectives:
-      - "Show how a static MMM averages a channel's declining effectiveness and misstates its current ROAS."
-      - "Fit an MMM whose channel effect varies over time and check that the true path lies inside its 94% HDI for most weeks."
-      - "Fit Prophet to sales, feed its trend and seasonality into the MMM as controls, and measure the effect on ROAS against the truth."
-      - "Report current-quarter ROAS with an interval and say how it differs from the all-period average."
+      - "Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel the same ROAS for the last quarter as for the whole history."
+      - "Detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend."
+      - "Fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and check that the true path lies inside the 94% HDI in at least half of the weeks."
+      - "Feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves."
+      - "Decide on next quarter's budget for the fading channel from its current-quarter ROAS interval against break-even, and say how that differs from the all-period answer."
     outcomes:
-      - "A plot of the estimated and true time-varying channel effect"
-      - "ROAS with and without a Prophet baseline, next to the truth"
+      - "A window-ROAS function that works on the truth and on posterior draws"
+      - "A residual check that flags a drifting channel when no truth is available"
+      - "A plot of the estimated effectiveness path with its 94% HDI band next to the true path"
+      - "A table of ROAS with the MMM's own baseline and with Prophet's, next to the truth"
+      - "A cut-or-keep recommendation for the fading channel with the probability that it is right"
     prerequisites:
-      - "Module 8: the Bayesian MMM"
-      - "Module 9: calibration and what an MMM cannot identify"
-    decision: "Decide whether to cut the fatigued channel's budget next quarter, based on its current ROAS interval rather than its all-period average."
-    recap: "Modules 8-10 assume each channel's effect is constant over the whole history."
-    next: "That ends the extensions; the capstone pipeline (Module 12) can use any of them."
+      - "Module 8: the Bayesian MMM, adstock, saturation, ROAS and the sampler diagnostics"
+      - "Module 9: what an MMM cannot identify, and lift tests in the model's units"
+    decision: "Decide whether to cut the fading channel's budget next quarter (social, in the lab): cut if its current-quarter ROAS is below break-even (1 ÷ gross margin) with posterior probability ≥ 0.9, keep if above with probability ≥ 0.9, otherwise run a lift test first; and say how this differs from the answer the all-period average gives."
+    recap: "Modules 8 to 10 assume each channel's effect per dollar is the same in every week of the history, so a channel that has worn out keeps the average ROAS of its good years."
+    next: "This is the last extension. A drift estimated from observational data is still an estimate: a lift test run now (Module 9) checks the current level, and Module 10's optimizer can take the current-quarter response curves instead of the all-period ones."
     notebooks:
       - {path: labs/python/17-mmm-time-varying.ipynb, source: labs/src/17-mmm-time-varying.py, kernel: python3, install: [pymc-marketing, nutpie, prophet, matplotlib]}
     deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
-    data: []
+    data:
+      - {name: "Synthetic weekly MMM with a fading channel (mmm_drift_weekly.csv, seed 2037)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_drift_weekly.csv"}
+      - {name: "Synthetic dated lift test on the fading channel (mmm_drift_lift_tests.csv, stretch)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_drift_lift_tests.csv"}
 
 # Evidence rules for readiness.qmd (scripts/readiness.py). Envs with teaching: true count as
 # "ran on the runtime it is designed for"; ci: true is the CI lane; documented_only envs are

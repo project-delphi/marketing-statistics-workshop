@@ -22,7 +22,7 @@ What the labs run, and the docs or source each pin was checked against. Python p
 | econml | 0.17.0 | 2026-10-09 | https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py | https://www.pywhy.org/EconML/ |
 | nutpie | 0.16.11 | 2026-10-09 | PyPI | https://pymc-devs.github.io/nutpie/ |
 | lifelines | 0.30.3 | 2026-10-10 | PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13 | https://lifelines.readthedocs.io/ |
-| prophet | 1.4.0 | 2026-10-10 | PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); fits on Python 3.13 locally | https://facebook.github.io/prophet/ |
+| prophet | 1.4.0 | 2026-10-10 | PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); installed source prophet/forecaster.py (Prophet defaults n_changepoints=25, changepoint_range=0.8, changepoint_prior_scale=0.05; predict() returns trend, yearly, holidays, additive_terms and yhat = trend * (1 + multiplicative_terms) + additive_terms; add_regressor); fitted on Python 3.13 locally (156 weekly rows, 0.04-0.16 s, identical results on repeated fits) | https://facebook.github.io/prophet/ |
 
 ## R packages
 
