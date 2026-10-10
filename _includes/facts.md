@@ -6,5 +6,5 @@
 [**18** lab notebooks (13 Python, 5 R)]{.fact}
 [**70** hands-on exercises]{.fact}
 [**45–55** min briefings, **50–55** min labs]{.fact}
-[**+5** optional extension modules (notebooks in preparation)]{.fact}
+[**+5** optional extension modules (1 of 5 notebooks written)]{.fact}
 :::

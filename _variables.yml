@@ -675,26 +675,29 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python. The Markov removal effect and Shapley values are short enough to write from scratch with NumPy and check by hand."
-    summary: "Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted."
+    language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
+    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway."
     objectives:
-      - "Compute last-click, first-click and linear attribution from journey paths."
-      - "Build a first-order Markov transition matrix from journeys and compute each channel's removal effect."
-      - "Compute Shapley values from conversion rates of channel coalitions and check the efficiency property."
-      - "Compare every method's credit with the true incremental conversions per channel and explain the gap."
+      - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
+      - "Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion."
+      - "Compute exact Shapley values from the conversion rates of channel sets and verify the efficiency, symmetry and null-player properties."
+      - "Score five attribution methods against each channel's true incremental conversions, with 95% bootstrap intervals, and explain why targeted exposure and the efficiency property keep credit away from incrementality."
+      - "Decide, with Module 6's minimum detectable effect, whether a holdout test should come before any budget move."
     outcomes:
-      - "Your own markov_removal_effects() and shapley_values() functions, checked on hand-worked examples"
-      - "A table of credit by channel under five methods next to true incrementality"
+      - "Your own heuristic_credit(), transition_matrix(), removal_effects() and shapley_values() functions, each checked on a hand-worked example"
+      - "A table of credited conversions under five methods next to the true incremental conversions, with 95% bootstrap intervals"
+      - "A test-or-move recommendation for retargeting, with the holdout's minimum detectable effect and the margin at risk"
     prerequisites:
-      - "Module 6: why attribution is not incrementality"
-      - "Module 8: ROAS per channel from an MMM"
-    decision: "Decide whether to move budget toward the channels data-driven attribution credits most, or to run a holdout test first, and name the channel where credit and incrementality disagree most."
-    recap: "Module 6 showed with a simulation that last-click credits conversions that would have happened anyway; data-driven attribution claims to fix this."
-    next: "Module 17 returns to the MMM, where a channel's effect can drift over time."
+      - "Module 6: the minimum detectable effect, and why attribution is not incrementality"
+      - "Module 8: ROAS per channel from a marketing mix model"
+    decision: "Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, by checking that the holdout can detect the channel's break-even number of incremental conversions."
+    recap: "Module 6 showed with one randomized email test that last-touch credit counts conversions that would have happened anyway; data-driven multi-touch attribution shares credit across every touch in a journey instead, but nothing so far tested whether that credit measures what a channel causes."
+    next: "Attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM, where a channel's effect can drift over time."
     notebooks:
-      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
-    data: []
+      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/attribution.py, src/mktstats/synth/_common.py, src/mktstats/synth/mta.py, data/synthetic/mta_journeys.csv, data/synthetic/truth_mta.json]
+    data:
+      - {name: "Synthetic user journeys with targeted exposure: 69,410 journeys of 100,000 users over five channels, with each channel's true incremental conversions (mta_journeys.csv from mktstats.synth.mta, seed 2036, one letter per touch; truth in truth_mta.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
   m17:
     slug: 17-mmm-time-varying
     title: "MMM with drifting effects and a Prophet baseline"
