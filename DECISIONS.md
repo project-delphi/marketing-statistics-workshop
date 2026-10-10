@@ -119,7 +119,8 @@ Newest first within each section.
   66 DOI links and 6 Penn State links all pass.
 - lychee is pinned to v0.24.2, the default of lychee-action v2 when checked
   (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
-  default cannot change the status handling these settings rely on.
+  default cannot change the status handling these settings rely on; publish.yml's blocking
+  internal-link check uses the same version.
 
 ## Spikes
 

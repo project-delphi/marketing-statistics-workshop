@@ -32,8 +32,8 @@ jobs:
           echo "list=${pages}" >> "$GITHUB_OUTPUT"
           # Every source of every dataset, fallbacks included: the loaders move to the next
           # source without saying so, so the notebooks run does not notice a dead one.
-          uv run --no-project --with pandas python -I -c 'import sys; sys.path.insert(0, "src")
-          from mktstats.data import DATASETS
+          # `--with .` installs mktstats with the dependencies its pyproject declares.
+          uv run --no-project --with . python -I -c 'from mktstats.data import DATASETS
           print("\n".join(s["url"] for d in DATASETS.values() for s in d["sources"]))' > data-urls.txt
           echo "Checking $(wc -l < data-urls.txt) dataset URLs."
       - name: Links on every page and dataset URLs
@@ -51,25 +51,25 @@ jobs:
       # Journal publishers behind doi.org refuse non-browser clients (403), so DOIs are checked
       # at doi.org without following the redirect: a registered DOI answers 302, a wrong one 404.
       - name: DOIs
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.pages.outcome == 'success' }}
         uses: lycheeverse/lychee-action@v2
         with:
           lycheeVersion: v0.24.2
           args: >-
-            --no-progress --max-retries 3
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
             --exclude '.*' --include '^https://doi\.org/'
-            --max-redirects 0 --accept 200,302
+            --max-redirects 0 --accept 200,302,429
             ${{ steps.pages.outputs.list }}
           fail: true
       # online.stat.psu.edu sends an incomplete certificate chain, which browsers repair and
       # lychee rejects. Its pages are still checked, without verifying the certificate.
       - name: Penn State pages
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.pages.outcome == 'success' }}
         uses: lycheeverse/lychee-action@v2
         with:
           lycheeVersion: v0.24.2
           args: >-
-            --no-progress --max-retries 3
+            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
             --exclude '.*' --include '^https://online\.stat\.psu\.edu/'
             --insecure
             ${{ steps.pages.outputs.list }}

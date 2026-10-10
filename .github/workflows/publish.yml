@@ -83,6 +83,7 @@ jobs:
       - name: Internal links (blocking)
         uses: lycheeverse/lychee-action@v2
         with:
+          lycheeVersion: v0.24.2 # same as links.yml; see DECISIONS.md (2026-10-10)
           args: --offline --no-progress --root-dir ${{ github.workspace }}/root 'root/**/*.html'
           fail: true
 
