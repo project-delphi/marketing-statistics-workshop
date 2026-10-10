@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "source": "test_notebooks",
+  "env": "docker-arm64",
+  "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
+  "settings": {},
+  "commit": null,
+  "ref": "main",
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "kernel": "python3",
+      "content_sha": "f011280b0403c4cb",
+      "deps_sha": "5bc5fa4428dc0618",
+      "mode": "worked",
+      "python": "3.13.14",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
+      },
+      "install_seconds": 0.0,
+      "notebook": "python/01-customer-base-sql",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 5.3,
+      "phases": {
+        "generated": 0.2,
+        "other": 3.4,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.17,
+        "verify": 0.04
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.25
+      },
+      "verified": 4,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1b": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "kernel": "python3",
+      "content_sha": "f011280b0403c4cb",
+      "deps_sha": "5bc5fa4428dc0618",
+      "mode": "learner",
+      "notebook": "python/01-customer-base-sql",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.6,
+      "phases": {
+        "generated": 0.15,
+        "other": 2.26,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.26
+      }
+    },
+    {
+      "kernel": "python3",
+      "mode": "worked",
+      "content_sha": "2fcae6a24f5a75c4",
+      "deps_sha": "82262a868ce85152",
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 58.0,
+      "phases": {
+        "generated": 0.17,
+        "other": 48.34,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 6.64,
+        "verify": 0.04
+      },
+      "slowest_cell": {
+        "id": "cell-016",
+        "seconds": 20.32
+      },
+      "verified": 5,
+      "python": "3.13.14",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "kernel": "python3",
+      "mode": "learner",
+      "content_sha": "2fcae6a24f5a75c4",
+      "deps_sha": "82262a868ce85152",
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 7.0,
+      "phases": {
+        "generated": 0.16,
+        "other": 5.02,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 5.02
+      }
+    },
+    {
+      "kernel": "python3",
+      "mode": "worked",
+      "content_sha": "18b26f3c67780dfc",
+      "deps_sha": "2b14af10ea8fd51c",
+      "notebook": "python/07-synthetic-control-did",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 11.3,
+      "phases": {
+        "generated": 0.17,
+        "other": 6.9,
+        "exercise": 0.0,
+        "solution": 0.05,
+        "checkpoint": 2.5,
+        "verify": 0.04
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.7
+      },
+      "verified": 4,
+      "python": "3.13.14",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Prop 99": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "kernel": "python3",
+      "mode": "learner",
+      "content_sha": "18b26f3c67780dfc",
+      "deps_sha": "2b14af10ea8fd51c",
+      "notebook": "python/07-synthetic-control-did",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.8,
+      "phases": {
+        "generated": 0.15,
+        "other": 2.24,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.19
+      }
+    },
+    {
+      "mode": "worked",
+      "kernel": "ir",
+      "content_sha": "06986409108fdacf",
+      "deps_sha": "87ea728e749e5042",
+      "notebook": "r/07-causalimpact-geolift",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 28.4,
+      "phases": {
+        "generated": 0.18,
+        "other": 18.95,
+        "exercise": 0.02,
+        "solution": 0.44,
+        "checkpoint": 7.58,
+        "verify": 0.13
+      },
+      "slowest_cell": {
+        "id": "cell-024",
+        "seconds": 17.88
+      },
+      "verified": 2,
+      "r": "4.6.1",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "CLVTools": "0.12.1",
+        "grf": "2.6.1",
+        "CausalImpact": "1.4.1",
+        "bsts": "0.9.11",
+        "GeoLift": "2.7.5",
+        "augsynth": "0.2.0",
+        "duckdb": "1.5.6",
+        "DBI": "1.3.0",
+        "dplyr": "1.2.1",
+        "tidyr": "1.3.2",
+        "ggplot2": "4.0.3",
+        "jsonlite": "2.0.0",
+        "data.table": "1.18.6.1",
+        "lubridate": "1.9.5",
+        "readr": "2.2.0"
+      },
+      "install_seconds": 0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
+    },
+    {
+      "mode": "learner",
+      "kernel": "ir",
+      "content_sha": "06986409108fdacf",
+      "deps_sha": "87ea728e749e5042",
+      "notebook": "r/07-causalimpact-geolift",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.4,
+      "phases": {
+        "generated": 0.12,
+        "other": 0.38,
+        "exercise": 0.01,
+        "solution": 0.03,
+        "checkpoint": 0.03
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.35
+      }
+    }
+  ]
+}

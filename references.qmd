@@ -199,7 +199,17 @@ itself, and we say what we relied on instead. How we checked is explained at the
   folding, and localization: An improved R̂ for assessing convergence of MCMC (with discussion). *Bayesian
   Analysis*, 16(2), 667–718. <https://doi.org/10.1214/20-BA1221>\
   *Verified (2026-10-09).* The rank-normalized split-R̂ and bulk and tail effective sample sizes that
-  the labs check before reading a posterior.
+  the labs check before reading a posterior. Section 2 recommends running at least four chains and
+  using the draws only if R̂ < 1.01 and the rank-normalized (bulk) effective sample size is above 400;
+  Module 8's gate uses these two thresholds (read in the arXiv version, arXiv:1903.08008, through its
+  ar5iv HTML rendering).
+
+- Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and practice* (3rd ed.). OTexts.
+  Section 5.10, "Time series cross-validation". <https://otexts.com/fpp3/tscv.html>\
+  *Verified (2026-10-09).* Time series cross-validation uses a series of test sets, each training set
+  holding only observations before its test set; the procedure is also known as evaluation on a rolling
+  forecasting origin. Module 9's time-slice cross-validation is this procedure with 8-week test sets.
+  The book's home page gives 2021 in its suggested citation.
 
 ## Day 5 · Whom should we target? {#day-5}
 
@@ -261,11 +271,14 @@ Versions are the ones the labs pin (see `_variables.yml`).
   CLV quickstart <https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html>;
   MMM example <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_example.html>;
   lift-test calibration <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html>;
+  time-slice cross-validation and parameter stability <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_time_slice_cross_validation.html>;
   budget allocation <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_budget_allocation_example.html>;
   MMM API <https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.mmm.MMM.html>\
   *Verified (2026-10-09).* Bayesian BG/NBD, Pareto/NBD (with covariates), Gamma-Gamma and sBG models;
   an MMM class with lift-test calibration (`add_lift_test_measurements`) and an SLSQP budget optimizer.
-  The lift-test page adds tests "to the model likelihood". The older `pymc_marketing.mmm.multidimensional`
+  The lift-test page adds tests "to the model likelihood"; the time-slice cross-validation page
+  (read 2026-10-09) refits the MMM on successive time splits and checks out-of-sample predictions and
+  the stability of the parameters across splits. The older `pymc_marketing.mmm.multidimensional`
   module is marked deprecated in favour of `pymc_marketing.mmm.mmm`.
 
 - **PyMC** <https://www.pymc.io/> and **nutpie** <https://pymc-devs.github.io/nutpie/>\
@@ -307,16 +320,27 @@ Versions are the ones the labs pin (see `_variables.yml`).
   than 20 geographic units. augsynth 0.2.0 implements the augmented synthetic control method. Both are
   GitHub-only, MIT-licensed.
 
-- **Robyn** <https://facebookexperimental.github.io/Robyn/> and <https://cran.r-project.org/package=Robyn>\
+- **Robyn** <https://facebookexperimental.github.io/Robyn/> and <https://cran.r-project.org/package=Robyn>;
+  commit history <https://github.com/facebookexperimental/Robyn/commits/main>\
   *Verified (2026-10-09).* Meta's open-source MMM, version 3.12.1 on CRAN (2025-07-02). It uses the
   Python library Nevergrad (through reticulate) for hyperparameter search and nloptr for its budget
-  allocator; the main functions are `robyn_inputs`, `robyn_run`, `robyn_outputs` and `robyn_allocator`.
-  Used in Module 9 only if the Robyn spike passes.
+  allocator; the main functions are `robyn_inputs`, `robyn_run`, `robyn_outputs` and `robyn_allocator`,
+  and `robyn_inputs` takes experiment results through its `calibration_input` argument (checked with
+  `formals()` in the workshop image). The latest commit on the GitHub main branch is dated 2025-06-27,
+  which is why Module 9 calls Robyn effectively unmaintained. Used in Module 9's R notebook (the Robyn
+  spike passed in Docker).
 
-- **Meridian** <https://developers.google.com/meridian>\
-  *Verified (2026-10-09).* Google's open-source Bayesian geo-level MMM (google-meridian 2.1.0 on PyPI).
-  Its installation guide recommends running on GPUs. Mentioned in the Module 9 briefing only; see
-  DECISIONS.md for why there is no lab.
+- **Meridian** <https://developers.google.com/meridian>; installation guide
+  <https://developers.google.com/meridian/docs/user-guide/installing>; ROI priors and calibration
+  <https://developers.google.com/meridian/docs/advanced-modeling/roi-priors-and-calibration>; package
+  metadata <https://pypi.org/project/google-meridian/>\
+  *Verified (2026-10-09).* Google's open-source Bayesian geo-level MMM (google-meridian 2.1.0 on PyPI,
+  released 2026-09-25). The installation guide says "We also recommend using a minimum of 1 GPU". The
+  calibration guide describes calibration as "using experiment results and other domain knowledge to set
+  channel-specific priors" on ROI. The package requires `arviz<0.20.0` and
+  `tfp-nightly[substrates-jax]==0.26.0.dev20260130`, which cannot be installed next to PyMC-Marketing
+  1.2.0 (ArviZ 1.2 or later). Mentioned in the Module 9 briefing only; see DECISIONS.md for why there is
+  no lab.
 
 - **SciPy SLSQP** <https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html>\
   *Verified (2026-10-09).* `scipy.optimize.minimize(method="SLSQP")` accepts bounds and equality and
@@ -375,7 +399,7 @@ Versions are the ones the labs pin (see `_variables.yml`).
 - **Robyn `dt_simulated_weekly`**, documented in the Robyn package source
   (<https://github.com/facebookexperimental/Robyn>).\
   *Verified (2026-10-09).* Documented as "Simulated MMM data"; Robyn's analyst guide says its outputs are
-  based on simulated data and are for illustration only. Module 9 (conditional).
+  based on simulated data and are for illustration only. Module 9's R notebook.
 
 - **Synthetic retailer** (this workshop). Generated by `mktstats.synth` with the true parameters in
   `data/synthetic/truth.json`. Simulated, with known truth; every module.

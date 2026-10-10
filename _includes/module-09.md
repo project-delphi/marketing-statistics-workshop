@@ -10,7 +10,7 @@ Feed geo-test results into the MMM as extra likelihood terms, validate it with t
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 
@@ -29,10 +29,10 @@ Languages
 :   Python, R. Python for PyMC-Marketing's lift-test calibration and time-slice cross-validation; a short R notebook runs Meta's Robyn, an R package, for comparison (its spike passed in Docker; the Colab run is pending).
 
 Labs
-:   Python: `labs/python/09-mmm-calibration.ipynb` (in preparation)
+:   Python: `labs/python/09-mmm-calibration.ipynb`<br>R: `labs/r/09-robyn.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic weekly MMM with a demand-following channel (mmm_confounded_weekly.csv, seed 2028)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_weekly.csv), [Synthetic dated lift tests (mmm_confounded_lift_tests.csv)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_lift_tests.csv), [Robyn dt_simulated_weekly (simulated MMM demo data, bundled with Robyn 3.12.1)](https://cran.r-project.org/package=Robyn)
 :::
 
 ::: {.module-outcomes}
@@ -56,5 +56,6 @@ Data
 
 - [Module 8 · Bayesian marketing mix models](/modules/08-bayesian-mmm.qmd) and its lab.
 - A Google account for Colab. The default Python runtime (CPU) is enough.
+- For the R lab: Colab's R runtime (Runtime > Change runtime type, if Colab does not pick it from the notebook).
 - Or the workshop's Docker image, which has every package installed.
 :::

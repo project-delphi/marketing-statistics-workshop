@@ -253,8 +253,9 @@ workshop_summary <- function() {
 }
 
 .ws_packages <- function() {
-  wanted <- c("CLVTools", "grf", "CausalImpact", "bsts", "GeoLift", "augsynth", "duckdb", "DBI",
-              "dplyr", "tidyr", "ggplot2", "jsonlite", "data.table", "lubridate", "readr")
+  wanted <- c("CLVTools", "grf", "CausalImpact", "bsts", "GeoLift", "augsynth", "Robyn",
+              "reticulate", "duckdb", "DBI", "dplyr", "tidyr", "ggplot2", "jsonlite", "data.table",
+              "lubridate", "readr")
   have <- rownames(utils::installed.packages())
   out <- list()
   for (p in intersect(wanted, have)) out[[p]] <- as.character(utils::packageVersion(p))

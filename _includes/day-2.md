@@ -24,7 +24,7 @@ Add a Gamma-Gamma spend model after checking that spend is independent of purcha
 **[From CLV to decisions](/modules/05-clv-decisions.qmd)**
 
 ::: {.module-summary}
-Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO.
+Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign and scores written to a warehouse table, with the numbers for a one-page CFO memo that you write in the afternoon clinic.
 :::
 
 ::: {.module-actions}

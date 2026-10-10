@@ -512,7 +512,10 @@ with workshop.checkpoint(4):
         assert comp["group"].astype(str).tolist() == groups, (
             f"Groups should be {groups} in that order; got {comp['group'].tolist()}."
         )
-        assert comp["customers"].sum() == len(cal), "Every customer belongs to one group."
+        assert comp["customers"].sum() == len(cal), (
+            f"{name}: the groups hold {comp['customers'].sum():,} customers, not {len(cal):,}."
+            " Clip frequency at 7 so every customer lands in one group, '0' to '7+'."
+        )
         checks.close((comp["customers"] * comp["actual"]).sum(), actual_total, abs=1e-6,
                      name=f"{name}: actual holdout purchases summed over groups")
         predicted_total = float((comp["customers"] * comp["predicted"]).sum())

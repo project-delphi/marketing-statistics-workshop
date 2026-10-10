@@ -56,6 +56,24 @@ Newest first within each section.
   in the R runtime they render collapsed with "Show code", like Python. (The S3 spike cell without a
   `#@title` line was shown in full; that question is now closed.)
 
+### Online Retail II is mirrored as a release asset (2026-10-09)
+- The UCI download stalled for two agents during the build (one parse after download took ~196 s in
+  total). UCI's licence is CC BY 4.0, so the original zip and the parsed parquet are attached to release
+  `data-2026-10-09` with attribution. `load_online_retail_ii()` now tries the 7 MB parquet first
+  (sha256-checked, cold load measured 11.6 s on the laptop), then UCI, then the zip mirror.
+  CDNOW and Hillstrom have no explicit licence and are not mirrored.
+
+### Module 9 build findings (2026-10-09)
+- **Robyn 3.12.1 traps:** `robyn_run(quiet = TRUE)` fails ("object 'pb' not found"), so the lab hides
+  progress with `capture.output`; Robyn seeds Nevergrad only when `seed` is an integer (`123L`; with `123`
+  two identical runs differed, with `123L` two FULL runs matched exactly).
+- **pymc-marketing 1.2.0 time-slice CV:** `summary.predictions` reads `X["date"]` literally (the lab renames
+  `date_week` to `date`) and needs `original_scale_vars=["y"]`; CV forecasts are sampled without a seed.
+- **Divergences on the confounded data:** `target_accept` 0.9 and 0.95 left a few divergences; 0.98 is clean
+  on the laptop and in Docker for the two main fits (about a third slower). CV folds run clean at 0.95.
+- **Cross-validation checks prediction, not cause:** the uncalibrated model forecast held-out weeks as well
+  as the calibrated one while its search ROAS stayed wrong (5.2–5.5 vs 3.0) — the lab's main lesson.
+
 ## Spikes
 
 (Results are added below as each spike runs.)

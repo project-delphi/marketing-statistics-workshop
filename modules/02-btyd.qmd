@@ -5,13 +5,276 @@ title: "{{< var modules.m02.title >}}"
 {{< include /_includes/module-02.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Module 1 built the RFM table (frequency $x$, recency $t_x$, age $T$) and measured the usual churn rule against known truth: a 90-day inactivity rule flagged 3,398 of the synthetic retailer's 5,000 customers, and 832 of them were still alive. The rule needs an arbitrary cutoff, ignores how often each customer used to buy, gives no probability and cannot forecast. This module asks: can a model of how customers buy and silently leave give each customer a probability of being alive, and a forecast, from $x$, $t_x$ and $T$ alone?
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-02.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+## 1. From a rule to a model
+
+The recency rule asks one question of each customer: how long since the last purchase? A model can ask a better one: *given how often this customer used to buy, how surprising is their silence?* A customer who bought weekly and has been silent for two months has probably gone. A customer who buys twice a year and has been silent for two months is behaving normally.
+
+To ask that question we need a story of how purchases are generated, with parameters we can estimate. The **buy-till-you-die** (BTYD) family tells the same two-part story:
+
+1. While a customer is **alive** (still a customer), they buy at random times at their own steady rate.
+2. At some point they **die** (leave for good), silently. We never see the moment.
+
+Customers differ in both their buying rate and their tendency to leave, and the models describe those differences with probability distributions across customers. This module fits two members of the family with PyMC-Marketing: the **BG/NBD** and the **Pareto/NBD**. The same notation runs through Modules 3 to 5.
+
+## Notation for this module
+
+Time is in weeks (days divided by 7, as in Module 1).
+
+| Symbol | Meaning |
+|---|---|
+| $x$, $t_x$, $T$ | repeat purchases, time of the last purchase since the first, age at the cutoff ([Module 1](/modules/01-customer-base.qmd#rfm-table)) |
+| $\lambda_i$ | customer $i$'s purchase rate while alive, purchases per week |
+| $r$, $\alpha$ | shape and **rate** of the gamma distribution of $\lambda$ across customers (mean $r/\alpha$) |
+| $p_i$ | BG/NBD: customer $i$'s probability of leaving right after a repeat purchase |
+| $a$, $b$ | parameters of the beta distribution of $p$ across customers (mean $a/(a+b)$) |
+| $\mu_i$ | Pareto/NBD: customer $i$'s dropout rate, per week (lifetime is exponential with mean $1/\mu_i$) |
+| $s$, $\beta$ | shape and rate of the gamma distribution of $\mu$ across customers |
+| $\theta$ | all population parameters: $(r, \alpha, a, b)$ or $(r, \alpha, s, \beta)$ |
+| $P(\text{alive})$ | probability that a customer has not left by $T$, given $x$, $t_x$, $T$ and $\theta$ |
+| $c$, $m$, $u$ | contact cost, margin per purchase, and the share of alive customers who buy *because of* the contact (section 6) |
+
+The gamma's second parameter is a rate, not a scale. NumPy's `rng.gamma(shape, scale)` takes a scale, so a draw of $\lambda$ is `rng.gamma(shape=r, scale=1/alpha)`. Getting this wrong multiplies every purchase rate by $\alpha^2$ and is the most common bug of Exercise 1.
+
+## 2. The generative story
+
+**Objective for this section:** simulate the BG/NBD generative story and say what each parameter ($r$, $\alpha$, $a$, $b$) controls.
+
+The **BG/NBD** (beta-geometric/negative binomial distribution; Fader, Hardie and Lee 2005) says, for each customer $i$:
+
+1. **Buying.** While alive, purchases arrive as a Poisson process with rate $\lambda_i$: the waiting time to the next purchase is exponential with mean $1/\lambda_i$ weeks.
+2. **Leaving.** Right after each repeat purchase, the customer leaves for good with probability $p_i$ (a coin flip after every purchase, hence "geometric").
+3. **Customers differ.** Across customers,
+$$
+\lambda_i \sim \text{Gamma}(r, \alpha), \qquad p_i \sim \text{Beta}(a, b),
+$$ {#eq-bgnbd-heterogeneity}
+independently of each other.
+
+Each parameter has one job:
+
+- $r$ and $\alpha$ set purchase rates. The average customer buys $r/\alpha$ times a week. The coefficient of variation of $\lambda$ is $1/\sqrt{r}$, so a **small $r$ means very unequal customers**: a few heavy buyers and many light ones.
+- $a$ and $b$ set how soon customers leave. The average dropout probability is $a/(a+b)$; small $a$ and $b$ (with the same mean) mean customers differ a lot in loyalty.
+
+In the lab's synthetic cohort the truth is $r = 0.6$, $\alpha = 6$, $a = 0.8$, $b = 3$: an average customer buys once every 10 weeks and leaves after a repeat purchase with probability about 0.21. Exercise 1 simulates the story directly, one customer at a time. Raising the average dropout probability from 0.1 to 0.5 (from $a = 1, b = 9$ to $a = 5, b = 5$) cut the mean frequency over 52 weeks from 3.48 to 1.36, cut the mean recency from 23.6 to 13.2 weeks, and cut the share still alive at week 52 from 74% to 37% (FULL run). Recency falls too: customers who leave sooner make their last purchase sooner.
+
+The model has a closed form for the expected number of repeat purchases of a new customer over $t$ weeks, $E[X(t)]$, involving a hypergeometric function (Fader, Hardie and Lee 2005, equation 9). At the true parameters $E[X(52)] = 2.759$; the 4,000-customer cohort the lab fits has a mean frequency of 2.816. The first checkpoint compares your simulator with the closed form before any model is fitted.
+
+**One quirk matters for the decision.** In the BG/NBD a customer can leave only *right after a repeat purchase*. A customer with no repeat purchase has never had the chance, so the model says they are certainly alive. Section 3 shows this in the formula; section 6 shows why it disqualifies the BG/NBD for our decision.
+
+### The Pareto/NBD
+
+The **Pareto/NBD** (Schmittlein, Morrison and Colombo 1987) keeps the buying process and changes the leaving one: customer $i$ can leave at any moment, at rate $\mu_i$, so their lifetime is exponential with mean $1/\mu_i$, and across customers $\mu_i \sim \text{Gamma}(s, \beta)$. It is the more natural story (people do not leave only at checkout) and the harder one to compute. The BG/NBD was introduced as an easier alternative that forecasts almost as well. The synthetic retailer of Modules 1, 3, 4 and 5 is generated by a Pareto/NBD.
+
+## 3. The likelihood, and the probability a customer is alive
+
+What the data say about $\lambda$ and $p$ for one customer comes from the probability of their observed history. The BG/NBD history $(x, t_x, T)$ can arise in two ways: the customer is still alive at $T$, or they left right after their last purchase at $t_x$. Using the Poisson path probability from Module 1 ($\lambda^x e^{-\lambda t}$ for $x$ purchases at given times in a window of length $t$),
+
+$$
+L(\lambda, p \mid x, t_x, T) =
+\underbrace{(1-p)^x \lambda^x e^{-\lambda T}}_{\text{alive at } T}
+\; + \;
+\underbrace{\mathbb{1}[x > 0]\; p\,(1-p)^{x-1} \lambda^x e^{-\lambda t_x}}_{\text{left right after the last purchase}} .
+$$ {#eq-bgnbd-lik}
+
+The first term: the customer survived all $x$ coin flips and bought $x$ times in $T$ weeks. The second: they survived $x - 1$ flips, left at the $x$-th, and the watching window for purchases ended at $t_x$. The history enters only through $x$, $t_x$ and $T$, which is why Module 1's three numbers are enough.
+
+**P(alive) is the first term's share of the total.** For one customer with known $\lambda$ and $p$ it is the alive term divided by $L$. Averaging over what the history says about the customer's unknown $\lambda$ and $p$ (the gamma and beta distributions updated by $x$, $t_x$, $T$) gives a closed form (Fader, Hardie and Lee 2005):
+
+$$
+P(\text{alive} \mid x, t_x, T, \theta) =
+\frac{1}{\,1 + \mathbb{1}[x > 0]\, \dfrac{a}{b + x - 1} \left( \dfrac{\alpha + T}{\alpha + t_x} \right)^{r + x}} .
+$$ {#eq-bgnbd-palive}
+
+(We checked this expression against PyMC-Marketing 1.2.0's `expected_probability_alive` on the 2,357 CDNOW customers: identical to machine precision.) Read it from the inside out:
+
+- The ratio $(\alpha + T)/(\alpha + t_x) \ge 1$ grows with the **time since the last purchase**, $T - t_x$. A longer silence lowers P(alive).
+- The exponent $r + x$ grows with **frequency**, so the same silence weighs more heavily against a frequent buyer, which is exactly the judgment the recency rule could not make. (The factor $a/(b + x - 1)$ shrinks with frequency, so a frequent buyer who bought recently is more likely alive than an occasional one.)
+- With $x = 0$ the indicator removes the whole term: **P(alive) = 1** for every customer without a repeat purchase. That is the BG/NBD quirk in one line.
+
+The Pareto/NBD has the same structure without the quirk. For one customer with known $\lambda$ and $\mu$,
+
+$$
+P(\text{alive} \mid \lambda, \mu, x, t_x, T) = \frac{1}{\,1 + \dfrac{\mu}{\lambda + \mu} \left( e^{(\lambda + \mu)(T - t_x)} - 1 \right)} ,
+$$ {#eq-pnbd-palive}
+
+which falls as the silence $T - t_x$ grows, faster for a customer with a high $\lambda$, and is below 1 even when $x = 0$. The library averages it over the customer's unknown $\lambda$ and $\mu$.
+
+::: {.self-check}
+**Check yourself.** A CDNOW-like customer made one purchase and nothing since, $T = 30$ weeks ago. What P(alive) does the BG/NBD give them? Using @eq-pnbd-palive with $\lambda = \mu = 0.05$ per week, what does the Pareto/NBD give a customer with those rates?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The BG/NBD gives exactly 1: with $x = 0$ the customer has had no chance to leave in that model. For the Pareto/NBD, $x = 0$ means $t_x = 0$, so $(\lambda + \mu)(T - t_x) = 0.1 \times 30 = 3$ and $P = 1 / (1 + 0.5\,(e^{3} - 1)) = 1 / (1 + 0.5 \times 19.1) \approx 0.095$. Such a customer is probably gone. On CDNOW, where 1,411 of 2,357 customers made no repeat purchase in the calibration period, the two models disagree most about exactly these customers.
 :::
+:::
+
+## 4. Fitting the model, and checking it gets the truth back
+
+**Objective for this section:** compute the sufficient statistics for a calibration period without swapping them, then fit BG/NBD by MAP and by MCMC and check that the true parameters fall inside the 94% HDI.
+
+### Calibration and holdout, by time
+
+To test a forecast, split the log **by time**: the model sees the **calibration** period, and its forecast is compared with what customers did in the **holdout** period that follows. A split by customer would fit and test on the same calendar weeks and say nothing about the future. Exercise 2's `calibration_holdout(tx, cal_end, holdout_end)` builds $x$, $t_x$, $T$ from purchase days up to `cal_end` and counts holdout purchase days per customer. On CDNOW the calibration period ends on 1997-09-30 (39 weeks) and the holdout runs to 1998-06-30 (another 39 weeks), as in Fader, Hardie and Lee's note.
+
+### Priors, posteriors, MAP and MCMC
+
+PyMC-Marketing fits these models the Bayesian way. Start from a **prior** $p(\theta)$, what we are willing to believe about $\theta$ before seeing the data, and combine it with the likelihood (the product of @eq-bgnbd-lik over customers, averaged over the gamma and beta distributions) to get the **posterior**,
+
+$$
+p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta)\, p(\theta).
+$$ {#eq-bayes}
+
+Two ways to use it:
+
+- **MAP** (maximum a posteriori) finds the single most probable $\theta$. It is fast and gives no uncertainty. With a flat prior it is the maximum-likelihood estimate.
+- **MCMC** (Markov chain Monte Carlo; here the nutpie sampler) draws thousands of samples from the posterior, so every parameter, and every quantity computed from them, comes with an interval.
+
+A **94% HDI** (highest density interval) is the narrowest interval holding 94% of the posterior draws. We always name the interval and its probability: ArviZ 1.x defaults to an 89% equal-tailed interval, and an unnamed "credible interval" could be either.
+
+### Parameter recovery
+
+Before trusting a model on real data, check that it returns known answers. The lab simulates 4,000 customers at the true parameters and fits the BG/NBD with PyMC-Marketing's default priors, by MAP and by MCMC (2 chains of 1,000 draws). FULL run:
+
+| Parameter | Truth | Posterior mean | 94% HDI | HDI width ÷ mean | MAP |
+|---|---|---|---|---|---|
+| $r$ | 0.6 | 0.604 | 0.569 to 0.638 | 0.11 | 0.603 |
+| $\alpha$ | 6.0 | 5.984 | 5.461 to 6.439 | 0.16 | 5.964 |
+| $a$ | 0.8 | 0.808 | 0.661 to 0.989 | 0.41 | 0.787 |
+| $b$ | 3.0 | 3.180 | 2.342 to 4.034 | 0.53 | 3.069 |
+
+All four true values lie inside their 94% HDIs, and every MAP value lies inside the MCMC interval. The dropout parameters $a$ and $b$ have intervals three to four times wider, relative to their size, than the purchase parameters. **Dropout is never observed**: a long silence fits a customer who left and one who buys rarely, so the data say less about leaving than about buying.
+
+The checkpoint asks for 3 of the 4 true values inside their HDIs, not all 4. If four 94% intervals were independent, all four would cover only $0.94^4 \approx 0.78$ of the time, so a correct model would fail an all-four check on about one cohort in five. In practice the misses come in pairs: the data pin down the mean purchase rate $r/\alpha$ much better than $r$ and $\alpha$ separately, so when $r$ is too high so is $\alpha$ (likewise $a$ and $b$). In a scan of 20 simulated cohorts the 3-of-4 check passed on 17, and each failure was such a pair (lab notes; the seed used in class passes).
+
+::: {.self-check}
+**Check yourself.** A colleague fits the BG/NBD to a new cohort and reports "the true $b$ is outside the 94% HDI, so the model is wrong". What two facts from this section should they weigh before agreeing?
+
+::: {.callout-tip collapse="true" title="Answer"}
+First, a 94% interval misses the truth 6% of the time even when the model and the code are right; with several parameters, at least one miss is common (all four of four independent intervals cover only about 78% of the time). Second, the parameters are correlated in the posterior: $a$ and $b$ move together, so a miss on $b$ usually comes with a near-miss on $a$ and says less than it seems. Repeat the check on other simulated cohorts: a model that is wrong misses on most of them, not on one.
+:::
+:::
+
+## 5. Real data: CDNOW
+
+**Objective for this section:** compare predicted with actual holdout purchases on CDNOW for BG/NBD and Pareto/NBD.
+
+### A published benchmark
+
+CDNOW has no ground truth, but it has published estimates. A MAP fit with flat priors is the maximum-likelihood fit, so on a correct RFM table it must reproduce Fader, Hardie and Lee's BG/NBD estimates. FULL run: $r = 0.2426$, $\alpha = 4.4136$, $a = 0.793$, $b = 2.4262$, against the published 0.243, 4.414, 0.793 and 2.426. If any of $x$, $t_x$ or $T$ were wrong (weeks counted as calendar weeks, same-day purchases counted twice, the holdout leaking in), this check would fail.
+
+With PyMC-Marketing's default priors and MCMC, the posterior means move: $r = 0.245$ (94% HDI 0.22 to 0.27), $\alpha = 4.51$ (3.8 to 5.3), $a = 0.77$ (0.46 to 1.1), $b = 2.36$ (1.2 to 3.6). With 2,357 customers the prior hardly matters for the purchase parameters and still matters for the dropout parameters, which the data identify least well.
+
+The Pareto/NBD with flat priors, by MAP: $r = 0.553$, $\alpha = 10.58$, $s = 0.606$, $\beta = 11.67$. Its MCMC fit is too slow for a lab slot on Colab's two CPUs ([DECISIONS.md](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/DECISIONS.md), spike S2), so the lab uses MAP only for it. That has a cost, which section 6 states.
+
+### Holdout tracking
+
+Exercise 4 compares each model's forecast of holdout purchases (39 weeks, from the calibration fit) with what happened, by calibration frequency (FULL run, mean purchases per customer):
+
+| Calibration $x$ | Customers | Actual | BG/NBD (flat MAP) | Pareto/NBD (flat MAP) |
+|---|---|---|---|---|
+| 0 | 1,411 | 0.24 | 0.23 | 0.14 |
+| 1 | 439 | 0.70 | 0.52 | 0.60 |
+| 2 | 214 | 1.39 | 1.06 | 1.20 |
+| 3 | 100 | 1.56 | 1.55 | 1.71 |
+| 4 | 62 | 2.53 | 2.20 | 2.40 |
+| 5 | 38 | 2.95 | 2.70 | 2.91 |
+| 6 | 29 | 3.86 | 3.57 | 3.82 |
+| 7+ | 64 | 6.36 | 6.25 | 6.40 |
+| **Total purchases** | 2,357 | **1,882** | **1,673** | **1,666** |
+
+Three readings:
+
+1. **Both models under-forecast the total by about 11%** on this split. A forecast that is right on average across many customers can still be off in total for a particular period; read the group rows, not only the total.
+2. **The models agree with each other** almost everywhere, as Fader, Hardie and Lee found. The largest difference is the 1,411 customers without a repeat purchase: the BG/NBD, which assumes they are all alive, forecasts 0.23 purchases each (actual 0.24); the Pareto/NBD, which lets them leave, forecasts 0.14.
+3. **Frequent buyers are forecast well by both.** The model's strength is ranking and forecasting customers with some history; its weakness is the customers it knows least about.
+
+## 6. From P(alive) to a retargeting rule
+
+**Objective for this section:** set a P(alive) threshold for retargeting from the contact cost and the expected margin.
+
+Retargeting an alive customer costs $c$ per contact and, with probability $u$, causes a purchase that would not have happened otherwise, worth margin $m$. Retargeting a customer who has left costs $c$ and brings nothing. So the expected gain from retargeting customer $i$ is $P_i(\text{alive}) \cdot u \cdot m$, and it is worth it when that exceeds the cost:
+
+$$
+P_i(\text{alive})\; m\, u \;\ge\; c
+\quad\Longleftrightarrow\quad
+P_i(\text{alive}) \;\ge\; \tau = \frac{c}{m\,u}.
+$$ {#eq-tau}
+
+The threshold comes from costs and margins, not from habit. A higher margin or response rate lowers $\tau$ (retarget more customers); a higher cost raises it. If $\tau > 1$, no customer is worth retargeting under these assumptions.
+
+$u$ is the hard number. It is the **incremental** response: the share of alive customers who buy because of the contact, not the share who buy after it. Nothing on Day 1 can measure it; a randomized test does (Module 6), and Module 11 asks whom it changes most. Until then the decision is shown for a range of $u$.
+
+On the synthetic cohort, where the truth is known, Exercise 5's rule at $\tau = 0.5$ stops 1,383 customers, of whom 21.8% are truly alive, and keeps 2,617, of whom 84.1% are alive (FULL run). The rule separates the two groups well, but not perfectly: P(alive) is a probability, and about one stopped customer in five is still a customer.
+
+::: {.self-check}
+**Check yourself.** With $c = \$0.50$ and $m = \$20$, compute $\tau$ for $u = 2\%$ and $u = 10\%$. What does the first answer tell you about retargeting, whatever the model says?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$\tau = 0.50 / (20 \times 0.02) = 1.25$ and $\tau = 0.50 / (20 \times 0.10) = 0.25$. With $u = 2\%$ the threshold is above 1: even a customer who is certainly alive returns $20 \times 0.02 = \$0.40$ of expected margin per $0.50 contact, so retargeting loses money for everyone. No model of P(alive) can rescue a contact that does not pay for a customer who is certainly alive. That is why measuring $u$ (Day 3) matters more than refining P(alive).
+:::
+:::
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Stop retargeting a CDNOW customer at the end of the calibration period when $P(\text{alive})\, m\, u < c$ (@eq-tau), with $c = \$0.50$ per contact and $m = \$20$ margin per purchase. P(alive) comes from the **Pareto/NBD**: the BG/NBD gives P(alive) = 1 to the 1,411 customers without a repeat purchase, so it could never stop them (at $u = 5\%$ it would stop 393 customers, none of them from that group). FULL run:
+
+| $u$ (assumed) | $\tau$ | Customers to stop | Share | Contact cost saved | Expected margin given up |
+|---|---|---|---|---|---|
+| 2% | 1.25 | 2,357 | 100% | $1,178.50 | $420.75 |
+| 5% | 0.50 | 1,783 | 75.6% | $891.50 | $580.42 |
+| 10% | 0.25 | 157 | 6.7% | $78.50 | $53.90 |
+
+Money is per contact round. The recommendation swings from "stop everyone" to "stop 7% of customers" across a plausible range of $u$, so the honest sentence names the assumption: at $u = 5\%$, stop about 1,780 customers, saving about $890 per round against about $580 of expected margin; a measured $u$ (Module 6) would settle it. The Pareto/NBD here is a MAP fit, so this table has no posterior interval: the spread comes from $u$, not from the model. The stretch shows how to apply the rule to each posterior draw of a model fitted by MCMC.
+:::
+
+## Summary
+
+- BTYD models describe buying while alive (Poisson, rate $\lambda$) and silent leaving (BG/NBD: after a purchase with probability $p$; Pareto/NBD: at any time, rate $\mu$), with gamma and beta distributions for how customers differ (@eq-bgnbd-heterogeneity).
+- The history enters only through $x$, $t_x$ and $T$ (@eq-bgnbd-lik). P(alive) falls with the silence $T - t_x$, faster for frequent buyers (@eq-bgnbd-palive, @eq-pnbd-palive), which is what the recency rule could not do.
+- The BG/NBD gives P(alive) = 1 to every customer without a repeat purchase. Use the Pareto/NBD when those customers matter for the decision.
+- Check recovery on simulated data first. On the lab's cohort all four BG/NBD parameters were inside their 94% HDIs; the dropout parameters were least precise, because dropout is never observed.
+- On CDNOW the flat-prior MAP reproduces the published estimates; both models forecast the 39-week holdout within about 11% in total (1,673 and 1,666 against 1,882 actual).
+- A retargeting threshold is $\tau = c/(m u)$ (@eq-tau). The incremental response $u$ moves the decision more than the model does.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 2 |
+|---|---|---|
+| @eq-bgnbd-heterogeneity | the BG/NBD generative story | **Exercise 1**: `simulate_bgnbd(r, alpha, a, b, T, n, rng)`; Checkpoint 1 compares the mean frequency with the closed form $E[X(52)] = 2.759$ |
+| [Module 1's](/modules/01-customer-base.qmd#rfm-table) $x$, $t_x$, $T$ | the calibration table and holdout counts | **Exercise 2**: `calibration_holdout(tx, cal_end, holdout_end)`; Checkpoint 2 checks 1,411 non-repeaters and the holdout total on CDNOW |
+| @eq-bgnbd-lik, @eq-bayes | likelihood and posterior | Provided: `BetaGeoModel.fit` by MAP and by MCMC (nutpie), and `ParetoNBDModel.fit` by MAP |
+| 94% HDI | interval for recovery | **Exercise 3**: `recovery_table(idata, truth)`; Checkpoint 3 asks for 3 of 4 true values inside |
+| Forecast of holdout purchases | conditional expectation | **Exercise 4**: `holdout_comparison(model, cal, holdout_weeks)`; the benchmark checkpoint reproduces the published estimates |
+| @eq-bgnbd-palive, @eq-pnbd-palive | P(alive) | Provided: `expected_probability_alive` |
+| @eq-tau | retargeting threshold | **Exercise 5**: `retarget_threshold` and `retarget_flags`; the Decision cell applies them to CDNOW |
+
+## Gotchas
+
+- **Gamma rate versus scale.** $\alpha$ is a rate; NumPy wants `scale = 1/alpha`.
+- **Weeks are days divided by 7.** `rfm_summary(time_unit="W")` merges same-week purchases and changes the estimates (Module 1).
+- **The holdout must not leak.** Build $x$, $t_x$, $T$ from purchases up to the cutoff only.
+- **BG/NBD P(alive) is 1 when $x = 0$.** That is the model, not a bug. Do not use it to decide about one-time buyers.
+- **Default intervals.** ArviZ 1.x defaults to an 89% equal-tailed interval. Always pass the probability and the kind (`prob=0.94`, HDI).
+- **Posterior means of forecasts.** `expected_purchases` and `expected_probability_alive` return one value per draw; take `.mean(("chain", "draw"))` explicitly, even for a MAP fit with one draw.
+- **Default priors move $a$ and $b$.** On CDNOW they shift the dropout parameters away from the published maximum-likelihood values. Use flat priors when you need to reproduce a published fit; state which priors you used.
+- **$u$ is not a conversion rate.** It is the share who buy *because of* the contact. Using the share who buy *after* it overstates the value of retargeting.
+
+## Next steps
+
+Both models treat all customers as one population: every customer's $\lambda$ and $p$ (or $\mu$) come from the same gamma and beta distributions. They cannot say whether customers acquired through search, social or referral buy or leave at different rates, which is the first question a marketer asks of a customer base. And we have not tested whether a flexible machine-learning model forecasts next quarter's purchases better. Module 3 adds the acquisition channel as a covariate in CLVTools and recovers the true channel effects, then runs a fair holdout comparison of BTYD against gradient boosting.
+
+## Further reading
+
+1. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). ["Counting your customers" the easy way: An alternative to the Pareto/NBD model](https://doi.org/10.1287/mksc.1040.0098). *Marketing Science*, 24(2), 275–284. The BG/NBD, its likelihood, P(alive) and $E[X(t)]$; sections 2 and 3 are the model.
+2. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). [*Implementing the BG/NBD model for customer base analysis in Excel*](https://www.brucehardie.com/notes/004/). The CDNOW estimates the lab reproduces, with every step of the likelihood laid out.
+3. Schmittlein, D. C., Morrison, D. G., & Colombo, R. (1987). [Counting your customers: Who-are they and what will they do next?](https://doi.org/10.1287/mnsc.33.1.1) *Management Science*, 33(1), 1–24. The Pareto/NBD.
+4. PyMC-Marketing, [CLV quickstart](https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html). The library calls the lab uses, on CDNOW.
+5. Fader, P. S., Hardie, B. G. S., & Shang, J. (2010). [Customer-base analysis in a discrete-time noncontractual setting](https://doi.org/10.1287/mksc.1100.0580). *Marketing Science*, 29(6), 1086–1108. The BG/BB, for businesses where purchases can happen only at fixed occasions (an annual event, a weekly draw).
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.

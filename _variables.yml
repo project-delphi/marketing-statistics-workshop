@@ -318,17 +318,17 @@ modules:
     minutes: {briefing: 55, lab: 55, debrief: 10}
     language: [python]
     language_why: "Python. The posterior draws from Module 4 and the DuckDB warehouse write-back live in one notebook, which is how a scoring job would run in production."
-    summary: "Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign, scores written to a warehouse table, and a one-page memo for the CFO."
+    summary: "Turn posterior CLV into decisions: the most we can pay to acquire a customer in each channel, segment value with credible intervals, the break-even effect of a retention campaign and scores written to a warehouse table, with the numbers for a one-page CFO memo that you write in the afternoon clinic."
     objectives:
       - "Compute a customer acquisition cost (CAC) cap per channel from the posterior of new-customer CLV and a stated risk rule."
       - "Report segment value with 94% credible intervals and say which differences between segments are supported by the data."
       - "Find the retention improvement a campaign needs to break even, and judge whether it is plausible."
       - "Write customer scores (P(alive), CLV mean and interval, segment, model version, date) to a DuckDB table with a fixed schema."
-      - "Write a one-page decision memo that states the numbers, their uncertainty and the assumptions behind them."
+      - "Collect the numbers, intervals and assumptions a one-page decision memo needs; the memo itself is written and peer-reviewed in the Day 2 clinic."
     outcomes:
       - "A CAC-cap table by acquisition channel, compared with the true new-customer CLV"
       - "A customer_scores table in a DuckDB 'warehouse' file"
-      - "A one-page CFO memo, peer-reviewed in the afternoon clinic"
+      - "A memo template filled with the lab's numbers, from which you write the one-page CFO memo in the afternoon clinic"
     prerequisites:
       - "Module 4: discounted CLV with posterior draws"
       - "Module 3: acquisition channel as a covariate"
@@ -450,7 +450,8 @@ modules:
     outcomes:
       - "A before/after table of ROAS intervals for the calibrated and uncalibrated model, next to the truth"
       - "A time-slice cross-validation scorecard and a parameter-stability plot"
-      - "A list of channels ranked by how much a new lift test would change the decision"
+      - "A decision table: which channels to act on now and which to test first, with the spend at stake and the channel for the next lift test"
+      - "Robyn's marginal ROAS per channel across its five best models (R notebook)"
     prerequisites:
       - "Module 8: the Bayesian MMM and its diagnostics"
       - "Module 7: reading a geo-test result as incremental sales with an interval"
@@ -458,9 +459,15 @@ modules:
     recap: "Module 8's MMM fits clean synthetic data and recovers the truth, but nothing in it guards against confounding."
     next: "A calibrated MMM says what each channel returned; it does not say how to split next quarter's budget given diminishing returns, constraints and uncertainty. Module 10 optimizes the allocation."
     notebooks:
-      - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/09-mmm-calibration.ipynb, source: labs/src/09-mmm-calibration.py, kernel: python3, install: [pymc-marketing, nutpie]}
+      # Robyn calls the Python library nevergrad through reticulate: the notebook's first cell
+      # finds or installs it (pinned by environment/requirements.txt); the image has it.
+      - {path: labs/r/09-robyn.ipynb, source: labs/src/09-robyn.R, kernel: ir, install: [Robyn, reticulate, ggplot2]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, R/mktstats.R, data/synthetic/mmm_confounded_weekly.csv, data/synthetic/mmm_confounded_lift_tests.csv, data/synthetic/mmm_confounded_latent.csv, data/synthetic/truth.json, environment/requirements.txt]
+    data:
+      - {name: "Synthetic weekly MMM with a demand-following channel (mmm_confounded_weekly.csv, seed 2028)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_weekly.csv"}
+      - {name: "Synthetic dated lift tests (mmm_confounded_lift_tests.csv)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_lift_tests.csv"}
+      - {name: "Robyn dt_simulated_weekly (simulated MMM demo data, bundled with Robyn 3.12.1)", url: "https://cran.r-project.org/package=Robyn"}
   m10:
     slug: 10-budget-allocation
     title: "Budget allocation under uncertainty"
@@ -543,14 +550,15 @@ modules:
       - "One notebook that runs the pipeline end to end, with a checkpoint at every stage"
       - "A five-slide decision brief, presented and scored against the rubric"
     prerequisites:
-      - "Modules 4, 5, 7, 9, 10 and 11 (their notebooks are the building blocks)"
+      - "Modules 2–5 and 7–11, whose notebooks are the building blocks: Stage 1 reuses Modules 2–5, Stage 2 Module 7, Stage 3 Modules 8–9, Stage 4 Module 10 and Stage 5 Module 11"
     decision: "Recommend next quarter's budget by channel and the customers to target with the retention offer, with expected value, a 94% interval and the main risk to the recommendation."
     recap: "Modules 1–11 each answer one question in isolation, each with its own data and its own notebook."
     next: "After the workshop: run the same pipeline on your own data, starting with the Module 1 SQL on your transaction log."
     notebooks:
-      - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3}
-    deps: []
-    data: []
+      - {path: labs/python/12-capstone.ipynb, source: labs/src/12-capstone.py, kernel: python3, install: [pymc-marketing, nutpie, econml, scikit-learn, scipy, threadpoolctl, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth/channels.py, src/mktstats/synth/mmm.py, data/synthetic/capstone_transactions.csv, data/synthetic/capstone_customers.csv, data/synthetic/capstone_geo_panel.csv, data/synthetic/capstone_mmm_weekly.csv, data/synthetic/capstone_email_experiment.csv, data/synthetic/truth.json]
+    data:
+      - {name: "Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
 
 # Evidence rules for readiness.qmd (scripts/readiness.py). Envs with teaching: true count as
 # "ran on the runtime it is designed for"; ci: true is the CI lane; documented_only envs are

@@ -28,7 +28,7 @@ In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a ge
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/12-capstone.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/12-capstone.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/12-capstone.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::

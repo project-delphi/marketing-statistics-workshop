@@ -5,13 +5,341 @@ title: "{{< var modules.m12.title >}}"
 {{< include /_includes/module-12.md >}}
 
 ::: {.recap}
-**Where we are.** Written with the briefing: what the earlier modules established, and the question this module asks because of what they could not do.
+**Where we are.** Eleven modules each answered one question with their own data: who is still a customer, what a customer is worth, whether a campaign caused sales, what each channel returns, how to split a budget, whom an offer changes. A chief marketing officer and a chief financial officer do not ask those questions one at a time. They ask one: *how should we split next quarter's marketing budget across channels, and which customers should get the retention offer?* Answering it means chaining the week's methods, so that customer values feed the budget, a geo test calibrates the mix model, and an error at any stage shows up in the final number. This module is that chain, run in pairs on one synthetic retailer, checked against the truth at every stage, and presented as a five-slide brief.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-12.md >}}
 
-::: {.callout-note appearance="simple" title="Briefing in preparation"}
-The briefing is written after its lab has run end to end, from the results that actually ran. Until then this page shows the module's plan and its lab.
+The 15-minute briefing covers sections 1 and 2 of this page. Sections 3 to 7 are the reference to keep open while you work, one per stage; section 8 is how the brief is scored. Measured numbers from the workshop's reference run, and the true values, are folded under boxes marked **answer key**: they are what your instructors score against, so open them after your pair has its own numbers, or after the presentations.
+
+## 1. The task and the afternoon
+
+You are the retailer's analytics team, working in **pairs** on one notebook: one person types, both decide, and you swap at lunch. The question comes from the CMO and the CFO, and the answer is a five-slide decision brief with its uncertainty. The data are one coherent synthetic scenario (seed 2032, different from every module lab, so no answer can be copied):
+
+- 4,000 customers who arrived through search, social or referral, with every purchase since January 2024 (Stage 1);
+- a 40-region weekly sales panel in which **paid search was switched off in 8 regions for 10 weeks** in late 2025 (Stage 2);
+- three years of weekly national sales and spend on TV, search, social and display, in which search spend follows a hidden demand shock as in Module 9, ending the week before the geo test (Stages 3 and 4);
+- the randomized e-mail offer test of Module 11, split into a training half and a held-out half (Stage 5).
+
+The scenario also states what the business would tell you: a weekly media budget of $75,000 for a 13-week quarter, bounds for each channel (half to twice its mean weekly spend over the last 52 weeks), the current plan, a 30% gross margin, the offer's cost of $0.75, and how media channels bring new customers (below).
+
+### Run of show
+
+The clock, from the [Day 5 run of show](/day-5.qmd#capstone), which is the authoritative version:
+
+| Time | What | Checkpoint by the end |
+|---|---|---|
+| 11:25–11:40 | Briefing: this page, sections 1 and 2 | — |
+| 11:40–13:00 | Pair work: open the notebook, run the setup cells, read the scenario; Stage 1; Stage 2 | 1 (A) by 12:20; 2 (B) by 13:00 |
+| 13:00–13:50 | Lunch. Pairs that passed checkpoint 2 may start Stage 3's two fits before leaving, with the tab open. | — |
+| 13:50–15:30 | Pair work: Stage 3; Stage 4; Stage 5; the brief. Hand in by 15:30. | 3 (C) by 14:25; 4 (D) by 14:45; 5 (E) by 15:05 |
+| 15:30–15:40 | Break | — |
+| 15:40–16:40 | Presentations, scored with the rubric | — |
+| 16:40–17:00 | Wrap-up of the week | — |
+
+If a stage has not passed its checkpoint by its time, run `workshop.use_reference(n)` for that stage, move on, and say so on your last slide. A disclosed reference stage costs nothing on the rubric; falling behind costs the later stages. If Stage 3's fits are still running 10 minutes before checkpoint C, stop them and switch on `QUICK`, or use the reference. Five model fits run in provided cells, each printing its time; they use fewer draws than the module labs so the whole pipeline fits the afternoon. Where the notebook has run, and how long it took, is on the [Readiness](/readiness.qmd) page.
+
+### The deliverable
+
+Hand in by 15:30:
+
+- **the notebook**, run top to bottom, with checkpoints A to E passed on your code or on the reference (its summary cell shows which);
+- **five slides**, as a PDF, a link, or five Markdown cells at the end of the notebook;
+- **a disclosure line** on slide 5: which stages used the reference, and whether the run was FULL or QUICK.
+
+Each slide has a headline sentence that states the finding, at most one chart, and a sentence under the chart saying what to look at. The notebook's Part G prints a five-slide outline from your stages' results, so no number is typed by hand. Section 8 lists the slides and the rubric.
+
+## 2. One pipeline, five checkpoints
+
+**Objective for this section:** chain the week's methods into one reproducible notebook in which each stage's output feeds the next, and check each stage against the synthetic truth before building on it.
+
+| Stage | Question | Reuses | Your function | Checkpoint (rubric) | Hands on to |
+|---|---|---|---|---|---|
+| 1 | What is a new customer worth, by acquisition channel? | Modules 2–5 | `new_customer_value` | 1 (A) | Stage 4: the value of the customers each channel brings |
+| 2 | Is search incremental? | Module 7 | `lift_test_row` | 2 (B) | Stage 3: the lift test that calibrates the MMM |
+| 3 | What does each channel return, once calibrated? | Modules 8–9 | `roas_summary` | 3 (C) | Stage 4: the response curves |
+| 4 | How should next quarter's budget be split? | Module 10 | `recommend_budget` | 4 (D) | the brief |
+| 5 | Whom should get the retention offer? | Module 11 | `retention_targets` | 5 (E) | the brief |
+
+The rubric's task sheet numbers the last two stages 4a and 4b and calls the brief Stage 5; its checkpoint letters A to E are the notebook's checkpoints 1 to 5.
+
+Each stage asks for one short integration function and runs a provided fit or analysis; the toolkit cell carries Module 7's synthetic control, Module 10's response curve and SLSQP allocator, and Module 11's features and held-out profit estimate, so you can paste in your own versions instead. Each checkpoint compares your result with the scenario's hidden answers, read only by checkpoints and the final reveal cell; failure messages say which way an estimate is off, never the true value. **Do not tune toward the truth**: on real data there is none, and that is why each stage reports an interval.
+
+Two vocabularies meet in this pipeline. **Media channels** (TV, search, social, display) are where money is spent; **acquisition channels** (search, social, referral) are how a customer first arrived. They share two names but are different lists. The scenario links them with an assumption the business states, not an estimate: of the new customers TV brings, 30% are recorded as search customers and 70% as referrals; search brings search customers; social brings 90% social and 10% referral; display brings 60% search and 40% social. A new customer costs $150 of TV or search spend, $100 of social or $300 of display.
+
+### Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $m$ | gross margin rate, 0.30 |
+| $d$ | monthly discount rate, 1% |
+| $N(k)$, $\Delta N_k$ | expected repeat purchases of a new customer by the end of month $k$; $\Delta N_k = N(k) - N(k-1)$ |
+| $\bar s$ | mean spend per purchase |
+| $\text{CLV}_a$ | 36-month margin value of a new customer from acquisition channel $a$ |
+| $f$, $W$ | the treated regions' share of national sales before the test, and the test's length in weeks |
+| $x$, $\Delta x$, $\Delta y$, $\sigma$ | the geo test as a national weekly lift-test row (Module 9) |
+| $r_c(s)$ | steady-state weekly sales of media channel $c$ at weekly spend $s$ (Module 10) |
+| $\pi_{c,a}$ | share of media channel $c$'s new customers recorded as acquisition channel $a$ |
+| $n_c$ | new customers per dollar on media channel $c$ (1 ÷ cost per new customer) |
+| $V(s)$ | weekly long-run value of a plan $s = (s_{\text{tv}}, \dots, s_{\text{display}})$, in dollars of margin |
+| $\tau_i$, $\hat\tau_i$ | customer $i$'s uplift (extra spend caused by the offer) and its estimate |
+| $c_{\text{offer}}$ | cost of sending the offer, $0.75 |
+
+## 3. Stage 1 · What a new customer is worth
+
+The customers differ by channel before any model: referral customers made 10.2 repeat purchases on average and 19% never returned; search customers 6.8 and 29%; social customers 3.9 and 42%. Spend per purchase is about $32 to $33 in every channel. So the channels differ in how often their customers buy and how long they stay, not in what they spend.
+
+Module 5's convention values a new customer's next 36 months in today's dollars, counting the acquisition purchase in month 0, undiscounted:
+
+$$
+\text{CLV}_a = m\, \bar s \left(1 + \sum_{k=1}^{36} \frac{\Delta N_k}{(1 + d)^k}\right) .
+$$ {#eq-clv}
+
+$N(k)$ comes from a BG/NBD model (Module 2) with the acquisition channel as a covariate on both the purchase rate and the dropout (Module 3), and $\bar s$ from a Gamma-Gamma model (Module 4); both are fitted by MCMC on every purchase to date, so the value has a posterior. The data were generated by a Pareto/NBD process; the BG/NBD approximates it and samples far faster, which is why the second checkpoint allows 20%. Your function implements @eq-clv for any number of posterior draws and channels at once, with a switch for the first purchase. Checkpoint 1 runs it before any fit on the generator's own purchase curve, where it must reproduce the answer key to four decimal places.
+
+The **CAC cap** (customer acquisition cost) is the 20th percentile of a channel's value: paying at most that leaves an 80% posterior probability that a new customer is worth it. Stage 4 uses the value **without** the first purchase, because the mix model's short-run sales already count it.
+
+::: {.callout-note collapse="true" title="Answer key: Stage 1 in the reference run"}
+FULL run (2 chains × 500 draws, 0 divergences in the BG/NBD fit). Margin value of a new customer, first purchase included:
+
+| Acquisition channel | Mean | 94% HDI | CAC cap (20th percentile) | Without first purchase | True value |
+|---|---|---|---|---|---|
+| search | $88.85 | $82.32 to $95.93 | $85.67 | $79.09 | $86.75 |
+| social | $55.87 | $51.34 to $60.90 | $53.79 | $46.11 | $53.30 |
+| referral | $122.83 | $108.82 to $137.52 | $115.84 | $113.07 | $139.86 |
+
+The ranking is right (referral, search, social), and the posterior means are within 20% of the truth, which passes. But referral's true value lies **outside** its 94% HDI, and referral is the channel whose estimate is furthest off (−12%, against +2% for search and +5% for social). A correct 94% interval misses 6% of the time; a likely reason here is that the BG/NBD only approximates the Pareto/NBD process that generated the data. On the rubric, a miss that is noticed and explained scores as well as a hit.
 :::
+
+## 4. Stage 2 · Is search incremental?
+
+The retailer switched paid search off in 8 regions for 10 weeks (2025-10-20 to 2025-12-22), saving $31,200 of search spend. At a 30% margin the cut paid for itself in short-run margin if those regions lost less than $104,000 of sales ($0.30 × $104,000 = $31,200). Module 7's synthetic control estimates what the treated regions would have sold with search on, and its 32 in-space placebos give a p-value.
+
+The mix model is national and weekly, so the test must be restated as a national weekly lift-test row. The scenario says each region responds as a scaled copy of the national curve; then eight regions holding a share $f$ of sales, over $W$ weeks, stand for the whole country over $fW$ weeks:
+
+$$
+\Delta x = \frac{\text{spend change}}{f\,W},
+\qquad
+\Delta y = \frac{\text{sales change}}{f\,W},
+\qquad
+\sigma = \frac{\operatorname{sd}\big(\text{placebo relative effects}\big) \times \text{synthetic sales of the treated regions}}{f\,W},
+$$ {#eq-national-row}
+
+with $x$ the national weekly search spend before the test ($18,000) and $f$ computed from the panel's pre-test weeks. Both $\Delta x$ and $\Delta y$ are negative for a cut, which `add_lift_test_measurements` accepts. The standard error comes from the placebos, each measured **relative to its own level** so that large and small regions are comparable, and leaving out placebos whose synthetic control fitted poorly before the test (pre-period error more than twice the median placebo's), because their gaps measure misfit, not noise.
+
+**Why a switch-off.** A switch-off measures $r(x) - r(0)$, the whole contribution of current spend: the level of search's curve, which is exactly what the hidden demand inflates in the mix model (Module 9). While the scenario was built, a test that doubled search spend instead was tried; it measured only the curve above current spend, left the inflated level free, and moved the calibrated ROAS *away* from the truth (the lab brief records this).
+
+::: {.self-check}
+**Check yourself.** Why must $\sigma$ use the placebos' *relative* effects, with the poorly fitted ones dropped? What would happen to Stage 3 if $\sigma$ came out larger than $|\Delta y|$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A region's gap in dollars scales with its size, and the largest regions cannot be reproduced by a weighted average of smaller ones (Module 7's synthetic control interpolates, never extrapolates), so their dollar gaps are huge and say nothing about noise in the treated regions. Relative effects remove size; dropping placebos that did not fit before the test removes regions the method cannot represent. With $\sigma > |\Delta y|$ the lift-test term in the likelihood (Module 9) would be almost flat: the experiment would barely constrain search's curve, and the calibrated model would stay close to the confounded one.
+:::
+:::
+
+::: {.callout-note collapse="true" title="Answer key: Stage 2 in the reference run"}
+Synthetic control: the treated regions sold **$86,857 less** over the test (−10.8%); placebo p-value 0.030 (= 1/33, the smallest possible with 32 placebos). Treated share of sales $f$ = 17.3%; 2 of 32 placebos dropped for poor pre-period fit. The row: $x$ = 18,000, $\Delta x$ = −17,996, $\Delta y$ = −50,099, $\sigma$ = 4,310 (8.6% of $|\Delta y|$). Sales lost, 94% interval (normal approximation from the placebo spread): $72,803 to $100,910. Sales per search dollar in those regions: 2.78 (2.33 to 3.23) against a break-even of 3.33.
+
+Search is incremental, and below break-even on short-run margin alone: the regions lost less than $104,000. Truth: $85,310 lost (the estimate is 1.8% off), 2.73 sales per search dollar; the true national-equivalent row has $\Delta y$ = −49,207.
+:::
+
+## 5. Stage 3 · Calibrating the mix model
+
+The provided cells fit Module 8's specification twice, with PyMC-Marketing's default priors and 2 chains of 500 draws: once without the test, once with Stage 2's row added to the likelihood (`build_model`, then `add_lift_test_measurements`, then `fit`; Module 9). Your function summarizes each channel's ROAS draws: the mean, the 94% HDI and the posterior probability of paying back on short-run margin,
+
+$$
+P\big(\text{ROAS}_c > 1/m\big) = \frac{1}{J} \sum_{j=1}^{J} \mathbb{1}\big[\text{ROAS}_c^{(j)} > 1/m\big],
+$$ {#eq-breakeven}
+
+over the $J$ posterior draws, with $1/m = 3.33$ (Module 8). Checkpoint 3 asks for the true ROAS inside the calibrated 94% HDI for at least 3 of the 4 channels.
+
+Read the fit checks the notebook prints. The calibrated fit should pass Module 8's gate (0 divergences, $\hat R \le 1.01$). The uncalibrated one is expected to miss $\hat R$: without the test, the data cannot pin down search's curve, and the two chains disagree about it. That is the confounding of Module 9 seen from the sampler's side.
+
+::: {.callout-note collapse="true" title="Answer key: Stage 3 in the reference run"}
+FULL run. Fit checks: 0 divergences in both fits; max $\hat R$ 1.035 uncalibrated (misses 1.01, as expected), 1.005 calibrated.
+
+| Channel | Uncalibrated (94% HDI) | Calibrated (94% HDI) | $P(\text{ROAS} > 3.33)$, calibrated | True ROAS |
+|---|---|---|---|---|
+| TV | 1.77 (1.65 to 1.87) | 1.77 (1.66 to 1.87) | 0.00 | 1.80 |
+| search | 3.96 (2.51 to 5.31) | **2.87 (2.54 to 3.24)** | 0.01 | 2.60 |
+| social | 1.30 (0.67 to 1.86) | 1.20 (0.63 to 1.74) | 0.00 | 1.20 |
+| display | 0.25 (0.00 to 0.70) | 0.27 (0.00 to 0.80) | 0.00 | 0.50 |
+
+All four truths lie inside the calibrated intervals. Search fell from 3.96, with a 75% posterior probability of paying back, to 2.87, with 1%; its interval shrank to about a quarter of its width. Calibrated search is still 10% above the truth: one test pins the level at one spend.
+:::
+
+## 6. Stage 4 · Next quarter's budget
+
+**Objective for this section:** combine CLV, the calibrated MMM and uplift estimates into one budget and one targeting rule.
+
+Module 10's long-run objective values a steady weekly plan $s$ as one week's short-run margin plus the future margin of the customers that week's spend acquires:
+
+$$
+V(s) = m \sum_c r_c(s_c) \;+\; \sum_c s_c\, n_c\, \text{CLV}^{\text{media}}_c ,
+\qquad
+\text{CLV}^{\text{media}}_c = \sum_a \pi_{c,a}\, \text{CLV}^{\text{repeat}}_a ,
+$$ {#eq-long-run}
+
+where $r_c$ is the calibrated model's posterior-mean response curve and $\text{CLV}^{\text{repeat}}_a$ is Stage 1's value **without** the first purchase. You maximize @eq-long-run with the toolkit's SLSQP allocator, subject to the $75,000 budget and the bounds. The objective is concave plus linear, so it has one optimum, at which every channel inside its bounds has the same marginal value $m\, r_c'(s_c) + n_c\, \text{CLV}^{\text{media}}_c$ (Module 10's condition with a constant added per channel). Near the optimum TV's and search's short-run curves have almost the same slope, so a few cents per dollar of future margin can move thousands of dollars a week between them.
+
+Checkpoint 4 runs your function on the **true** curves and customer values, where it must land within 5% of the budget on every channel and reach 97% of the optimal value. The value test alone could not tell plans apart (even the current plan is within a few percent of the optimum); the spend test can. On the model's curves the checkpoint asks only that the plan keeps the budget and the bounds, for the reason below.
+
+The notebook then scores four plans in every posterior draw (mix-model draw $j$ paired with Stage 1 draw $j$): the current plan, the **short-run** plan (CLV set to zero), the **long-run** plan, and a **risk-averse** plan that maximizes the 10% quantile of $V$. The rule, stated before the numbers: recommend the long-run plan unless its 10% quantile is below the current plan's; then recommend the risk-averse plan.
+
+**The main risk, and the next experiment.** The plans put more money on search than today. Stage 2's switch-off pinned search's curve at current spend, not its slope above it, and the posterior-mean curve bends more slowly than a real saturating curve where the data say little. So the recommendation leans hardest on the part of search's curve that no experiment has measured. The notebook prints the widest 94% interval of marginal ROAS at the plan on slide 4. The next experiment is a **search spend increase** in other regions: it measures the slope the plan depends on.
+
+::: {.callout-note collapse="true" title="Answer key: Stage 4 in the reference run, and the revealed truth"}
+Inputs from the reference run: $\text{CLV}^{\text{media}}$ TV $102.88, search $79.10, social $52.81, display $65.90; future margin per dollar of spend 0.686, 0.527, 0.528 and 0.220; the model's marginal ROAS at the current plan 1.75, 2.60, 1.14 and 0.21.
+
+| Plan | TV | search | social | display | Gain over current ($ margin/week, 94% HDI) | P(beats current) |
+|---|---|---|---|---|---|---|
+| current | 32,463 | 21,215 | 13,515 | 7,807 | — | — |
+| short-run | 22,445 | 41,926 | 6,737 | 3,892 | 5,272 (1,176 to 9,847) | 0.98 |
+| long-run | 34,376 | 29,995 | 6,737 | 3,892 | 6,237 (4,532 to 7,972) | 1.00 |
+| risk-averse | 34,363 | 30,009 | 6,737 | 3,892 | 6,237 (4,530 to 7,975) | 1.00 |
+
+The long-run plan's 10% quantile ($87,086 a week) is above the current plan's ($80,732), so the rule picks it. Its largest move is search +$8,780 a week, and search's marginal ROAS at the plan has the widest 94% HDI, 1.69 to 2.92.
+
+**Revealed truth**, every plan scored on the true curves and customer values, as a share of the true optimum's weekly value:
+
+| Plan | TV | search | Share of optimal value |
+|---|---|---|---|
+| true optimum | 49,916 | 14,455 | 1.000 |
+| true curves, the pipeline's CLV | 46,956 | 17,415 | 0.999 |
+| the pipeline's curves, true CLV | 40,819 | 23,552 | 0.987 |
+| **long-run (the recommendation)** | 34,376 | 29,995 | **0.962** |
+| current | 32,463 | 21,215 | 0.924 |
+| short-run | 22,445 | 41,926 | 0.890 |
+
+(Social and display sit at their lower bounds in every plan except the current one.) The recommendation beats the current plan, but it is $15,540 a week, 21% of the budget, away from the optimum, which puts *less* on search than today. The decomposition locates the error: with the true curves, the pipeline's customer values give almost the optimum; with the pipeline's curves, even true customer values do not. It is Stage 3's curve for search, as the main risk said. The short-run plan, which trusts that curve most, is worse than the current plan.
+:::
+
+## 7. Stage 5 · Whom to send the retention offer
+
+An offer earns the margin on the spend it causes and costs $0.75 for every customer who gets it. So it pays for a customer exactly when
+
+$$
+m\, \hat\tau_i > c_{\text{offer}}
+\iff
+\hat\tau_i > \frac{0.75}{0.30} = \$2.50,
+\qquad
+\text{value of a rule} = \frac{1}{n} \sum_{i=1}^{n} \mathbb{1}[\text{send}_i] \big(m\, \tau_i - c_{\text{offer}}\big),
+$$ {#eq-target}
+
+where the value is per held-out customer, relative to sending no one. A causal forest (EconML's `CausalForestDML`, Module 11) is fitted on the training half of the experiment and estimates $\hat\tau_i$ for each held-out customer. Your function applies the rule, strictly (at equality the offer only breaks even). What a customer would spend anyway does not enter: a loyal customer with a high probability of being alive (Module 2) may have no uplift at all.
+
+Checkpoint 5 scores your rule with the held-out customers' true effects $\tau_i$, which no real analysis has: it must earn more than sending the offer to everyone. The notebook then estimates the same profit from the experiment's outcomes alone, as you would on real data, with a 94% interval from a normal approximation.
+
+::: {.callout-note collapse="true" title="Answer key: Stage 5 in the reference run, and the revealed truth"}
+FULL run, 1,000 trees, 10,000 training and 10,000 held-out customers. Estimated uplift: mean $2.85, middle 80% −$1.49 to $9.35. The rule sends the offer to **39%** of held-out customers (3,887 of 10,000). Estimated from the outcomes: **$0.31 per customer** (94% interval $0.07 to $0.55) against $0.06 for mailing everyone (−$0.25 to $0.37).
+
+Truth, from the held-out customers' true effects: the rule earns **$0.367** per customer, mailing everyone **$0.126**, and perfect targeting **$0.512**. The rule captures 72% of what perfect targeting would; 37.6% of customers truly clear the break-even.
+:::
+
+## 8. The brief and how it is scored
+
+**Objective for this section:** present a decision with its interval, its assumptions and the next test you would run, in five slides.
+
+The five slides, in the rubric's order:
+
+1. **The recommendation.** The budget split and the targeting rule, the money at stake, and how sure you are (an interval and the probability the recommendation beats the current plan), as *number → rule → recommendation*.
+2. **What a customer is worth.** Value by acquisition channel with intervals, and the CAC caps that follow.
+3. **What the marketing caused.** The geo test's effect with its interval, and how it changed the mix model's ROAS for search.
+4. **Where the next dollar goes.** The allocation against the current split: expected gain with its interval, the constraints, and whether a risk-averse choice would differ.
+5. **Whom to target, and the limits.** The targeting rule and its expected profit; the two or three assumptions your recommendation depends on most; which stages used the reference or QUICK; the next experiment.
+
+**Presentations.** With up to 8 pairs: 4 minutes to present, 2 for questions, 1 to change over. Your brief should still make sense if you only get to say the first sentence of each slide.
+
+**The rubric.** Instructors score five criteria from 1 (not yet) to 4 (excellent), 20 points in all; a level counts only when everything in it is true. The score is feedback, not a grade.
+
+| Criterion | A 4 needs |
+|---|---|
+| 1 · Correctness against the known truth | every estimate traceable to the notebook; each interval contains the truth, or a miss is noticed and explained; no unit errors |
+| 2 · Quantified uncertainty | every headline number has a named interval; allocation and targeting computed over posterior draws; the probability the recommendation is right |
+| 3 · Decision clarity and economic logic | one recommendation per decision, first, in money; break-even ROAS = 1 ÷ margin, uplift × margin > offer cost, cost caps from a low quantile; marginal, not average, returns; constraints stated |
+| 4 · Honesty about limits and assumptions | the two or three assumptions that matter most, at least one sensitivity, reference and QUICK stages disclosed, the next experiment named |
+| 5 · Communication | five slides with headline sentences, a sentence per chart, on time, and the first slide answers the question |
+
+The full rubric, the score sheet and the errors instructors listen for (revenue for margin, average for marginal returns, P(alive) for uplift, in-sample scores, a lift test without its uncertainty, unnamed intervals, mixed units and horizons) are in the [capstone task and rubric]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/12-capstone-rubric.md) on GitHub. Read it before you start.
+
+::: {.self-check}
+**Check yourself.** A pair's first slide says: "Move money into search: the plan beats the current one with probability 1.00." Which question settles whether that probability means what it seems to, and what does a good answer contain?
+
+::: {.callout-tip collapse="true" title="Answer"}
+"What would change your recommendation?" The probability is computed over the posterior draws of one model, calibrated by one experiment that fixed search's level at current spend. It does not include the chance that the model's curve is the wrong shape above current spend, which is exactly where the plan moves money. A good answer names that assumption, says the plan's largest move rests on it, and names the experiment that would test it: a search spend increase in other regions. (After the presentations, the answer key in section 6 shows how much it mattered.)
+:::
+:::
+
+## 9. The decision
+
+The rules are fixed before the numbers:
+
+- **Budget** (Modules 9 and 10): recommend the long-run plan (short-run margin plus new customers' future margin, calibrated curves, Stage 1's values without the first purchase) unless its 10% quantile of weekly value is below the current plan's; then the risk-averse plan.
+- **Customer value** (Module 5): pay at most the 20th percentile of a new customer's value to acquire one through a channel.
+- **Offer** (Module 11): send it where 0.30 × estimated uplift > $0.75.
+
+::: {.module-decision}
+**Decision.** Recommend next quarter's weekly spend by channel and the customers to receive the retention offer, with the expected gain, a 94% interval and the main risk. Each pair states its own numbers; the reference run's are the answer key.
+
+::: {.callout-note collapse="true" title="Answer key: the reference run's recommendation"}
+FULL run, worked example (every stage on the reference), $75,000 a week for 13 weeks:
+
+- **Budget:** the long-run plan, **TV $34,376, search $29,995, social $6,737, display $3,892 a week** (current: TV $32,463, search $21,215, social $13,515, display $7,807). Expected gain $6,237 of margin a week (94% HDI $4,532 to $7,972), about $81,080 over the quarter; posterior probability it beats the current plan 1.00. Its 10% quantile is above the current plan's, so the risk-averse plan, which is the same to within $15, is not needed.
+- **Customer value and CAC caps:** referral $122.83 (cap $115.84), search $88.85 (cap $85.67), social $55.87 (cap $53.79), margin over 36 months.
+- **Offer:** send to the 39% of customers whose estimated uplift exceeds $2.50: an estimated $0.31 per customer (94% interval $0.07 to $0.55), against $0.06 for mailing everyone.
+- **Main risk:** search's curve above current spend, where the plan adds $8,780 a week and the marginal ROAS ranges from 1.69 to 2.92 (94% HDI). **Next experiment:** a search spend increase in other regions.
+
+What the truth says (section 6 and 7 answer keys): the budget beats the current plan (96.2% of the optimal value against 92.4%) but adds money to search where the optimum takes it away, because the curve that the main risk names was wrong; the offer rule earns $0.367 per held-out customer against $0.126 for mailing everyone. A pair that named the risk and the next experiment made the right recommendation with the information it had.
+:::
+:::
+
+## Summary
+
+- One question, five stages, each reusing one day's methods and handing a number to the next, each checked against the truth before the next uses it.
+- Stage 1 values new customers with Module 5's convention (@eq-clv); Stage 4 uses the value without the first purchase, which the mix model's sales already count.
+- Stage 2 restates a regional switch-off as a national weekly lift-test row (@eq-national-row), with a standard error from relative placebo effects. A switch-off pins the level of the curve that confounding inflates.
+- Stage 3 calibrates the mix model with that row and reads ROAS and the probability of paying back (@eq-breakeven).
+- Stage 4 maximizes short-run margin plus new customers' future margin (@eq-long-run) and scores plans draw by draw. One test pins a curve's level, not its slope; where the plan moves money onto an untested part of a curve, name it as the main risk and the next experiment.
+- Stage 5 sends the offer where margin × uplift exceeds its cost (@eq-target), scored on held-out customers.
+- The brief: five slides, a named interval on every headline number, the assumptions that matter, the reference and QUICK stages disclosed, and the next test.
+
+### Equations and where you implement them
+
+| Equation | What it is | In the capstone notebook |
+|---|---|---|
+| @eq-clv | new-customer value | **Exercise 1**: `new_customer_value(cum_purchases, mean_spend, monthly_rate, margin, first_purchase)`; Checkpoint 1 (A), before any fit: a toy curve with and without the first purchase, the output shape, and the generator's curve to four decimals; then "1 · fitted values": posterior means within 20% of the truth and the right top channel |
+| @eq-national-row | the national weekly lift-test row | **Exercise 2**: `lift_test_row(readout, treated_share, test_weeks, base_weekly_spend, spend_change_total)`; Checkpoint 2 (B): a toy readout whose fifth placebo must be dropped; the readout within 15% and p ≤ 0.1; $\Delta x$ within 1% and $\Delta y$ within 15% of the national-equivalent test; $0 < \sigma \le 0.25\,|\Delta y|$ |
+| @eq-breakeven | ROAS summary and the probability of paying back | **Exercise 3**: `roas_summary(roas_draws, break_even, prob)`; Checkpoint 3 (C): toy draws, then the true ROAS inside the calibrated 94% HDI for at least 3 of 4 channels |
+| @eq-long-run | the long-run value of a plan | **Exercise 4**: `recommend_budget(curves, clv_media, new_customers_per_dollar, bounds, weekly_total, margin)`; Checkpoint 4 (D): on the true curves and values, every channel's spend within 5% of the budget of the optimum's, and at least 97% of the optimal value; on the model's curves, the budget and bounds hold |
+| 10% quantile of $V$ | the risk rule | Provided: four plans scored per draw and the risk-averse plan |
+| @eq-target | the targeting rule and its value | **Exercise 5**: `retention_targets(cate_hat, margin, offer_cost)`; Checkpoint 5 (E): a toy case at the break-even uplift, then a positive true value on the held-out half, at least that of mailing everyone |
+| Held-out profit from outcomes | the estimate a real analysis would report | Provided: `targeting_profit` in the toolkit |
+
+## Gotchas
+
+- **Two channel lists.** Media channels (TV, search, social, display) and acquisition channels (search, social, referral) share two names; the scenario's table links them.
+- **Count the first purchase once.** Stage 4 uses customer value without it; the mix model's sales already include it.
+- **Signs.** A switch-off gives negative $\Delta x$ and $\Delta y$; keep them negative.
+- **Placebo spread in dollars, or with the poorly fitted placebos,** gives a $\sigma$ larger than the effect, and the test then barely moves the model.
+- **Bind the channel in a lambda** inside a dict comprehension (`lambda s, c=c: ...`), or every channel's function uses the last channel.
+- **Margin, not revenue,** in customer value, break-even ROAS and the offer rule.
+- **A probability of 1.00 is conditional on the model.** It does not cover a wrong curve shape where no experiment has looked.
+- **QUICK** gives wider intervals and can flip a close decision; the mix models' $\hat R$ exceeds 1.01 in QUICK. Disclose it on slide 5.
+- **PyMC-Marketing's optimizer**, if you use it instead of the toolkit, takes a budget per period (Module 10).
+- **Do not tune toward the truth.** Checkpoints say which way you are off, not by how much; the answer keys are for after.
+
+## Next steps
+
+The pipeline does not depend on the synthetic retailer. On your own data, start with Module 1's SQL on your transaction log and work forward; where this afternoon used a stated assumption (how media channels bring new customers, the cost of a new customer) or a single experiment, those are the measurements to plan first. The Day 5 wrap-up asks the question to take home: which assumption of this capstone is least safe at your company, and which experiment would you run first?
+
+## Further reading
+
+1. Gelman, A., Vehtari, A., Simpson, D., Margossian, C. C., Carpenter, B., Yao, Y., Kennedy, L., Gabry, J., Bürkner, P.-C., & Modrák, M. (2020). [*Bayesian workflow*](https://doi.org/10.48550/arXiv.2011.01808). arXiv:2011.01808. Checking each step before building on it, the habit the checkpoints enforce.
+2. Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: Evidence from big field experiments at Facebook](https://doi.org/10.1287/mksc.2018.1135). *Marketing Science*, 38(2), 193–225. Why the pipeline leans on experiments: observational methods often missed the measured lift.
+3. Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S. (2006). [Modeling customer lifetime value](https://doi.org/10.1177/1094670506293810). *Journal of Service Research*, 9(2), 139–155. Using customer value to set acquisition spending, as Stage 4 does.
+4. Zhang, Y., Wurm, M., Li, E., Wakim, A., Kelly, J., Price, B., & Liu, Y. (2024). [*Media mix model calibration with Bayesian priors*](https://research.google/pubs/media-mix-model-calibration-with-bayesian-priors/). Google. Calibrating a mix model with experiments, the step Stage 3 takes through the likelihood.
+5. Radcliffe, N. J., & Surry, P. D. (2011). [*Real-world uplift modelling with significance-based uplift trees*](https://stochasticsolutions.com/pdf/sig-based-up-trees.pdf). Stochastic Solutions. Targeting the change an offer causes, judged on a randomized control group.
+
+All entries, with the date each was checked, are on the [References](/references.qmd) page.

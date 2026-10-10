@@ -36,8 +36,8 @@ TEST_START <- as.Date(truth$test_start)
 TEST_END <- as.Date(truth$test_end)
 SEED <- 2029            # set before every CausalImpact call below
 NITER <- if (QUICK) 1000 else 5000  # MCMC draws per fit
-GROSS_MARGIN <- 0.30    # assumption, as in the Python notebook
-CAMPAIGN_COST <- 20000  # assumption, $, as in the Python notebook
+GROSS_MARGIN <- truth$campaign$margin   # 0.30 (truth.json), as in the Python notebook
+CAMPAIGN_COST <- truth$campaign$cost    # $25,000 (truth.json), as in the Python notebook
 options(repr.plot.width = 9, repr.plot.height = 5)
 
 if (length(unique(panel$geo)) != 40 || length(unique(panel$date)) != 104 || length(TREATED) != 8) {
