@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "date": "2026-10-09",
+  "date": "2026-10-10",
   "source": "test_notebooks",
   "env": "docker-arm64",
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
+  "commit": "edf94d9",
   "ref": "main",
   "evidence": "scripts/test_notebooks.py --record",
   "runs": [
     {
-      "commit": "60daceb",
       "mode": "worked",
       "settings": {},
       "python": "3.13.14",
@@ -35,26 +35,26 @@
         "matplotlib": "3.10.0",
         "mktstats": "0.1.0"
       },
+      "install_seconds": 0.0,
       "content_sha": "610e842896be2b11",
-      "deps_sha": "cb41c6878321e342",
+      "deps_sha": "86bfea102b10e6ad",
       "notebook": "python/08-bayesian-mmm",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 70.2,
+      "seconds": 67.3,
       "phases": {
-        "generated": 0.4,
-        "other": 56.57,
+        "generated": 0.29,
+        "other": 56.68,
         "exercise": 0.01,
-        "solution": 0.0,
-        "checkpoint": 8.94,
-        "verify": 0.05
+        "solution": 0.01,
+        "checkpoint": 6.28,
+        "verify": 0.07
       },
       "slowest_cell": {
         "id": "cell-024",
-        "seconds": 29.85
+        "seconds": 29.32
       },
       "verified": 6,
-      "install_seconds": 0.1,
       "checkpoints": {
         "1": {
           "passed": true,
@@ -88,52 +88,8 @@
       "cell_errors": 0
     },
     {
-      "commit": "60daceb",
-      "mode": "learner",
-      "settings": {
-        "MKTSTATS_QUICK": "1"
-      },
-      "content_sha": "610e842896be2b11",
-      "deps_sha": "cb41c6878321e342",
-      "notebook": "python/08-bayesian-mmm",
-      "scope": "notebook",
-      "status": "pass",
-      "seconds": 7.5,
-      "phases": {
-        "generated": 0.26,
-        "other": 3.53,
-        "exercise": 0.0,
-        "solution": 0.0,
-        "checkpoint": 2.05
-      },
-      "slowest_cell": {
-        "id": "cell-001",
-        "seconds": 3.35
-      }
-    },
-    {
       "mode": "worked",
       "settings": {},
-      "commit": "d1eee9a",
-      "content_sha": "c497b89f2247f9cf",
-      "deps_sha": "e3fdde4fdabdb86a",
-      "notebook": "python/10-budget-allocation",
-      "scope": "notebook",
-      "status": "pass",
-      "seconds": 50.2,
-      "phases": {
-        "generated": 0.29,
-        "other": 35.19,
-        "exercise": 0.0,
-        "solution": 0.01,
-        "checkpoint": 10.81,
-        "verify": 0.05
-      },
-      "slowest_cell": {
-        "id": "cell-015",
-        "seconds": 30.09
-      },
-      "verified": 6,
       "python": "3.13.14",
       "runtime": "local",
       "platform": "Linux aarch64",
@@ -158,6 +114,25 @@
         "mktstats": "0.1.0"
       },
       "install_seconds": 0.0,
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "f6b5d7b401d348cd",
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 37.0,
+      "phases": {
+        "generated": 0.34,
+        "other": 23.09,
+        "exercise": 0.0,
+        "solution": 0.01,
+        "checkpoint": 10.48,
+        "verify": 0.06
+      },
+      "slowest_cell": {
+        "id": "cell-015",
+        "seconds": 17.92
+      },
+      "verified": 6,
       "checkpoints": {
         "1": {
           "passed": true,
@@ -191,23 +166,45 @@
       "settings": {
         "MKTSTATS_QUICK": "1"
       },
-      "commit": "d1eee9a",
-      "content_sha": "c497b89f2247f9cf",
-      "deps_sha": "e3fdde4fdabdb86a",
+      "content_sha": "610e842896be2b11",
+      "deps_sha": "86bfea102b10e6ad",
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 7.9,
+      "phases": {
+        "generated": 0.51,
+        "other": 3.89,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.91
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 3.71
+      }
+    },
+    {
+      "mode": "learner",
+      "settings": {
+        "MKTSTATS_QUICK": "1"
+      },
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "f6b5d7b401d348cd",
       "notebook": "python/10-budget-allocation",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 4.0,
+      "seconds": 4.4,
       "phases": {
-        "generated": 0.26,
-        "other": 2.39,
+        "generated": 0.27,
+        "other": 2.77,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.39
+        "seconds": 2.77
       }
     }
   ]
