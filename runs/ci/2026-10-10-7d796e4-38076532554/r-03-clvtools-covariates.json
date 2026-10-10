@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "source": "test_notebooks",
+  "env": "ci-amd64",
+  "env_detail": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39, runner Python 3.13.14",
+  "mode": "worked",
+  "kernel": "ir",
+  "settings": {
+    "MKTSTATS_QUICK": "1"
+  },
+  "commit": null,
+  "ref": "v2026.10.1",
+  "evidence": "scripts/test_notebooks.py --record",
+  "content_sha": "7dceed3b9d29fed0",
+  "deps_sha": "0141286a5d39f50d",
+  "r": "4.6.1",
+  "runtime": "local",
+  "platform": "Linux x86_64",
+  "cpus": 4,
+  "memory_gb": 16.8,
+  "packages": {
+    "CLVTools": "0.12.1",
+    "grf": "2.6.1",
+    "CausalImpact": "1.4.1",
+    "bsts": "0.9.11",
+    "GeoLift": "2.7.5",
+    "augsynth": "0.2.0",
+    "Robyn": "3.12.1",
+    "reticulate": "1.47.0",
+    "duckdb": "1.5.6",
+    "DBI": "1.3.0",
+    "dplyr": "1.2.1",
+    "tidyr": "1.3.2",
+    "ggplot2": "4.0.3",
+    "jsonlite": "2.0.0",
+    "data.table": "1.18.6.1",
+    "lubridate": "1.9.5",
+    "readr": "2.2.0"
+  },
+  "install_seconds": 0,
+  "runs": [
+    {
+      "notebook": "r/03-clvtools-covariates",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 6.0,
+      "phases": {
+        "generated": 0.23,
+        "other": 1.92,
+        "exercise": 0.04,
+        "solution": 0.05,
+        "checkpoint": 2.46,
+        "verify": 0.13
+      },
+      "slowest_cell": {
+        "id": "cell-019",
+        "seconds": 1.95
+      },
+      "verified": 3,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1b": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
+    }
+  ]
+}
