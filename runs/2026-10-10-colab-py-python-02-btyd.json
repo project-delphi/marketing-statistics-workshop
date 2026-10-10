@@ -7,11 +7,8 @@
   "mode": "worked",
   "kernel": "python3",
   "settings": {},
-  "ref": "main",
-  "mktstats_commit": "6abdf44c8ef23056e3db02c633c3ea84873d946a",
   "evidence": "run_record() output, added with scripts/add_run_record.py",
   "content_sha": "2fcae6a24f5a75c4",
-  "deps_sha": "d522683f6ca7bda5",
   "python": "3.13.16",
   "colab_release": "release-colab-external-images_20261008-060111_RC00",
   "runtime": "colab",
@@ -35,9 +32,12 @@
     "duckdb": "1.3.2",
     "matplotlib": "3.10.0"
   },
-  "install_seconds": 38.6,
   "runs": [
     {
+      "ref": "main",
+      "mktstats_commit": "6abdf44c8ef23056e3db02c633c3ea84873d946a",
+      "deps_sha": "d522683f6ca7bda5",
+      "install_seconds": 38.6,
       "notebook": "python/02-btyd",
       "scope": "notebook",
       "status": "pass",
@@ -97,6 +97,73 @@
         0.0,
         0.62,
         0.18
+      ],
+      "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.0",
+      "mktstats_commit": "e468b73d47e72eacd908d3551f563e598b99a5d2",
+      "deps_sha": "8c3f7df3602e78f1",
+      "install_seconds": 37.4,
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 186.4,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        22.53,
+        0.0,
+        0.0,
+        0.18,
+        0.09,
+        0.47,
+        0.0,
+        0.0,
+        0.07,
+        0.01,
+        78.68,
+        0.0,
+        0.0,
+        0.01,
+        0.1,
+        9.51,
+        0.05,
+        26.85,
+        29.27,
+        0.0,
+        0.0,
+        15.89,
+        0.03,
+        1.41,
+        0.0,
+        0.0,
+        0.81,
+        0.17
       ],
       "cell_errors": 0
     }

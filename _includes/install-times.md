@@ -2,7 +2,7 @@
 
 | Runtime | Notebook | Install and setup | Measured |
 |---|---|---|---|
-| Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-09 |
+| Colab (Python runtime, CPU) | `python/00-setup-warmup` | 12 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/01-customer-base-sql` | 13 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/02-btyd` | 39 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/03-btyd-vs-ml` | 28 s | 2026-10-10 |

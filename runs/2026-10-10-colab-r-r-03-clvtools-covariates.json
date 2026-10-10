@@ -7,10 +7,8 @@
   "mode": "worked",
   "kernel": "ir",
   "settings": {},
-  "ref": "main",
   "evidence": "run_record() output, added with scripts/add_run_record.py",
   "content_sha": "7dceed3b9d29fed0",
-  "deps_sha": "7565c5d36fa4f347",
   "r": "4.6.1",
   "colab_release": "release-colab-external-images_20261008-060111_RC00",
   "runtime": "colab",
@@ -28,13 +26,42 @@
     "lubridate": "1.9.5",
     "readr": "2.2.0"
   },
-  "install_seconds": 18.1,
   "runs": [
     {
+      "ref": "main",
+      "deps_sha": "7565c5d36fa4f347",
+      "install_seconds": 18.1,
       "notebook": "r/03-clvtools-covariates",
       "scope": "notebook",
       "status": "pass",
       "seconds": 11.6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1b": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
+    },
+    {
+      "ref": "v2026.10.0",
+      "deps_sha": "60d557ba74384331",
+      "install_seconds": 15.2,
+      "notebook": "r/03-clvtools-covariates",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 11.3,
       "checkpoints": {
         "1": {
           "passed": true,

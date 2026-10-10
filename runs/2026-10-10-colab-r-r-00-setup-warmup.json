@@ -7,10 +7,8 @@
   "mode": "worked",
   "kernel": "ir",
   "settings": {},
-  "ref": "main",
   "evidence": "run_record() output, added with scripts/add_run_record.py",
   "content_sha": "e6216872043093cf",
-  "deps_sha": "aaa1f5ecad8e35f1",
   "r": "4.6.1",
   "colab_release": "release-colab-external-images_20261008-060111_RC00",
   "runtime": "colab",
@@ -28,13 +26,38 @@
     "lubridate": "1.9.5",
     "readr": "2.2.0"
   },
-  "install_seconds": 6,
   "runs": [
     {
+      "ref": "main",
+      "deps_sha": "aaa1f5ecad8e35f1",
+      "install_seconds": 6,
       "notebook": "r/00-setup-warmup",
       "scope": "notebook",
       "status": "pass",
       "seconds": 2.6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      }
+    },
+    {
+      "ref": "v2026.10.0",
+      "deps_sha": "cb6b0363735a9c97",
+      "install_seconds": 5.8,
+      "notebook": "r/00-setup-warmup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.3,
       "checkpoints": {
         "1": {
           "passed": true,

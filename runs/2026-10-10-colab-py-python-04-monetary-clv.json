@@ -7,11 +7,8 @@
   "mode": "worked",
   "kernel": "python3",
   "settings": {},
-  "ref": "main",
-  "mktstats_commit": "4eb93dfd4863b42f1d6b072eee9a20cfb9a01652",
   "evidence": "run_record() output, added with scripts/add_run_record.py",
   "content_sha": "0cbabfe415ab6ce9",
-  "deps_sha": "c27895b68f8e5450",
   "python": "3.13.16",
   "colab_release": "release-colab-external-images_20261008-060111_RC00",
   "runtime": "colab",
@@ -35,9 +32,12 @@
     "duckdb": "1.3.2",
     "matplotlib": "3.10.0"
   },
-  "install_seconds": 41.4,
   "runs": [
     {
+      "ref": "main",
+      "mktstats_commit": "4eb93dfd4863b42f1d6b072eee9a20cfb9a01652",
+      "deps_sha": "c27895b68f8e5450",
+      "install_seconds": 41.4,
       "notebook": "python/04-monetary-clv",
       "scope": "notebook",
       "status": "pass",
@@ -99,6 +99,75 @@
         0.25,
         1.61,
         58.58
+      ],
+      "cell_errors": 0
+    },
+    {
+      "ref": "v2026.10.0",
+      "mktstats_commit": "e468b73d47e72eacd908d3551f563e598b99a5d2",
+      "deps_sha": "9bb1bb8514fcbc19",
+      "install_seconds": 46.0,
+      "notebook": "python/04-monetary-clv",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 363.4,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "CDNOW Gamma-Gamma benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_seconds": [
+        20.62,
+        0.0,
+        0.0,
+        0.05,
+        71.76,
+        0.0,
+        0.0,
+        0.04,
+        0.01,
+        6.51,
+        0.0,
+        59.23,
+        13.21,
+        53.15,
+        0.0,
+        0.0,
+        1.64,
+        0.0,
+        0.0,
+        0.0,
+        6.28,
+        0.44,
+        0.22,
+        0.0,
+        0.0,
+        11.32,
+        58.86,
+        0.25,
+        1.32,
+        58.11
       ],
       "cell_errors": 0
     }
