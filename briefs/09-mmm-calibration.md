@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
-| Notebooks | `labs/src/09-mmm-calibration.py` → `labs/python/09-mmm-calibration.ipynb` (core, decision); `labs/src/09-robyn.R` → `labs/r/09-robyn.ipynb` (short paired notebook, **conditional**: the Robyn spike passed in Docker; the Colab R run is pending) |
+| Notebooks | `labs/src/09-mmm-calibration.py` → `labs/python/09-mmm-calibration.ipynb` (core, decision); `labs/src/09-robyn.R` → `labs/r/09-robyn.ipynb` (short paired notebook; it was conditional on the Robyn spike, which passed in Docker, and on a Colab R run, which passed on 2026-10-10: `runs/2026-10-10-colab-r-r-09-robyn.json`) |
 | Lab slot | 55 min (`modules.m09.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (Python 30 + R 10; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
-| Order | Open the **R** notebook first and start its install cell (Robyn plus the Python library Nevergrad through reticulate; Colab time not yet measured). Work the **Python** notebook's Parts A–C while it installs, then the R notebook's Part D, then the Python decision. If the R install fails or is not ready, skip Part D: the Python notebook stands alone and Exercise 5 becomes a stretch. |
+| Order | Open the **R** notebook first and start its install cell (Robyn plus the Python library Nevergrad through reticulate; 66–75 s on Colab in the 2026-10-10 runs). Work the **Python** notebook's Parts A–C while it installs, then the R notebook's Part D, then the Python decision. If the R install fails or is not ready, skip Part D: the Python notebook stands alone and Exercise 5 becomes a stretch. |
 | Day | Day 4, second module |
 
 ## Question and decision
@@ -63,7 +63,7 @@ reliable estimates.
 | | *Run: calibrated fit (provided)* | — |
 | | 3 · Before and after calibration | 7 |
 | Python · C · Out of sample | 4 · Time-slice cross-validation scorecard | 10 |
-| R · D · Another tool, another answer (conditional) | 5 · Robyn's marginal ROAS | 10 |
+| R · D · Another tool, another answer | 5 · Robyn's marginal ROAS | 10 |
 | **Exercises** | | **40** |
 | Decision (Python notebook) | Move budget now, or test first? | 5 |
 
@@ -120,7 +120,7 @@ prompt while it runs.*
 - **Explain.** Provided after it: `cv.summary.param_stability(var_names=["saturation_beta"])` plotted per
   fold. A channel whose effect jumps between folds is identified by a few weeks of data; trust it less.
 
-### Exercise 5 · Robyn's marginal ROAS (10 minutes, R, conditional)
+### Exercise 5 · Robyn's marginal ROAS (10 minutes, R)
 
 *Provided before it: the Robyn chain above and the selected model ID.*
 
@@ -179,4 +179,3 @@ only, not in a lab: Google's Meridian (DECISIONS.md: package conflicts and a GPU
   lift tests are). Add a test date column to `mmm_lift_tests.csv` so cross-validation can filter tests by
   fold. Exercise 1's reference: rebuild each CSV row from test totals (weekly values × test weeks) and check
   the function returns the row.
-- Add the R notebook to `modules.m09.notebooks` once the Colab R run is recorded.

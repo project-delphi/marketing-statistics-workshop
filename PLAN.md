@@ -157,18 +157,18 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 - [x] [TE] loaders: CDNOW, Online Retail II, Hillstrom, mmm_example, Prop 99, sBG counts (sha256 + fallback)
 
 ### Phase 3–5 — labs (each: brief [AD] → review [PE] → build + run [TE] → Colab [Lead] → module page [AD])
-- [x] M8 Bayesian MMM (built + Docker run; Colab pending)
-- [x] M2 BTYD — built + Docker run; Colab pending
-- [x] M11 uplift (EconML + grf): built + Docker run + Colab worked/full runs recorded for both notebooks (2026-10-09); module page pending
-- [x] M7 geo (Python SC/DiD + R CausalImpact/GeoLift) — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
-- [x] M1 customer base (DuckDB) — built + Docker run; Colab pending
-- [x] M4 monetary value and CLV — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab pending
-- [x] M6 experiments — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab pending
-- [x] M3 covariates (CLVTools) + BTYD vs ML — built + Docker run (R and Python); Colab pending
-- [x] M5 CLV decisions — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab pending
-- [x] M9 calibration and validation (+ Robyn per S5) — built + Docker run (runs/2026-10-09-m09-*.json); Colab pending
-- [x] M10 budget allocation (built + Docker run; Colab pending)
-- [x] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`); [TE] lab built + Docker run (runs/2026-10-09-m12-*.json); Colab pending
+- [x] M8 Bayesian MMM (built + Docker run; Colab run recorded 2026-10-10)
+- [x] M2 BTYD — built + Docker run; Colab run recorded 2026-10-10
+- [x] M11 uplift (EconML + grf): built + Docker run + Colab worked/full runs recorded for both notebooks (2026-10-09, again 2026-10-10); module page written
+- [x] M7 geo (Python SC/DiD + R CausalImpact/GeoLift) — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab run recorded 2026-10-10
+- [x] M1 customer base (DuckDB) — built + Docker run; Colab run recorded 2026-10-10
+- [x] M4 monetary value and CLV — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab run recorded 2026-10-10
+- [x] M6 experiments — [TE] built + Docker run (runs/2026-10-09-day3-*.json); Colab run recorded 2026-10-10
+- [x] M3 covariates (CLVTools) + BTYD vs ML — built + Docker run (R and Python); Colab run recorded 2026-10-10
+- [x] M5 CLV decisions — [TE] built + Docker run (`runs/2026-10-09-day2-*.json`); Colab run recorded 2026-10-10
+- [x] M9 calibration and validation (+ Robyn per S5) — built + Docker run (runs/2026-10-09-m09-*.json); Colab run recorded 2026-10-10
+- [x] M10 budget allocation (built + Docker run; Colab run recorded 2026-10-10)
+- [x] M12 capstone + rubric [PE] (rubric, task, deliverables and timing done: `briefs/12-capstone-rubric.md`); [TE] lab built + Docker run (runs/2026-10-09-m12-*.json); Colab run recorded 2026-10-10
 
 ### Phase 6 — site and docs
 - [x] [AD] lab briefs for all modules (`briefs/`), objectives/decisions in `_variables.yml`

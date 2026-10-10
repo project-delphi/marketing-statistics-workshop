@@ -147,6 +147,9 @@ Newest first within each section.
 - Decision: keep `r/09-robyn` as a short paired notebook. Colab R still has to be proven (reticulate must
   find a Python with nevergrad inside Colab's R runtime); until a Colab run is recorded it is not
   "ready to teach". Robyn is effectively unmaintained (last commit 2025-06), which the briefing says.
+- Proven on Colab (2026-10-10): `r/09-robyn` passed worked, FULL, whole-notebook runs at `main`,
+  `v2026.10.0` and `v2026.10.1` (`runs/2026-10-10-colab-r-r-09-robyn.json`; at `v2026.10.1`
+  install 65.5 s, 172 s in all).
 
 ### S4 · Docker image (2026-10-09)
 - `rocker/r-ver:4.6.1` + uv Python 3.13 + pinned requirements + R packages from P3M 2026-10-01 + Quarto
