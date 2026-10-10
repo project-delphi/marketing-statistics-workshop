@@ -10,7 +10,7 @@ Model purchasing and silent dropout with BG/NBD and Pareto/NBD, check that the f
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/02-btyd.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/02-btyd.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

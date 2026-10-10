@@ -10,7 +10,7 @@ Turn posterior CLV into decisions: the most we can pay to acquire a customer in 
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/05-clv-decisions.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/05-clv-decisions.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

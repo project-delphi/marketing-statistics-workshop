@@ -2,7 +2,7 @@
 
 ### Python lab · `10-budget-allocation`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/10-budget-allocation.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/10-budget-allocation.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

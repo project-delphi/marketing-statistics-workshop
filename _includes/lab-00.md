@@ -4,7 +4,7 @@ The Python and R notebooks are the same lab in two languages: do one.
 
 ### Python lab · `00-setup-warmup`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/00-setup-warmup.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/00-setup-warmup.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |
@@ -25,7 +25,7 @@ The Python and R notebooks are the same lab in two languages: do one.
 
 ### R lab · `00-setup-warmup`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/00-setup-warmup.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/00-setup-warmup.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

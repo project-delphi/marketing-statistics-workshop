@@ -10,7 +10,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 

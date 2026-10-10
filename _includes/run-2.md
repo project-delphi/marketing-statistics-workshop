@@ -5,12 +5,12 @@
 |---|---|---|
 | 09:00–09:15 | [Warm-up]{.slot-debrief} |  |
 | 09:15–10:10 | [Briefing]{.slot-briefing} | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd): the briefing. |
-| 10:10–11:05 | [Lab]{.slot-lab} | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/04-monetary-clv.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 10:10–11:05 | [Lab]{.slot-lab} | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/04-monetary-clv.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 11:05–11:15 | [Debrief]{.slot-debrief} | [4 · Monetary value and dollar CLV](/modules/04-monetary-clv.qmd): debrief on the decision. Report what an average customer and the whole customer base are worth over 12 and 36 months with a 94% interval, and name the assumption (horizon, discount rate or spend model) that moves the number most. |
 | 11:15–11:30 | [Break]{.slot-break} |  |
 | 11:30–12:25 | [Briefing]{.slot-briefing} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): the briefing. |
 | 12:25–13:25 | [Lunch]{.slot-break} |  |
-| 13:25–14:20 | [Lab]{.slot-lab} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/05-clv-decisions.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 13:25–14:20 | [Lab]{.slot-lab} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/05-clv-decisions.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 14:20–14:30 | [Debrief]{.slot-debrief} | [5 · From CLV to decisions](/modules/05-clv-decisions.qmd): debrief on the decision. Set the maximum CAC we can afford per acquisition channel, and decide whether to run the proposed retention campaign. |
 | 14:30–15:30 | [CFO memo clinic: peer review of the Module 5 decision memo]{.slot-lab} |  |
 | 15:30–15:40 | [Break]{.slot-break} |  |

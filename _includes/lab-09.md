@@ -2,7 +2,7 @@
 
 ### Python lab · `09-mmm-calibration`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/09-mmm-calibration.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/09-mmm-calibration.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |
@@ -24,7 +24,7 @@
 
 ### R lab · `09-robyn`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/09-robyn.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/09-robyn.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

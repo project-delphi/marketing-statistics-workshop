@@ -13,7 +13,7 @@ Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonal
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/08-bayesian-mmm.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/08-bayesian-mmm.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -28,7 +28,7 @@ Feed geo-test results into the MMM as extra likelihood terms, validate it with t
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/09-mmm-calibration.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
+[Open the briefing](/modules/09-mmm-calibration.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -43,7 +43,7 @@ Turn response curves into a budget: write a constrained SLSQP allocator, compare
 :::
 
 ::: {.module-actions}
-[Open the briefing](/modules/10-budget-allocation.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/10-budget-allocation.ipynb){.btn-colab} [Python]{.chip}
+[Open the briefing](/modules/10-budget-allocation.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/10-budget-allocation.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::

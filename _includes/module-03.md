@@ -10,7 +10,7 @@ Add the acquisition channel as a covariate to the Pareto/NBD in CLVTools and rec
 :::
 
 ::: {.module-actions}
-[Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/03-clvtools-covariates.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/03-btyd-vs-ml.ipynb){.btn-colab} [Python]{.chip}
+[Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/03-clvtools-covariates.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/03-btyd-vs-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

@@ -5,12 +5,12 @@
 |---|---|---|
 | 09:00–09:15 | [Warm-up]{.slot-debrief} |  |
 | 09:15–10:10 | [Briefing]{.slot-briefing} | [6 · Experiments done right](/modules/06-experiments.qmd): the briefing. |
-| 10:10–11:05 | [Lab]{.slot-lab} | [6 · Experiments done right](/modules/06-experiments.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/06-experiments.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 10:10–11:05 | [Lab]{.slot-lab} | [6 · Experiments done right](/modules/06-experiments.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/06-experiments.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 11:05–11:15 | [Debrief]{.slot-debrief} | [6 · Experiments done right](/modules/06-experiments.qmd): debrief on the decision. Decide whether to roll out the email campaign: report incremental revenue per customer with a 95% confidence interval after the SRM check and CUPED, and compare it with the cost per email. |
 | 11:15–11:30 | [Break]{.slot-break} |  |
 | 11:30–12:25 | [Briefing]{.slot-briefing} | [7 · Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd): the briefing. |
 | 12:25–13:25 | [Lunch]{.slot-break} |  |
-| 13:25–14:20 | [Lab]{.slot-lab} | [7 · Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/07-synthetic-control-did.ipynb), [R lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/07-causalimpact-geolift.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
+| 13:25–14:20 | [Lab]{.slot-lab} | [7 · Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd): [Python lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/07-synthetic-control-did.ipynb), [R lab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/07-causalimpact-geolift.ipynb). Stuck on exercise N: open its folded solution, then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on. |
 | 14:20–14:30 | [Debrief]{.slot-debrief} | [7 · Geo-experiments and quasi-experiments](/modules/07-geo-experiments.qmd): debrief on the decision. Was the campaign incremental, and by how much? Report incremental sales with an interval and the implied return on the campaign spend. |
 | 14:30–15:30 | [Geo-test design review, with the GeoLift market-selection demo]{.slot-lab} |  |
 | 15:30–15:40 | [Break]{.slot-break} |  |

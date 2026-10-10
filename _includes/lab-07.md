@@ -2,7 +2,7 @@
 
 ### Python lab · `07-synthetic-control-did`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/python/07-synthetic-control-did.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/python/07-synthetic-control-did.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |
@@ -23,7 +23,7 @@
 
 ### R lab · `07-causalimpact-geolift`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/labs/r/07-causalimpact-geolift.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.0/labs/r/07-causalimpact-geolift.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

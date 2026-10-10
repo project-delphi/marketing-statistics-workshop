@@ -724,8 +724,8 @@ def readiness_page(v: dict, report: dict) -> str:
         "## How to read this page {#legend}",
         "",
         "Each evidence line is the newest worked run on that machine, from the run records in"
-        f" [`runs/`]({v['repo']['url']}/tree/{v['repo']['ref']}/runs). A newer failure replaces an"
-        " older pass. A run is *before the notebook or its deps last changed* when the"
+        f" [`runs/`]({v['repo']['url']}/tree/{v['repo']['branch']}/runs). A newer failure"
+        " replaces an older pass. A run is *before the notebook or its deps last changed* when the"
         " notebook's code (content_sha) or the files, pins and ref it depends on (deps_sha) have"
         " changed since; it no longer counts.",
         "",
