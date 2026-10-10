@@ -125,6 +125,25 @@ Newest first within each section.
   (https://github.com/lycheeverse/lychee-action/blob/v2/action.yml, read 2026-10-10), so a new
   default cannot change the status handling these settings rely on; publish.yml's blocking
   internal-link check uses the same version.
+### Module 9's cross-validation cell reaches the 4-minute cell limit on Colab (2026-10-10)
+- PLAN.md's Colab targets include "any cell ≤ 4 min". The time-slice cross-validation cell (4 folds ×
+  2 chains × 500 draws, FULL) took 215 s, 241 s and 252 s in the three Colab runs at `main`,
+  `v2026.10.0` and `v2026.10.1` (`runs/2026-10-10-colab-py-python-09-mmm-calibration.json`, the
+  21st timed cell). The same notebook's two main fits come next (up to 209 s); outside Module 9 no
+  cell took more than 161 s (the capstone). The whole notebook took 697 s at `v2026.10.1`, inside
+  the 15-minute total.
+- Not fixed in `v2026.10.1`: the overrun is 12 s, and changing the lab stales its Colab record
+  (and a new tag stales all 18). The brief's rule is to cut folds before draws, so the next release
+  should run 3 folds FULL (as QUICK does) or start the first fold later; then re-measure on Colab.
+
+### Queued for the next release (lab changes that need a Colab re-sweep)
+Changes to `labs/src`, `src/mktstats`, `R/` or the pins make the Colab records stale on main, and a
+new tag makes all 18 stale, so these wait until the next sweep instead of going to main one by one.
+- Module 9: the cross-validation cell (above).
+- R Module 0: the lab carries its own CDNOW loader with one URL (pymc-marketing's `main` branch) and
+  a visible `TODO(mktstats data loaders)` comment; `R/mktstats.R` has no CDNOW loader. Python's
+  `mktstats.data` reads the same file from pymc-marketing's `1.2.0` tag first and `main` second.
+  Move the loader into the R helpers with both sources in that order, and drop the comment.
 
 ## Spikes
 

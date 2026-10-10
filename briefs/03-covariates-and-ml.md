@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written, not run. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-09, Academic Director. Written before the lab was built; the lab has since passed on Colab and in the workshop's Docker image (`runs/`; the Readiness page). Review: Pedagogy Expert. |
 | Notebooks | `labs/src/03-clvtools-covariates.R` → `labs/r/03-clvtools-covariates.ipynb` (Part A–B); `labs/src/03-btyd-vs-ml.py` → `labs/python/03-btyd-vs-ml.ipynb` (Part C) |
 | Lab slot | 55 min for both notebooks (`modules.m03.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (R 22 + Python 18; limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
 | Order | Open the **Python** notebook first and run its install cell (≈ 31 s install + 17 s import on Colab, lead's measurement 2026-10-09). Then open the **R** notebook (CLVTools installs in ≈ 15 s including GSL) and work Parts A–B. Return to the Python notebook for Part C; its runtime is ready. The decision cell is in the Python notebook. |
@@ -60,8 +60,9 @@ the character column instead would make CLVTools dummy-code with the first level
 | **Exercises** | | **40** |
 | Decision (Python notebook) | Treat channels differently? Which forecaster? | 5 |
 
-Expected compute: R fits about a second each (Docker on a laptop, 2026-10-09; Colab not yet measured);
-Python Pareto/NBD MAP seconds, gradient boosting seconds, bootstrap seconds. Estimates until a run record.
+Measured on Colab at `v2026.10.1` (2026-10-10, worked, FULL): the whole R notebook 10 s after a 16 s
+install (`runs/2026-10-10-colab-r-r-03-clvtools-covariates.json`); in the Python notebook the cell that
+fits both forecasters took 97 s of the notebook's 118 s (`runs/2026-10-10-colab-py-python-03-btyd-vs-ml.json`).
 
 ### Exercise 1 · Build the clv.data object and compare with Day 1 (7 minutes)
 
