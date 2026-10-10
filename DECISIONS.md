@@ -95,6 +95,22 @@ Newest first within each section.
   Readiness hashes main's files, not the tag's: if main's labs or deps move past the tag, the
   readiness page reports stale even though learners still get the tag. That errs on the safe side.
 
+### Release check and external link check run monthly (2026-10-10)
+- `release.yml` runs `release_check.py` on main with the `evidence` records, monthly and on demand
+  (with a date, e.g. the class's Day 1). Not on a tag push: a tag is cut first and its Colab records
+  are committed to main afterwards, so at the tag's own commit the check always fails. Monthly
+  (the user's choice) rather than weekly: Colab runs count for only `readiness.max_run_age_days`,
+  so the scheduled run is a reminder that is red in months without a recent sweep, not an early
+  warning. Checking ahead for a class is the on-demand run with the class date.
+- `links.yml` (monthly) replaces the weekly `links-external` job in `publish.yml`. It checks the
+  live site (pages from its `sitemap.xml`) instead of rebuilding it, so a link check no longer
+  renders and redeploys the site; the weekly redeploy still happens through the notebooks cron → publish.
+- First run, by hand with lychee 0.24.2 (the action's default) on 2026-10-10: 29 pages, 2,017
+  links, 57 errors. 49 were 403s from journal publishers behind doi.org (they refuse non-browser
+  clients; doi.org itself redirects, and answers 404 for a wrong DOI), 6 were online.stat.psu.edu
+  (incomplete certificate chain; the pages load with curl), 2 were transient 503s from github.com.
+  The workflow accepts 403 and excludes online.stat.psu.edu.
+
 ## Spikes
 
 (Results are added below as each spike runs.)

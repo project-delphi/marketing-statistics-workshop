@@ -10,7 +10,8 @@ or a "has run on" claim by hand: add a record and rerun `python scripts/gen_tabl
   that branch out into `runs/ci/` before generating the site; they are not committed on main.
 
 `scripts/run_records.py` validates every file; `scripts/readiness.py` turns them into
-evidence; `scripts/release_check.py` gates a ready-to-teach release.
+evidence; `scripts/release_check.py` gates a ready-to-teach release
+(`.github/workflows/release.yml` runs it monthly, and on demand for a given date).
 
 ## How records are made
 

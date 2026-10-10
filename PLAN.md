@@ -115,7 +115,9 @@ run record, footer. Targets on Colab FULL: install ≤ 3 min, any cell ≤ 4 min
 - `publish.yml` (push to main, `workflow_run` of notebooks, dispatch): drift gates (gen_tables, gen_notebooks, synthetic data), ruff,
   pytest (unit, checks-can-fail, readiness rules, quick recovery), checkout `evidence` into `runs/ci/`, gen readiness, `quarto render`
   (`freeze: auto`, figures mostly script-made), lychee `--offline` (blocking), upload-pages-artifact → deploy-pages.
-- `links.yml`: weekly external lychee (non-blocking, opens summary). `release.yml`: `release_check.py` gates a "ready to teach" tag.
+- `links.yml`: monthly lychee over every page of the live site (from its sitemap), external links included; non-blocking
+  (separate from deploy), job summary lists failures. `release.yml`: monthly and on demand (with a class date), `release_check.py` on main
+  with the `evidence` records (see DECISIONS.md, 2026-10-10: why main and not a tag push).
 - Readiness: per notebook, evidence lanes CI / local Docker / Colab / AWS ("not run"). Staleness = notebook code-cell hash **plus** a
   hash of the module's declared deps (mktstats files, R helpers, synthetic data, pins) and the install ref. Ready to teach = Colab,
   worked, FULL, whole notebook, current hashes, ≤ 21 days, no fallback markers, and CI passing on current commit.

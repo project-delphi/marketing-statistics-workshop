@@ -11,8 +11,6 @@ on:
     workflows: [notebooks]
     types: [completed]
     branches: [main]
-  schedule:
-    - cron: "41 5 * * 1" # weekly: external link check
   workflow_dispatch:
 
 concurrency:
@@ -86,30 +84,6 @@ jobs:
         uses: lycheeverse/lychee-action@v2
         with:
           args: --offline --no-progress --root-dir ${{ github.workspace }}/root 'root/**/*.html'
-          fail: true
-
-  links-external:
-    needs: build
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
-    continue-on-error: true
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: github-pages
-      - name: Unpack the site under its Pages path
-        # 404.html uses site-absolute links (/marketing-statistics-workshop/...), so the
-        # site sits under that path inside a root directory lychee resolves against.
-        run: mkdir -p root/marketing-statistics-workshop && tar -xf artifact.tar -C root/marketing-statistics-workshop
-      - name: External links (weekly, non-blocking)
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: >-
-            --no-progress --max-concurrency 8 --timeout 30 --max-retries 3
-            --accept 200,203,206,429
-            --exclude '^https://colab\.research\.google\.com/'
-            --root-dir ${{ github.workspace }}/root
-            'root/**/*.html'
           fail: true
 
   deploy:
