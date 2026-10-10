@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab exists. Every number below marked *prototype* comes from a throwaway prototype on a laptop (a stand-in generator with the design below, pymc-marketing 1.2.0, nutpie, 2 chains on 2 cores, a machine shared with other jobs); the committed generator will draw different numbers, so the Technical Expert re-measures every checkpoint on the committed data in QUICK and FULL. Nothing here has run in Docker or on Colab. Review: Pedagogy Expert. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab exists. Every number below marked *prototype* comes from a throwaway prototype on a laptop (a stand-in generator with the design below, pymc-marketing 1.2.0, nutpie, 2 chains on 2 cores, a machine shared with other jobs); the committed generator will draw different numbers, so the Technical Expert re-measures every checkpoint on the committed data in QUICK and FULL. Nothing here has run in Docker or on Colab. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the changes and their reasons are under "Pedagogy review" at the end. |
 | Notebook | `labs/src/17-mmm-time-varying.py` → `labs/python/17-mmm-time-varying.ipynb` |
-| Lab slot | 55 min (`modules.m17.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (limit 40) + decision 5 + slack 5 = 55. Minutes are estimates until a pilot. |
+| Lab slot | 55 min (`modules.m17.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (7 + 8 + 6 + 9 + 10; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it and waiting for any fit among them (Colab FULL estimates, "Parts and exercises"). Minutes are estimates until a pilot. |
 | Track | Extensions (`days.d6`), optional, outside the five timed days. It keeps the core format (45 min briefing, 55 min lab, 10 min debrief) so an instructor can swap it into a custom schedule after Day 4. |
 
 ## Question and decision
@@ -145,58 +145,167 @@ model must find that three of them stay near 1, which it did (Exercise 4). A Gau
 log multiplier, the other common choice, would need a custom model; the briefing mentions it, the lab
 does not use it.
 
-**Terms the notebook defines.** A *Gaussian process* (GP) is a prior over smooth functions; its
-*lengthscale* $\ell$ is roughly how many weeks it takes the function to change appreciably, and its
-*amplitude* $\eta$ how far it can move. An *HSGP* (Hilbert-space GP) approximates it with a fixed set of
-basis functions so it samples fast (Riutort-Mayol et al.). `SoftPlusHSGP` passes the GP through a
-softplus (always positive) and divides by its mean over the fitted weeks, so the multiplier is positive
-with mean 1. The priors set here: $\ell$ InverseGamma with 90% of its mass between 20 and 104 weeks
-(slow drift, not week-to-week noise); $\eta$ Exponential with a 5% chance of exceeding 2.
+## Terms the notebook defines, where they are first used
+
+The Notation above is for the Technical Expert. The notebook defines each term in one plain sentence in
+the provided cell or exercise that first uses it, never in an opening glossary; the briefing has defined
+them first. Suggested wording:
+
+| Where | Term | One sentence for the notebook |
+|---|---|---|
+| Part A, first cell | ad fatigue (wear-out) | A channel's effect per dollar falls over time: the same creative shown too often, an audience used up, a platform change. |
+| Part A, first cell | effectiveness multiplier, relative path | How strongly a channel works in a week compared with its own average over the three years: 1 is average, 0.5 is half as well. The plot of the true relative paths shows it. |
+| Before Exercise 1 | adstock carryover (recall, Module 8) | Part of a week's effect lands in later weeks. |
+| Before Exercise 1 | ROAS over a window | The sales a channel produced in those weeks per dollar it spent in those weeks; carryover from earlier spend counts, carryover after the window does not. Over all weeks it is Module 8's ROAS. |
+| Before Exercise 1 | break-even ROAS | The ROAS at which the gross margin on the sales a channel produced pays for its spend: 1 ÷ 0.30 ≈ 3.33 at the retailer's 30% margin. |
+| Run · static fit | static MMM | Module 8's model: one effect size per channel, the same in every week. |
+| Run · static fit | 94% HDI (recall, Module 8) | The narrowest interval that holds 94% of the posterior draws. |
+| Exercise 2 | residual | Actual sales minus the model's fitted sales (posterior mean), in dollars. |
+| Part C, first cell | drifting MMM | The same model with each channel's effect multiplied by its own multiplier $m_c(t)$ in every week. |
+| Part C, first cell | Gaussian process prior | A prior over smooth curves: each draw from it is a whole curve. The plot of prior paths right after shows 20 of them. |
+| Part C, first cell | lengthscale | Roughly how many weeks a curve takes to change appreciably. Set here so it changes over months, not weeks. |
+| Part C, first cell | amplitude | How far a curve can move away from its average. |
+| Part C, first cell | mean 1 | The model's multiplier averages 1 over the three years, like the true relative path, so the two can be compared directly. |
+| Exercise 3 | prior draws (recall, Module 8's prior predictive check) | Draws from the model before it has seen any sales. |
+| Exercise 3 | drift ratio | The multiplier's average in the last quarter divided by its average in the first year: the share of its first-year effect a channel keeps. |
+| Exercise 4 | coverage of a band | The share of weeks in which the true value lies inside that week's 94% HDI. |
+| Part D, first cell | Prophet | A forecasting model that adds a trend, a yearly seasonal pattern and holiday effects, fitted to dates and sales only. |
+| Part D, first cell | changepoint | A week where Prophet's trend may change slope; Prophet places 25 candidates in the first 80% of the history and keeps the slope changes small unless the data insist. |
+| Part D, first cell | baseline | The part of sales the MMM credits to everything except media: trend, season, holidays, price. |
+| Before Exercise 5 | informed prior | A prior centered on what we already believe: here each Prophet component enters at its own size (coefficient 1), give or take about 20%. |
+| Decision | lift test (recall, Module 9) | A randomized test that changes a channel's spend for some weeks or regions and measures the sales that change with it. |
+
+**What stays out of learner-facing text.** The learner needs three things of the drifting model: each
+channel gets a multiplier per week with average 1; it can only change slowly; and how far it can move is a
+prior, checked before the fit in the decision's own units (the share of first-year effect kept). Everything
+else goes in code comments (one line each, as the reason for a setting), a `<details>` block or the
+briefing, and no Predict or Explain prompt asks about it. The Academic Director's definitions, for those
+places:
+
+- A *Gaussian process* (GP) is a prior over smooth functions; its *lengthscale* $\ell$ is roughly how many
+  weeks it takes the function to change appreciably, and its *amplitude* $\eta$ how far it can move. An
+  *HSGP* (Hilbert-space GP) approximates it with a fixed set of basis functions so it samples fast
+  (Riutort-Mayol et al.). `SoftPlusHSGP` passes the GP through a softplus (always positive) and divides by
+  its mean over the fitted weeks, so the multiplier is positive with mean 1. The priors set here: $\ell$
+  InverseGamma with 90% of its mass between 20 and 104 weeks (slow drift, not week-to-week noise); $\eta$
+  Exponential with a 5% chance of exceeding 2.
+- Code comments for the drifting model's cell (one line each): `SoftPlusHSGP` "a fast approximation of a
+  Gaussian process, kept positive and scaled to average 1 over the fitted weeks"; `dims=("date",
+  "channel")` "one curve per channel (`time_varying_media=True` would give one curve shared by all
+  channels)"; `ls_lower=20, ls_upper=104` "the curve changes over months, not weeks: 90% prior probability
+  that the lengthscale is 20 to 104 weeks"; `eta_upper=2.0` "how far a curve can move: a 5% prior
+  probability that the amplitude exceeds 2"; `cov_func="matern52"` "how smooth the curve is; the choice
+  PyMC-Marketing makes for its own `time_varying_media=True`" (`mmm/tvp.py` falls back to Matérn 5/2;
+  `parameterize_from_data`'s own default is `ExpQuad`, `mmm/hsgp.py` line 780, pymc-marketing 1.2.0,
+  checked 2026-10-10). The basis size and boundary ($m = 56$, $L = 426.4$) are printed in the maintainer
+  header, not shown to the learner.
+- The window definition of ROAS against PyMC-Marketing's counterfactual one (Notation) gets one sentence in
+  a `<details>` block under the static model's check: over all weeks the two agree, which that check
+  confirms; for one quarter they differ slightly, and the lab uses the window definition throughout.
 
 ## Parts and exercises
 
 | Part | Exercise | Minutes |
 |---|---|---|
-| A · ROAS depends on the window | 1 · ROAS over a window | 7 |
-| | *Run: static fit (provided) and its ROAS by window* | — |
-| B · What the static model says about now | 2 · Residuals that drift | 7 |
-| C · Letting the effect drift | 3 · How much drift does the prior allow? | 5 |
-| | *Run: drifting fit (provided)* | — |
-| | 4 · Does the band cover the true path? | 8 |
-| D · A Prophet baseline | 5 · Prophet's decomposition of sales | 6 |
+| A · ROAS depends on the window | *Run: data, spend and sales, the true relative paths (provided)* | — |
+| | 1 · ROAS over a window | 7 |
+| B · What the static model says about now | *Run: static fit (provided), its ROAS by window, labeled check* | — |
+| | 2 · Residuals that drift | 8 |
+| C · Letting the effect drift | *Run: the drifting model, 1,000 prior draws, 20 prior paths plotted (provided)* | — |
+| | 3 · How much drift does the prior allow? | 6 |
+| | *Run: drifting fit (provided; the longest cell)* | — |
+| | 4 · Does the band cover the true path? | 9 |
+| | *Run: drift ratios against the truth (labeled check); current-quarter ROAS, static against drifting (provided)* | — |
+| D · A Prophet baseline | *Run: Prophet's decomposition of sales (provided function, labeled check, two plots)* | — |
 | | *Run: MMM with Prophet's components as an informed prior (provided)* | — |
-| | 6 · Did the Prophet baseline help? | 7 |
+| | 5 · Did the Prophet baseline help? | 10 |
 | **Exercises** | | **40** |
 | Decision | Cut or keep social next quarter? | 5 |
 
+The first draft had six exercises (7 + 7 + 5 + 8 + 6 + 7 = 40) and a Prophet exercise between Exercises 4
+and 5 above. With the provided cells read and the fits waited for, a realistic count was 46 to 50 minutes
+(Pedagogy review, item 1), so Prophet's decomposition is now a provided cell and the hands-on Prophet work is
+stretch B.
+
+**Minute marks for the room** (Colab FULL, compute estimated): open and install 0–5; Exercise 1 5–12;
+Exercise 2 12–20; Exercise 3 20–26; Exercise 4 26–35; Exercise 5 35–45; Decision 45–50; slack 50–55.
+
+**Where learners wait, and what they do meanwhile.** Compute counts against the exercise whose minutes it
+falls in. The Colab times are the brief's estimates (laptop × 3.8, "Expected run time"); QUICK times are the
+laptop QUICK times × 3.8, also estimates. Each fit cell's Markdown says what to do while it runs:
+
+| Wait (Colab FULL, estimated; QUICK in brackets) | In the minutes of | What the notebook asks the learner to do meanwhile |
+|---|---|---|
+| Install and `import pymc_marketing`, about 1 minute | Open | Read the header and Part A's first cell. |
+| Static fit, about 1.5 minutes (0.7) | Exercise 2 | Read Exercise 2's Predict, write the two signs, and start writing `residual_spend_corr` (its toy check needs no fit). |
+| 1,000 prior draws, seconds | Exercise 3 | Nothing; read the prior paths plot. |
+| Drifting fit, about 3 to 3.5 minutes (1.1 to 1.3) | Exercise 4 | Read Exercise 4's Predict, write the guess, and write `path_coverage` (its toy checks need no fit). Run its cells when the fit has finished. |
+| Prophet's fit, seconds; Prophet-baseline fit, about 1.2 minutes (0.5) | Exercise 5 | Read Exercise 5's Predict, write the guess, and write `baseline_comparison`. |
+
+Total compute about 6 to 7 minutes of the 40 (estimate), none of it idle if learners follow these notes.
+
 Names the lab uses: `weekly`, `latent`, `truth`, `CHANNELS`, `SEED = 2037`, `X`, `y`, `spend` (DataArray
-`(date, channel)`), `WINDOWS` (dict of `(start, end)` date strings), `GROSS_MARGIN`, `BREAK_EVEN`,
-`mmm_static`/`idata_static`, `mmm_drift`/`idata_drift`, `mmm_prophet`/`idata_prophet`, `roas_draws_*`.
+`(date, channel)`), `true_contrib` (DataArray `(date, channel)` of the true contributions in dollars, built
+from `latent` in a provided cell), `WINDOWS` (dict of `(start, end)` date strings), `GROSS_MARGIN`,
+`BREAK_EVEN`, `mmm_static`/`idata_static`, `mmm_drift`/`idata_drift`, `prior_mult` (the prior draws of the
+multiplier), `mmm_prophet`/`idata_prophet`, `holidays`, `components` (Prophet's, from the provided
+`prophet_components`), `roas_draws_*`, `fading` (the channels whose drift ratio's 94% HDI lies below 1;
+Decision). Every Predict ends with "Write your guess in the cell below." Every plot with more than one line
+tells them apart by line style or marker as well as color.
 
 ### Exercise 1 · ROAS over a window (7 minutes)
 
-*Provided before it:* the spend and sales plot, then the true relative paths from `latent` with one
-sentence: "Look at social's line: its effect per dollar holds for a year, then falls to under half."
+*Provided before it* (read inside the 7 minutes): load the data and build `spend` and `true_contrib`; the
+spend and sales plot; then the true relative paths from `latent` with one sentence: "Look at social's line:
+its effect per dollar holds for a year, then falls to under half." One Markdown cell defines ROAS over a
+window and the break-even ROAS (Terms) and names the three windows in `WINDOWS`.
 
 - **Predict.** Social's true ROAS over all three years is 4.0, above the break-even ROAS of 3.3. Will its
-  ROAS in the last quarter be above break-even, between 2.5 and 3.3, or below 2.5? Write your guess.
+  ROAS in the last quarter be above break-even, between 2.5 and 3.3, or below 2.5? Write your guess in the
+  cell below.
 - **Function.** `window_roas(contrib: xr.DataArray, spend: xr.DataArray, start: str, end: str) ->
   xr.DataArray`. `contrib` has dims `(..., date, channel)` in dollars (any leading dims, such as `chain`
   and `draw`); `spend` has dims `(date, channel)`; weeks from `start` to `end` inclusive
   (`.sel(date=slice(start, end))`); returns dims `(..., channel)`. The same function is used on the truth
-  now and on posterior draws later.
-- **Checkpoint.** First checkpoint, before any fit. (1) A toy with contribution = 2 × spend gives 2 for
-  every channel. (2) A toy with leading dims `(2, 3)` returns shape `(2, 3, 4)`. (3) On the truth
-  (`contribution_<c>` columns of `latent`), all three windows equal `truth_mmm_drift.json`'s `roas`,
-  `roas_first_year` and `roas_last_quarter` to a relative 1e-9.
+  now and on posterior draws later. Hints in the stub: select the window's weeks in both arrays with
+  `.sel(date=slice(start, end))` (both ends included); sum each over `"date"` by name (`.sum("date")`);
+  divide. xarray matches the remaining dims by name, so leading dims survive. The reference is three lines.
+- **Checkpoint.** First checkpoint, before any fit (reading CSVs only). (1) A toy with contribution = 2 ×
+  spend gives 2 for every channel. (2) A toy with leading dims `(2, 3)` returns shape `(2, 3, 4)`.
+  (3) A one-channel toy that tells the likely mistakes apart (computed by the Pedagogy Expert,
+  2026-10-10): four weeks from 2023-01-02, spend 4, 3, 2, 2, contribution 1, 1, 1, 5, window 2023-01-09 to
+  2023-01-23 gives (1 + 1 + 5) ÷ (3 + 2 + 2) = 1.0 exactly. Toy (1) cannot catch the commonest mistake, a
+  mean of weekly ratios, because every weekly ratio there is 2; this one can. (4) On the truth
+  (`true_contrib`), all three windows equal `truth_mmm_drift.json`'s `roas`, `roas_first_year` and
+  `roas_last_quarter` to a relative 1e-9.
+- **Failure messages** (the four parts of `_lab-standard.md` §5, each ending with "To move on now, run
+  `workshop.use_reference(1)`"):
+  - Toy (3) gives 1.111: "you averaged the weekly ratios. ROAS over a window is total sales over total
+    spend: sum each over the window's weeks, then divide. (On the real data the weekly ratio is infinite or
+    undefined in tv's weeks off air, when its spend is 0.)"
+  - Toy (3) gives 0.400: "the window's last week is missing. `.sel(date=slice(start, end))` includes both
+    ends; a `<` comparison on the end date drops it." 1.500: the same for the first week.
+  - Toy (3) gives 0.727: "your function ignores `start` and `end`; select the window's weeks first."
+    0.636: "you divided the window's sales by spend over all weeks; select the same weeks in `spend`."
+  - Toy (2) has the wrong shape, or a scalar: "sum over `"date"` by name, not over an axis number, so that
+    `chain` and `draw` stay."
+  - Toys pass but the truth differs (the message prints the window, the channel, both values): "check
+    that you pass `WINDOWS[...]`'s dates unchanged, as strings."
 - **Explain.** Compare with your guess (prototype: 2.11, below 2.5). Which weeks dominate an all-period
   average: the many good weeks or the few recent ones? Point to the plot.
   `<details>`: the average weights each week by its spend; two good years outweigh one bad quarter, so
   the average stays above break-even long after the channel stopped paying back. A decision about next
   quarter needs the recent window.
 
-*Provided after it (labelled checkpoint "static model", no exercise):* the static fit (fit 1), then
-`window_roas` on `idata_static.posterior["channel_contribution"] * target_scale` (`target_scale` from
+*Provided after it · Run: the static fit* (fit 1), read and waited for inside Exercise 2's minutes. Its
+Markdown says, before the code: what the model is (Module 8's static MMM, Terms); that it takes about a
+minute and a half on Colab (an estimate until a Colab record exists); "While it runs, read Exercise 2's
+Predict, write your two signs, and start writing `residual_spend_corr`: its toy check needs no fit"; and the
+standard QUICK sentence ("With QUICK on, intervals are wider and may not match the module page; a decision
+near its threshold can flip. That is a lesson about sample size, not a bug.").
+
+*Then the labeled check "static model" (no exercise):* `window_roas` on
+`idata_static.posterior["channel_contribution"] * target_scale` (`target_scale` from
 `idata_static.constant_data`). Checks: (a) over all weeks it equals
 `mmm_static.incrementality.contribution_over_spend(frequency="all_time")` to 1e-8 (prototype: largest
 difference 5e-14), which confirms the function on draws; (b) social's last-quarter ROAS 94% HDI lies
@@ -204,73 +313,162 @@ entirely above the true last-quarter ROAS. Prototype, seed 2037: all weeks 3.90,
 (truth 4.00); last quarter 3.88 [3.48, 4.28] (truth 2.11), FULL; QUICK [3.42, 4.32]. In 5 of 5 seeds
 (2037 to 2041) the truth lay below the static model's last-quarter HDI. A table shows each channel's
 all-period and last-quarter ROAS with 94% HDIs next to the truth; the sentence before it: "Look at
-social's two rows: the static model gives the same number for both windows."
+social's two rows: the static model gives about the same number for both windows." Under it, the
+`<details>` sentence on the counterfactual definition (Terms, "What stays out").
+Messages: (a) "Your `window_roas` passed Checkpoint 1 but differs from PyMC-Marketing's
+`contribution_over_spend` on the posterior draws by [largest gap]. Check that it sums over `"date"` by name
+and keeps `chain` and `draw`. To move on now, run `workshop.use_reference(1)` and rerun from Checkpoint 1."
+(b) "This compares the fit with the truth, not your code. With QUICK on the interval is wider; if it fails
+in a FULL run, note the message and tell the instructor."
 
-### Exercise 2 · Residuals that drift (7 minutes)
+### Exercise 2 · Residuals that drift (8 minutes)
 
-On real data there is no truth. This exercise finds the drift from the static model alone.
+On real data there is no truth. This exercise finds the drift from the static model alone. The 8 minutes
+include the static fit and its table before it (about 1.5 minutes of fit on Colab, estimated, during which
+the learner reads this Predict and starts the function). One sentence defines the residual (Terms); a
+provided cell computes `resid` and `year` before the Predict.
 
-- **Predict.** If a channel's effect has faded, the static model over-credits it late and under-credits it
-  early. In which channel will the correlation between the model's residuals and the channel's spend fall
-  most from 2023 to 2025: tv, search, social or display?
+- **Predict.** The static model gives social one effect size for all three years. In 2023, when social
+  worked better than its three-year average, will the residuals be positively or negatively correlated
+  with social's weekly spend? And in 2025? Write two signs in the cell below. (Prototype: + in 2023, +0.40;
+  − in 2025, −0.58. Which channel fades is no longer the question: the true paths in Part A show it.)
 - **Function.** `residual_spend_corr(resid: pd.Series, spend: pd.DataFrame, year: pd.Series) ->
   pd.DataFrame`: index year, one column per channel, each the Pearson correlation between the residuals
   and that channel's weekly spend within the year. Provided: `resid = y − (posterior mean of
-  idata_static.posterior["mu"]) × target_scale`, `year = weekly["date_week"].dt.year`.
-- **Checkpoint.** Exact against `np.corrcoef` on a toy. On the static fit: social's correlation falls
-  most from the first year to the last, and its last-year correlation is below −0.3. Prototype (QUICK,
-  300 draws): social +0.40 in 2023, +0.19 in 2024, −0.58 in 2025; the other channels' changes from 2023
-  to 2025 were at most +0.28. Over seeds 2037 to 2041 social fell by 0.75 to 1.19 and ended at −0.51 to
-  −0.67, the largest fall in 5 of 5; the largest change for another channel was +0.49. The Technical
-  Expert confirms in FULL.
-- **Explain.** Compare with your pick. Why does a positive correlation in 2023 mean the model gives
-  social too little credit then, and a negative one in 2025 too much? Point to the yearly table.
+  idata_static.posterior["mu"]) × target_scale`, `year = weekly["date_week"].dt.year`. Hint in the stub:
+  `spend_part.corrwith(resid_part)` gives one Pearson correlation per column (pandas 2.2.3, `method`
+  defaults to `"pearson"`); select one year's rows with `year == y`. The three inputs share `weekly`'s
+  index.
+- **Checkpoint.** (1) Exact against `np.corrcoef` on a toy (computed by the Pedagogy Expert, 2026-10-10):
+  `year` = 2023 × 4, 2024 × 4; `spend` a = 1, 2, 3, 4, 1, 2, 3, 4 and b = 4, 1, 3, 2, 2, 2, 1, 5; `resid` =
+  1, 2, 3, 10, 4, 3, 2, 1. Right answer, to 1e-12: 2023 a 0.8854, b −0.3162; 2024 a −1.0, b −0.5963.
+  (2) On the static fit, equals the reference to 1e-12. (3) Social's correlation falls most from the first
+  year to the last, and its last-year correlation is below −0.3. Prototype (QUICK, 300 draws): social +0.40
+  in 2023, +0.19 in 2024, −0.58 in 2025; the other channels' changes from 2023 to 2025 were at most +0.28.
+  Over seeds 2037 to 2041 social fell by 0.75 to 1.19 and ended at −0.51 to −0.67, the largest fall in 5 of
+  5; the largest change for another channel was +0.49. The Technical Expert confirms in FULL, and checks
+  that social's 2023 correlation is clearly positive (above +0.1) on the committed data; if it is not, the
+  Predict asks for the direction of change from 2023 to 2025 instead of two signs.
+- **Failure messages** (four parts, each ending with `workshop.use_reference(2)`):
+  - One row (a 0.369, b −0.312): "you correlated over all weeks at once. Compute one correlation per year,
+    from that year's rows only."
+  - 2023 a = 1.0 and b = −0.4: "that is a rank (Spearman) correlation. Use Pearson, the default of
+    `corrwith` and of `np.corrcoef`."
+  - 2023 a = 4.667: "that is a covariance. A correlation divides it by both standard deviations;
+    `corrwith` does that for you."
+  - Index a, b instead of 2023, 2024: "rows are years and columns are channels; transpose."
+  - (3) fails after (1) and (2) pass: "Your function is right (it matched `np.corrcoef` and the reference).
+    This compares the static fit with the drift built into the data, not your code. With QUICK on the
+    numbers move; if it fails in a FULL run, note the message and tell the instructor."
+- **Explain.** Compare with your two signs. Why does a positive correlation in 2023 mean the model gives
+  social too little credit then, and a negative one in 2025 too much? Point to social's column in the
+  yearly table, and to one other channel's column for contrast.
   `<details>`: with one effect size for all weeks, the model fits the average; in early weeks sales jump
   more than the model predicts when social spends (positive residuals in push weeks), in late weeks less
   (negative). A sign change in a channel's residual correlation is a cheap warning to run before
   believing an all-period ROAS. What would change it: spend that never varies within a year leaves
   nothing to correlate.
 
-### Exercise 3 · How much drift does the prior allow? (5 minutes)
+*Provided before it (Part C's first cells, read inside Exercise 3's 6 minutes):*
 
-*Provided before it:* the drifting model built and `sample_prior_predictive` (1,000 draws), with the
-terms GP, lengthscale, amplitude, HSGP and the mean-1 normalization defined in one Markdown cell
-(Notation above).
+1. One Markdown cell, at most eight sentences: the drifting MMM multiplies each channel's effect by its
+   own multiplier in every week, the quantity whose true value Part A plotted; the multiplier's prior is a
+   Gaussian process, a prior over smooth curves; its lengthscale and amplitude (one sentence each, Terms);
+   it averages 1 over the three years, like the true relative path. No other GP term (Terms, "What stays
+   out").
+2. The drifting model built, with the code comments listed under Terms, and `sample_prior_predictive`
+   (1,000 draws, seconds).
+3. A plot of 20 prior draws of social's multiplier over the 156 weeks, the true relative path dashed,
+   a horizontal line at 1. Sentence before it: "Look at how far the prior's curves wander from 1, and
+   how fast they change." It is the definition of a Gaussian process prior for this audience, and the
+   reference the Predict needs.
 
-- **Predict.** Before seeing any data, what probability does this prior give to a channel keeping half
-  or less of its first-year effect in the last quarter: under 1%, about 5 to 10%, or over 25%?
+### Exercise 3 · How much drift does the prior allow? (6 minutes)
+
+- **Predict.** Over all 1,000 prior draws, in what share will a channel keep half or less of its
+  first-year effect in the last quarter (a drift ratio of 0.5 or less): under 3%, 3 to 20%, or over 20%?
+  Use the plot of 20 curves to estimate it. Write your guess in the cell below. (Prototype: 8.8%. The prior
+  does not depend on the sales, so the committed data should give about the same; if it lands within 2
+  points of a boundary, move the boundaries.)
 - **Function.** `drift_ratio(mult: xr.DataArray, early: tuple[str, str], late: tuple[str, str]) ->
   xr.DataArray`: the mean of `mult` over the `late` weeks divided by its mean over the `early` weeks;
-  dims `(..., channel)`.
-- **Checkpoint.** A constant multiplier gives 1; a toy linear path gives its known ratio; on the prior
-  draws (`idata["prior"]["media_temporal_latent_multiplier"]`) the result has dims `(chain, draw,
-  channel)` and is positive and finite. *Provided after it:* the prior probability that social's ratio
-  is at most the true one, and the prior's 94% equal-tailed interval (prototype, social: P(ratio ≤ 0.5)
-  = 8.8%, P(ratio ≤ 0.42) = 7.4%, 94% equal-tailed interval 0.22 to 5.1; with `eta_upper=1.0`, P(ratio ≤
-  0.42) was 2.4%).
-- **Explain.** A prior that almost never allows a large fall cannot find one; a prior that allows
-  anything follows noise. Is 7% enough room? Answer after Exercise 4.
-  `<details>`: the lengthscale prior keeps the path smooth (changes over months, not weeks); the
-  amplitude prior keeps it near 1 unless the data insist. This is Module 8's prior predictive check
-  applied to the drift; it is cheaper than a refit and catches a prior that rules the answer out.
+  dims `(..., channel)`. Hint in the stub: the same window selection as Exercise 1, with
+  `.mean("date")`.
+- **Checkpoint.** (1) A constant multiplier gives 1. (2) A toy linear path gives its known ratio:
+  $m(t) = 2 - t/155$, $t = 0, \dots, 155$, on `weekly`'s dates, with the windows `WINDOWS["first_year"]`
+  (52 weeks) and `WINDOWS["last_quarter"]` (13 weeks), gives 0.56591 (computed by the Pedagogy Expert,
+  2026-10-10). (3) On the prior draws (`idata["prior"]["media_temporal_latent_multiplier"]`, `prior_mult`)
+  the result has dims `(chain, draw, channel)` and is positive and finite.
+- **Failure messages** (four parts, each ending with `workshop.use_reference(3)`):
+  - Toy (2) gives 1.767: "early and late are swapped: divide the late mean by the early mean."
+  - Toy (1) gives 0.25 (and toy (2) 0.141): "you used sums. The windows have 52 and 13 weeks, so their
+    sums differ by a factor of 4 even when nothing changes; use means."
+  - Toy (2) gives 0.56667: "each window lost its last week. `.sel(date=slice(start, end))` includes both
+    ends."
+  - (3) has no `chain` or `draw`: "average over `"date"` only, so that every prior draw keeps its own
+    ratio." NaN: "a window selected no weeks; pass the dates in `WINDOWS` unchanged."
+- *Provided after it:* the share of prior draws with social's ratio at most 0.5, at most the true ratio
+  (the truth's `drift_ratio`, printed beside it), and the prior's 94% equal-tailed interval (prototype,
+  social: P(ratio ≤ 0.5) = 8.8%, P(ratio ≤ 0.42) = 7.4%, 94% equal-tailed interval 0.22 to 5.1; with
+  `eta_upper=1.0`, P(ratio ≤ 0.42) was 2.4%).
+- **Explain.** Compare with your guess. Social's true drift ratio is printed above. Does this prior rule
+  out a fall that large, allow it but treat it as unusual, or expect it? Point to the printed share.
+  `<details>`: it allows the fall but treats it as unusual (prototype: 7.4% of prior draws at or below the
+  true 0.42), so the data have to show it. A prior that almost never allows a large fall cannot find one;
+  a prior that allows anything follows noise. The lengthscale prior keeps the path smooth (changes over
+  months, not weeks); the amplitude prior keeps it near 1 unless the data insist. This is Module 8's prior
+  predictive check applied to the drift; it takes seconds and catches a prior that rules the answer out
+  before the longest fit of the lab. What would change it: a smaller amplitude; in the prototype, half
+  the amplitude bound (`eta_upper=1.0`) gave 2.4%, and the refit barely moved social's answer (2.61
+  [1.99, 3.27] against 2.53 [1.94, 3.15]).
 
-*Then the drifting fit (fit 2), the longest cell; the notebook asks the learner to read Exercise 4's
-Predict prompt while it runs.*
+*Then the drifting fit (fit 2), the longest cell, read and waited for inside Exercise 4's minutes. Its
+Markdown says it takes about three minutes on Colab (an estimate until a Colab record exists) and: "While it
+runs, read Exercise 4's Predict, write your guess, and write `path_coverage`: its toy checks need no fit.
+Run its cells when the fit has finished."*
 
-### Exercise 4 · Does the band cover the true path? (8 minutes)
+### Exercise 4 · Does the band cover the true path? (9 minutes)
 
-- **Predict.** In what share of the 156 weeks will social's true relative path lie inside the model's
-  94% HDI: about 94%, between 60 and 90%, or under 50%?
+The 9 minutes include the drifting fit before it (about three minutes on Colab, estimated), during which
+the learner reads this Predict and writes the function.
+
+- **Predict.** A 94% band that is right covers the truth in about 94% of weeks. In what share of the 156
+  weeks will social's true relative path lie inside the model's 94% HDI: 90% or more, 50 to 90%, or under
+  50%? Write your guess in the cell below. (Prototype: 0.69 FULL, 0.65 QUICK. If the committed data puts
+  the answer within 5 points of a boundary, move the boundaries.)
 - **Function.** `path_coverage(mult_draws: xr.DataArray, true_path: np.ndarray, prob: float = 0.94) ->
   float`: `mult_draws` has dims `(chain, draw, date)` for one channel; per week, the HDI of the draws
-  (`checks.interval(draws, prob, "hdi")`); returns the share of weeks whose true value lies inside.
-- **Checkpoint.** Toy: draws tightly around a known path give 1.0, shifted far away give 0.0. On the fit:
-  social ≥ 0.5 and tv, search and display ≥ 0.9 (`latent["multiplier_rel_<c>"]` is the truth). With
-  Exercise 3's function on the posterior: social's drift ratio 94% HDI lies entirely below 1, and the
-  other three channels' HDIs contain 1. Prototype, seed 2037: social 0.69 (FULL) and 0.65 (QUICK); the
-  other channels 1.0; drift ratio social 0.57 [0.43, 0.71] (truth 0.42), tv [0.90, 1.13], search
-  [0.48, 1.43], display [0.50, 1.76]. Over seeds 2037 to 2041 (500 draws) social's coverage was 0.57 to
-  1.0, every constant channel's at least 0.99, and social's ratio HDI below 1 in 5 of 5.
+  (`checks.interval(draws, prob, "hdi")`); returns the share of weeks whose true value lies inside. Hints
+  in the stub: `mult_draws.isel(date=k).values` holds week k's draws, from both chains;
+  `checks.interval` returns `(low, high)`; the reference is about five lines.
+- **Checkpoint.** Toys first (they need no fit; computed by the Pedagogy Expert, 2026-10-10, with 2
+  chains × 500 draws × 156 weeks):
+  (a) draws tightly around a known path (Normal, sd 0.01, around a line from 1.0 to 0.4) give 1.0;
+  (b) the same draws shifted by +5 give 0.0;
+  (c) skewed draws: every week the same 1,000 exact quantiles of an Exponential(1), and a true value of
+  0.01 and 2.5 in alternate weeks, give 1.0 with the 94% HDI ([0.0005, 2.805]) and 0.5 with any other
+  interval (94% equal-tailed [0.031, 3.491], 89% HDI [0.0005, 2.203], 89% equal-tailed, ArviZ's default,
+  [0.057, 2.892]); deterministic, so it cannot pass or fail by chance;
+  (d) toy (a)'s draws with the true path reversed in time give about 0.03 per week (4 of 156 weeks with
+  seed 2037), but 0.94 with one interval pooled over all weeks.
+  Then on the fit: (e) for each channel, equals the reference function's coverage exactly; (f) social
+  ≥ 0.5 and tv, search and display ≥ 0.9 (`latent["multiplier_rel_<c>"]` is the truth). Prototype, seed
+  2037: social 0.69 (FULL) and 0.65 (QUICK); the other channels 1.0. Over seeds 2037 to 2041 (500 draws)
+  social's coverage was 0.57 to 1.0 and every constant channel's at least 0.99.
+- **Failure messages** (four parts, each ending with `workshop.use_reference(4)`):
+  - (a) gives 0.0: "you returned the share of weeks outside the band; return the share inside."
+  - (a) gives 156: "you returned a count of weeks; divide by the number of weeks."
+  - (c) gives 0.5: "the interval is not the 94% HDI. An equal-tailed interval (3rd to 97th percentile), or
+    89% (ArviZ's default), misses one of the two true values in this skewed toy. Use
+    `checks.interval(draws, prob, "hdi")` and pass `prob`."
+  - (d) gives about 0.94: "you used one interval for all weeks together. Compute an interval for each week
+    from that week's draws only."
+  - (f) fails after the toys and (e) pass: "Your function is right. This compares the fit with the truth,
+    not your code. With QUICK on, the band is rougher; if it fails in a FULL run, note the message and
+    tell the instructor."
+- *Provided after the checkpoint:* the plot of social's band, the true path and the model's mean path,
+  with the sentence "Look at where the band misses the true path: which weeks, and on which side." The
+  Explain needs this plot.
 - **Explain.** Compare with your guess. Where does the band miss: at the two ends of the history, in
   the middle, or at random? Point to the plot of the band, the true path and the model's mean path.
   `<details>`: the prior pulls the path toward its average, so the band sits below the truth in the
@@ -282,62 +480,111 @@ Predict prompt while it runs.*
   them apart. What would change it: more pushes, a longer history after the decline, or a lift test now
   (stretch A).
 
-*Provided after it:* the current-quarter ROAS table, static against drifting, next to the truth
+*Provided after it · labeled check "drifting model" (no exercise).* With Exercise 3's function on the
+posterior: social's drift ratio 94% HDI lies entirely below 1, and the other three channels' HDIs contain
+1. Prototype, seed 2037: drift ratio social 0.57 [0.43, 0.71] (truth 0.42), tv [0.90, 1.13], search
+[0.48, 1.43], display [0.50, 1.76]; over seeds 2037 to 2041 social's ratio HDI was below 1 in 5 of 5. It
+was part of Checkpoint 4 in the first draft; it moves here because it uses Exercise 3's function, which
+already passed, so it can fail only through the fit. Message: "This compares the fit with the truth, not
+your code. If it fails in a FULL run, note the message and tell the instructor." The cell prints the four
+ratios with their HDIs and the true ratios, and sets `fading` (the Decision uses it).
+
+*Then:* the current-quarter ROAS table, static against drifting, next to the truth
 (prototype FULL: drifting 2.53 [1.94, 3.15], static 3.88 [3.48, 4.28], truth 2.11), with the sentence
 "Look at which interval contains the truth."
 
-### Exercise 5 · Prophet's decomposition of sales (6 minutes)
+### Part D · Run · Prophet's decomposition of sales (provided, read inside Exercise 5's minutes)
 
-*Provided before it:* one Markdown cell on Prophet (Taylor & Letham 2018: an additive model of a
-piecewise-linear trend with automatic changepoints, Fourier seasonality and holiday effects) and on how
-Robyn uses it: Robyn fits Prophet to the dependent variable and adds the trend, season and holiday
-components to its regression as baseline variables; paid media are not Prophet regressors (only one-hot
-factor variables are). Then the holidays table: `pd.DataFrame({"holiday": "peak_week", "ds": <date_week
-of the rows with holiday == 1>})`.
+The first draft's Exercise 5 (`prophet_components`, 6 minutes) becomes this provided cell: its function was
+API recall (construct Prophet, fit, pick three columns of `predict()`), while its idea, that Prophet's trend
+takes up part of a fading channel's effect, lives in the plot below and is what the new Exercise 5 tests.
+Hands-on Prophet is stretch B.
 
-- **Predict.** Prophet sees only dates and sales. The true baseline grows by $500 a week. Over the three
-  years, will Prophet's trend grow faster, about the same, or slower?
-- **Function.** `prophet_components(weekly: pd.DataFrame, holidays: pd.DataFrame) -> pd.DataFrame` with
-  columns `trend`, `season`, `holiday` (dollars), one row per week in the order of `weekly`. Fit
-  `Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False,
-  holidays=holidays, uncertainty_samples=0)` on `ds = date_week`, `y = y`; `predict` on the same dates;
-  `season` is Prophet's `yearly` column, `holiday` its `holidays` column.
-- **Checkpoint.** Columns, 156 rows, finite; `holiday` is 0 in non-holiday weeks; the three components
-  add up to Prophet's `yhat` from the reference fit inside the checkpoint to 1e-6 (prototype: 1.2e-10;
-  three repeated fits were identical, Prophet's MAP fit starts from deterministic initial values).
-- **Explain.** Compare with your guess (prototype: 149 a week against the true 500). *Provided:* a plot
-  of Prophet's trend minus the true baseline trend next to social's true contribution, with the
-  sentence "Look at whether the gap falls when social's contribution falls." Prototype: correlation 0.56
-  (0.49 to 0.57 over seeds 2037 to 2041). Which part of sales did Prophet put into its trend?
-  `<details>`: a fading channel lowers sales slowly, and a slow change is what a trend with changepoints
-  is built to follow. Prophet cannot know that the fall came from social. Its holiday effect is also
-  larger than the true 40,000 (prototype 53,600), because media spent in holiday weeks shows up there.
+1. One Markdown cell on Prophet (Taylor & Letham 2018: an additive model of a piecewise-linear trend with
+   automatic changepoints, Fourier seasonality and holiday effects) and on how Robyn uses it: Robyn fits
+   Prophet to the dependent variable and adds the trend, season and holiday components to its regression
+   as baseline variables; paid media are not Prophet regressors (only one-hot factor variables are). It
+   defines Prophet, changepoint and baseline (Terms) and stays under ten sentences.
+2. The holidays table: `pd.DataFrame({"holiday": "peak_week", "ds": <date_week of the rows with holiday ==
+   1>})`.
+3. `prophet_components(weekly: pd.DataFrame, holidays: pd.DataFrame) -> pd.DataFrame`, provided, with
+   columns `trend`, `season`, `holiday` (dollars), one row per week in the order of `weekly`. It fits
+   `Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False,
+   holidays=holidays, uncertainty_samples=0)` on `ds = date_week`, `y = y`; `predict` on the same dates;
+   `season` is Prophet's `yearly` column, `holiday` its `holidays` column. `components =
+   prophet_components(weekly, holidays)`.
+4. Labeled check "prophet" (the first draft's Checkpoint 5): columns, 156 rows, finite; `holiday` is 0 in
+   non-holiday weeks; the three components add up to Prophet's `yhat` from the same fit to 1e-6
+   (prototype: 1.2e-10; three repeated fits were identical, Prophet's MAP fit starts from deterministic
+   initial values). Message: "This checks the provided code, not yours. If it fails, note the message and
+   tell the instructor."
+5. Printed, with the sentence before it "Look at the trend's growth: the true baseline grows by $500 a
+   week.": Prophet's trend growth per week over the three years (prototype: 149 a week) and its holiday
+   effect against the true 40,000 (prototype 53,600).
+6. A plot of Prophet's trend minus the true baseline trend next to social's true contribution, with the
+   sentence "Look at whether the gap falls when social's contribution falls." and the printed correlation
+   (prototype: 0.56; 0.49 to 0.57 over seeds 2037 to 2041). Two panels or two line styles, not color alone.
 
-*Then fit 3 (Prophet baseline).*
+*Then fit 3 (Prophet baseline).* Its Markdown first defines the informed prior (Terms) in two sentences:
+each Prophet component enters with a coefficient whose prior is centered on 1 with sd 0.1, so the MMM may
+rescale it by about ±20%; the media part stays static, so the only difference from the static fit is the
+baseline. Then: about a minute on Colab (estimate), "While it runs, read Exercise 5's Predict, write your
+guess, and write `baseline_comparison`."
 
-### Exercise 6 · Did the Prophet baseline help? (7 minutes)
+### Exercise 5 · Did the Prophet baseline help? (10 minutes)
+
+The 10 minutes include reading Part D's provided cells (about 3 minutes) and waiting for fit 3 (about a
+minute on Colab, estimated), during which the learner reads the Predict and writes the function.
 
 - **Predict.** With Prophet's components as an informed prior on the baseline, will social's all-period
-  ROAS move toward the truth (4.0), away from it, or stay where the static model put it?
+  ROAS rise, stay within 0.3 of the static model's value (the table after Exercise 1), or fall by more
+  than 0.3? The truth is 4.0. Write your guess in the cell below. (Prototype: it fell by 1.0, from 3.90 to
+  2.90. If the committed data puts the change within 0.15 of a boundary, move the boundaries.)
 - **Function.** `baseline_comparison(roas_own: xr.DataArray, roas_prophet: xr.DataArray, true_roas:
   dict, prob: float = 0.94) -> pd.DataFrame`: per channel the posterior mean and 94% HDI under each
   baseline, the absolute error of each mean, and whether each HDI covers the truth. Both inputs are
-  all-period ROAS draws from Exercise 1's function.
-- **Checkpoint.** On the fits: for social, the Prophet-baseline mean is below the own-baseline mean, its
+  all-period ROAS draws from Exercise 1's function, dims `(chain, draw, channel)`. Output in long form,
+  one row per channel and baseline: index `(channel, baseline)` with `baseline` in `{"own", "prophet"}`,
+  columns `mean`, `hdi_low`, `hdi_high`, `true_roas`, `abs_error`, `covered`. Long form keeps the
+  function to two loops (Module 8's `roas_table` was the inner one); a provided cell pivots it for
+  display. Hint in the stub: loop over `{"own": roas_own, "prophet": roas_prophet}.items()`, then over
+  channels.
+- **Checkpoint.** A toy first (computed by the Pedagogy Expert, 2026-10-10): for two channels a and b,
+  own draws are the 1,000 exact quantiles of a lognormal with median 2 and log-sd 0.3 (dims `(2, 500)` per
+  channel), Prophet draws the same with median 3; true ROAS a 2.5, b 1.10. Reference: own mean 2.0919,
+  94% HDI [1.0209, 3.2904]; Prophet mean 3.1379, [1.5314, 4.9357]; a: absolute errors 0.4081 (own) and
+  0.6379 (Prophet), both covered; b: 0.9919 (own, covered: 1.10 lies just inside the HDI) and 2.0379
+  (Prophet, not covered). Means to 1e-9, interval bounds within 2% of the interval's width (Module 8's
+  tolerance). Then on the fits: for social, the Prophet-baseline mean is below the own-baseline mean, its
   94% HDI excludes the true all-period ROAS, and the own-baseline HDI covers it. Prototype, seed 2037
   (FULL): own 3.90 [3.53, 4.32], Prophet 2.90 [2.25, 3.58], truth 4.00; QUICK own [3.43, 4.31], Prophet
   [2.30, 3.66]. Over seeds 2037 to 2041 the Prophet baseline lowered social's ROAS in 5 of 5 and its HDI
   excluded the truth in 4 of 5.
+- **Failure messages** (four parts, each ending with `workshop.use_reference(5)`):
+  - Own a's `abs_error` is −0.408: "that is a signed error (mean minus truth); take its absolute value."
+  - Own b's interval is [1.1399, 3.5090], or b is not covered under "own": "that is the equal-tailed
+    interval. Use `checks.interval(draws, prob, "hdi")`: in these skewed draws the HDI reaches down to
+    1.02 and covers 1.10; the equal-tailed interval does not."
+  - The "own" rows hold means near 3.14: "the two baselines are swapped; check the order of the
+    arguments."
+  - Wrong index or columns: "one row per channel and baseline, index `(channel, baseline)`, with the six
+    columns named in the task."
+  - The fit checks fail after the toy passes: "Your function is right. This compares the fits with the
+    truth, not your code. If it fails in a FULL run, note the message and tell the instructor."
 - **Explain.** Compare with your prediction. Which channel lost credit, and where did that credit go?
-  Point to Exercise 5's plot.
+  Point to the trend-gap plot in Part D.
   `<details>`: Prophet's trend already contains the slow part of social's effect, so with a coefficient
-  held near 1 the baseline keeps it and the MMM gives social less. Two more problems follow from
-  fitting Prophet to the same sales the MMM explains: the MMM treats Prophet's components as known
-  data, so the uncertainty in Prophet's own fit never reaches the ROAS intervals; and the intervals
-  look reasonable while excluding the truth. In the prototype the intervals did not become narrower;
-  they moved. What would change it: a baseline the MMM estimates jointly with the media (Module 8's
-  trend and Fourier terms, or PyMC-Marketing's time-varying intercept), or Prophet told about spend
-  (stretch B, which helped tv but not social in the prototype).
+  held near 1 the baseline keeps it and the MMM gives social less. A fading channel lowers sales slowly,
+  and a slow change is what a trend with changepoints is built to follow; Prophet cannot know that the
+  fall came from social. The fade is not the only thing it takes: in the prototype's least-squares check
+  without any fade, the Prophet baseline still took credit from tv, social and search, because its trend
+  and yearly seasonality also follow parts of the flights, the pushes and search's demand-following spend.
+  Two more problems follow from fitting Prophet to the same sales the MMM explains: the MMM treats
+  Prophet's components as known data, so the uncertainty in Prophet's own fit never reaches the ROAS
+  intervals; and the intervals look reasonable while excluding the truth. In the prototype the intervals
+  did not become narrower; they moved. What would change it: a baseline the MMM estimates jointly with
+  the media (Module 8's trend and Fourier terms, or PyMC-Marketing's time-varying intercept), or Prophet
+  told about spend (stretch B, which helped tv but not social in the prototype).
 
 What the prototype supports, and only that, for the Markdown and the module page:
 
@@ -364,7 +611,9 @@ What the prototype supports, and only that, for the Markdown and the module page
 
 ## Decision · Cut or keep social next quarter? (5 minutes)
 
-Provided cell, in the standard order:
+Markdown first, then one provided code cell, in the standard order. The Markdown states the number and the
+rule before any result is printed (as in Modules 14 and 16), so the learner reads the rule before the
+verdict:
 
 - **Number:** per channel, the drifting model's last-quarter ROAS (mean and 94% HDI) and the posterior
   probability that it is below break-even, computed draw by draw; beside it the static model's
@@ -377,10 +626,50 @@ Provided cell, in the standard order:
   otherwise run a lift test first (Module 9). We assume next quarter's effect equals last quarter's: the
   model's multiplier is not extrapolated, because a GP reverts to its prior mean outside the data
   (PyMC-Marketing's TVP notebook says so). Under saturation the last dollar returns less than the
-  average dollar, so an average below break-even means the marginal dollar is below it too."
+  average dollar, so an average below break-even means the marginal dollar is below it too." In the
+  notebook, "a GP reverts to its prior mean" reads "beyond the last week the model's multiplier drifts
+  back toward its average of 1", which needs no GP vocabulary.
+
+The code cell computes everything; nothing in it is typed by hand:
+
+- **Which channel.** The rule is applied to the channels in `fading`, set by the labeled check after
+  Exercise 4 (drift ratio 94% HDI entirely below 1; social in the prototype), not to the string
+  `"social"`, so the same cell works on data where another channel fades. The other channels' ROAS are in
+  the table after Exercise 4; the cell says in one sentence that this decision concerns the fading
+  channel.
+- **Verdicts.** The rule applied in code to the drifting model's last-quarter draws and, for contrast, to
+  the static model's all-period draws: "cut", "keep" or "lift test first", with the probability beside each.
+- **Scale.** Last quarter's spend on the channel, summed from `weekly` (prototype $192,407), and what that
+  spend returned net of its cost, per draw: spend × (`GROSS_MARGIN` × ROAS − 1), with its mean and 94% HDI.
+  On the prototype's numbers this is about −$46,000 a quarter (94% HDI about −$80,000 to −$11,000;
+  arithmetic on the numbers above, not a run).
+- **The mode.** "FULL run", or "QUICK run: treat this as a rough answer".
+
+Printed layout (the numbers illustrate the format and come from the prototype; the notebook fills them by
+code):
+
+```text
+Number          : social, last quarter, drifting model: ROAS 2.53 (94% HDI 1.94 to 3.15),
+                  P(ROAS < 3.33) = 0.99.
+                  social, all weeks, static model: ROAS 3.90 (94% HDI 3.53 to 4.32), P(ROAS > 3.33) = 0.997.
+Scale           : social spent $192,407 last quarter; net of that spend, the margin on the sales it
+                  produced was about -$46,000 (94% HDI -$80,000 to -$11,000).
+Rule            : cut if P(current-quarter ROAS < 3.33) >= 0.9; keep if P(> 3.33) >= 0.9;
+                  otherwise run a lift test first.
+Verdict         : drifting model, last quarter: cut. Static model, all weeks: keep.
+Assumes         : next quarter's effect per dollar equals last quarter's.
+What would change it: a creative refresh that a test shows has brought the effect back above
+                  break-even; a lift test now (stretch A).
+Your sentence   : ________________________________________________
+FULL run.
+```
+
 - **Recommendation:** the learner's sentence: what to do with social's budget (last quarter's spend in
   the data, prototype $192,407), how sure, how the answer differs from the static model's (keep), and
   what would change it (a creative refresh tested before spend returns; a lift test now, stretch A).
+  One sentence under the cell links Exercise 4: there the drifting model understated the fall, and in
+  the prototype its current-quarter ROAS was above the truth in 5 of 5 seeds (table under "Prototype
+  results"); so a "cut" from it is not the model exaggerating the fade.
   Then the cell shows the truth (social's true last-quarter ROAS 2.11, below break-even). The cell
   prints the mode.
 
@@ -396,7 +685,11 @@ Provided cell, in the standard order:
 - **B · Tell Prophet about spend.** Refit Prophet with `add_regressor(c)` for each channel, rebuild the
   components and refit fit 3. Prototype, seed 2037: tv 1.51 [1.40, 1.64] (truth 1.60), social 3.16
   [2.64, 3.71] (truth 4.00): better for tv, still wrong for social, because a linear spend regressor
-  cannot represent an effect that fades.
+  cannot represent an effect that fades. This is now the lab's hands-on Prophet work: the learner copies
+  the provided `prophet_components` into a new function with the regressors added (the stub names
+  `add_regressor` and quotes Prophet's documentation: a regressor "must be known for both the history and
+  for future dates", so each spend column goes into the frame passed to `predict` as well), and compares the
+  result with `baseline_comparison`.
 
 Nothing later depends on either. A third option was measured and left out: refitting with
 `eta_upper=1.0` barely moved the answer (social 2.61 [1.99, 3.27], coverage 0.60).
@@ -415,7 +708,7 @@ until a Colab record exists.
 | Static fit | 22 | 11 | 85 |
 | Prior predictive, 1,000 draws | 2 | 1 | 6 |
 | Drifting fit (the longest cell) | 47 to 54 | 18 to 21 | 180 to 205 |
-| Prophet import and fit | 0.2 | 0.2 | 1 to 5 |
+| Prophet import and fit (provided cell, Part D) | 0.2 | 0.2 | 1 to 5 |
 | Prophet-baseline fit | 18 | 7 | 70 |
 | Whole notebook, compute | about 90 | about 35 | about 6 to 7 minutes |
 | Stretch A + B | 47 | — | about 3 minutes more |
@@ -424,6 +717,13 @@ Against the targets (install ≤ 3 min, any cell ≤ 4 min, compute ≤ 15 min):
 the closest (estimated 3.0 to 3.4 minutes). Cut rule if a Colab record shows that cell above 210 s:
 lower FULL draws for the drifting fit to 700 (500 draws took 16 to 29 s on the laptop over five seeds),
 never `target_accept`.
+
+**If a pilot runs long** (room time, not compute). First, Exercise 3's function becomes a provided cell:
+keep the prior paths plot, the Predict, the printed share and the Explain, and provide `drift_ratio`; that
+frees about 3 minutes, and the labeled drift-ratio check after Exercise 4 still runs. Second, switch the
+room to QUICK, which roughly halves the fits (laptop prototype: about 35 s of compute against about 90 s). Keep
+Exercises 2 and 4 hands-on: the residual check is the one learners can run on their own MMM tomorrow, and
+the band is the evidence for the decision.
 
 ## Known pitfalls
 
@@ -557,3 +857,90 @@ meant to be slow.
 - Confirm the HSGP prior settings (`m = 56`, `L = 426.4`) and the drifting fit's time on Colab; apply the
   cut rule above if needed.
 - `modules.m17.deps` (yours) should list the three CSVs and `truth_mmm_drift.json`, not `truth.json`.
+- From the pedagogy review: each checkpoint lists its likely wrong answers, with the values the toys give
+  for them, and what its message says. Add a verify-mode run, or a `mktstats.checks`-style test, that feeds
+  each listed wrong answer and expects its message. Re-check every Predict's boundaries on the committed
+  data (Exercises 3, 4 and 5 say how far from a boundary the answer must be), and Exercise 2's 2023 sign.
+- Replace the prototype numbers in Explain `<details>` blocks and "Look at" sentences with the committed
+  data's FULL numbers, or phrase them without numbers (`_lab-standard.md` §11, Honesty).
+- Each fit cell's Markdown says how long it takes on Colab as an estimate until a Colab record exists, and
+  what to do while it runs ("Parts and exercises", the waits table).
+
+## Pedagogy review (2026-10-10)
+
+Checked against `briefs/_lab-standard.md` §11 before any code exists. What changed, and why:
+
+1. **Budget: 7 + 8 + 6 + 9 + 10 = 40 (limit 40), with reading and waiting counted.** The draft's six
+   exercises added up to 40 on paper, but its minutes left out about 6 to 7 minutes of Colab compute (three
+   fits, estimated) and about 5 minutes of provided reading (the static ROAS table, the GP cell, the
+   current-quarter table, the Prophet and Robyn cell, the trend-gap plot). Counted the way Modules 14 and
+   16 count, it came to 46 to 50 minutes against 40: past the slack, for an audience meeting Gaussian
+   processes and Prophet for the first time. The cut: **Prophet's decomposition becomes a provided cell**
+   with a labeled check (the draft's Checkpoint 5) and the two outputs its Explain used. Its function was
+   API recall (construct Prophet, fit, pick three columns); its idea, that Prophet's trend takes up part of
+   a fading channel's effect, survives as the trend-gap plot and is what the new Exercise 5 tests. Hands-on
+   Prophet moves to stretch B. Objective 4 in `modules.m17` still holds (the learner measures how each
+   channel's ROAS moves; the fits were always provided), so `_variables.yml` is unchanged. The other
+   exercises get their real minutes: Exercise 2 from 7 to 8 (the static fit and its table come first),
+   Exercise 3 from 5 to 6 (a Part C cell and a plot to read), Exercise 4 from 8 to 9 (the longest fit),
+   Exercise 5 (was 6) from 7 to 10 (Part D's provided cells and fit 3).
+2. **No idle waits.** Each fit cell tells the learner what to do while it runs: read the next Predict,
+   write the guess, and write the next function, whose toy checks need no fit (the waits table under
+   "Parts and exercises"). The drifting fit, about 3 to 3.5 minutes on Colab (estimated), sits inside
+   Exercise 4, whose function the learner writes meanwhile.
+3. **The drifting model at the depth the decision needs (question 2 of the review request).** The draft
+   defined GP, lengthscale, amplitude, HSGP, softplus, the mean-1 normalization and two prior families in
+   one Markdown cell before a 5-minute exercise. The decision needs three ideas: a multiplier per channel
+   and week with average 1, that changes slowly, and a prior on how far it moves, checked in the decision's
+   units before the fit. The notebook now shows the GP prior as 20 curves (the plot is the definition)
+   and names lengthscale and amplitude in one plain sentence each; HSGP, softplus, the basis, the kernel
+   and the prior families go into one-line code comments, `<details>` and the briefing (Terms, "What stays
+   out"). No Predict or Explain asks about them.
+4. **Predicts ask what has not been shown, with a scale.** Exercise 2 asked which channel's correlation
+   falls most, which the true paths in Part A already answer; it now asks for the signs in 2023 and 2025,
+   the mechanism its Explain uses. Exercise 3's bins (under 1%, 5 to 10%, over 25%) had gaps and no
+   reference; they are now contiguous (under 3%, 3 to 20%, over 20%), and the plot of 20 prior curves is
+   the reference. Exercise 4's bins had gaps (90 to 94%, 50 to 60%) and are now contiguous with a stated
+   reference (a right band covers about 94%). Exercise 5's "toward, away, stay" had no size; it now has
+   one (within 0.3, or further). Each Predict says how far from a boundary the answer must be on the
+   committed data.
+5. **Explains are answerable from what the learner just saw.** Exercise 3's Explain deferred its answer to
+   after Exercise 4 ("Is 7% enough room?"); it now asks whether the prior rules out, allows or expects a
+   fall as large as the true one, which the printed share answers, and its `<details>` cites the
+   prototype's half-amplitude refit. Exercise 4 gets its plot before the Explain that points at it.
+6. **Checkpoints check the learner's code first, with toys that tell mistakes apart.** Exercise 1's toy
+   (contribution = 2 × spend) could not catch a mean of weekly ratios; a four-week toy now separates six
+   mistakes. Exercise 4's toys add a skewed one (exact quantiles, so it cannot flake) that catches an
+   equal-tailed or 89% interval, and one that catches a band pooled over all weeks. The drift-ratio HDIs
+   moved from Checkpoint 4 to a labeled check, because they use Exercise 3's function and can fail only
+   through the fit. Every checkpoint has failure messages with the likely wrong values, computed by the
+   Pedagogy Expert on 2026-10-10 (numpy 2.1.3, pandas 2.2.3, xarray 2025.12.0, `mktstats.checks.interval`);
+   the fit-against-truth parts say "not your code" and how to report it.
+7. **Decision.** Number and rule in Markdown before any result; the verdict computed by the rule in code
+   for both models; the fading channel taken from the drift ratio, not typed; a Scale line (last quarter's
+   spend and what it returned net of its cost, per draw, with its 94% HDI); an Assumes line; the template's
+   "What would change it" and "Your sentence" lines; one sentence linking Exercise 4 (the model errs high,
+   so "cut" is not an exaggeration).
+8. **Wording.** Terms defined where first used (new section); every Predict ends with "Write your guess in
+   the cell below"; the static model's two windows give "about the same number" (3.90 and 3.88 in the
+   prototype), not "the same number". One code-comment claim was corrected against the installed source:
+   Matérn 5/2 is PyMC-Marketing's choice for `time_varying_media=True` (`mmm/tvp.py`), while
+   `parameterize_from_data` defaults to `ExpQuad` (`mmm/hsgp.py`). The changepoint sentence in Terms was
+   checked against Prophet's *Trend changepoints* page on 2026-10-10 ("puts a sparse prior on the
+   magnitudes of the rate changes").
+
+**What the briefing carries, so that the lab can stay short** (for the Academic Director's module page): a
+picture of a GP prior as random smooth curves and what lengthscale and amplitude do to them; why one
+multiplier per channel and not one shared (`time_varying_media=True`); identification by the quarterly
+pushes, with the picture of a shrinking post-push jump; the window and counterfactual definitions of ROAS;
+how Robyn uses Prophet, and why a baseline fitted to the same sales can take media credit (the
+prototype's least-squares results under "What the prototype supports"); the random-walk alternative,
+which the lab does not use.
+
+**For the Academic Director to reconsider.** (a) The cut of Prophet's decomposition to a provided cell:
+the draft said no cut was needed; the estimate in item 1 says otherwise. If a pilot shows room, the
+function can come back as an exercise before Exercise 5, with Exercise 3's function provided instead to
+keep the budget. (b) The Scale line's net figure, spend × (margin × ROAS − 1), is a new computed
+quantity in the Decision, not a new fact; check that it reads as the average return, not the marginal one,
+next to the rule's sentence on saturation. (c) Exercise 2's Predict now asks for signs; if the committed
+data's 2023 correlation is near 0, the brief says what to ask instead.
