@@ -1,11 +1,211 @@
 {
   "schema": 1,
-  "date": "2026-10-09",
+  "date": "2026-10-10",
   "source": "test_notebooks",
   "env": "docker-arm64",
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
+  "commit": "edf94d9",
   "ref": "main",
   "evidence": "scripts/test_notebooks.py --record",
-  "runs": []
+  "runs": [
+    {
+      "mode": "worked",
+      "settings": {},
+      "python": "3.13.14",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
+      },
+      "install_seconds": 0.0,
+      "content_sha": "610e842896be2b11",
+      "deps_sha": "86bfea102b10e6ad",
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 67.3,
+      "phases": {
+        "generated": 0.29,
+        "other": 56.68,
+        "exercise": 0.01,
+        "solution": 0.01,
+        "checkpoint": 6.28,
+        "verify": 0.07
+      },
+      "slowest_cell": {
+        "id": "cell-024",
+        "seconds": 29.32
+      },
+      "verified": 6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "adstock alpha": {
+          "passed": true,
+          "whose": null
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "worked",
+      "settings": {},
+      "python": "3.13.14",
+      "runtime": "local",
+      "platform": "Linux aarch64",
+      "cpus": 10,
+      "memory_gb": 6.2,
+      "packages": {
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
+      },
+      "install_seconds": 0.0,
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "f6b5d7b401d348cd",
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 37.0,
+      "phases": {
+        "generated": 0.34,
+        "other": 23.09,
+        "exercise": 0.0,
+        "solution": 0.01,
+        "checkpoint": 10.48,
+        "verify": 0.06
+      },
+      "slowest_cell": {
+        "id": "cell-015",
+        "seconds": 17.92
+      },
+      "verified": 6,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "settings": {
+        "MKTSTATS_QUICK": "1"
+      },
+      "content_sha": "610e842896be2b11",
+      "deps_sha": "86bfea102b10e6ad",
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 7.9,
+      "phases": {
+        "generated": 0.51,
+        "other": 3.89,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.91
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 3.71
+      }
+    },
+    {
+      "mode": "learner",
+      "settings": {
+        "MKTSTATS_QUICK": "1"
+      },
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "f6b5d7b401d348cd",
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 4.4,
+      "phases": {
+        "generated": 0.27,
+        "other": 2.77,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.77
+      }
+    }
+  ]
 }
