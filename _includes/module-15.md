@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment.
+Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, reproduce it with EconML's LinearDML, find out whose effect the estimate describes, and check the method against a randomized benchmark built from the Hillstrom experiment.
 :::
 
 ::: {.module-actions}
@@ -15,7 +15,7 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 :::
 
 ::: {.module-decision}
-**The decision.** Decide whether an incentive that gets customers to install the app pays back, from the estimated incremental margin per install and its 95% interval, and name the unobserved confounder that could overturn it.
+**The decision.** Decide whether a credit paid to customers for installing the app pays back within 26 weeks, from the incremental margin per persuaded install and its 95% confidence interval, and name the unobserved confounder that could overturn the decision.
 :::
 
 ::: {.module-details}
@@ -26,29 +26,30 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. Python. EconML implements double machine learning (LinearDML, CausalForestDML) on scikit-learn and LightGBM models, the same library as Module 11.
+:   Python. Python. EconML's LinearDML, the double machine learning estimator, takes any scikit-learn model for its two prediction steps; the lab uses scikit-learn's histogram gradient boosting, as in Module 11, and statsmodels for the regression baseline.
 
 Labs
 :   Python: `labs/python/15-double-ml.ipynb` (in preparation)
 
 Data
-:   [Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
+:   [Synthetic app-install customers (20,000 customers, observational, known effects; app_install_customers.csv and truth_app_install.json)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md), [Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
 :::
 
 ::: {.module-outcomes}
 ## What you will be able to do
 
-- Show with the true effect known how self-selection biases a naive comparison and a linear regression.
-- Write the partialling-out estimator with cross-fitting: predict treatment and outcome from covariates, then regress residual on residual.
-- Fit EconML's LinearDML with gradient-boosting nuisance models and check that the true effect lies in its 95% confidence interval.
-- Check common support with propensity scores and trim customers without overlap.
-- Recover a randomized benchmark from a confounded subsample of a real experiment.
+- Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls.
+- Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval.
+- Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models.
+- Check overlap with propensity scores, trim, and state which customers the estimate describes.
+- Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate.
 
 **You leave with:**
 
-- Your own dml_ate() function with cross-fitting, checked against the truth
-- An overlap plot and a trimming rule
-- A comparison of naive, regression and DML estimates with the experimental benchmark
+- Your own cross_fit() and dml_estimate() functions, checked against the true effect and against EconML
+- An overlap plot, a trimmed estimate and a profile of the customers the estimate describes
+- Naive, regression and double machine learning estimates next to the Hillstrom experimental benchmark
+- A break-even credit per install, with the hidden confounder that would overturn it
 :::
 
 ::: {.prerequisites}
