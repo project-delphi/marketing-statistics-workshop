@@ -50,11 +50,11 @@ You work in **pairs** on one notebook (one person types, both decide; swap at lu
 |---|---|---|---|
 | 11:25–11:40 | 15 | **Briefing.** The task, the data, the rubric, the checkpoints. Sit with your pair (announced at the end of Day 4), open the notebook, run the setup cells. | — |
 | 11:40–12:20 | 40 | **1. What each customer is worth.** Customer value forecasts by acquisition channel, with intervals. | A: values by channel, with named intervals |
-| 12:20–13:00 | 40 | **2. Did the campaign work?** Analyze the geo test you designed on Day 3. | B: lift estimate with its interval |
+| 12:20–13:00 | 40 | **2. Is search incremental?** Analyze the region test that switched search off, with the Day 3 methods. | B: lift estimate with its interval |
 | 13:00–13:50 | 50 | **Lunch.** Pairs that passed B may start the calibrated MMM fit before leaving, with the Colab tab kept open. | — |
 | 13:50–14:25 | 35 | **3. A calibrated MMM.** Add the geo lift to the marketing mix model; check the fit (divergences, intervals). | C: calibrated ROAS by channel |
-| 14:25–14:45 | 20 | **4a. Where the next dollar goes.** Allocate next quarter's budget, valuing customers by Stage 1, with uncertainty. | D: allocation and the probability it beats the current split |
-| 14:45–15:05 | 20 | **4b. Whom to target.** Uplift targeting: send the offer where expected incremental margin exceeds its cost. | E: targeting rule and its expected profit |
+| 14:25–14:45 | 20 | **4. Where the next dollar goes.** Allocate next quarter's budget, valuing customers by Stage 1, with uncertainty. | D: allocation and the probability it beats the current split |
+| 14:45–15:05 | 20 | **5. Whom to target.** Uplift targeting: send the offer where expected incremental margin exceeds its cost. | E: targeting rule and its expected profit |
 | 15:05–15:30 | 25 | **5. The decision brief.** Five slides, one per question in the rubric's brief structure. Hand in by 15:30. | Slides handed in |
 | 15:30–15:40 | 10 | **Break.** | — |
 | 15:40–16:40 | 60 | **Presentations.** Each pair presents; instructors score with the rubric. | — |

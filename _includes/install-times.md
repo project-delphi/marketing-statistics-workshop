@@ -3,6 +3,7 @@
 | Runtime | Notebook | Install and setup | Measured |
 |---|---|---|---|
 | Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-09 |
+| Colab (Python runtime, CPU) | `python/01-customer-base-sql` | 13 s | 2026-10-10 |
 | Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 42 s | 2026-10-09 |
 | Colab (Python runtime, CPU) | `python/11-uplift-econml` | 32 s | 2026-10-09 |
 | Colab (R runtime, CPU) | `r/00-setup-warmup` | 5 s | 2026-10-09 |

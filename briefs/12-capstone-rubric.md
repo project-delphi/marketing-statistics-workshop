@@ -30,11 +30,11 @@ Each stage reuses one day of the week and hands a number to the next stage.
 
 | Stage | Reuses | What you produce | Handed to |
 |---|---|---|---|
-| **1. What each customer is worth** | Days 1–2 | Expected customer value (margin, discounted, stated horizon) by acquisition channel, with named intervals; the acquisition cost cap each implies. | Stage 4a (valuing the customers each channel brings) |
-| **2. Did the campaign work?** | Day 3 | The geo test analyzed as you designed it on Day 3: incremental sales and lift, with a named interval and a placebo check. | Stage 3 (the lift test that calibrates the model) |
-| **3. A calibrated marketing mix model** | Day 4 | The MMM with Stage 2's lift test added; fit checks (divergences, posterior predictive check); ROAS by channel with named intervals, before and after calibration. | Stage 4a |
-| **4a. Where the next dollar goes** | Day 4 | A budget split under stated constraints, valuing new customers by Stage 1, computed over the posterior draws; expected incremental margin against the current split, and the probability the new split is better. | The brief |
-| **4b. Whom to target** | Day 5 | An uplift targeting rule from the email experiment: send the offer where predicted uplift × margin exceeds the offer's cost; its expected profit against mailing everyone and mailing no one, scored on held-out customers. | The brief |
+| **1. What each customer is worth** | Days 1–2 | Expected customer value (margin, discounted, stated horizon) by acquisition channel, with named intervals; the acquisition cost cap each implies. | Stage 4 (valuing the customers each channel brings) |
+| **2. Is search incremental?** | Day 3 | The region test that switched search off in 8 of 40 regions, analyzed with the Day 3 methods: sales lost (incremental sales) with a named interval and a placebo check, written as the lift-test row the MMM calibration needs. | Stage 3 (the lift test that calibrates the model) |
+| **3. A calibrated marketing mix model** | Day 4 | The MMM with Stage 2's lift test added; fit checks (divergences, posterior predictive check); ROAS by channel with named intervals, before and after calibration. | Stage 4 |
+| **4. Where the next dollar goes** | Day 4 | A budget split under stated constraints, valuing new customers by Stage 1, computed over the posterior draws; expected incremental margin against the current split, and the probability the new split is better. | The brief |
+| **5. Whom to target** | Day 5 | An uplift targeting rule from the email experiment: send the offer where predicted uplift × margin exceeds the offer's cost; its expected profit against mailing everyone and mailing no one, scored on held-out customers. | The brief |
 | **5. The decision brief** | All | Five slides (below). | The CMO and CFO |
 
 **Using the reference.** Each stage ends with a checkpoint (A to E). If your pair has not passed a stage's

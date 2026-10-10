@@ -48,7 +48,8 @@ Data
 
 - A before/after table of ROAS intervals for the calibrated and uncalibrated model, next to the truth
 - A time-slice cross-validation scorecard and a parameter-stability plot
-- A list of channels ranked by how much a new lift test would change the decision
+- A decision table: which channels to act on now and which to test first, with the spend at stake and the channel for the next lift test
+- Robyn's marginal ROAS per channel across its five best models (R notebook)
 :::
 
 ::: {.prerequisites}
