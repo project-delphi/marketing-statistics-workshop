@@ -26,7 +26,7 @@ Time
 :   105 minutes (45 briefing, 50 lab, 10 debrief)
 
 Languages
-:   Python. Python with DuckDB. SQL is what analytics engineers already write, and DuckDB runs it inside the notebook on Colab with no database server; the same queries work on a warehouse.
+:   Python with DuckDB. SQL is what analytics engineers already write, and DuckDB runs it inside the notebook on Colab with no database server; the same queries work on a warehouse.
 
 Labs
 :   Python: `labs/python/01-customer-base-sql.ipynb`

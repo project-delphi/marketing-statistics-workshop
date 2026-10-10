@@ -1,7 +1,8 @@
 # The site. Facts (titles, days, timings, notebooks, pins) live in _variables.yml and reach
 # the pages through {{< var ... >}} and the includes that scripts/gen_tables.py writes. The
 # few facts repeated here (the site title, the Days menu labels, the repository URL) cannot
-# use shortcodes; keep them equal to _variables.yml (workshop.title, days.dN.title, repo.*).
+# use shortcodes; keep them equal to _variables.yml (workshop.title, days.dN.label and
+# days.dN.title, repo.*).
 
 # Render with the Quarto in the workshop image (environment/Dockerfile), not an older local one:
 #   docker run --rm -v "$PWD":/work -w /work <image> quarto render
@@ -22,6 +23,8 @@ project:
     - day-3.qmd
     - day-4.qmd
     - day-5.qmd
+    # The optional extension track (days.d6, track: extensions): its page, no timetable.
+    - extensions.qmd
     - modules/*.qmd
     - notebooks.qmd
     - references.qmd
@@ -69,7 +72,8 @@ website:
         text: Schedule
       - text: Days
         menu:
-          # Module 0 is optional pre-work. Each day reads "Day N · " + days.dN.title.
+          # Module 0 is optional pre-work. Each day reads days.dN.label + " · " + days.dN.title,
+          # the optional extensions (days.d6) included.
           - href: modules/00-prework.qmd
             text: "Before Day 1 · Module 0 (pre-work)"
           - href: day-1.qmd
@@ -82,6 +86,8 @@ website:
             text: "Day 4 · Where the next dollar goes"
           - href: day-5.qmd
             text: "Day 5 · Targeting and the plan"
+          - href: extensions.qmd
+            text: "Extensions · Beyond the core week"
       - href: notebooks.qmd
         text: Notebooks
       - href: references.qmd

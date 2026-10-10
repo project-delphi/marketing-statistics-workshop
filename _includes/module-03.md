@@ -26,7 +26,7 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief)
 
 Languages
-:   R, Python. R for CLVTools, the reference implementation of the Pareto/NBD with covariates; Python for the machine-learning comparison with scikit-learn.
+:   R for CLVTools, the reference implementation of the Pareto/NBD with covariates; Python for the machine-learning comparison with scikit-learn.
 
 Labs
 :   R: `labs/r/03-clvtools-covariates.ipynb`<br>Python: `labs/python/03-btyd-vs-ml.ipynb`

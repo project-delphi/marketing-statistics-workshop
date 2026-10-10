@@ -1353,6 +1353,12 @@ main.content .lab-steps {
     line-height: 1.5;
   }
 
+  // An optional extension's card: the core modules it builds on (generated).
+  .module-builds-on {
+    color: $ms-muted;
+    font-size: 0.86rem;
+  }
+
   > .module-actions p {
     display: flex;
     flex-wrap: wrap;
@@ -2203,12 +2209,17 @@ body.landing {
     }
   }
 
-  .path-body > p:last-child {
+  // The summary, and for an optional extension the line after it (.path-builds-on).
+  .path-body > p:not(:first-child) {
     margin-top: 0.1rem;
     max-width: 40rem;
     color: $ms-muted;
     font-size: 0.93rem;
     line-height: 1.5;
+  }
+
+  .path-builds-on {
+    font-size: 0.86rem;
   }
 }
 
