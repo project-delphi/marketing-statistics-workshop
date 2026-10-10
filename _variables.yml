@@ -679,7 +679,7 @@ modules:
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
     language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
-    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway."
+    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway."
     objectives:
       - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
       - "Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion."
