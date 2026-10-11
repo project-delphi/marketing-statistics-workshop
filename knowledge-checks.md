@@ -5,9 +5,13 @@ subtitle: "Three to five questions per module, with answers, for warm-ups, debri
 
 <!--
 Owner: Pedagogy Expert; reviewer: Academic Director. Written 2026-10-09.
-Instructor-facing. Not in the render list at the time of writing (agree with the UI Expert before
-adding it; if it is added, point teach.qmd's link at the page instead of GitHub). Module titles come
-from _variables.yml through var shortcodes, which resolve only when the page is rendered.
+Instructor-facing. In the render list (_quarto.yml) and linked from teach.qmd, not from the navbar.
+Module titles come from _variables.yml through var shortcodes, which resolve only when the page is
+rendered.
+Modules 13-17 (the optional extensions) added 2026-10-10. They have no day page, so no "Used in"
+lines. Their worked numbers follow the same rule as below; where an answer points to what a lab or
+module page showed, it says so in words, and any number it quotes is on that module page. Their last
+questions follow modules.m13-m17.decision as worded on 2026-10-10.
 Questions are numbered module.question, with anchors #q1-1 etc. The day pages' warm-ups use some of
 them; the "Used in" line says where. Worked numbers in questions are invented for the question and
 computed by hand; none is a lab result. The last question of each module follows that module's
@@ -23,6 +27,7 @@ Each module's block has three to five short questions that can be answered from 
 - **Warm-ups** (Days 1 to 5): the day pages already carry four questions each, several taken from here.
 - **Debriefs**: a question from the module just finished, when the room's numbers are on the board.
 - **Self-checks**: participants can work through a day's modules that evening.
+- **Extensions** (Modules 13 to 17): they have no day page, so use their questions as the warm-up or debrief of an extension you swap in, or as a self-check after it.
 
 Accept a room's own numbers when they differ from a worked example here because of QUICK settings or a different runtime, as long as the reasoning holds.
 
@@ -424,4 +429,134 @@ Otherwise the two halves of the recommendation answer different economic questio
 
 ::: {.callout-tip collapse="true" title="Answer"}
 The two or three assumptions the recommendation depends on most, one sensitivity result, which stages used the reference or QUICK, and the next experiment you would run to reduce the biggest uncertainty.
+:::
+
+## Module 13 · {{< var modules.m13.title >}}
+
+[**13.1**]{#q13-1} A customer buys 4 units of a product on 3 March, and on 5 March a `C` invoice cancels all 4 (same stock code, same price). What does Module 1's cleaning do with the purchase, what does Lab 13's pipeline do, and why must the matching run before the log is split at the calibration end?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Module 1's rules drop the `C` line but keep the purchase, so 3 March stays a purchase day, with its amount in the customer's mean spend, for an order the customer cancelled. The pipeline matches the cancellation to the latest earlier purchase line of the same customer, stock code and price with the opposite quantity (an ASOF join) and drops both; if nothing else was bought that day, the purchase day disappears. Matching needs the whole log: a cancellation dated after the calibration end can cancel a purchase dated before it, and if the log is split first, the calibration period keeps a purchase that was cancelled.
+:::
+
+[**13.2**]{#q13-2} A cleaning rule changes next year's total forecast revenue by 2% but moves the scores of 15% of customers by more than 10%. Does it matter for the forecast you send to finance? For a list of customers to contact?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Hardly for the forecast: 2% is likely within the forecast's own error, and the customers' changes partly cancel in the total. A lot for the list: a list is decided customer by customer at a threshold, so customers near the bar move on or off it. Judge a cleaning rule by the output the decision uses (here, how many customers it adds to the list and drops from it), and report a customer's change in money: a percent change from a near-zero score can run to millions of percent.
+:::
+
+[**13.3**]{#q13-3} A few wholesale customers order about forty times as much per purchase day as retail customers. Should you cap purchase-day amounts at the 99th percentile to fit the Gamma-Gamma, to value customers, or both?
+
+::: {.callout-tip collapse="true" title="Answer"}
+To fit, not to value. The cap stops a few bulk orders from setting the spread of spend toward which every customer's estimate is shrunk, so the spend parameters land near what the retail customers' own data give. Valuing with capped amounts cuts each wholesale customer's own mean to the cap and undervalues them badly; value each customer on their own mean, with the parameters fitted on capped amounts. Compute the cap from calibration purchase days only, so nothing from the holdout leaks in. Better still, give bulk buyers a segment of their own (the lab's stretch).
+:::
+
+[**13.4**]{#q13-4} A retention contact costs £10, the margin is 30% and the contact is assumed to lift purchases by 10%. Above what expected 26-week revenue does a contact pay? A customer's expected 26-week revenue is £500: on the list or off it? And if the lift is really 5%? Would you spend next week on more cleaning or on measuring the lift?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Contact when 0.10 × 0.30 × revenue > £10, so above £10 ÷ 0.03 = £333.33. At £500 the expected gain is 0.10 × 0.30 × £500 = £15 > £10: on the list. At a 5% lift the bar doubles to £10 ÷ 0.015 = £666.67 and the gain is £7.50: off. Halving the lift drops every customer between £333 and £667 from the list; on Online Retail II that moved far more customers than any cleaning or counting choice (the module page's decision). So measure the lift: contact a random part of the list and hold the rest back (Module 6). Cleaning still decides *who* is on the list, so keep the tested pipeline and report which choice moves the list most.
+:::
+
+## Module 14 · {{< var modules.m14.title >}}
+
+[**14.1**]{#q14-1} Subscribers joined steadily over the last two years. Dashboard A reports 12-month retention as the share of all subscribers who have not cancelled within 12 months of joining. Dashboard B uses only subscribers whose 12-month status is known: those who cancelled within 12 months or were observed for more than 12. Which is too high, which too low, and what replaces both?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A is too high: a subscriber who joined 3 months ago and is still active counts as retained for 12 months, though only 3 have been observed. B is too low: recent joiners who already cancelled stay in, while recent joiners still active are dropped, so the subscribers it keeps lean toward those who cancel. Both mishandle **censored** subscribers, whose outcome is known only up to the end of their observation. Kaplan-Meier uses each subscriber for exactly as long as they were observed: at risk until they cancel or their observation ends.
+:::
+
+[**14.2**]{#q14-2} An analyst compares subscribers who contacted support in their first six months with those who did not, starting both clocks at sign-up, and finds that those who contacted support churn less. What is wrong, and how do you fix it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+**Immortal time.** To be in the contact group with a contact in month 5, a subscriber had to stay until month 5, so the group is credited with months it was guaranteed to survive. Define groups only by what is known at time zero, or start the clock at a **landmark**: at month 6, take the subscribers still active, group them by whether they contacted support in the first six months, and compare what happens after. A time-varying covariate is the other fix. In Lab 14, onboarding is known at time zero (the first billing date, after the trial), which is why onboarded and other subscribers can be compared from there.
+:::
+
+[**14.3**]{#q14-3} Why does the onboarding decision use the restricted mean survival time within 24 months, RMST(24), rather than the hazard ratio, and why 24 months rather than a whole lifetime?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The decision is about money: months subscribed times the monthly margin. RMST(24), the area under the survival curve up to 24 months, is the expected number of months subscribed in the first 24, so a difference in it converts directly into dollars. A hazard ratio compares rates at each tenure; how many months it adds depends on the baseline churn, so it cannot be priced on its own. 24 months because the data follow nobody much longer (sign-ups began in January 2024 and observation ends in June 2026, so no one is observed for 30 months). Kaplan-Meier describes only the tenures observed; a lifetime needs a model that extrapolates, such as the sBG of Module 4, and its assumptions.
+:::
+
+[**14.4**]{#q14-4} Onboarding adds 2.5 months of subscription within 24 months for subscribers who did not onboard, standardized by plan. A month brings \$12 of margin and an onboarding call costs \$15. What share of called subscribers must the call get to onboard for it to pay? At 35%, does it pay? What must you learn before rolling calls out?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Break-even $q^* = c / (\Delta\text{RMST} \times m) = 15 / (2.5 \times 12) = 15/30 = 0.50$: half of the called subscribers. At $q = 0.35$ a call returns $0.35 \times 2.5 \times 12 = \$10.50$ for \$15, so it does not pay. (A \$3 nudge would pay from $3/30 = 10\%$.) Two things are unknown. The 2.5 months is an association: onboarding was not randomized, and motivation may drive both onboarding and staying. And the rule assumes that onboarding prompted by a call works like onboarding chosen during the trial. A randomized pilot (Module 6) that measures $q$ and retention settles both before any rollout.
+:::
+
+## Module 15 · {{< var modules.m15.title >}}
+
+[**15.1**]{#q15-1} In double machine learning, why must each customer's predicted install probability and predicted spend come from a model that never saw that customer? What happens if a flexible model is fitted on all customers and predicts the same customers?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A flexible model can memorize the customers it was fitted on: its in-sample predicted install probability is close to the actual 0 or 1, so the install residual $T - \hat e$ is close to 0 for almost everyone. The estimate, $\sum \tilde T \tilde Y / \sum \tilde T^2$, then divides noise by almost nothing: the standard error balloons and the point estimate jumps from seed to seed. **Cross-fitting** (predict each fold from a model fitted on the other folds) keeps the residuals honest, and because the estimate is insensitive to small errors in the predictions (Neyman orthogonality), imperfect machine-learning predictions still give a valid interval.
+:::
+
+[**15.2**]{#q15-2} Half of the customers had a 50% chance of installing the app and would gain \$20 of spend from it; the other half had a 90% chance and would gain \$5. What is the average effect over all customers (the ATE)? What average does residual-on-residual regression estimate, and which customers does it lean on?
+
+::: {.callout-tip collapse="true" title="Answer"}
+ATE $= (20 + 5)/2 = \$12.50$. Residual-on-residual regression weights each customer's effect by $e(1 - e)$: $0.5 \times 0.5 = 0.25$ and $0.9 \times 0.1 = 0.09$. Its target is the **overlap-weighted** average, $(0.25 \times 20 + 0.09 \times 5)/(0.25 + 0.09) = 5.45/0.34 \approx \$16.03$. It leans on customers whose install was a toss-up and says least about those almost sure either way. Trimming extreme propensities changes the target again. Which average matters depends on whom the decision is about.
+:::
+
+[**15.3**]{#q15-3} Your estimate of the app's effect is \$12 of spend (95% CI \$10 to \$14), and leaving one strong observed confounder out of the covariates moved it up by \$5. A colleague asks whether a confounder you did not measure could overturn the decision, whose break-even is \$8.33. What can the data tell you, and what can they not?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The data cannot test whether every common cause of install and spend was measured: no unobserved confounding is an assumption. What you can do: name the plausible missing causes (purchase intent at launch, for example); use the observed confounder as a yardstick, since one as strong, unmeasured and pushing the same way would move the interval down by about \$5, to \$5 to \$9, whose lower end is below \$8.33, so the decision would flip; run a formal sensitivity analysis (the robustness value in the lab's stretch); and settle it with a randomized test (Module 6).
+:::
+
+[**15.4**]{#q15-4} The retailer would pay a \$2.50 credit per install, the gross margin is 30%, and your estimate of the extra 26-week spend per persuaded install is \$12 (95% CI \$9 to \$15). Under Lab 15's rule, do you offer the credit, and what is the largest credit the rule allows? What if only half of the customers who install after the offer were persuaded by it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Margin per persuaded install: $0.30 \times 12 = \$3.60$ (95% CI \$2.70 to \$4.50). The rule offers the credit when the lower end exceeds it: \$2.70 > \$2.50, so offer (equivalently, the effect's interval lies above the break-even $2.50/0.30 = \$8.33$), and the largest credit the rule allows is \$2.70. If half the installers would have installed anyway, each persuaded install costs $2.50/0.5 = \$5.00$ of credits, more than \$2.70: do not offer. Only a randomized test of the credit measures the persuaded share. Say which unobserved confounder could overturn the answer (15.3).
+:::
+
+## Module 16 · {{< var modules.m16.title >}}
+
+[**16.1**]{#q16-1} Five channels have removal effects 0.60, 0.50, 0.40, 0.30 and 0.20, and the tracked journeys hold 1,000 conversions. How many does Markov attribution credit to the first channel? Why do removal effects add up to more than 1, and what does dividing by their sum assume?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The removal effects add up to 2.0, so the first channel gets $1{,}000 \times 0.60/2.0 = 300$. A converting journey through $k$ channels is lost in each of the $k$ removal scenarios, so its conversion is counted $k$ times in the sum. Dividing by the sum is a convention that makes the credit add up to the conversions; no argument about cause stands behind it. Removing a channel from a fitted chain is a counterfactual about the chain, not about what users would have done.
+:::
+
+[**16.2**]{#q16-2} Users who saw only email convert at 2%, users who saw only search at 6%, and users who saw both at 10%; users with no touch are not in the data, so the empty set is worth 0. What are the two Shapley values for a journey with both? A colleague would rather split the 10% in proportion to what each channel makes alone. Which is right?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Average each channel's addition over the two orders. Email first adds 0.02, then search adds 0.08; search first adds 0.06, then email adds 0.04. So $\varphi_\text{email} = (0.02 + 0.04)/2 = 0.03$ and $\varphi_\text{search} = (0.08 + 0.06)/2 = 0.07$, adding up to 0.10: each keeps what it makes alone, and the 0.02 they make only together is split equally. The proportional split gives 0.025 and 0.075. Neither is right about cause: both are rules for sharing a value. Shapley's rules are symmetry, efficiency and the null-player property; whether the shares measure what a channel causes depends on the value function, and an observed conversion rate also reflects who each channel reaches.
+:::
+
+[**16.3**]{#q16-3} Markov and Shapley attribution agree that retargeting earns about a quarter of the conversions, and their 95% bootstrap intervals are narrow. Is that evidence that retargeting causes those conversions?
+
+::: {.callout-tip collapse="true" title="Answer"}
+No. A bootstrap interval covers the sampling noise in the credit, not bias, and both methods share the same bias: they read the same journeys, in which retargeting reaches users who were already likely to buy. When exposure follows intent, credit follows intent, and efficiency puts every tracked conversion, including those that would have happened anyway, on some channel. In Lab 16 retargeting had no effect by construction, and both methods still gave it about a quarter of the credit (the module page's results). Only users randomly kept from the channel show what it causes.
+:::
+
+[**16.4**]{#q16-4} A paid channel spends \$3,000 a month, a conversion brings \$10 of margin, and attribution credits the channel with 600 conversions a month. Withholding it from 20% of the users it reaches for a month gives a minimum detectable effect (MDE) of about 260 conversions a month, scaled to all the users it reaches; a 10% holdout gives about 350. Do you move budget now? If you test, with which holdout, and what result would justify the move?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Break-even: $\$3{,}000 / \$10 = 300$ incremental conversions a month. The 20% holdout can detect 260, below 300, so it can tell a channel that pays back from one that does not; the 10% holdout (350) cannot, so it would need to be larger or longer. Test first with the 20% holdout, and move budget toward the channel only if it shows more than 300 incremental conversions a month, a cost per incremental conversion below \$10. Comparing the MDE with the 600 credited conversions would be a weaker bar: a test that can detect only 500 would pass it and still not tell break-even from nothing. The margin at risk during the test, if the credit were real: $0.20 \times 600 \times \$10 = \$1{,}200$.
+:::
+
+## Module 17 · {{< var modules.m17.title >}}
+
+[**17.1**]{#q17-1} A channel spent \$1.0 million over its first two years at a ROAS of 5.0, and \$0.5 million in the latest year at 2.0. Gross margin is 30%. What is its ROAS over all three years, and what does each window say about next year's budget?
+
+::: {.callout-tip collapse="true" title="Answer"}
+All-period ROAS $= (5.0 \times 1.0 + 2.0 \times 0.5)/(1.0 + 0.5) = 6.0/1.5 = 4.0$, above the break-even of $1/0.30 \approx 3.33$: "keep". In the latest year each dollar returned \$2.00 of sales and \$0.60 of margin, so it lost money. ROAS over a window is a ratio of sums, so the all-period number weights each year by its spend and stays above break-even long after the channel stopped paying back. A decision about next year needs the recent window, which a static MMM cannot give: it estimates one effect per channel for every week.
+:::
+
+[**17.2**]{#q17-2} You correlate a static MMM's weekly residuals with each channel's spend, year by year. One channel's correlation goes from +0.4 in the first year to −0.5 in the last; the others stay near 0. What does it suggest, and what else could cause it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+That the channel's effect per dollar has fallen. In a year when it works better than the static model's single effect, sales jump more than predicted in its high-spend weeks, so the residuals rise with its spend; when it works worse, they fall with it. A change of sign that stands out from the other channels is the warning. Other causes: a change in the baseline that lines up with the channel's spend, or a change in how the channel spends (bursts one year, steady the next). The check flags; it does not measure, and it needs spend that varies within a year. A flagged channel is a reason to fit a model whose effects can drift, or to run a lift test, not to cut it on the spot.
+:::
+
+[**17.3**]{#q17-3} Robyn fits Prophet to sales and uses its trend, seasonality and holiday components as the MMM's baseline. Why can that baseline take credit from a channel whose effect is fading, and why does the MMM's ROAS interval not show the extra uncertainty?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Prophet is fitted to sales, and sales include what the media produced. A slowly fading channel lowers sales slowly, which is what a trend with changepoints follows; once the MMM takes that trend as given, part of the channel's effect already sits in the baseline, and the channel gets less credit. Prophet's components enter as fixed columns, its point estimates, so their own uncertainty never reaches the MMM: the ROAS intervals move but do not widen. A baseline estimated together with the media, in a form that cannot follow one channel's decline, avoids using the sales twice; outside evidence such as a lift test settles it.
+:::
+
+[**17.4**]{#q17-4} A drifting MMM's 4,000 posterior draws of the fading channel's last-quarter ROAS have mean 2.5, and 3,480 of them lie below the break-even of 3.33. The static model's all-period ROAS is above 3.33 in 99% of its draws. Last quarter the channel spent \$200,000. What does Lab 17's rule say, what did last quarter's spend return net of its cost, and why do the two models disagree?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$P(\text{ROAS} < 3.33) = 3{,}480/4{,}000 = 0.87$, below the 0.9 needed to cut, and $P(\text{ROAS} > 3.33) = 0.13$ is far from the 0.9 needed to keep: run a lift test first, dated in the current quarter (a test from last year measures last year's effect). Last quarter's spend returned $200{,}000 \times (0.30 \times 2.5 - 1) = -\$50{,}000$ net at the mean (the net is linear in ROAS, so this is also its mean over the draws), an average return, not the next dollar's. The static model answers a question about the whole history: it pools every week into one effect per channel, so it says "keep" with near certainty about the past, not about now.
 :::

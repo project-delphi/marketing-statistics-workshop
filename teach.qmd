@@ -6,7 +6,13 @@ subtitle: "The instructor guide: the kit, the rhythm, pacing, debriefs and what 
 <!--
 Owner: Pedagogy Expert; reviewer: Academic Director. Written 2026-10-09.
 Module titles, minutes and the readiness age limit come from _variables.yml through var shortcodes.
-This page states no run times: measured ones are on readiness.qmd, generated from runs/.
+This page states no run times for the core labs: measured ones are on readiness.qmd, generated from
+runs/. The Extensions section (added 2026-10-10) names each extension lab's slowest cell with its
+seconds from the laptop and Docker run records of 2026-10-10 (worked, FULL), because no extension has
+a Colab run; update those numbers when the records are re-run, and drop them once Colab records exist.
+Its minute marks come from the lab briefs; its stall points were checked against labs/src and
+src/mktstats on 2026-10-10 and are expectations, not observations (no pilot yet). Its "Builds on"
+column restates modules.m13-m17.prerequisites; its third debrief prompts follow modules.mNN.decision.
 Files that are not rendered pages (briefs/) are linked on GitHub so the
 offline link check passes.
 The third debrief prompt of each module asks for that module's decision as worded in
@@ -19,7 +25,7 @@ This page is for the person running the room. It says what is in the kit, how a 
 
 ## Read this first: what has run {#readiness}
 
-The [readiness page](readiness.qmd) is generated from the run records in `runs/`. For every notebook it shows where it has run (Colab, the CI runner, the workshop's Docker image), when, with which settings, how long it took, and whether that evidence is still current: a run counts for teaching only if it was on Colab, in worked mode, FULL, for the whole notebook, on the current code and dependencies, and no more than {{< var readiness.max_run_age_days >}} days old. **Every run time you plan with comes from that page.** This guide gives no run times. A notebook that has not run is "written, not run", and you should run it yourself before you teach it.
+The [readiness page](readiness.qmd) is generated from the run records in `runs/`. For every notebook it shows where it has run (Colab, the CI runner, the workshop's Docker image), when, with which settings, how long it took, and whether that evidence is still current: a run counts for teaching only if it was on Colab, in worked mode, FULL, for the whole notebook, on the current code and dependencies, and no more than {{< var readiness.max_run_age_days >}} days old. **Every run time you plan with comes from that page.** This guide gives no run times, except in [the Extensions section](#extensions), which names each extension lab's slowest cell from its laptop and Docker run records because none has run on Colab yet. A notebook that has not run is "written, not run", and you should run it yourself before you teach it.
 
 ## The instructor kit {#kit}
 
@@ -34,6 +40,7 @@ The [readiness page](readiness.qmd) is generated from the run records in `runs/`
 - **Lab briefs** ([`briefs/` on GitHub]({{< var repo.url >}}/tree/{{< var repo.ref >}}/briefs)): for each lab, what each exercise asks for, the truth each checkpoint compares against, the data, and the decision. The [lab standard]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/_lab-standard.md) says how every lab is built (Predict, Run, Explain, Check; checkpoint messages; the Decision cell).
 - **[Knowledge checks](knowledge-checks.md)**: three to five questions per module with answers, for warm-ups, debriefs and an evening self-check.
 - **Day pages** ([Day 1](day-1.qmd), [Day 2](day-2.qmd), [Day 3](day-3.qmd), [Day 4](day-4.qmd), [Day 5](day-5.qmd)): the timetable, the warm-up questions with answers, the clinics on Days 2 and 3, the capstone run of show on Day 5, and the wrap-up with the running results table.
+- **Extensions** ([Extensions](extensions.qmd)): five optional modules beyond the week, Modules 13 to 17, with no timetable. [The Extensions section](#extensions) below says how to swap one into a schedule and how each lab runs.
 - **Capstone task and rubric** ([on GitHub]({{< var repo.url >}}/blob/{{< var repo.ref >}}/briefs/12-capstone-rubric.md)): the task for pairs, the five-slide brief, timing checkpoints, a rubric scored in 5 minutes per pair, and a score sheet.
 - **Before Day 1** ([Before Day 1](prepare.qmd)): the entry check and remediation you send participants a week ahead.
 
@@ -183,6 +190,7 @@ The presentations are the debrief. After the last pair, ask the room:
 | Colab warns that the notebook was not authored by Google. | Any notebook opened from GitHub. | **Run anyway**: the notebooks come from the workshop's public repository. |
 | Colab will not connect a new runtime and mentions **too many sessions**. | Every open Colab notebook holds its own runtime. The two-notebook labs (Modules 3, 7 and 11) need two at once, and tabs from earlier labs may still hold theirs. Seen while recording the Colab runs. | **Runtime → Manage sessions**, terminate the sessions of earlier labs, then connect again. Keep connected only the notebooks the current lab needs. |
 | The runtime runs out of memory. | Several large objects, or several Colab tabs each holding a runtime. | Close other Colab tabs; **Runtime → Restart session**; switch on `QUICK`, which subsamples the data. |
+| A learner cannot find the checkpoint's message: the `[workshop]` line says "Read the message above", and nothing above explains the failure. | In Python notebooks the harness prints that line before the error, so the checkpoint's own message is the last line of the red error **below** it. (R notebooks say "below".) | Point at the last line of the error and ask the learner to read it aloud. |
 | A checkpoint fails on the **reference** solution. | A bug, or a package that changed. | Not the learner's fault. Note the notebook, the checkpoint, the full message and the run's `COLAB_RELEASE_TAG`, and report it. Tell the room to run the following cells one at a time instead of Run all. |
 
 ## Common failures seen in testing, by module {#seen-in-testing}
@@ -201,6 +209,109 @@ What went wrong, or surprised us, while the labs were built and run, from the ru
 - **Module 10.** The risk-averse plan (SLSQP maximizing the 10% quantile) barely moves from the mean-optimal plan, in a direction that depends on the draws; in one Docker run it stopped at its start, because the quantile is nearly flat around that plan. The notebook prints the iterations and the dollars moved: "it hardly moved" is the finding, not a failure. The CLV-weighted plan rests on made-up acquisition costs and is shown as a sensitivity only.
 - **Module 11.** The Python install is the longer of the two, so learners start it first. The grf forests grow 1,000 trees rather than grf's default 2,000, to keep each fit short on 2 CPUs. Hillstrom downloads as in Module 6.
 
+## The Extensions track: Modules 13 to 17 {#extensions}
+
+The [Extensions](extensions.qmd) are five optional modules beyond the core week: messy real data, survival analysis for churn, double machine learning, multi-touch attribution, and an MMM whose effects drift. They have no timetable. Participants can take them on their own after the week, or you can swap one into a custom schedule, in place of a core module or after the week. Each ends in its own decision; none feeds the capstone or the day pages' results table.
+
+### Swapping one in {#extensions-swap}
+
+Each keeps the core module format, so it needs a core module's slot: a briefing from its module page, a lab in one Python notebook with the same rhythm, harness and [pacing rules](#pacing), and a debrief whose third question is its decision.
+
+| Module | Builds on | Briefing / lab / debrief (minutes) |
+|---|---|---|
+| [Module 13](modules/13-messy-real-data.qmd) | Modules 1, 2 and 4 (Module 5 helps) | {{< var modules.m13.minutes.briefing >}} / {{< var modules.m13.minutes.lab >}} / {{< var modules.m13.minutes.debrief >}} |
+| [Module 14](modules/14-survival-churn.qmd) | Modules 4 and 6 | {{< var modules.m14.minutes.briefing >}} / {{< var modules.m14.minutes.lab >}} / {{< var modules.m14.minutes.debrief >}} |
+| [Module 15](modules/15-double-ml.qmd) | Modules 6 and 11 | {{< var modules.m15.minutes.briefing >}} / {{< var modules.m15.minutes.lab >}} / {{< var modules.m15.minutes.debrief >}} |
+| [Module 16](modules/16-multi-touch-attribution.qmd) | Modules 6 and 8 | {{< var modules.m16.minutes.briefing >}} / {{< var modules.m16.minutes.lab >}} / {{< var modules.m16.minutes.debrief >}} |
+| [Module 17](modules/17-mmm-time-varying.qmd) | Modules 8 and 9 | {{< var modules.m17.minutes.briefing >}} / {{< var modules.m17.minutes.lab >}} / {{< var modules.m17.minutes.debrief >}} |
+
+- **Teach it after the modules it builds on.** Module 15 needs Module 11, so in the five-day order it can only follow Day 5.
+- **What to drop to make room is your call.** Before dropping a core module, check which later modules list it under "Before you start" on their pages.
+- **Warm-ups and debriefs.** The day pages cover the core modules only; for an extension, take questions from its [knowledge checks](knowledge-checks.md#q13-1).
+
+### Before you teach one {#extensions-before}
+
+- **Not run on Colab.** The Colab buttons point at the release the workshop is pinned to, `{{< var repo.ref >}}`, cut before the extensions existed, so they cannot open these notebooks until a new release contains them (and that release needs a full Colab sweep). Until then, run them from a checkout or the Docker image ([Setup](setup.qmd#local)); the [readiness page](readiness.qmd#extensions) marks each one not ready to teach.
+- **Times are laptop and Docker only.** The slowest cells below come from the run records of 2026-10-10 (worked, FULL; an Apple Silicon laptop, natively and in the Docker image limited to 2 CPUs). They are not Colab times, and the Colab times the notebooks mention are estimates.
+- **No pilot yet.** The minute marks are the lab briefs' estimates; the stall points are what the reviews of the briefs and notebooks expect, not what a class has shown. Pilot with two or three people first.
+- **Solutions** are folded under each exercise, as in the core. After `use_reference(n)`, rerun that exercise's **checkpoint cell**, then the cells below it: several checkpoints compute values that later cells use (`flat_12` and `boot` in Module 14, `mine` in Module 15, `P` and `removal` in Module 16), so skipping one ends in a `NameError`. The notebook's message says only "Rerun the cells below it".
+- **QUICK** shortens a fit only in Module 17; the other labs take seconds either way.
+
+### Module 13 · {{< var modules.m13.title >}} {#ext-m13}
+
+[Module page](modules/13-messy-real-data.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/13-messy-real-data.md) · [knowledge checks](knowledge-checks.md#q13-1)
+
+- **Timing** (minutes from the start of the lab): open 0–5; Exercises 1 to 5 end at 13, 23, 30, 37 and 45; Decision 45–50; slack 50–55. **Switch at 25:** anyone still on Exercise 2 runs `workshop.use_reference(2)`. Still behind: everyone runs `use_reference(3)` and reads Exercise 3's tables.
+- **Slowest cell:** the PyMC-Marketing cross-check that opens Part B (2.9 s laptop, 12.5 s Docker; the notebook guesses a minute on Colab); learners write Exercise 3's guesses meanwhile. D1 downloads Online Retail II on first use.
+- **Expected stalls.** Exercise 1's pattern sits in an f-string, so its braces are doubled, `'^[0-9]{{5}}'`. Exercise 2's ASOF join is new SQL to most: point at the worked example above it. Part D's counts check can fail after Checkpoints 1 and 2 passed; its message says what to rerun. Exercise 3's change of tens of millions of percent is not a bug (the notebook says why). Exercise 4: steer anyone who picks "no cap" to the P99 row against the oracle on p, q and v.
+- **Solutions:** folded under each exercise; none for the stretch.
+- **Debrief.**
+  1. Module 1's rules moved the 52-week total by a few percent but hundreds of customers' scores by more than 10%. Which matters for a forecast, and which for a contact list? Why give a customer's change in money, not percent?
+  2. On Online Retail II, why was the rank correlation of frequency and spend about twice the Pearson one, and what does a positive link do to the Gamma-Gamma's estimate for a customer with few purchases?
+  3. How many Online Retail II customers get a retention contact at a 10% lift, and at 5% and 20%? Which cleaning or counting choice moves the list most, and by how many customers? Would you spend next week on cleaning or on measuring the lift?
+
+  **Bridge:** Module 14 turns to subscribers, whose churn is observed.
+
+### Module 14 · {{< var modules.m14.title >}} {#ext-m14}
+
+[Module page](modules/14-survival-churn.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/14-survival-churn.md) · [knowledge checks](knowledge-checks.md#q14-1)
+
+- **Timing:** open 0–5; Exercises 1 to 5 end at 15, 22, 29, 37 and 45; Decision 45–50; slack 50–55. **Room check at 15:** if fewer than half have passed Checkpoint 1, show the at-risk line (a reversed cumulative sum) or have everyone run `use_reference(1)`. **Behind at 22:** write the Exercise 2 guess, run `use_reference(2)`, rerun Checkpoint 2 and read the years 8–12 table together. Keep Exercise 4 hands-on.
+- **Slowest cell:** Checkpoint 5's bootstrap (5.4 s laptop, 6.9 s Docker); learners read the Explain meanwhile.
+- **Expected stalls.** Exercise 1: the number at risk, and ties (two cancellations at one time make one factor, 1 − 2/3); Checkpoint 1 names each mistake. Exercise 3: passing all of `subs` fails inside lifelines (`TypeError: Cannot cast DatetimeArray to dtype float64`) before any checkpoint message; the Task's hint covers it. Listen for "33% less likely to churn": a hazard ratio of 0.67 means "cancels at 67% of the rate". Exercise 4: changing `subs` in place; the checkpoint says how to rebuild it.
+- **Solutions:** folded under each exercise; none for the stretch.
+- **Debrief.**
+  1. Where did the true 12-month retention fall against the two dashboard numbers and your Kaplan-Meier interval? Which subscribers did each dashboard mishandle?
+  2. The intro offer's full-period hazard ratio was about 1.36. What did the landmark at month 3 show, and what would you write in the campaign report instead?
+  3. Is an onboarding call worth its cost? Give the months onboarding adds within 24 for subscribers who did not onboard (standardized by plan, with its 95% bootstrap interval) and the share of called subscribers the call must get to onboard. What would the unadjusted comparison have said, and why is the estimate still an association?
+
+  **Bridge:** onboarding was not randomized. Module 15 estimates causal effects from observational data; a randomized pilot (Module 6) settles it.
+
+### Module 15 · {{< var modules.m15.title >}} {#ext-m15}
+
+[Module page](modules/15-double-ml.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/15-double-ml.md) · [knowledge checks](knowledge-checks.md#q15-1)
+
+- **Timing:** open 0–5; Exercises 1 to 5 end at 13, 21, 30, 37 and 45; Decision 45–50; slack 50–55. Call each mark; at 45, anyone still in Exercise 5 runs `use_reference(5)`. If the room runs long, hand over Exercise 1 first: `use_reference(1)` after its Predict and plot.
+- **Slowest cell:** the provided run without cross-fitting after Exercise 3 (12.7 s laptop with two threads, 14.7 s Docker). Each attempt at Checkpoint 5 refits ten models. Hillstrom downloads on first use. During the build, on a busy laptop without a thread limit, that run took minutes (not measured on a quiet one); if it does, restart Jupyter with `OMP_NUM_THREADS=2`.
+- **Expected stalls.** Comparing the estimate with the ATE: the sentence before Checkpoint 3 names the overlap-weighted target. Exercise 2: column 1 of `predict_proba`. Exercise 3: no intercept; HC0, not HC1. Exercise 5: `discrete_treatment=True`, `cv=folds`, and `W=W` with `X=None`. The checkpoints name each. Exercise 4: if the stricter trims printed under the profile are identical, the function ignores its `low` and `high`. With QUICK the no-cross-fitting estimate is meaningless; its standard error is the lesson.
+- **Solutions:** folded under each exercise and at the end of the stretch.
+- **Debrief.**
+  1. The naive comparison and a regression with all nine covariates both missed the truth by a wide margin. What did the regression miss that double machine learning caught?
+  2. Your estimate weights customers by e(1 − e). Who are they (Exercise 4's profile), and are they the customers a credit would reach?
+  3. Would you pay customers the \$2.50 credit for installing the app? Give the incremental margin per persuaded install with its 95% interval and its lower end against \$2.50, and name the unobserved confounder that could overturn it. What did leaving out `mobile_share` do? QUICK and FULL runs can disagree: that is sample size.
+
+  **Bridge:** Module 16 tests another observational claim made every day: the credit multi-touch attribution gives each channel.
+
+### Module 16 · {{< var modules.m16.title >}} {#ext-m16}
+
+[Module page](modules/16-multi-touch-attribution.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/16-multi-touch-attribution.md) · [knowledge checks](knowledge-checks.md#q16-1)
+
+- **Timing:** open 0–5; Exercises 1 to 5 end at 13, 21, 29, 38 and 45; Decision 45–50; slack 50–55. Exercise 2, the transition matrix, is the likeliest to overrun: `use_reference(2)` at 21, and `use_reference(3)` for anyone behind at 29. Call the Decision at 45: it is the lab's heaviest reading.
+- **Slowest cell:** nothing to wait for (the bootstrap, 1.2 s on the laptop; the imports, 2.6 s in Docker).
+- **Expected stalls.** Exercise 1: crediting journeys that did not convert; linear credit per touch, not per channel. Exercise 2: a table with every state, start, conv and null included (`pd.crosstab` also works). Exercise 3: deleting the channel and rescaling the other rows instead of sending its journeys to null, which gives a negative removal effect. Exercise 4: an off-by-one factorial in the weights. Exercise 5: counts instead of shares, or a share error without its factor 1/2. The checkpoints name each.
+- **Solutions:** folded under each exercise and at the end of the stretch; the absorbing-chain solve is a provided cell.
+- **Debrief.**
+  1. How much credit did retargeting get under last-click, Markov and Shapley, and how many conversions did it cause? What made the data-driven methods agree with last-click?
+  2. Your removal effects added up to about 2, not 1: what does dividing by their sum assume? Which split did you predict for B in the three-player game, and why does Shapley split a joint gain equally rather than in proportion?
+  3. Would you move budget toward retargeting, the paid channel cheapest per credited conversion, or run a holdout first? Give its cost per credited conversion with the 95% bootstrap interval, the holdout's minimum detectable effect against the break-even, the margin at risk, and the result that would justify the move.
+
+  **Bridge:** attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM.
+
+### Module 17 · {{< var modules.m17.title >}} {#ext-m17}
+
+[Module page](modules/17-mmm-time-varying.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/17-mmm-time-varying.md) · [knowledge checks](knowledge-checks.md#q17-1)
+
+- **Timing:** open 0–5; Exercises 1 to 5 end at 12, 20, 26, 35 and 45; Decision 45–50; slack 50–55. During each of the three fits, learners read the next Predict and start its function, as the notebook says; after each fit, run the cells below it in order. If the room runs long, everyone runs `use_reference(3)` after its Predict. QUICK (300 draws per chain instead of 1,000) must be on before the data cell, which sets the draws; switching it on later means rerunning from there, the static fit included.
+- **Slowest cells:** the drifting fit (52.7 s on the laptop) and the static fit, the first of three (38.4 s in Docker); each record names only its slowest cell. The notebook guesses about three minutes on Colab for the drifting fit. In worked mode, Run all also runs the two stretch fits.
+- **Expected stalls.** Exercise 1 (7 minutes) is tight for anyone new to xarray: select and sum by name, `.sel(date=slice(start, end))` and `.sum("date")`; Checkpoint 1 names the usual mistakes. The static model's very wide intervals for search and display are expected (the note after Exercise 4 says why). Exercise 5 is the longest function. With QUICK the verdict can come out "lift test first": use it in the debrief.
+- **Solutions:** folded under each exercise and under stretches A and B.
+- **Debrief.**
+  1. Social's ROAS over all weeks and in the last quarter, by the truth, the static model and the drifting model: which interval contained the truth? Why did the static model give about the same number for both windows?
+  2. Which channel's correlation between residuals and spend changed sign between 2023 and 2025? Could you run that check on your own MMM tomorrow, without a truth, and what else could produce the same pattern?
+  3. Cut, keep or lift-test social next quarter? Give the probability that its current-quarter ROAS is below break-even, how that differs from the all-period answer, and what would change it.
+
+  **Bridge:** the last extension. The Prophet baseline, fitted to the same sales, took credit from social and TV. A lift test run now (Module 9) checks the current level, and Module 10's optimizer can take the current-quarter response curves.
+
 ## Before the workshop {#before}
 
 - [ ] **Three weeks before**, check that `repo.ref` in `_variables.yml` is the release tag you will teach from; the Colab badges and installs point at it.
@@ -210,6 +321,7 @@ What went wrong, or surprised us, while the labs were built and run, from the ru
 - [ ] **A week before**, send participants the [Before Day 1](prepare.qmd) page: entry check, review, setup, Module 0.
 - [ ] **The day before**, remind them to check their setup and to send any error they cannot fix.
 - [ ] **Prepare**: the GeoLift demo output (Day 3), printed CFO cards and Analyst checklists (Day 2), the capstone pairs and answer key (Day 5).
+- [ ] **If you swap in an extension**, read [Before you teach one](#extensions-before) first: no extension has run on Colab yet.
 - [ ] **The room**: Wi-Fi that can take the whole room installing packages at once at the start of each lab, and power at every table.
 - [ ] **First delivery only**: pilot each lab with two or three people and note where they stall. A run record measures compute time, not how long a person takes.
 
