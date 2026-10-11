@@ -822,7 +822,8 @@ with workshop.checkpoint(label="sweep: the reference row"):
         " is provided code: rerun Part A, and tell the instructor if it fails again."
     )
     print(f"52-week forecast {fits['reference']['forecast']:,.0f} against {holdout_days:,}"
-          f" realized ({error:+.1%}; tolerance {tol['rel']:.0%}, {tol['basis']}).")
+          f" realized ({error:+.1%}). Allowed: {tol['rel']:.0%},"
+          f" {tol['basis'].removeprefix('the tolerance, ')}.")
 
 # %% [markdown]
 # Look at the `customers_moved` column next to `total_change_pct`: compare them with your two
