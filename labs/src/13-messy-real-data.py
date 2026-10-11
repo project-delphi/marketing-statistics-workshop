@@ -789,9 +789,12 @@ holdout_days = len(clean_tx.loc[clean_tx["date"] > CAL_END, ["customer_id", "dat
                    .drop_duplicates())
 
 
-def change_table(rows):
+def change_table(rows, whole=()):
+    """The reference row's values (columns in `whole` as whole numbers); other rows in %."""
     table = pd.DataFrame(rows).T
     shown = table.map(lambda x: f"{x:,.3f}").astype(object)
+    for col in whole:
+        shown.loc["reference", col] = f"{table.loc['reference', col]:,.0f}"
     for name in table.index[1:]:
         shown.loc[name] = [f"{100 * (x / r - 1):+.1f}%"
                            for x, r in zip(table.loc[name], table.loc["reference"], strict=True)]
@@ -799,7 +802,7 @@ def change_table(rows):
 
 
 purchase_model = change_table({n: {**f["bg"], "52-week forecast": f["forecast"]}
-                               for n, f in fits.items()})
+                               for n, f in fits.items()}, whole=["52-week forecast"])
 spend_model = change_table({n: {**f["gg"], "population mean spend": mle.population_mean_spend(
     f["gg"])} for n, f in fits.items()})
 line_rfm = rfm_by_invoice(purchases(lines, flags, matches, unit="line"), CAL_END)
@@ -925,19 +928,35 @@ with workshop.checkpoint(label="sweep: the reference row"):
 
 # %% [markdown]
 # Look at the `customers_moved` column next to `total_change_pct`: compare them with your two
-# guesses. `largest_change_pct` is the largest single customer's change, in percent. In the two
-# rows that keep non-product lines it runs to tens of millions of percent. That is not a bug: it
-# is one customer who bought often early in the calibration period and then went quiet for
-# months, so the reference gives them a score of almost nothing, and whom one manual-adjustment
-# (`M`) invoice near the calibration end makes look active again. A percent change from almost
-# nothing is enormous; read this column as "one customer moved a lot", never as a size.
+# guesses. `largest_change_pct` is the largest single customer's change, in percent;
+# `largest_pct_customer` names that customer and gives their score under the reference, then
+# under the variant. In the two rows that keep non-product lines, `largest_change_pct` runs to
+# tens of millions of percent. That is not a bug: it is one customer who bought often early in
+# the calibration period and then went quiet for months, so the reference gives them a score of a
+# fraction of a cent, and whom one manual-adjustment (`M`) invoice near the calibration end makes
+# look active again. A percent change from almost nothing is enormous; read that column as "one
+# customer moved a lot", never as a size. For a size, `largest_change_usd` shows, in the same
+# form, the customer whose score moved the most in dollars.
 
 # %%
+def score_change(variant, customer):
+    """'customer N: $reference score → $variant score' (cents, or two digits under one cent)."""
+    shown = [f"${x:,.2f}" if x >= 0.01 else f"${x:.2g}"
+             for x in scores.loc[customer, ["reference", variant]]]
+    return f"customer {customer}: {shown[0]} → {shown[1]}"
+
+
 effects = variant_effects(scores)
 effects["largest_change_pct"] = [100 * (scores[c] / scores["reference"] - 1).abs().max()
                                  for c in effects.index]
+# who is behind the largest percent change, and the largest change in dollars
+variants = [c for c in effects.index if c != "reference"]
+effects["largest_pct_customer"] = pd.Series(
+    {c: score_change(c, (scores[c] / scores["reference"] - 1).abs().idxmax()) for c in variants})
+effects["largest_change_usd"] = pd.Series(
+    {c: score_change(c, (scores[c] - scores["reference"]).abs().idxmax()) for c in variants})
 effects.assign(total_change_pct=effects["total_change_pct"].map("{:+.1f}".format),
-               largest_change_pct=effects["largest_change_pct"].map("{:,.0f}".format))
+               largest_change_pct=effects["largest_change_pct"].map("{:,.0f}".format)).fillna("")
 
 # %% [markdown]
 # **Explain.** Compare with your prediction. Why can the total move a few percent while hundreds

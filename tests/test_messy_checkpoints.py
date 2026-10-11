@@ -360,3 +360,22 @@ def test_checkpoint_5_points_to_the_counts_when_the_data_differ(lab):
     assert "clear the bar at £10, 30% and 10%; the reference is 2,212" in msg
     assert ("if the counts check after D1 (\"Online Retail II counts\") failed, fix that"
             " first") in msg
+
+
+# ---- displays ----------------------------------------------------------------------------------
+
+
+def test_the_sweep_prints_the_forecast_as_a_whole_number(lab):
+    shown = lab[0]["purchase_model"].loc["reference", "52-week forecast"]
+    assert re.fullmatch(r"\d{1,3}(,\d{3})*", shown), shown
+
+
+def test_the_effects_table_names_customers_and_dollar_changes(lab):
+    ns, _, code = lab
+    scope = dict(ns)
+    exec(compile(_cell(code, "def score_change("), str(LAB), "exec"), scope)  # noqa: S102
+    effects = scope["effects"]
+    row = effects.loc["keep non-product lines"]
+    assert re.fullmatch(r"customer 1311: \$0\.00057 → \$213\.\d\d", row["largest_pct_customer"])
+    assert re.fullmatch(r"customer 1377: \$29\.65 → \$664\.\d\d", row["largest_change_usd"])
+    assert pd.isna(effects.loc["reference", "largest_change_usd"])
