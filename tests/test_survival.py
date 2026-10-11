@@ -1,5 +1,13 @@
 """mktstats.survival: the interval checks fail on broken input, the stratified bootstrap keeps
-its strata and is reproducible, and the reference solutions give the hand-worked answers."""
+its strata and is reproducible, and the reference solutions give the hand-worked answers.
+
+The last section runs the Module 14 lab's own checkpoint cells (labs/src/14-survival-churn.py)
+on wrong answers a learner plausibly writes, and checks the message each one gets."""
+
+import contextlib
+import re
+import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -245,3 +253,253 @@ def test_cox_hazard_ratios_shape_and_scale():
     two = sv.cox_hazard_ratios(d, ["z", "x"], alpha=0.1)
     assert list(two.index) == ["z", "x"]
     assert (two["upper"] - two["lower"]).loc["x"] < (out["upper"] - out["lower"]).loc["x"]
+
+
+# ---- the lab's checkpoints on wrong answers ----------------------------------------------------
+
+LAB = Path(__file__).resolve().parent.parent / "labs" / "src" / "14-survival-churn.py"
+CHECKPOINT = re.compile(r"workshop\.checkpoint\((\d+)\)")
+
+
+class _Workshop:
+    """Enough of the harness to run the lab's cells outside a notebook: a solution cell binds
+    the reference as it is defined, and a checkpoint is a plain block whose error propagates."""
+
+    def solution(self, n):
+        return lambda obj: obj
+
+    def checkpoint(self, n=None, label=None):
+        return contextlib.nullcontext()
+
+
+def _lab_cells():
+    jupytext = pytest.importorskip("jupytext")
+    return jupytext.read(LAB, fmt="py:percent").cells
+
+
+@pytest.fixture(scope="module")
+def lab():
+    """(namespace after every code cell before Checkpoint 5, run on the reference solutions;
+    {n: source of checkpoint n})."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from mktstats import checks
+
+    code = [c.source for c in _lab_cells() if c.cell_type == "code" and c.source.strip()]
+    checkpoints = {int(m[1]): c for c in code if (m := CHECKPOINT.search(c))}
+    ns = {"QUICK": True, "workshop": _Workshop(), "checks": checks}
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="FigureCanvasAgg is non-interactive")
+        for source in code:
+            if source is checkpoints[5]:
+                break
+            exec(compile(source, str(LAB), "exec"), ns)
+            plt.close("all")
+    return ns, checkpoints
+
+
+def run_checkpoint(lab, n, **names):
+    """Run checkpoint n on a copy of the lab's namespace with ``names`` replaced; returns the
+    copy. Pass ``subs=...`` to a function that changes subs, so the fixture's stays intact."""
+    ns, checkpoints = lab
+    scope = {**ns, **names}
+    exec(compile(checkpoints[n], f"<checkpoint {n}>", "exec"), scope)
+    return scope
+
+
+def checkpoint_message(lab, n, **names) -> str:
+    with pytest.raises(AssertionError) as err:
+        run_checkpoint(lab, n, **names)
+    return str(err.value)
+
+
+# Exercise 1: wrong Kaplan-Meier estimators that pass the two toys or fail them in a new way.
+
+
+def km_rounded(reference, decimals):
+    def km(duration, event):
+        t = np.asarray(duration, dtype=float)
+        return reference(t.astype(int) if decimals is None else t.round(decimals), event)
+
+    return km
+
+
+def km_in_order_of_appearance(sort_at_the_end):
+    """A loop over the cancellation times in the order they appear; the toys are in order."""
+
+    def km(duration, event):
+        t, d = np.asarray(duration, dtype=float), np.asarray(event, dtype=float)
+        s, out = 1.0, {}
+        for tj in pd.unique(t[d == 1]):
+            s *= 1 - d[t == tj].sum() / (t >= tj).sum()
+            out[float(tj)] = s
+        km = pd.Series(out, name="survival")
+        return km.sort_index() if sort_at_the_end else km
+
+    return km
+
+
+def km_just_before(reference):
+    def km(duration, event):
+        s = reference(duration, event)
+        return pd.Series(np.r_[1.0, s.to_numpy()[:-1]], index=s.index, name="survival")
+
+    return km
+
+
+def test_checkpoint_1_passes_on_the_reference(lab):
+    run_checkpoint(lab, 1)
+
+
+def test_checkpoint_1_says_not_to_cast_the_tenures(lab):
+    msg = checkpoint_message(lab, 1, kaplan_meier=km_rounded(lab[0]["kaplan_meier"], None))
+    assert re.search(r"your curve has \d+ times; there are \d+ distinct cancellation", msg)
+    assert "Your times are whole numbers." in msg
+    assert "without rounding them or casting them (no round(), no astype(int))" in msg
+    assert "Pass subs" not in msg  # the checkpoint passes the columns, not the learner
+
+
+def test_checkpoint_1_says_not_to_round_the_tenures(lab):
+    msg = checkpoint_message(lab, 1, kaplan_meier=km_rounded(lab[0]["kaplan_meier"], 1))
+    assert "whole numbers" not in msg and "without rounding them or casting them" in msg
+
+
+def test_checkpoint_1_says_to_sort_before_the_product(lab):
+    msg = checkpoint_message(lab, 1, kaplan_meier=km_in_order_of_appearance(False))
+    assert "all there but not in ascending order: sort by time before the cumulative" in msg
+    msg = checkpoint_message(lab, 1, kaplan_meier=km_in_order_of_appearance(True))
+    assert "right times but differs from lifelines'" in msg
+    assert "sort before .cumprod(), not after" in msg and "Pass subs" not in msg
+
+
+def test_checkpoint_1_names_survival_just_before_each_time(lab):
+    msg = checkpoint_message(lab, 1, kaplan_meier=km_just_before(lab[0]["kaplan_meier"]))
+    assert "returned {2.0: 1.0, 3.0: 0.875, 5.0: 0.75" in msg
+    assert "Ŝ just before each time" in msg and "Ŝ(2) = 1 − 1/8 = 0.875" in msg
+
+
+# Exercise 2: length checks that use assert, or refuse a curve that is just long enough.
+
+
+def ep_assert(survival, horizon):
+    assert len(survival) >= horizon
+    return float(np.asarray(survival, dtype=float)[:horizon].sum())
+
+
+def ep_off_by_one(survival, horizon):
+    if len(survival) <= horizon:
+        raise ValueError(f"the curve has only {len(survival)} values")
+    return float(np.asarray(survival, dtype=float)[:horizon].sum())
+
+
+def ep_assert_off_by_one(survival, horizon):
+    assert len(survival) > horizon, "too short"
+    return float(np.asarray(survival, dtype=float)[:horizon].sum())
+
+
+def test_checkpoint_2_passes_on_the_reference(lab):
+    run_checkpoint(lab, 2)
+
+
+def test_checkpoint_2_says_to_raise_valueerror_not_assert(lab):
+    msg = checkpoint_message(lab, 2, expected_periods=ep_assert)
+    assert msg.startswith("Checkpoint 2: expected_periods([1, 0.5, 0.25], 4) raised"
+                          " AssertionError, not ValueError")
+    assert "if len(survival) < horizon: raise ValueError" in msg
+
+
+def test_checkpoint_2_says_when_to_raise(lab):
+    msg = checkpoint_message(lab, 2, expected_periods=ep_off_by_one)
+    assert msg.startswith(
+        "Checkpoint 2: expected_periods([1, 0.5, 0.25], 3) raised ValueError, but its 3 values,"
+        " S(0) to S(2), are enough for a horizon of 3: raise only when len(survival) < horizon."
+    )
+    assert "not an assert" not in msg
+    msg = checkpoint_message(lab, 2, expected_periods=ep_assert_off_by_one)
+    assert "raised AssertionError, but its 3 values" in msg
+    assert "And raise ValueError, not an assert." in msg
+
+
+# Exercise 3: the printout before Exercise 4 must not answer Exercise 4's Predict.
+
+
+def test_checkpoint_3_does_not_give_away_the_offers_truth(lab, capsys):
+    capsys.readouterr()
+    run_checkpoint(lab, 3)
+    out = capsys.readouterr().out
+    assert "no single true hazard ratio" in out and "Exercise 4 shows why" in out
+    offer = lab[0]["truth"]["model"]["intro_offer"]
+    for value in (offer["hr_before"], offer["hr_after"]):
+        assert f"{value:.2f}" not in out
+
+
+# Exercise 4: a split that changes subs in place, and a rerun that does not rebuild it.
+
+
+def ls_in_place(subs, landmark=3.0):
+    late = subs["tenure_months"] > landmark
+    after = subs[late].assign(tenure_months=subs.loc[late, "tenure_months"] - landmark)
+    before = subs
+    before["churned"] = before["churned"].where(~late, 0)
+    before["tenure_months"] = before["tenure_months"].clip(upper=landmark)
+    return before, after
+
+
+def _code_after(cells, heading):
+    """The first code cell after the markdown cell that starts with ``heading``."""
+    at = next(i for i, c in enumerate(cells)
+              if c.cell_type == "markdown" and c.source.startswith(heading))
+    return next(c.source for c in cells[at:] if c.cell_type == "code")
+
+
+def test_checkpoint_4_in_place_names_the_cells_that_rebuild_subs(lab):
+    ns = lab[0]
+    msg = checkpoint_message(lab, 4, landmark_split=ls_in_place, subs=ns["subs"].copy())
+    assert msg.startswith("Checkpoint 4: your function changed `subs` in place")
+    assert ('rerun the cell under "Run · Tenure, churn and two dashboard numbers" in Part A,'
+            " then Part B's first cell") in msg
+    assert "Part A's first provided cell" not in msg
+    # The cells it names are the ones that build subs.
+    cells = _lab_cells()
+    assert "subs = add_tenure(" in _code_after(cells, "### Run · Tenure, churn and two dashboard")
+    assert "subs = add_plan_dummies(subs)" in _code_after(cells, "# Part B ·")
+
+
+def test_checkpoint_4_stops_a_rerun_on_a_changed_subs_and_its_advice_works(lab):
+    ns = lab[0]
+    changed = ls_in_place(ns["subs"].copy())[0]
+    msg = checkpoint_message(lab, 4, subs=changed)  # the reference, subs not rebuilt
+    assert msg.startswith("Checkpoint 4: `subs` is no longer the table Parts A and B built")
+    assert 'rerun the cell under "Run · Tenure, churn and two dashboard numbers"' in msg
+    # Following the advice: the two named cells, then the checkpoint, which now passes.
+    cells = _lab_cells()
+    scope = {**ns, "subs": changed}
+    for heading in ("### Run · Tenure, churn and two dashboard", "# Part B ·"):
+        exec(compile(_code_after(cells, heading), str(LAB), "exec"), scope)
+    run_checkpoint((scope, lab[1]), 4)
+
+
+# Exercise 5: restricted_mean_survival_time without t=horizon.
+
+
+def test_checkpoint_5_explains_a_gain_that_is_not_a_number(lab):
+    ns = lab[0]
+    rmst = ns["restricted_mean_survival_time"]
+
+    def rmst_gain_without_t(subs, horizon, weights):
+        w = pd.Series(weights, dtype=float)
+        assert abs(w.sum() - 1) < 1e-9
+        total = 0.0
+        for plan, weight in w.items():
+            area = {onb: rmst(ns["fit_km"](subs[(subs["plan"] == plan)
+                                                & (subs["onboarded"] == onb)]))
+                    for onb in (1, 0)}
+            total += weight * (area[1] - area[0])
+        return float(total)
+
+    msg = checkpoint_message(lab, 5, rmst_gain=rmst_gain_without_t)
+    assert "your gain is nan months" in msg
+    assert "restricted_mean_survival_time(kmf) without t" in msg and "Pass t=horizon." in msg

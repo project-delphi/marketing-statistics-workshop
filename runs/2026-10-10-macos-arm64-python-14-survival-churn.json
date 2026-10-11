@@ -6,10 +6,10 @@
   "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
   "kernel": "python3",
   "settings": {},
-  "commit": "2ec07bb",
+  "commit": "2a98f2a",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "7264963f11767143",
+  "content_sha": "495cf51b2e28612f",
   "deps_sha": "d36add16277e80bd",
   "runs": [
     {
@@ -17,18 +17,18 @@
       "notebook": "python/14-survival-churn",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 9.0,
+      "seconds": 9.3,
       "phases": {
-        "generated": 0.07,
-        "other": 1.83,
+        "generated": 0.05,
+        "other": 2.04,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 5.32,
-        "verify": 0.05
+        "checkpoint": 5.94,
+        "verify": 0.06
       },
       "slowest_cell": {
         "id": "cell-055",
-        "seconds": 4.81
+        "seconds": 5.35
       },
       "verified": 5,
       "python": "3.13.2",
@@ -89,17 +89,17 @@
       "notebook": "python/14-survival-churn",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 3.0,
+      "seconds": 2.4,
       "phases": {
-        "generated": 0.06,
-        "other": 1.09,
+        "generated": 0.05,
+        "other": 1.16,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 1.07
+        "seconds": 1.14
       },
       "note": "Laptop shared with other build agents during the run."
     }

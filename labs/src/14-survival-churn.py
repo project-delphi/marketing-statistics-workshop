@@ -211,6 +211,9 @@ with workshop.checkpoint(1):
     elif abs(tie.get(1.0, np.nan) - 4 / 9) < 1e-3:
         cause = ("You applied 1 − 1/3 twice with the same n_j; use one factor per time,"
                  " 1 − d_j / n_j.")
+    elif abs(toy.get(2.0, np.nan) - 1) < 1e-12:
+        cause = ("Your values are Ŝ just before each time: Ŝ(t_j) includes the factor of t_j"
+                 " itself, so Ŝ(2) = 1 − 1/8 = 0.875. Do not shift the cumulative product.")
     else:
         cause = "Compare your n_j and d_j with the worked start above, one time at a time."
     shown = {t: round(s, 3) for t, s in toy.items()}
@@ -225,18 +228,33 @@ with workshop.checkpoint(1):
     )
     km_mine = kaplan_meier(subs["tenure_months"], subs["churned"])
     event_times = np.sort(subs.loc[subs["churned"] == 1, "tenure_months"].unique())
-    assert len(km_mine) == len(event_times) and np.array_equal(
-        np.asarray(km_mine.index, dtype=float), event_times), (
+    mine_times = np.asarray(km_mine.index, dtype=float)
+    # The toys' durations are whole numbers in ascending order; the tenures in subs are not.
+    no_rounding = ("Tenures are fractions of a month (days ÷ 30.4375), so several of them round"
+                   " to the same number: your function must use the durations as they are,"
+                   " without rounding them or casting them (no round(), no astype(int)).")
+    if len(mine_times) < len(event_times):
+        whole = np.all(mine_times == np.round(mine_times))
+        data_cause = ("Your times are whole numbers. " if whole else "") + no_rounding
+    elif len(mine_times) == len(event_times) and np.array_equal(np.sort(mine_times),
+                                                                event_times):
+        data_cause = ("The times are all there but not in ascending order: sort by time"
+                      " before the cumulative product.")
+    else:
+        data_cause = ("Return one row per distinct cancellation time, ascending, keeping each"
+                      " duration with its own event. " + no_rounding)
+    assert len(km_mine) == len(event_times) and np.array_equal(mine_times, event_times), (
         f"Checkpoint 1: on `subs` your curve has {len(km_mine)} times; there are"
-        f" {len(event_times)} distinct cancellation times. Pass subs['tenure_months'] and"
-        " subs['churned'] unrounded, and sort the index ascending." + recover
+        f" {len(event_times)} distinct cancellation times. {data_cause}" + recover
     )
     gap = np.abs(km_mine.to_numpy() - kmf_subs.survival_function_["KM_estimate"]
                  .loc[event_times].to_numpy())
     assert gap.max() <= 1e-9, (
-        f"Checkpoint 1: your curve differs from lifelines' by {gap.max():.2g} at"
-        f" t = {event_times[int(np.argmax(gap))]:.3f} months. Pass subs['tenure_months'] and"
-        " subs['churned'] unrounded, and sort the index ascending." + recover
+        f"Checkpoint 1: your curve has the right times but differs from lifelines' by"
+        f" {gap.max():.2g} at t = {event_times[int(np.argmax(gap))]:.3f} months. Take the"
+        " cumulative product over the times in ascending order: sort before .cumprod(), not"
+        " after (the toys' durations were already in order; the tenures in subs are not)."
+        + recover
     )
 print(f"Your curve: {len(km_mine):,} cancellation times among"
       f" {subs['tenure_months'].nunique():,} distinct tenures; largest gap to lifelines"
@@ -418,13 +436,32 @@ with workshop.checkpoint(2):
             return expected_periods(curve, horizon)
         except ValueError:
             return None
+        except AssertionError as exc:
+            raise AssertionError(
+                f"Checkpoint 2: {what} raised AssertionError, not ValueError: an assert always"
+                " raises AssertionError. Check the length with an if and raise ValueError"
+                " yourself: if len(survival) < horizon: raise ValueError(\"...\")." + recover
+            ) from exc
         except (IndexError, KeyError) as exc:
             raise AssertionError(
                 f"Checkpoint 2: {what} raised {type(exc).__name__}, not ValueError. Check the"
                 " length and raise ValueError yourself, before summing." + recover
             ) from exc
 
-    got3 = expected_periods([1, 0.5, 0.25], 3)
+    def summed(curve, horizon, what):
+        """The value of expected_periods on a curve long enough for the horizon."""
+        try:
+            return expected_periods(curve, horizon)
+        except (ValueError, AssertionError) as exc:
+            raise AssertionError(
+                f"Checkpoint 2: {what} raised {type(exc).__name__}, but its {len(curve)} values,"
+                f" S(0) to S({len(curve) - 1}), are enough for a horizon of {horizon}: raise"
+                " only when len(survival) < horizon."
+                + (" And raise ValueError, not an assert." if isinstance(exc, AssertionError)
+                   else "") + recover
+            ) from exc
+
+    got3 = summed([1, 0.5, 0.25], 3, "expected_periods([1, 0.5, 0.25], 3)")
     assert abs(got3 - 0.75) > 1e-9, (
         "Checkpoint 2: expected_periods([1, 0.5, 0.25], 3) is 0.75; expected 1.75. You started"
         " at survival[1]. Everyone pays the first period, so S(0) = 1 counts: sum survival[0]"
@@ -434,7 +471,7 @@ with workshop.checkpoint(2):
         f"Checkpoint 2: expected_periods([1, 0.5, 0.25], 3) is {got3}; expected"
         " 1 + 0.5 + 0.25 = 1.75." + recover
     )
-    got2 = expected_periods([1, 0.5, 0.25], 2)
+    got2 = summed([1, 0.5, 0.25], 2, "expected_periods([1, 0.5, 0.25], 2)")
     assert abs(got2 - 1.5) < 1e-12, (
         f"Checkpoint 2: expected_periods([1, 0.5, 0.25], 2) is {got2}; expected 1 + 0.5 = 1.5."
         + (" The function ignores `horizon`; sum only the first `horizon` values."
@@ -452,14 +489,14 @@ with workshop.checkpoint(2):
         f"Checkpoint 2: Kaplan-Meier's curve (years 0-7, {len(km_years)} values) with horizon 12"
         f" returned {km_short}; it should raise ValueError." + recover
     )
-    actual_12 = expected_periods(actual_years, 12)
+    actual_12 = summed(actual_years, 12, "the actual Regular curve with horizon 12")
     assert abs(actual_12 - retention["regular"].iloc[:12].sum() / 1000) < 1e-12, (
         f"Checkpoint 2: on the actual Regular curve your total is {actual_12:.4f}; the sum of"
         " S(0) to S(11) of the actual curve is 4.406. Sum 12 values starting at year 0."
         + recover
     )
-    sbg_12 = expected_periods(sbg_years, 12)
-    flat_12 = expected_periods(km_flat, 12)
+    sbg_12 = summed(sbg_years, 12, "the sBG curve with horizon 12")
+    flat_12 = summed(km_flat, 12, "Kaplan-Meier carried flat with horizon 12")
     # Data checks once the function is right: published sBG estimates, and the flat tail.
     assert abs(sbg_12 / actual_12 - 1) < 0.01, (
         f"Checkpoint 2: the sBG gives {sbg_12:.3f} expected paid years against {actual_12:.3f}"
@@ -714,8 +751,8 @@ hr_table = pd.concat(
     [adjusted.assign(model="with plan"), unadjusted.assign(model="onboarding only")]
 ).reset_index(names="covariate")
 hr_table["truth"] = hr_table["covariate"].map(hr_true)
-print("Hazard ratios with 95% confidence intervals; the offer's truth is 2.01 in months 0-3"
-      " and 1.00 after, so no single number.")
+print("Hazard ratios with 95% confidence intervals. The offer has no single true hazard ratio"
+      " (NaN in the truth column); Exercise 4 shows why.")
 hr_table[["model", "covariate", "hr", "lower", "upper", "truth"]].round(3)
 
 # %% [markdown]
@@ -798,15 +835,26 @@ def landmark_split(subs, landmark=3.0):
 
 
 # %% tags=["checkpoint"]
+rebuild = ("rerun the cell under \"Run · Tenure, churn and two dashboard numbers\" in Part A,"
+           " then Part B's first cell (it adds plan_standard and plan_premium), then this"
+           " checkpoint.")
+# Before any check: a landmark_split that changed `subs` in place on an earlier run leaves it
+# changed, even after the function is fixed or the reference is chosen.
+assert subs.equals(add_plan_dummies(add_tenure(raw.drop(columns=["true_tenure_months",
+                                                                 "true_rmst24_gain"])))), (
+    "Checkpoint 4: `subs` is no longer the table Parts A and B built: a function changed it in"
+    " place, probably an earlier run of your landmark_split. Rebuild it before anything else: "
+    + rebuild
+)
 with workshop.checkpoint(4):
     recover = " To move on, run workshop.use_reference(4)."
     subs_copy = subs.copy()
     before, after = landmark_split(subs, LANDMARK)
     assert subs.equals(subs_copy), (
         "Checkpoint 4: your function changed `subs` in place, which would make Exercise 5 and"
-        " the Decision wrong without an error. Build new frames (subs.assign(...) or"
-        " subs.copy()), rerun Part A's first provided cell and the dummy-columns cell before"
-        " Exercise 3, then this checkpoint." + recover
+        " the Decision wrong without an error. Fix it to build new frames (subs.assign(...) or"
+        " subs.copy()) and rerun its cell, or run workshop.use_reference(4). Then rebuild"
+        " `subs`: " + rebuild
     )
     for name, part in (("before", before), ("after", after)):
         checks.columns(part, list(subs.columns), name=f"'{name}'")
@@ -986,11 +1034,16 @@ with workshop.checkpoint(5):
 
     direct = {plan: direct_gain(plan) for plan in ("basic", "premium")}
     got_basic = rmst_gain(subs, HORIZON, {"basic": 1.0})
-    cause = ("You subtracted the other way: onboarded minus not onboarded."
-             if abs(got_basic + direct["basic"]) < 1e-9 else
-             "For each plan, fit one KaplanMeierFitter to its onboarded subscribers and one to"
-             " its not-onboarded subscribers, and take restricted_mean_survival_time(kmf,"
-             " t=horizon) of each, as the provided cell above does for everyone.")
+    if not np.isfinite(got_basic):
+        cause = ("A gain that is not a number comes from restricted_mean_survival_time(kmf)"
+                 " without t: it then integrates each curve to infinity, and infinity minus"
+                 " infinity is nan. Pass t=horizon.")
+    elif abs(got_basic + direct["basic"]) < 1e-9:
+        cause = "You subtracted the other way: onboarded minus not onboarded."
+    else:
+        cause = ("For each plan, fit one KaplanMeierFitter to its onboarded subscribers and one"
+                 " to its not-onboarded subscribers, and take restricted_mean_survival_time(kmf,"
+                 " t=horizon) of each, as the provided cell above does for everyone.")
     assert abs(got_basic - direct["basic"]) < 1e-9, (
         f"Checkpoint 5: with weights {{'basic': 1.0}} your gain is {got_basic:.4f} months; for"
         f" basic alone it is {direct['basic']:.4f}. {cause}" + recover
