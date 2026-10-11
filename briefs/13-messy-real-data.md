@@ -119,12 +119,12 @@ capstone's 2032 (check against Modules 14–17).
 |---|---|---|---|
 | `guest` | Extra invoices with no customer ID, amounts Gamma(6, scale 5) | 29% as many invoices as identified ones, ≈ 23% of lines (22.5% of lines have no ID) | `no_customer` |
 | `postage` | A `POST` line ("POSTAGE", quantity 1, $4.95) on an identified invoice | 4.9% of invoices (4.88%) | `non_product` |
-| `carriage` | A `C2` line ("CARRIAGE", $25) | 0.7% of invoices (254 of 36,975) | `non_product` |
+| `carriage` | A `C2` line ("CARRIAGE", $25) | 0.7% of invoices (248 of the 36,975 identified invoices that are not cancellations; 254 counting C2 lines on `C` invoices; re-measured 2026-10-10) | `non_product` |
 | `fee_invoice` | A separate invoice with one `M` ("Manual", $1–$60) line for 7% of customers, or one `BANK CHARGES` ($15) line for 2%, on a random day after the first purchase | ≈ 1% of invoices (378 of 36,975 identified invoices hold only non-product lines) | `non_product` |
 | `duplicate` | An exact copy of a line, all eight columns equal, placed right after it | 1.44% of lines (1.44% of identified lines) | `duplicate` |
-| `cancelled_order` | An extra order (same customer, on a purchase day or up to 14 days later) and a `C` invoice negating every line | 1.2% of purchases; same day for 15% (11.6% of matched cancellations are same-day) | `cancellation` |
+| `cancelled_order` | An extra order (same customer, on a purchase day or up to 14 days later) and a `C` invoice negating every line | 1.2% of purchases; same day for 15% (re-measured 2026-10-10: 20.1% of matched cancellation lines fall on their purchase's day; 11.1% of the 2,868 `C` invoices with a match have all their matched lines on that day) | `cancellation` |
 | `returned_line` | An extra line on a real invoice and a later `C` invoice returning it in full (same code, price, quantity), 1–30 days later (same day 15%) | 2% of purchases | `cancellation` |
-| `same_day_split` | A purchase with ≥ 2 lines split into two invoices 5–180 minutes apart on the same day | 9% of purchases (10.2% of identified invoices are a customer's second or later invoice that day) | counting purchase days |
+| `same_day_split` | A purchase with ≥ 2 lines split into two invoices 5–180 minutes apart on the same day | 9% of purchases (10.0% of identified invoices that are not cancellations are a customer's second or later invoice that day, counting invoices with a product line; re-measured 2026-10-10) | counting purchase days |
 | `wholesale` | The 25 wholesale customers (step 1) | 0.5% of customers | none: they are real (Part C) |
 
    Combined, cancellation lines are ≈ 2.1% of identified lines (real 2.28%). Every synthetic cancellation
@@ -569,7 +569,7 @@ text below." The cell:
 2. Runs the learner's `flag_lines` and `match_cancellations` and the provided pipeline unchanged. Label
    checkpoint "Online Retail II counts": each rule's count equals the reference measured on the
    sha256-checked table (prototype: no customer 235,287; non-product 5,992; duplicate 11,812; cancellation
-   lines among kept lines 17,586, of which 6,107 matched and 123 originals matched twice; 23,570 lines
+   lines among kept lines 17,586, of which 6,107 matched, 123 of them to a purchase line another cancellation had already picked (109 purchase lines picked more than once; re-measured 2026-10-10, the same on every run although DuckDB's ASOF picks either of two identical purchase lines on one invoice and minute); 23,570 lines
    dropped by the cancellation rule; 32,721 purchase days of 5,839 customers). A failure routes the learner
    as the exact-recovery check does: a flag count → `workshop.use_reference(1)`; a cancellation count →
    `workshop.use_reference(2)`.
@@ -668,28 +668,29 @@ Then one provided cell prints:
   (customers × £10) and the expected extra margin at the assumed lift (Σ lift × margin × expected 26-week
   revenue over the list); then the count at a 5% and a 20% lift (prototype: 1,114 and 3,446); then a table,
   one row per cleaning choice, of customers added and dropped against the reference list, sorted by the
-  total moved. Prototype, at a 10% lift: count invoices instead of days 164 (14 added, 150 dropped); Module
-  1's rules 51 (48, 3); Module 1's cancellation rule 27; keep non-product lines 20; cap at the 99th
-  percentile (£3,663) 20, or 19 if capped for fitting only; keep duplicates 11; cap at the 99.9th
-  percentile 2. The cell prints the mode and the sentence "No interval: the fits are point estimates; the
+  total moved. Measured in the recorded FULL runs (2026-10-10, `runs/2026-10-10-*-python-13-messy-real-data.json`),
+  at a 10% lift: count invoices instead of days 153 (14 added, 139 dropped; the prototype's 164 left out the
+  invoices of 2011-06-30 after midnight); Module 1's rules 51 (48, 3); Module 1's cancellation rule 27 (24, 3);
+  keep non-product lines 20 (17, 3); cap at the 99th percentile (£3,663) 20 (5, 15), or 19 (5, 14) if capped
+  for fitting only; keep duplicates 11 (10, 1); cap at the 99.9th percentile (£16,488) 2 (1, 1). The cell prints the mode and the sentence "No interval: the fits are point estimates; the
   spread shown is across assumed lifts and cleaning choices."
 - **Recommendation:** the learner's sentence. The numbers above suggest its shape: how many customers to
   contact and what it costs; that no cleaning choice moves the list as much as halving or doubling the
-  assumed lift (1,098 and 1,234 customers against at most 164, prototype); and that cleaning still decides
+  assumed lift (1,098 and 1,234 customers against at most 153, measured); and that cleaning still decides
   *who* is on the list (a test account and cancelled bulk orders under Module 1's rules). What would change
   it: a measured lift. The uncertainty here comes from the assumed lift and the cleaning choices, not from
   a posterior (the fits are MAP; see the stretch).
 
-The template under the cell (the code fills every number; the values below are the prototype's, to show the
-format, except the margin, which the prototype did not report):
+The template under the cell (the code fills every number; the values below are from the recorded FULL runs
+of 2026-10-10):
 
 ```text
 Number          : 2,212 of 5,008 customers clear the bar at a 10% lift (1,114 at 5%, 3,446 at 20%).
-                  Contact cost £22,120; expected extra margin at a 10% lift £____.
+                  Contact cost £22,120; expected extra margin at a 10% lift £92,541 (net £70,421).
                   Point estimates: no interval. FULL run.
 Rule            : contact when 10% lift × 30% margin × expected 26-week revenue > £10 (revenue > £333).
 Cleaning        : the choice that moves the list most is counting invoices instead of purchase days,
-                  164 customers (14 added, 150 dropped); Module 1's rules move 51.
+                  153 customers (14 added, 139 dropped); Module 1's rules move 51.
 What would change it: the lift. At 5% the list halves, at 20% it grows by about half; a randomized
                   holdout from the list (Module 6) would measure it.
 Your sentence   : ________________________________________________
@@ -913,3 +914,31 @@ What changed, and why:
 Not changed: the content, the claims, the datasets, the generator, the stretch, the references and the
 decision. `modules.m13` in `_variables.yml` still matches the brief (its objectives and outcomes name the
 same work; PyMC-Marketing is still fitted once), so it was not edited.
+
+## Build notes (Technical Expert, 2026-10-10)
+
+The lab is built and recorded (macOS and Docker FULL runs; no Colab run yet). Where the build departs
+from the spec above, and why:
+
+- **Size.** The committed `messy_lines.csv` must stay a plain CSV of about 2.5 MB at most, so the
+  generator takes the retailer's customers 1 to 2,500 (not all 5,000) and 13 wholesale customers
+  (IDs 5001 to 5013, 0.5% as before), with 1 + Poisson(0.25) product lines per invoice: 36,453 lines,
+  2.39 MiB, 2,513 customers. At the prototype's configuration the generator reproduces the prototype's
+  reference row exactly (forecast 16,178; P99 cap $149.48 with p 6.134, q 4.058, v 15.300).
+- **Rates** were retuned to fewer lines per invoice and measured on the committed log against Online
+  Retail II: lines without an ID 22.4% (22.5%), POST invoices 4.83% (4.88%), fee-only invoices 1.04%
+  (1.02%), duplicates 1.45% (1.44%), cancellation lines 2.28% (2.28%), extra same-day invoices 10.0%
+  (10.0%). Cancellation pairs are never duplicated, so keeping duplicates leaves the purchase model
+  exactly unchanged.
+- **Measured Predict answers** (committed log): Exercise 1 6.6%; Exercise 2 both, slightly (+1.2%
+  frequency, +1.0% repeat spend); Exercise 3 +6.4% total and 449 of 2,513 customers moved by more than
+  10% (prototype 2,610 of 5,025: this count is volatile across error realizations); Exercise 4 toward
+  ($32.42 to $31.43) and wholesale value −79% with capped amounts, so the bins became under 25%, 25 to
+  50%, over 50%; Exercise 5 £333.33 and 44%.
+- **Tolerances** (30 seeds): holdout forecast 20% (largest error 17.8%, mean +8.0%), which breaks the
+  brief's "no looser than 15%" at half the customers; capped Gamma-Gamma p 90%, q 15%, v 55%, population
+  mean 8% (p, q and v trade off; their mean is tight).
+- **Counting lines** is no longer degenerate with fewer lines per invoice (the BG/NBD converges); the
+  lab still shows it as a mean-frequency line only and does not claim degeneration.
+- **The 123 double matches** are left as a stated approximation: pairing one to one matches 39 more
+  purchase lines (£4,955), changes 17 customers' calibration RFM and adds one customer to the list.
