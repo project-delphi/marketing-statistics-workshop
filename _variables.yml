@@ -43,7 +43,7 @@ environment:
 # Versions must agree with environment/requirements.txt (tests/test_variables.py).
 packages:
   pymc-marketing: {version: "1.2.0", checked: 2026-10-10, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer; 2026-10-10: clv/distributions.py BetaGeoNBD.logp, clv/models/gamma_gamma.py GammaGammaModel.build_model and expected_customer_spend, clv/models/beta_geo.py BetaGeoModel.expected_purchases, transcribed in mktstats.mle and tested against them); Module 17, 2026-10-10: mmm/mmm.py MMM(time_varying_media: bool | HSGPBase) (an HSGPBase instance keeps its own dims, so dims=(date, channel) gives one multiplier per channel; True gives one shared multiplier, dims (date,)), mmm/hsgp.py SoftPlusHSGP.parameterize_from_data(X, dims, X_mid=None, eta_mass=0.05, eta_upper=1.0, ls_lower=1.0, ls_upper=None, ls_mass=0.9, cov_func=CovFunc.ExpQuad, centered=False, drop_first=True) and create_variable (softplus divided by its mean over date), mmm/tvp.py (Matern 5/2 when cov_func is None), mmm/incrementality.py contribution_over_spend (window clamped to the fitted dates), mmm/lift_test.py exact_row_indices and create_time_varying_saturation (a time-varying lift row needs a date equal to a model date)", docs: https://www.pymc-marketing.io/}
-  econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
+  econml: {version: "0.17.0", checked: 2026-10-10, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py (Module 11); for Module 15 the installed source of econml/dml/dml.py (LinearDML.__init__ and fit, _FirstStageWrapper, sensitivity_interval, robustness_value), econml/_ortho_learner.py (cv: an iterable of splits is used as given), econml/_cate_estimator.py (ate, ate_interval, intercept__inference), econml/inference/_inference.py (StatsModelsInference cov_type='HC1' by default), econml/dml/_rlearner.py (nuisance_scores_y/_t), econml/dr/_drlearner.py (LinearDRLearner)", docs: https://www.pywhy.org/EconML/}
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
   # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
   lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05; needs autograd-gamma 0.5.0, pinned in requirements.txt); imports on Python 3.13; installed source lifelines 0.30.3, read again for the Module 14 build on 2026-10-10: fitters/kaplan_meier_fitter.py (KaplanMeierFitter(alpha); fit/_fit; survival_function_ = exp(cumsum(log(1 - d/n))) from utils _additive_estimate, index 0 plus every distinct duration; confidence_interval_ from _bounds, exponential Greenwood, pointwise), fitters/__init__.py (UnivariateFitter.predict = asof, flat past the data), utils/__init__.py (restricted_mean_survival_time exact step integral up to t, return_variance = variance of min(T, t); _preprocess_inputs), fitters/coxph_fitter.py (CoxPHFitter(alpha) via BaseFitter, fit(df, duration_col, event_col) uses every other column, breslow -> SemiParametricPHFitter, confidence_intervals_ on the log scale with columns '95% lower-bound' and '95% upper-bound', summary), fitters/mixins.py (hazard_ratios_ = exp(params_), check_assumptions), statistics.py (proportional_hazard_test with time_transform rank; StatisticalResult.summary sorted by name; logrank_test, multivariate_logrank_test)", docs: https://lifelines.readthedocs.io/}
@@ -652,29 +652,31 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python. EconML implements double machine learning (LinearDML, CausalForestDML) on scikit-learn and LightGBM models, the same library as Module 11."
-    summary: "Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment."
+    language_why: "Python. EconML's LinearDML, the double machine learning estimator, takes any scikit-learn model for its two prediction steps; the lab uses scikit-learn's histogram gradient boosting, as in Module 11, and statsmodels for the regression baseline."
+    summary: "Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, find out whose effect the estimate describes, then reproduce it with EconML's LinearDML and check the method against a randomized benchmark built from the Hillstrom experiment."
     objectives:
-      - "Show with the true effect known how self-selection biases a naive comparison and a linear regression."
-      - "Write the partialling-out estimator with cross-fitting: predict treatment and outcome from covariates, then regress residual on residual."
-      - "Fit EconML's LinearDML with gradient-boosting nuisance models and check that the true effect lies in its 95% confidence interval."
-      - "Check common support with propensity scores and trim customers without overlap."
-      - "Recover a randomized benchmark from a confounded subsample of a real experiment."
+      - "Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls."
+      - "Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval."
+      - "Check overlap with propensity scores, trim, and state which customers the estimate describes."
+      - "Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models."
+      - "Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate."
     outcomes:
-      - "Your own dml_ate() function with cross-fitting, checked against the truth"
-      - "An overlap plot and a trimming rule"
-      - "A comparison of naive, regression and DML estimates with the experimental benchmark"
+      - "Your own cross_fit() and dml_estimate() functions, checked against the true effect and against EconML"
+      - "An overlap plot, a trimmed estimate and a profile of the customers the estimate describes"
+      - "Naive, regression and double machine learning estimates next to the Hillstrom experimental benchmark"
+      - "A break-even credit per install, with the hidden confounder that would overturn it"
     prerequisites:
-      - "Module 6: randomized experiments and confidence intervals"
-      - "Module 11: EconML and treatment effects"
-      - "Gradient boosting at the level of fit and predict"
-    decision: "Decide whether an incentive that gets customers to install the app pays back, from the estimated incremental margin per install and its 95% interval, and name the unobserved confounder that could overturn it."
-    recap: "Modules 6, 7 and 11 estimate effects of things the company randomized or switched on; most customer actions are chosen by the customers themselves."
+      - "Module 6: randomized experiments and 95% confidence intervals"
+      - "Module 11: treatment effects and EconML"
+      - "Linear regression with control variables; gradient boosting at the level of fit and predict"
+    decision: "Decide whether a credit paid to customers for installing the app pays back within 26 weeks, from the incremental margin per persuaded install and its 95% confidence interval, and name the unobserved confounder that could overturn the decision."
+    recap: "Modules 6, 7 and 11 estimate effects of things the company randomized or switched on; installing an app, joining a loyalty program or finishing onboarding (Module 14) are chosen by customers, and the customers who choose them differ from those who do not."
     next: "Module 16 looks at another observational claim made every day: the credit multi-touch attribution gives each channel."
     notebooks:
-      - {path: labs/python/15-double-ml.ipynb, source: labs/src/15-double-ml.py, kernel: python3, install: [econml, lightgbm, scikit-learn, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
+      - {path: labs/python/15-double-ml.ipynb, source: labs/src/15-double-ml.py, kernel: python3, install: [econml, scikit-learn, statsmodels, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/dml.py, src/mktstats/synth/_common.py, src/mktstats/synth/app_install.py, data/synthetic/app_install_customers.csv, data/synthetic/truth_app_install.json]
     data:
+      - {name: "Synthetic app-install customers: 20,000 customers who chose whether to install the retailer's app, with each customer's true propensity and true effect (app_install_customers.csv from mktstats.synth.app_install, seed 2035; truth in truth_app_install.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
       - {name: "Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)", url: "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv", sha256: 0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece}
   m16:
     slug: 16-multi-touch-attribution

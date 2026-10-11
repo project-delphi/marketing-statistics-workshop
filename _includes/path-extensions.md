@@ -32,7 +32,7 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 ::: {.path-body}
 [Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd){.path-title} [Optional]{.chip}
 
-Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment.
+Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, find out whose effect the estimate describes, then reproduce it with EconML's LinearDML and check the method against a randomized benchmark built from the Hillstrom experiment.
 
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.path-builds-on}
 :::

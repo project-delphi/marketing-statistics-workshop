@@ -391,10 +391,20 @@ MMM_DRIFT_TOLERANCES: dict = {
 }
 
 
+def _app_install() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 15: customers who chose to install the app, with known propensities and
+    effects (seed 2035, 20,000 customers)."""
+    from mktstats.synth import app_install
+
+    res = app_install.app_install()
+    return {"app_install_customers.csv": res.customers}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
     "messy": _messy,
     "subscriptions": _subscriptions,
     "mta": _mta,
+    "app_install": _app_install,
     "mmm_drift": _mmm_drift,
 }
 

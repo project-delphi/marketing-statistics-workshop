@@ -164,9 +164,41 @@ the xlsx with openpyxl took about 40 s on an Apple Silicon laptop; the result is
 
 ## Extension datasets
 
-The optional extension modules (13-17) keep their truth out of `truth.json`: each writes
-`data/synthetic/truth_<name>.json` through `EXTENSIONS` in `scripts/make_synthetic.py`, and the
-labs read the files with `mktstats.data.repo_file("synthetic/<file>")`.
+The optional extension modules (13–17) write their own files through `EXTENSIONS` in
+`scripts/make_synthetic.py`: CSVs whose names start with the dataset's name, and their truth in
+`truth_<name>.json` (never in `truth.json`, which the core modules' run records hash). Same
+rules as above: seeded generators, never edited by hand, `make_synthetic.py --check` in CI.
+
+### App install (Module 15)
+
+| File | Rows | Size | Generator (seed) | Contents |
+|---|---:|---:|---|---|
+| `app_install_customers.csv` | 20,000 | 1.4 MB | `mktstats.synth.app_install` (2035) | customer_id, acquisition_channel, tenure_months, orders_12m, days_since_last_order, avg_order_value, email_open_rate, mobile_share, loyalty_member (12 months before the app launch), app_installed (T), spend_next_26w (Y, dollars), true_propensity e(x), true_effect tau(x), true_baseline mu0(x) |
+| `truth_app_install.json` | | 11 KB | the same | parameters and formulas, the confounding structure, the estimands (ATE, ATT, ATC, the overlap-weighted effect, the naive expected difference), the install-credit scenario and decision, and the measured tolerances |
+
+Customers chose whether to install the retailer's app in its four launch weeks. Recent,
+frequent, mobile and e-mail-engaged customers installed more often, and the same customers
+spend more, so the naive comparison and a regression with linear controls are biased upward.
+The effect is tau(x) = 8 + 0.12 mu0(x) dollars over 26 weeks. Every common cause of install
+and spend is among the nine covariates, so double machine learning can recover the truth; a
+lab that drops `mobile_share` (which drives both) shows the bias of a hidden confounder.
+
+- The three `true_*` columns are for checkpoints only; `mktstats.dml.features` selects the nine
+  covariates by name. They are saved rounded (6, 4 and 4 decimals), and every estimand in the
+  truth file is computed from the saved values, so a lab can recompute any of them on the rows
+  it uses (QUICK keeps 10,000 customers).
+- Partialling-out DML estimates the overlap-weighted effect sum(e(1 − e) tau) / sum(e(1 − e))
+  ($14.28 on all 20,000 customers), not the ATE ($13.58); the checkpoints compare with it.
+- `tolerances` records coverage over 30 generator seeds (2035–2064) in both modes, measured
+  2026-10-10 with scikit-learn 1.6.1 and econml 0.17.0: the 95% intervals of the hand-written
+  estimate and of LinearDML covered the overlap-weighted effect for 27 of 30 seeds with all
+  customers and 29 of 30 with 10,000; the lab's two demonstration checks (in-sample standard
+  error at least twice the cross-fitted one; leaving out `mobile_share` raises the estimate by
+  more than $3) held on all 30 in both modes. Slow tests in `tests/test_synth_app_install.py`
+  rerun the sweeps.
+- The lab also uses the real Hillstrom experiment (downloaded, above) as a randomized benchmark:
+  Womens E-Mail against No E-Mail, outcome `visit`, spoiled with a known selection rule
+  (`mktstats.dml.confound`).
 
 ### MMM with a fading channel (Module 17): `mmm_drift_*`
 

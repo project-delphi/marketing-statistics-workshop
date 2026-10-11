@@ -11,8 +11,9 @@ Modes:
            verify-end cell that fails unless the copy failed. So one pass shows that the
            lab runs and that every checkpoint can fail on unfinished code (--no-verify
            skips this).
-  learner  nothing written (MKTSTATS_WORKED=0): the run must stop at the first checkpoint
-           with the harness's "TODO n is not written yet" recovery message.
+  learner  nothing written (MKTSTATS_WORKED=0): the run must stop at the first numbered
+           checkpoint (labeled checks of provided code before it pass) with the harness's
+           "TODO n is not written yet" recovery message.
   both     worked, then learner.
 
 Run:
@@ -26,7 +27,8 @@ The exit code is 1 if any run failed; the --record file is written either way.
 
 `--notebooks` takes ids (python/00-setup-warmup), stems (00-setup-warmup) or paths.
 `--record` writes (or extends) a run-record batch (runs/README.md); `--env` names the
-machine, a key of readiness.envs in _variables.yml.
+machine, a key of readiness.envs in _variables.yml; `--note` adds free text to every new
+entry's `note` (for example the thread limits of a container run).
 """
 
 from __future__ import annotations
@@ -142,10 +144,14 @@ def first_error(nb):
     return None
 
 
-def learner_verdict(nb) -> tuple[bool, str]:
-    """A learner run passes when it stops at the first checkpoint with the recovery message."""
+def learner_verdict(nb, kernel: str = "python3") -> tuple[bool, str]:
+    """A learner run passes when it stops at checkpoint 1 with the recovery message. A labeled
+    check of provided code before it (``workshop.checkpoint(label="data")``) passes on an
+    unwritten notebook, so the run must stop at the first *numbered* checkpoint."""
     stopped = first_error(nb)
     checkpoints = [c for c in nb.cells if c.cell_type == "code" and "checkpoint" in tags(c)]
+    numbered = [c for c in checkpoints if checkpoint_number(c, kernel) is not None]
+    checkpoints = numbered or checkpoints
     if stopped is None:
         return False, "the run did not stop at an unwritten exercise"
     if not checkpoints or stopped is not checkpoints[0]:
@@ -210,7 +216,7 @@ def run(entry: dict, mode: str, verify: bool, save: Path | None, timeout: int) -
         suffix = "" if mode == "worked" else f"-{mode}"
         nbformat.write(nb, out / f"{path.stem}{suffix}.ipynb")
     if mode == "learner":
-        status_ok, verdict = learner_verdict(nb)
+        status_ok, verdict = learner_verdict(nb, kernel)
         if ok:
             status_ok, verdict = False, "the run did not stop at an unwritten exercise"
     else:

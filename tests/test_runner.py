@@ -99,6 +99,25 @@ def test_learner_and_verify_flags_are_separate_runs():
         tn.main(["--learner", "--verify-checkpoints", "--notebooks", "python/00-setup-warmup"])
 
 
+def test_the_learner_verdict_passes_labeled_checks_before_checkpoint_1():
+    """A labeled check of provided code (Module 15's `data` check) comes before checkpoint 1
+    and passes on an unwritten notebook: the run must still stop at checkpoint 1."""
+    data = code('with workshop.checkpoint(label="data"):\n    check()', ["checkpoint"])
+    data.outputs = [stream("[workshop] Checkpoint data passed.")]
+    checkpoint = code("with workshop.checkpoint(1):\n    f()", ["checkpoint"])
+    checkpoint.outputs = [
+        stream("[workshop] Checkpoint 1: TODO 1 is not written yet."),
+        error_output(),
+    ]
+    ok, why = tn.learner_verdict(notebook([data, checkpoint]), "python3")
+    assert ok, why
+    checkpoint.outputs = []
+    data.outputs = [error_output()]
+    ok, why = tn.learner_verdict(notebook([data, checkpoint]), "python3")
+    assert not ok and "not at checkpoint 1" in why
+
+
+
 def _result(ok=True):
     entry = next(e for e in common.existing_notebooks(V) if e["kernel"] == "python3")
     return {"record": {}, "mode": "worked", "kernel": "python3", "settings": {}, "ok": ok,
