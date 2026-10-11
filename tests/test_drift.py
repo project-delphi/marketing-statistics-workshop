@@ -3,6 +3,8 @@ the lab brief, and every checkpoint check passing on the reference and failing o
 answer the brief lists (briefs/17-mmm-time-varying.md, "Failure messages"), with that answer's
 message. Model fits are faked with draws built around the truth, so nothing here samples."""
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -503,3 +505,26 @@ def test_lognormal_toy_has_median_2():
     q = np.sort(own.sel(channel="a").values.ravel())
     assert q[499] < 2 < q[500]
 
+
+def test_drifting_model_cell_gives_the_recovery_line_without_exercise_3(capsys):
+    """The lab's "drifting model" cell calls the learner's drift_ratio inside the labeled check,
+    so a learner who skipped Exercise 3 gets the harness's recovery line, not only a bare
+    NotImplementedError (before the fix the call came before the `with` block)."""
+    from mktstats.harness import Workshop
+
+    jupytext = pytest.importorskip("jupytext")
+    lab = Path(__file__).resolve().parent.parent / "labs" / "src" / "17-mmm-time-varying.py"
+    cell = next(c.source for c in jupytext.read(lab, fmt="py:percent").cells
+                if 'checkpoint(label="drifting model")' in c.source)
+
+    def drift_ratio(mult, early, late):
+        raise NotImplementedError("TODO 3")
+
+    ns = {"drift_ratio": drift_ratio, "mult": None, "drift": dr, "truth": {}, "CHANNELS": CH,
+          "WINDOWS": {"first_year": ("a", "b"), "last_quarter": ("c", "d")}}
+    ns["workshop"] = Workshop("python/17-mmm-time-varying", "-", "-", "-",
+                              {3: ("drift_ratio",)}, ns)
+    with pytest.raises(NotImplementedError, match="TODO 3"):
+        exec(compile(cell, str(lab), "exec"), ns)  # noqa: S102
+    out = capsys.readouterr().out
+    assert "Checkpoint drifting model uses an exercise you have not written yet" in out, out

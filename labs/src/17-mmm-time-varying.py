@@ -670,8 +670,8 @@ print(f"The band misses {missed.sum()} of {len(missed)} weeks (counting from wee
 # them.
 
 # %%
-ratio_post = drift_ratio(mult, WINDOWS["first_year"], WINDOWS["last_quarter"])
 with workshop.checkpoint(label="drifting model"):
+    ratio_post = drift_ratio(mult, WINDOWS["first_year"], WINDOWS["last_quarter"])
     ratio_table = drift.check_drifting_model(ratio_post, truth)
 fading = [c for c in CHANNELS if ratio_table.loc[c, "hdi_high"] < 1]
 print("Drift ratio (last quarter / first year), 94% HDI, against the truth:")
@@ -745,7 +745,7 @@ def prophet_components(weekly, holidays):
 components = prophet_components(weekly, holidays)
 with workshop.checkpoint(label="prophet"):
     drift.check_prophet(components, weekly)
-components.head()
+components.head().round().astype(int)  # dollars
 
 # %% [markdown]
 # Look at the trend's growth: the true baseline grows by \$500 a week.
@@ -1066,8 +1066,11 @@ mmm_b = MMM(
 idata_b = mmm_b.fit(X_b, y, progressbar=False, **FIT)
 roas_draws_b = window_roas(idata_b.posterior["channel_contribution"] * target_scale(idata_b),
                            spend, *WINDOWS["all"])
-pd.concat({"Prophet": comparison.xs("prophet", level="baseline"),
-           "Prophet with spend": baseline_comparison(roas_draws_static["all"], roas_draws_b,
-                                                     true_roas).xs("prophet", level="baseline")},
-          names=["baseline"]).swaplevel().sort_index(level="channel", sort_remaining=False)[
+with_spend = pd.concat(
+    {"Prophet": comparison.xs("prophet", level="baseline"),
+     "Prophet with spend": baseline_comparison(roas_draws_static["all"], roas_draws_b,
+                                               true_roas).xs("prophet", level="baseline")},
+    names=["baseline"]).swaplevel()
+with_spend.reindex(pd.MultiIndex.from_product([CHANNELS, ["Prophet", "Prophet with spend"]],
+                                              names=["channel", "baseline"]))[
     ["mean", "hdi_low", "hdi_high", "true_roas", "covered"]].round(2)
