@@ -2,11 +2,13 @@
 notebook added after the tag is declared `in_ref: false` in _variables.yml; nothing generated
 links it to Colab, every place a Colab link would be shows the "Colab after the next release"
 chip (pages) or note (notebook header) pointing at the local setup instead, and removing the
-flag brings the links back. The flag is a declared fact, so generated files never depend on
-which tags a checkout has fetched; the last test checks it against git where repo.ref
-resolves (CONTRIBUTING.md, "Notebooks a release does not contain yet")."""
+flag brings the links back. A flagged notebook blocks the release of its track. The flag is a
+declared fact, so generated files never depend on which tags a checkout has fetched; the last
+test checks it against git where repo.ref resolves (CONTRIBUTING.md, "Notebooks a release
+does not contain yet")."""
 
 import copy
+import datetime as dt
 import re
 import subprocess
 
@@ -15,6 +17,7 @@ import pytest
 import common
 import gen_notebooks
 import gen_tables as g
+import release_check
 import run_records
 
 V = common.load_variables()
@@ -186,6 +189,51 @@ def test_the_flag_changes_no_run_record_hash():
         differ = {c["id"] for c, d in zip(a.cells, b.cells, strict=True) if c != d}
         assert differ <= {common.HEADER_ID, common.FOOTER_ID}, (e["id"], differ)
         assert common.HEADER_ID in differ, e["id"]  # the badge became the note
+
+
+# ---- the release check ---------------------------------------------------------------------------
+
+
+def passing(v: dict) -> list[dict]:
+    """A current, passing Colab run and CI run of every written notebook (the records
+    tests/test_extensions.py builds)."""
+    out = []
+    for nb_id, (content, deps) in run_records.current_hashes(v).items():
+        e = common.notebook_by_id(v)[nb_id]
+        base = {
+            "notebook": nb_id,
+            "kernel": e["kernel"],
+            "date": "2026-10-09",
+            "mode": "worked",
+            "scope": "notebook",
+            "status": "pass",
+            "seconds": 100.0,
+            "evidence": "test",
+            "settings": {},
+            "content_sha": content,
+            "deps_sha": deps,
+            "file": "test.json",
+        }
+        colab_env = "colab-py" if e["kernel"] == "python3" else "colab-r"
+        out.append({**base, "source": "colab", "env": colab_env, "index": 0})
+        out.append({**base, "source": "test_notebooks", "env": "ci-amd64", "index": 1})
+    return out
+
+
+def test_a_flagged_notebook_blocks_the_release_of_its_track():
+    day = dt.date(2026, 10, 9)
+    clear = flag(V, {e["id"] for e in common.notebooks(V)}, in_ref=True)
+    records = passing(clear)
+    assert release_check.blockers(clear, records, day, extensions=True) == []
+    core = flag(clear, {"python/08-bayesian-mmm"}, in_ref=False)
+    found = release_check.blockers(core, records, day)
+    assert len(found) == 1 and found[0].startswith("python/08-bayesian-mmm: declared `in_ref")
+    ext = [e for e in common.existing_notebooks(V) if e["track"] != common.CORE]
+    flagged_ext = flag(clear, {e["id"] for e in ext}, in_ref=False)
+    assert release_check.blockers(flagged_ext, records, day) == []  # extensions not required
+    found = release_check.blockers(flagged_ext, records, day, extensions=True)
+    assert {b.split(":", 1)[0] for b in found} == {e["id"] for e in ext}
+    assert all("`in_ref: false`" in b for b in found)
 
 
 # ---- the declaration agrees with git ------------------------------------------------------------

@@ -6,6 +6,8 @@ A release of the core workshop (pre-work and Days 1-5) needs, as of the given da
 - every core notebook declared in _variables.yml written, with teaching evidence: a
   passing, current (content_sha and deps_sha), worked, full-settings, whole-notebook run on
   its Colab runtime, no older than readiness.max_run_age_days;
+- none of them declared `in_ref: false` (repo.ref does not contain it, so its Colab link
+  cannot open it; the release commit that moves repo.ref removes the flag);
 - on each CI env, a passing worked run of every core notebook's current code;
 - every readiness item closed (readiness.items in _variables.yml).
 
@@ -83,6 +85,11 @@ def notebook_blockers(v: dict, e: dict) -> list[str]:
         out.append(f"{e['id']}: {e['why']}")
     if not e["written"]:
         return out
+    if not common.notebook_by_id(v)[e["id"]]["in_ref"]:
+        out.append(
+            f"{e['id']}: declared `in_ref: false`, so its Colab link cannot open it: move"
+            f" repo.ref ({v['repo']['ref']}) to a tag that contains it and remove the flag"
+        )
     for env in [k for k, x in v["readiness"]["envs"].items() if x.get("ci")]:
         r = e["lanes"].get(env, {}).get("record")
         if r is None:
