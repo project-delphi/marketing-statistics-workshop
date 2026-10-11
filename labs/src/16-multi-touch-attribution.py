@@ -82,7 +82,8 @@ rng_show = np.random.default_rng(SEED)  # five converting and five other journey
 examples = np.sort(np.concatenate([
     rng_show.choice(np.flatnonzero(journeys["converted"] == y), size=5, replace=False)
     for y in (1, 0)]))
-journeys.iloc[examples][["user_id", "path", "converted"]]
+with pd.option_context("display.max_colwidth", None):  # show every path in full
+    display(journeys.iloc[examples][["user_id", "path", "converted"]])
 
 # %% [markdown]
 # The next table shows, for each channel, the share of journeys it appears in and, among the
@@ -383,6 +384,7 @@ with workshop.checkpoint(3):
 # %%
 def markov_credit(removal, conversions):
     """credit_c = Y * RE_c / sum_k RE_k (the lab's normalization)."""
+    removal = pd.Series(removal, dtype=float)  # a dict {channel: RE_c} works too
     return conversions * removal / removal.sum()
 
 
@@ -427,10 +429,13 @@ with workshop.checkpoint(label="Markov credit"):
 #
 # where N is the set of all n players and the sum runs over the coalitions T that leave c out
 # (the weight is the share of join orders in which exactly the players of T come before c).
-# Shapley (1953) derived it from three properties:
+# Shapley (1953) showed that it is the only sharing rule with three properties: symmetry,
+# efficiency and additivity. A fourth, the null-player property, follows from them.
 #
-# - **efficiency**: the players' values add up to v(N) − v(∅);
 # - **symmetry**: two players that add the same to every coalition get the same value;
+# - **efficiency**: the players' values add up to v(N) − v(∅);
+# - **additivity**: in a game whose value function is the sum of two games' value functions,
+#   each player gets the sum of its values in the two games;
 # - **null player**: a player that adds nothing to any coalition gets 0.
 #
 # For journeys, the players are the channels on a journey, and v(S) is the **conversion rate of
@@ -585,7 +590,8 @@ for i, (a, b) in enumerate(100 * rates.to_numpy()):
 ax.set_xticks(x, CHANNELS)
 ax.set_ylim(0, 1.3 * 100 * rates.to_numpy().max())
 ax.set_ylabel("Conversion rate in the month (%)")
-ax.set_title(f"Who each channel reaches (all {truth['n_users']:,} users)")
+ax.set_title("Conversion rate of the users each channel reached and did not reach\n"
+             f"(all {truth['n_users']:,} users)")
 ax.legend(loc="upper left", ncol=2)
 show(fig)
 
@@ -801,9 +807,7 @@ if test_first:
     print(f"  Test {channel} first: its holdout's MDE scaled to all users reached, about"
           f" {mde * n_reached:.0f} conversions a month, is below its break-even of"
           f" {break_even:.0f}, so the test can tell a channel that pays back from one that does"
-          f" not. (Comparing the MDE with the {credit.loc[channel, 'markov']:.0f} credited"
-          " conversions would be a weaker bar: a test with an MDE of 600 would pass it too, though"
-          " it could not tell a break-even channel from a useless one.)")
+          " not.")
 else:
     print(f"  Make the holdout larger or longer before running it: its MDE scaled to all users"
           f" reached, about {mde * n_reached:.0f} conversions a month, is not below the"

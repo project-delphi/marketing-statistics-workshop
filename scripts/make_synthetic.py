@@ -315,7 +315,17 @@ def _mta() -> tuple[dict[str, pd.DataFrame], dict]:
     return {"mta_journeys.csv": mta.encode_paths(res.journeys)}, res.truth
 
 
+def _messy() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 13: the synthetic retailer as a messy line log (mktstats.synth.messy, seed 2033).
+    Only the lines are written; the per-line labels stay in memory for the tests."""
+    from mktstats.synth import messy
+
+    res = messy.messy_retailer()
+    return {"messy_lines.csv": res.lines}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
+    "messy": _messy,
     "subscriptions": _subscriptions,
     "mta": _mta,
 }

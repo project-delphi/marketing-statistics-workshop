@@ -6,16 +6,16 @@
 
 [Module 13]{.eyebrow}
 
-**[Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd)**
+**[Messy real data: cleaning a real log for BTYD and spend models](/modules/13-messy-real-data.qmd)**
 
 ::: {.module-summary}
-Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II.
+Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact.
 :::
 
-[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
+[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd), [Module 4](/modules/04-monetary-clv.qmd) and [Module 5](/modules/05-clv-decisions.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}

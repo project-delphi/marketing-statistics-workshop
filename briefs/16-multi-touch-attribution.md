@@ -178,7 +178,7 @@ None. Every method is counting, one small linear solve, or exact enumeration ove
 The Notation above is for the Technical Expert. The notebook introduces each definition in the part that
 uses it, in one plain sentence, never as an opening glossary: Part A (touch, journey, credit, the three
 rules), Part B (Markov chain, transition probability, absorbing state, removal effect), Part C (Shapley
-value, coalition, the three properties, the journey value function v), Part D (incremental conversions,
+value, coalition, Shapley's axioms (symmetry, efficiency, additivity) and the null-player property, the journey value function v), Part D (incremental conversions,
 share error, bootstrap interval, holdout, MDE). Suggested wording:
 
 | Term | One sentence for the notebook |
@@ -194,7 +194,7 @@ share error, bootstrap interval, holdout, MDE). Suggested wording:
 | removal effect | The share of the chain's conversion probability that is lost when every journey that reaches channel c stops there without converting. |
 | Shapley value | A channel's added value, averaged over every order in which the channels could have joined. |
 | coalition | A set of channels. |
-| efficiency, symmetry, null player | A set's values add up to its value; two channels that add the same to every coalition get the same; a channel that adds nothing to any coalition gets 0. |
+| efficiency, symmetry, additivity, null player | A set's values add up to its value; two channels that add the same to every coalition get the same; the value of a sum of two games is the sum of their values. These three are Shapley's axioms and fix the value uniquely; a channel that adds nothing to any coalition gets 0 follows from them (the null-player property, Shapley's Lemma 1). |
 | incremental conversions | Conversions that would not have happened had the channel not reached the user. Known here only because the data are simulated. |
 | share error | The share of credit that would have to move between channels for a method's shares to match the true incremental shares (0 = same shares, 1 = no overlap). |
 | targeted exposure (selection) | A channel reaches users who were already more likely to buy, so its users convert more often whether or not it works. |
@@ -355,7 +355,7 @@ chain's conversion probability with c removed.
 
 ### Exercise 4 · Exact Shapley values (9 minutes)
 
-The Markdown before the Predict defines the Shapley value, coalition and the three properties (Terms), and
+The Markdown before the Predict defines the Shapley value, coalition, Shapley's three axioms and the null-player property (Terms), and
 says in words what the game will be for journeys (v(S) = the conversion rate of journeys whose set of
 channels is exactly S, v(∅) = 0), so that the Explain can use it.
 
