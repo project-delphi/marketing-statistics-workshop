@@ -13,7 +13,7 @@ title: "{{< var modules.m13.title >}}"
 {{< include /_includes/lab-13.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings, Run all took 11.2 s on an Apple Silicon laptop (native Python) and 25.6 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-10 and 2026-10-11). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet: the Colab button opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it. Until then, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings, Run all took 12.1 s on an Apple Silicon laptop (native Python) and 24.8 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-10). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet: the Colab button opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it. Until then, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. A log is not a list of purchases
@@ -92,8 +92,9 @@ Module 1 dropped the cancellation lines and kept the purchases they cancel. To d
 
 $$
 \begin{aligned}
-P(j) &= \{\, k \text{ a purchase line} :\ \text{customer}_k = \text{customer}_j,\ \text{code}_k = \text{code}_j, \\
-&\hphantom{{}= \{\, k \text{ a purchase line} :\ } \text{price}_k = \text{price}_j,\ n_k = -n_j,\ \text{ts}_k \le \text{ts}_j \,\}, \\[4pt]
+P(j) &= \{\, k \text{ a purchase line} :\ \text{customer}_k = \text{customer}_j, \\
+&\hphantom{{}= \{\, k \text{ a purchase line} :\ } \text{code}_k = \text{code}_j,\ \text{price}_k = \text{price}_j, \\
+&\hphantom{{}= \{\, k \text{ a purchase line} :\ } n_k = -n_j,\ \text{ts}_k \le \text{ts}_j \,\}, \\[4pt]
 \text{original}(j) &= \operatorname*{arg\,max}_{k \in P(j)}\ \text{ts}_k \quad \text{(none if } P(j) \text{ is empty)}.
 \end{aligned}
 $$ {#eq-asof}
@@ -412,7 +413,7 @@ What would change the recommendation: a measured lift (it moves the bar, and the
 | Equation | What it is | In Lab 13 |
 |---|---|---|
 | The three flags (section 2) | non-product, duplicate and no-customer lines | **Exercise 1**: `flag_lines(con, table)`; Checkpoint 1 checks a nine-line toy table, then each flag's count and the hash of its lines against the truth, before any fit |
-| @eq-asof | matching cancellations to purchases | **Exercise 2**: `match_cancellations(con, table)`; Checkpoint 2 checks four toy cases, then one row per cancellation line, all matched, none twice; then the provided exact-recovery check of the RFM table |
+| @eq-asof | matching cancellations to purchases | **Exercise 2**: `match_cancellations(con, table)`; Checkpoint 2 checks eight toy cases, then one row per cancellation line, all matched, none twice; then the provided exact-recovery check of the RFM table |
 | @eq-bgnbd-ll, @eq-gg-ll, @eq-mle | the likelihoods and their maximum | Provided: `mktstats.mle`, checked once against PyMC-Marketing's flat-prior MAP |
 | @eq-score, @eq-effects | revenue scores; total change and customers moved | **Exercise 3**: `variant_effects(scores, reference, threshold)`; Checkpoint 3 checks a toy with hand-computed answers and an independent computation on the sweep |
 | @eq-cap | the cap at a percentile | **Exercise 4**: `capped_spend_fit(tx, pct, cal_end)`; Checkpoint 4 checks the cap, the fit on clipped amounts, $p$, $q$, $v$ and the mean against the truth's tolerances, and that `pct=100` changes nothing |

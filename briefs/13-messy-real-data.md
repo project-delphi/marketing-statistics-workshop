@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the rulings, the changes and their reasons are under "Pedagogy review" at the end. **Built and run** by the Technical Expert on 2026-10-10 ("Build notes" at the end): worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-13-messy-real-data.json`, `runs/2026-10-10-docker-arm64-python-13-messy-real-data.json`, the entries with content hash `e2b154bc6d081825`); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (messy seed 2033, retailer seed 2026) and the sha256-checked Online Retail II, re-read by the Academic Director from a worked FULL run at the run records' content and deps hashes, or come from `data/synthetic/truth_messy.json`. Numbers still marked *prototype* come from throwaway scripts run on a laptop before the build (Apple Silicon, the repository's `.venv` with the pinned versions: pandas 2.2.3, numpy 2.1.3, scipy 1.16.3, duckdb 1.3.2, pymc-marketing 1.2.0); where the build replaced one, the build's value is given. "Build reconciliation" at the end lists what changed. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the rulings, the changes and their reasons are under "Pedagogy review" at the end. **Built and run** by the Technical Expert on 2026-10-10 ("Build notes" at the end): worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-13-messy-real-data.json`, `runs/2026-10-10-docker-arm64-python-13-messy-real-data.json`, the entries with content hash `e36cbdf087451a63`, re-recorded after the checkpoint-message fixes); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (messy seed 2033, retailer seed 2026) and the sha256-checked Online Retail II, re-read by the Academic Director from a worked FULL run at the content and deps hashes the run records had before those fixes, or come from `data/synthetic/truth_messy.json`. Numbers still marked *prototype* come from throwaway scripts run on a laptop before the build (Apple Silicon, the repository's `.venv` with the pinned versions: pandas 2.2.3, numpy 2.1.3, scipy 1.16.3, duckdb 1.3.2, pymc-marketing 1.2.0); where the build replaced one, the build's value is given. "Build reconciliation" at the end lists what changed. |
 | Notebook | `labs/src/13-messy-real-data.py` → `labs/python/13-messy-real-data.ipynb` |
 | Lab slot | 55 min (`modules.m13.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (8 + 10 + 7 + 7 + 8; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it, so provided cells print short summaries, not long tables. Minutes are estimates until a pilot. |
 | Track | Extensions (day `d6`), optional. Assumes Modules 1, 2 and 4; Module 5's break-even lift helps. |
@@ -173,7 +173,7 @@ No MCMC in the core lab. Every fit is a maximum-likelihood (flat-prior MAP) fit:
 | Fit | How | Count | Prototype time (laptop) |
 |---|---|---|---|
 | BG/NBD and Gamma-Gamma for each variant (Parts B–D) | new helper `mktstats.mle` (closed-form log-likelihoods, scipy) | about 20 fits in all | 0.08 s (BG/NBD, CDNOW) to 0.2 s (retailer) each; whole synthetic sweep 2.1 s, real sweep 3.2 s |
-| BG/NBD and Gamma-Gamma on the messy log's reference pipeline (start of Part B, before the first sweep) | PyMC-Marketing `BetaGeoModel` / `GammaGammaModel`, `Prior("HalfFlat")` for every parameter, `method="map"` | 2 (once, as a cross-check) | 2.6 s and 0.2 s after earlier compiles (prototype on cleaned Online Retail II; agreement on the retailer 4 × 10⁻⁵ and < 10⁻⁵). *Build*, run records: this cell (import plus both fits) was the slowest cell, 2.65 s on macOS and 12.85 s in Docker (`--cpus 2`); agreement on the messy log 1.6 × 10⁻⁵ (BG/NBD) and 9.5 × 10⁻⁸ (Gamma-Gamma) |
+| BG/NBD and Gamma-Gamma on the messy log's reference pipeline (start of Part B, before the first sweep) | PyMC-Marketing `BetaGeoModel` / `GammaGammaModel`, `Prior("HalfFlat")` for every parameter, `method="map"` | 2 (once, as a cross-check) | 2.6 s and 0.2 s after earlier compiles (prototype on cleaned Online Retail II; agreement on the retailer 4 × 10⁻⁵ and < 10⁻⁵). *Build*, run records: this cell (import plus both fits) was the slowest cell, 2.9 s on macOS and 12.49 s in Docker (`--cpus 2`); agreement on the messy log 1.6 × 10⁻⁵ (BG/NBD) and 9.5 × 10⁻⁸ (Gamma-Gamma) |
 
 Why the helper: on Colab a single PyMC-Marketing MAP fit costs tens of seconds, mostly compilation (spike
 S2: a first BG/NBD MAP on CDNOW took 30.3 s), so twenty of them would break the 4-minute cell target.
@@ -219,10 +219,10 @@ the start of Part B (import plus two MAP fits): 1 to 2 minutes, the largest cell
 first BG/NBD MAP 30.3 s); the Markdown before it tells the learner to read Exercise 3's Predict while it
 runs. Total compute: under 3 minutes. Targets: install ≤ 3 min, any cell ≤ 4 min, total ≤ 15 min.
 
-**Measured (*build*, run records; not Colab times).** Worked FULL, whole notebook: 11.2 s on the Apple
-Silicon laptop (native environment, 10 cores) and 25.6 s in the workshop's Docker image on the same laptop
-with `--cpus 2`; slowest cell the PyMC-Marketing cross-check, 2.65 s and 12.85 s. Learner mode stopped at
-Checkpoint 1 as designed (2.2 s and 3.2 s). Colab: not run; the Colab estimates above stand until a
+**Measured (*build*, run records, re-recorded after the checkpoint-message fixes; not Colab times).**
+Worked FULL, whole notebook: 12.1 s on the Apple Silicon laptop (native environment, 10 cores) and 24.8 s
+in the workshop's Docker image on the same laptop with `--cpus 2`; slowest cell the PyMC-Marketing
+cross-check, 2.9 s and 12.49 s. Learner mode stopped at Checkpoint 1 as designed (2.2 s and 3.1 s). Colab: not run; the Colab estimates above stand until a
 release tag contains the lab.
 
 ## Parts and exercises
@@ -986,8 +986,9 @@ from the spec above, and why:
 
 The brief now describes the lab as built. I re-ran the notebook in worked mode with FULL settings
 (`scripts/test_notebooks.py --notebooks python/13-messy-real-data --full --mode worked`, macOS, at content
-hash `e2b154bc6d081825` and deps hash `3718bae0a0e3d068`, the hashes of the current run records; it passed,
-every checkpoint verified on its stub) and read its printed output. Every number marked *build* above
+hash `e2b154bc6d081825` and deps hash `3718bae0a0e3d068`, the hashes of the run records at the time; it
+passed, every checkpoint verified on its stub) and read its printed output. The records were re-recorded
+after the checkpoint-message fixes, at content hash `e36cbdf087451a63`. Every number marked *build* above
 comes from that output, from `truth_messy.json` or from the two run records. QUICK changes nothing in this
 lab, so there is no QUICK column. What changed against the prototype brief:
 
@@ -1035,9 +1036,9 @@ lab, so there is no QUICK column. What changed against the prototype brief:
    sets differ for 2 cancellation lines, each choosing between two purchase lines on the same invoice and
    minute that differ only in description (`SPOTTY BUNTING` and `BUNTING , SPOTTY`, invoice 554084), so
    the matched count (6,107), the purchase days and the amounts are the same either way.
-7. **Run times are measured** (run records, entries with content hash `e2b154bc6d081825`): 11.2 s on
-   macOS, 25.6 s in Docker with `--cpus 2`; slowest cell the PyMC-Marketing cross-check, 2.65 s and
-   12.85 s. Colab: not run; it needs a release tag that contains the lab.
+7. **Run times are measured** (run records re-recorded after the checkpoint-message fixes, entries with
+   content hash `e36cbdf087451a63`): 12.1 s on macOS, 24.8 s in Docker with `--cpus 2`; slowest cell the
+   PyMC-Marketing cross-check, 2.9 s and 12.49 s. Colab: not run; it needs a release tag that contains the lab.
 8. **Unchanged:** the question, the decision, the exercises and their functions, the datasets, the
    references, and every Online Retail II result (the real log did not change): 2,212 of 5,008 customers
    on the list (1,114 at a 5% lift, 3,446 at 20%), customer 12346 (£18,026.64 under Module 1's rules,
