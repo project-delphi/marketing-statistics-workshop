@@ -510,7 +510,8 @@ then this cell; if it still fails, tell the instructor."
   variation is left and the estimate divides noise by almost nothing. With cross-fitting, small errors in
   $\hat q$ and $\hat e$ do not shift $\hat\theta$ to first order (the briefing's name for this is
   Neyman orthogonality), which is why imperfect machine-learning predictions still give a valid interval
-  (Chernozhukov et al. 2018; EconML's DML user guide). Slowest cell of the lab: 9.9 s on the laptop (FULL).
+  (Chernozhukov et al. 2018; EconML's DML user guide). Slowest cell of the lab: 12.64 s on the laptop and
+  12.9 s in Docker (FULL, run records; prototype 9.9 s).
 
 ### Exercise 4 · Overlap and trimming (7 minutes)
 
@@ -776,9 +777,9 @@ FULL output reproduces every number below.
 
 Laptop prototype, FULL, scikit-learn limited to 2 threads (Colab has 2 CPUs). **No Colab time exists.**
 Colab may well be slower per thread. Measured since (run records, worked mode, FULL, whole notebook,
-2026-10-10, both on an Apple Silicon laptop shared with other build jobs): 48.3 s on macOS with two
-threads, slowest cell 12.7 s; 52.8 s in the Docker image with `--cpus 2` and two threads, slowest cell
-14.7 s (`runs/2026-10-10-macos-arm64-python-15-double-ml.json`,
+2026-10-10, both on an Apple Silicon laptop shared with other build jobs, re-recorded after the
+checkpoint-message fixes): 47.0 s on macOS with two threads, slowest cell 12.64 s; 49.7 s in the Docker
+image with `--cpus 2` and two threads, slowest cell 12.9 s (`runs/2026-10-10-macos-arm64-python-15-double-ml.json`,
 `runs/2026-10-10-docker-arm64-python-15-double-ml.json`). Neither is a Colab time.
 
 | Step | Prototype laptop (s) |
@@ -1126,8 +1127,9 @@ loaded laptop is not a timing).
   and by 1.959964/1.96 (EconML's exact normal quantile against the lab's 1.96): a factor of 1.0000066 at
   n = 20,000, measured on the lab's data. The checkpoint compares with this widened interval at rel 1e-4.
   On the lab's data the estimates differ by 2.0e-15, relative.
-- **Measured run times** (run records, worked, FULL): 48.3 s on macOS with two threads, 52.8 s in Docker
-  with `--cpus 2`; the slowest cell is the overfit demonstration (12.7 s and 14.7 s). No Colab run: the lab
+- **Measured run times** (run records, worked, FULL, re-recorded after the checkpoint-message fixes):
+  47.0 s on macOS with two threads, 49.7 s in Docker with `--cpus 2`; the slowest cell is the overfit
+  demonstration (12.64 s and 12.9 s). No Colab run: the lab
   needs a release tag that contains it.
 - **Sensitivity references.** EconML's docstrings attribute `sensitivity_interval` and `robustness_value`
   to "[Chernozhukov2022]". In the installed econml 0.17.0 source that key is defined only in

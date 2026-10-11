@@ -33,6 +33,15 @@ def tags(cell):
     return cell.get("metadata", {}).get("tags", [])
 
 
+def code_text(cell):
+    """A cell's text as the model-fit checks read it. An exercise stub's comment lines are hints
+    that cannot fit anything, so they may name `.fit(` without a progressbar note; every other
+    line, and every line of every other cell, is checked."""
+    if "exercise" not in tags(cell):
+        return text(cell)
+    return "\n".join(line for line in text(cell).splitlines() if not line.lstrip().startswith("#"))
+
+
 def test_there_are_notebooks_to_check():
     assert ENTRIES, "no generated notebooks found"
 
@@ -167,7 +176,7 @@ def test_first_checkpoint_comes_before_any_model_fit(entry):
     code = [c for c in cells if c["cell_type"] == "code" and c["id"] not in common.GENERATED_IDS]
     first = next(i for i, c in enumerate(code) if "checkpoint" in tags(c))
     for c in code[:first]:
-        assert not FIT.search(text(c)), f"a model fit before the first checkpoint: {c['id']}"
+        assert not FIT.search(code_text(c)), f"a model fit before the first checkpoint: {c['id']}"
 
 
 @pytest.mark.parametrize("entry", ENTRIES, ids=IDS)
@@ -176,5 +185,20 @@ def test_the_lab_never_downloads_files_through_colab(entry):
     lead cannot read on Colab: the record cell must stay plain text."""
     for c in load(entry)["cells"]:
         assert "files.download" not in text(c)
-        if entry["kernel"] == "python3" and ".fit(" in text(c):
+        if entry["kernel"] == "python3" and ".fit(" in code_text(c):
             assert "progressbar=False" in text(c), c["id"]
+
+
+def test_an_exercise_hint_may_name_fit_but_code_may_not():
+    """The exemption in code_text: a comment in an exercise stub is not a fit; code in a stub,
+    and any line of a solution or provided cell, still is."""
+    hint = ("def cross_fit(model, X, target, folds):\n"
+            "    # TODO 2: fitted = clone(model).fit(X[train], target[train])\n"
+            '    raise NotImplementedError("TODO 2")\n')
+    stub = {"cell_type": "code", "metadata": {"tags": ["exercise"]}, "source": hint}
+    assert ".fit(" not in code_text(stub) and not FIT.search(code_text(stub))
+    assert 'raise NotImplementedError("TODO 2")' in code_text(stub)
+    fitting = dict(stub, source="def f(model, X, y):\n    return model.fit(X, y)  # TODO 1\n")
+    assert FIT.search(code_text(fitting))
+    for other in ({"tags": ["solution"]}, {}):
+        assert FIT.search(code_text(dict(stub, metadata=other)))

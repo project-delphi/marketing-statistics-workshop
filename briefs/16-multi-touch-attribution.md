@@ -252,7 +252,7 @@ Exercises 1–3:
 - **Checkpoint.** On `TINY` (worked by hand): last {A: 0, B: 3}; first {A: 2, B: 1}; linear {A: 7/6, B: 11/6}
   to 1e-12. On `journeys`, for each rule: credit adds up to the number of converting journeys
   (`truth["conversions_in_journeys"]`) to 1e-9 and no value is negative. First checkpoint; runs in under a
-  second (prototype: all three rules 0.10 s; the FULL laptop run's checkpoint cells took 0.23 s in all).
+  second (prototype: all three rules 0.10 s; the FULL laptop run's checkpoint cells took 0.22 s in all).
 - **Failure messages** (the four parts of `briefs/_lab-standard.md` §5, each ending with
   `workshop.use_reference(1)`). Credit that adds up to the number of journeys (prototype 69,410) instead of
   the converting journeys: "only converting journeys give credit; keep the rows with `converted == 1`".
@@ -445,7 +445,7 @@ method's share with its 95% bootstrap percentile interval and the true share mar
 plot: "Look at whether any true share (black mark) falls inside a method's interval." Sentence after it:
 these intervals show sampling noise only; a method that is wrong in the same direction on every resample
 (bias) stays wrong however many journeys you have. Committed: 0 of 25 inside at 200 resamples (FULL) and at 50
-(QUICK); the cell, with its plot, took 1.22 s in the recorded laptop FULL run (prototype: 200 resamples in
+(QUICK); the cell, with its plot, took 1.19 s in the recorded laptop FULL run (prototype: 200 resamples in
 0.71 s).
 
 ### Decision · Move budget or test first? (5 minutes)
@@ -517,14 +517,14 @@ channel where credit and truth disagree most (retargeting), and what moving budg
 
 ## Run time (measured on a laptop and in Docker; no Colab record yet)
 
-FULL runs recorded at commit `ba1b3e8` (worked mode, including the five verification copies of the
-checkpoints; Run all of the notebook, not a Colab time):
+FULL runs recorded at commit `2fec4d0`, re-recorded after the checkpoint-message fixes (worked mode,
+including the five verification copies of the checkpoints; Run all of the notebook, not a Colab time):
 
 | | macOS, native (`runs/2026-10-10-macos-arm64-python-16-multi-touch-attribution.json`) | Docker image `mktstats-env:extensions`, `--cpus 2` (`runs/2026-10-10-docker-arm64-python-16-multi-touch-attribution.json`) | Colab target |
 |---|---|---|---|
 | Install | 0.0 s (a checkout installs nothing) | 0.0 s (the image has everything) | ≤ 3 min. Not measured: same install list as Module 6 (`[numpy, pandas, scipy, matplotlib]`), whose three Colab records at `v2026.10.1` show 14.8–17.0 s (`runs/2026-10-10-colab-py-python-06-experiments.json`) |
-| Slowest cell | 1.29 s (the bootstrap, cell-055) | 2.33 s (imports, cell-001; the bootstrap took 1.4 s in an unrecorded run of the same commit) | ≤ 4 min |
-| Whole notebook | 5.7 s | 7.6 s | ≤ 15 min |
+| Slowest cell | 1.19 s (the bootstrap, cell-055) | 2.6 s (imports, cell-001; the bootstrap took 1.4 s in an unrecorded run of an earlier commit, `ba1b3e8`) | ≤ 4 min |
+| Whole notebook | 4.8 s | 7.4 s | ≤ 15 min |
 
 QUICK changes only `N_BOOT` (50 instead of 200); every credit number, checkpoint and the decision are the
 same in both modes, and the notebook says so. QUICK runs were made (macOS, 4.5 s) but not recorded.

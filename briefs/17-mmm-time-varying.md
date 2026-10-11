@@ -730,10 +730,11 @@ and left out: refitting with `eta_upper=1.0` barely moved the answer (social 2.6
 
 ## Expected run time (estimate, not a run record)
 
-**Measured since (run records, worked mode, FULL, the whole notebook including both stretch fits):** 140.8 s
-on the Apple Silicon laptop in the native environment (shared with other build jobs; the slowest cell was
-the drifting fit, 52.7 s) and 169.9 s in the workshop's Docker image with `--cpus 2` (the slowest cell was
-the static fit, 38.4 s, which includes the first compilation), both on 2026-10-10
+**Measured since (run records, worked mode, FULL, the whole notebook including both stretch fits;
+re-recorded after the checkpoint-message fixes):** 140.2 s on the Apple Silicon laptop in the native
+environment (shared with other build jobs; the slowest cell was the drifting fit, 52.61 s) and 169.7 s in
+the workshop's Docker image with `--cpus 2` (the slowest cell was the static fit, 36.64 s, which includes
+the first compilation), both on 2026-10-10
 (`runs/2026-10-10-macos-arm64-python-17-mmm-time-varying.json`,
 `runs/2026-10-10-docker-arm64-python-17-mmm-time-varying.json`). Neither is a Colab time; no Colab record
 exists, so the Colab column below is still an estimate.

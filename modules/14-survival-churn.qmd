@@ -8,13 +8,13 @@ title: "{{< var modules.m14.title >}}"
 **Where we are.** Module 4's shifted-beta-geometric (sBG) model projected the retention of a subscription cohort that everyone joined on the same day, observed for the same number of years. A real subscription program signs people up every day, so on any date most subscribers are still active and nobody knows when they will leave; and the sBG has no covariates, so it cannot say which subscribers churn faster or by how much. This module asks: how long do subscribers stay, what shortens or lengthens their stay, and what is a change in churn worth in months and dollars?
 :::
 
-::: {.callout-note appearance="simple"}
-**An optional extension, not yet run on Colab.** The lab has passed worked, full-settings runs of the whole notebook on a laptop (9.0 s) and in the workshop's Docker image limited to two CPUs (11.6 s), recorded on 2026-10-10. It has not run on Colab. The Colab button above opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it; until then, run the lab in the Docker image ([Setup](/setup.qmd)). The [Readiness](/readiness.qmd#extensions) page shows where each extension has run.
-:::
-
 ## The lab {#lab}
 
 {{< include /_includes/lab-14.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 9.3 s on an Apple Silicon laptop (native Python) and 13.3 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
 
 ## 1. How long do subscribers stay?
 

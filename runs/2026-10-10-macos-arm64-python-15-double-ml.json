@@ -6,29 +6,29 @@
   "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
   "kernel": "python3",
   "settings": {},
-  "commit": "4d0fabc",
+  "commit": "3834f08",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "889aad941ca22ca1",
-  "deps_sha": "1a283b47c6837840",
+  "content_sha": "8bcf39e198f03908",
+  "deps_sha": "2ca2afa8bf48b5ec",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/15-double-ml",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 48.3,
+      "seconds": 47.0,
       "phases": {
-        "generated": 0.08,
-        "other": 31.14,
-        "checkpoint": 3.55,
+        "generated": 0.1,
+        "other": 31.25,
+        "checkpoint": 3.74,
         "exercise": 0.0,
-        "solution": 10.07,
-        "verify": 0.01
+        "solution": 8.4,
+        "verify": 0.0
       },
       "slowest_cell": {
-        "id": "cell-028",
-        "seconds": 12.65
+        "id": "cell-031",
+        "seconds": 12.64
       },
       "verified": 5,
       "python": "3.13.2",
@@ -94,7 +94,7 @@
         }
       },
       "cell_errors": 0,
-      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run."
+      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run (load average about 7 on 10 cores at the start, a Docker VM busy)."
     },
     {
       "mode": "learner",
@@ -103,17 +103,17 @@
       "status": "pass",
       "seconds": 4.4,
       "phases": {
-        "generated": 0.06,
-        "other": 3.0,
-        "checkpoint": 0.01,
+        "generated": 0.1,
+        "other": 2.88,
+        "checkpoint": 0.02,
         "exercise": 0.0,
         "solution": 0.0
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.98
+        "seconds": 2.86
       },
-      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run."
+      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run (load average about 7 on 10 cores at the start, a Docker VM busy)."
     }
   ]
 }

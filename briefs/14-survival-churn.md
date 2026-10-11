@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md` (changes and reasons under "Pedagogy review" at the end). **Built and run** by the Technical Expert on 2026-10-10: worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-14-survival-churn.json`, `runs/2026-10-10-docker-arm64-python-14-survival-churn.json`); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (seed 2034), re-read by the Academic Director from a worked run on 2026-10-10 (FULL unless QUICK is named) at the content and deps hashes of the run records; seed-coverage figures come from `tolerances` in `data/synthetic/truth_subscriptions.json`. Numbers still marked *prototype* come from the throwaway generator written to test the design (scratchpad, laptop) and were not re-measured by the build. "Build reconciliation" at the end lists what changed. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md` (changes and reasons under "Pedagogy review" at the end). **Built and run** by the Technical Expert on 2026-10-10: worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-14-survival-churn.json`, `runs/2026-10-10-docker-arm64-python-14-survival-churn.json`); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (seed 2034), re-read by the Academic Director from a worked run on 2026-10-10 (FULL unless QUICK is named) at the content and deps hashes the run records had before they were re-recorded after the checkpoint-message fixes; seed-coverage figures come from `tolerances` in `data/synthetic/truth_subscriptions.json`. Numbers still marked *prototype* come from the throwaway generator written to test the design (scratchpad, laptop) and were not re-measured by the build. "Build reconciliation" at the end lists what changed. |
 | Notebook | `labs/src/14-survival-churn.py` → `labs/python/14-survival-churn.ipynb` |
 | Lab slot | 55 min (`modules.m14.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (10 + 7 + 7 + 8 + 8; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it and after its checkpoint. Minutes are estimates until a pilot. |
 | Day | Extensions (`d6`), optional. Builds on Module 4; does not need Module 13. |
@@ -151,7 +151,7 @@ Nothing is sampled; every fit takes well under a second.
 | Cox, full period, all covariates | Exercise 3 checkpoint, inside the learner's `cox_hazard_ratios`; fitted once more as `cph` in the provided PH-test cell, because the function returns a table, not the fitted model | `CoxPHFitter(alpha=0.05)`, Efron ties (default) | 0.18 s |
 | Cox, onboarding only | Exercise 3 checkpoint (unadjusted) | same | < 0.1 s |
 | Two landmark Cox fits | Exercise 4 checkpoint: `cox_hazard_ratios` on each part returned by the learner's `landmark_split` | same | < 0.5 s together |
-| Stratified bootstrap of Exercise 5's function | Exercise 5 checkpoint and decision, computed once | B = 200 (FULL), 100 (QUICK); resample within plan × onboarding; `mktstats.survival.bootstrap_interval(..., seed=14)` | 4.6-5.4 s (B = 200), 2.3 s (B = 100). *Build*, run records: the Checkpoint 5 cell was the slowest cell, 4.81 s on macOS and 5.94 s in Docker (`--cpus 2`), FULL |
+| Stratified bootstrap of Exercise 5's function | Exercise 5 checkpoint and decision, computed once | B = 200 (FULL), 100 (QUICK); resample within plan × onboarding; `mktstats.survival.bootstrap_interval(..., seed=14)` | 4.6-5.4 s (B = 200), 2.3 s (B = 100). *Build*, run records: the Checkpoint 5 cell was the slowest cell, 5.35 s on macOS and 6.85 s in Docker (`--cpus 2`), FULL |
 
 QUICK changes only B. The data are the same in both modes, so every checkpoint except Exercise 5's sees
 identical numbers; the header says so, and that QUICK's interval can differ in the second decimal.
@@ -545,7 +545,7 @@ RMST by plan and onboarding: the Predict asks what standardizing does.
   `restricted_mean_survival_time`; return Σ_p weights[p] × difference. `weights` is a dict or Series over
   plans summing to 1 (assert it). The reference is about eight lines.
 - **Checkpoint.** The fast checks run first, then the bootstrap (the Markdown above the cell says
-  "while it runs, read the Explain prompt below"; build: 4.81 s on macOS and 5.94 s in Docker, FULL, from
+  "while it runs, read the Explain prompt below"; build: 5.35 s on macOS and 6.85 s in Docker, FULL, from
   the run records; not yet timed on Colab).
   1. With weights {"basic": 1.0}: equals the difference of the two lifelines RMSTs for basic computed
      directly (exact).
@@ -667,14 +667,14 @@ the plans (truth 2.99, 2.82, 2.44 months; build estimates on the default data 2.
 
 | | macOS laptop (run record) | Docker, `--cpus 2` (run record) | Colab |
 |---|---|---|---|
-| Worked, FULL, whole notebook | 9.0 s | 11.6 s | not run |
-| Learner mode (Run all stops at the first unwritten exercise, as designed) | 3.0 s | 3.7 s | not run |
-| Slowest cell: Checkpoint 5's bootstrap, B = 200 | 4.81 s | 5.94 s | not run |
+| Worked, FULL, whole notebook | 9.3 s | 13.3 s | not run |
+| Learner mode (Run all stops at the first unwritten exercise, as designed) | 2.4 s | 4.4 s | not run |
+| Slowest cell: Checkpoint 5's bootstrap, B = 200 | 5.35 s | 6.85 s | not run |
 | Install | 0 s (preinstalled) | 0 s (preinstalled) | not run; estimated under 1 minute |
 
 Records: `runs/2026-10-10-macos-arm64-python-14-survival-churn.json` and
 `runs/2026-10-10-docker-arm64-python-14-survival-churn.json`, both at `ref` v2026.10.1, content
-`7264963f11767143`, deps `d36add16277e80bd`; the laptop was shared with other build agents during the
+`495cf51b2e28612f`, deps `d36add16277e80bd`, re-recorded after the checkpoint-message fixes; the laptop was shared with other build agents during the
 runs. The Colab install estimate is unchanged: Colab already has autograd 1.9.1, formulaic 1.2.2 and
 interface_meta 2.0.1 (`environment/colab-constraints.txt`), so only `lifelines` and `autograd-gamma`,
 both pure-Python wheels, are added (target ≤ 3 min). The lab cannot run on Colab until a release tag
@@ -901,7 +901,8 @@ if you want it back, the stretch is the place, not a core cell.
 ## Build reconciliation (2026-10-10, Academic Director)
 
 The brief now describes the lab as built. I re-ran the notebook in worked mode (FULL, then QUICK) at
-the content and deps hashes of the two run records and read its printed output; every number marked
+the content and deps hashes the two run records had then (before they were re-recorded after the
+checkpoint-message fixes) and read its printed output; every number marked
 *build* above comes from that output, from `truth_subscriptions.json` (truth, `sample`, `tolerances`)
 or from the run records. What changed against the prototype brief:
 
@@ -922,8 +923,9 @@ or from the run records. What changed against the prototype brief:
    [0.403, 0.564], so the sample recommendation now says "about 40-56%".
 4. **Passing all of `subs` to `CoxPHFitter` raises `TypeError: Cannot cast DatetimeArray to dtype
    float64`**, not the `ValueError` the brief quoted (the date columns are reached first).
-5. **Run times are measured**, from the two run records (9.0 s worked FULL on macOS, 11.6 s in Docker
-   with `--cpus 2`; slowest cell the bootstrap, 4.81 s and 5.94 s). Colab: not run; it needs a release
+5. **Run times are measured**, from the two run records, re-recorded after the checkpoint-message fixes
+   (9.3 s worked FULL on macOS, 13.3 s in Docker with `--cpus 2`; slowest cell the bootstrap, 5.35 s and
+   6.85 s). Colab: not run; it needs a release
    tag that contains the lab.
 6. **Unchanged**: every point estimate on seed 2034 (dashboards, Kaplan-Meier, Fader-Hardie totals, Cox
    and landmark hazard ratios with their intervals, PH test, RMST by plan, stretch). The generator
