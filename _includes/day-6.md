@@ -77,7 +77,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 **[MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd)**
 
 ::: {.module-summary}
-Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, recover the true decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS.
+Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, estimate the decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS.
 :::
 
 [Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.module-builds-on}
