@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "date": "2026-10-11",
+  "date": "2026-10-10",
   "source": "test_notebooks",
   "env": "docker-arm64",
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "4d0fabc",
+  "commit": "77e5a7b",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
   "content_sha": "889aad941ca22ca1",
@@ -17,18 +17,18 @@
       "notebook": "python/15-double-ml",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 52.5,
+      "seconds": 52.8,
       "phases": {
-        "generated": 0.17,
-        "other": 34.88,
-        "checkpoint": 4.06,
+        "generated": 0.18,
+        "other": 36.19,
+        "checkpoint": 4.1,
         "exercise": 0.0,
-        "solution": 11.72,
+        "solution": 10.72,
         "verify": 0.04
       },
       "slowest_cell": {
         "id": "cell-028",
-        "seconds": 14.45
+        "seconds": 14.65
       },
       "verified": 5,
       "python": "3.13.14",
@@ -94,26 +94,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "docker run --cpus 2 -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop; without the thread limits OpenMP and OpenBLAS start one thread per visible core; cpus is the core count the container sees, not the quota). Laptop shared with other build jobs during the run."
+      "note": "docker run --cpus 2 -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 -e TZ=America/Bogota (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop; without the thread limits OpenMP and OpenBLAS start one thread per visible core; TZ is the laptop's zone, so the record carries the local date, not UTC; cpus is the core count the container sees, not the quota). Laptop shared with other build jobs during the run."
     },
     {
       "mode": "learner",
       "notebook": "python/15-double-ml",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 6.0,
+      "seconds": 5.5,
       "phases": {
-        "generated": 0.15,
-        "other": 4.53,
+        "generated": 0.13,
+        "other": 3.9,
         "checkpoint": 0.02,
         "exercise": 0.0,
         "solution": 0.0
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 4.5
+        "seconds": 3.88
       },
-      "note": "docker run --cpus 2 -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop; without the thread limits OpenMP and OpenBLAS start one thread per visible core; cpus is the core count the container sees, not the quota). Laptop shared with other build jobs during the run."
+      "note": "docker run --cpus 2 -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 -e TZ=America/Bogota (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop; without the thread limits OpenMP and OpenBLAS start one thread per visible core; TZ is the laptop's zone, so the record carries the local date, not UTC; cpus is the core count the container sees, not the quota). Laptop shared with other build jobs during the run."
     }
   ]
 }
