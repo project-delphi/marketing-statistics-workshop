@@ -33,6 +33,21 @@ Newest first within each section.
   badges, the mktstats install and the data all point at `repo.ref`. A new tag changes every
   notebook's `deps_sha`, so it needs a full Colab sweep of the core as well.
 
+### A notebook not in `repo.ref` gets no Colab link (2026-10-11)
+- `repo.ref` (`v2026.10.1`) predates the extension notebooks, so every generated Colab link for
+  Modules 13–17 answered 404 (found by the UI Expert's browser check); `gen_tables` only checked
+  that the file existed in the working tree.
+- A notebook entry may say `in_ref: false`. Pages then show a "Colab after the next release"
+  chip linking to `setup.qmd#local` wherever a Colab link would be, the notebook's header says
+  the same instead of the badge, and the footer before it links to its module page.
+- It is a declared fact, not a git lookup, because most CI jobs check out without tags and the
+  generated files must not depend on that. `tests/test_colab_ref.py` checks the flags against
+  git in both directions wherever the ref resolves (`publish.yml` checks out with
+  `fetch-depth: 0`). `release_check.py` blocks on a flagged notebook (core always, extensions
+  with `--extensions`), so the commit that moves `repo.ref` must remove the flags before the
+  tag is cut. Header and footer cells are outside `content_sha` and the flag is not in
+  `deps_sha`: all 23 notebooks' hashes were checked unchanged.
+
 ### The extensions are judged and released apart from the core week (2026-10-10)
 - `days.d6` has `track: extensions`. Its modules keep the module format, the notebook contract
   and the run records, but the readiness verdict, the README status line, the landing-page

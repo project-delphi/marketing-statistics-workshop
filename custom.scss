@@ -210,6 +210,20 @@ summary:focus-visible,
   white-space: nowrap;
 }
 
+// A chip that links (e.g. "Colab after the next release" → Setup) keeps the chip's look;
+// the link shows on hover and keyboard focus.
+main.content a.chip {
+  color: $ms-muted;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $ms-border-strong;
+    color: $ms-heading;
+    text-decoration: underline;
+  }
+}
+
 // Buttons. `.btn-colab` opens a lab (it leaves the site); `.btn-quiet` is every
 // secondary action.
 main.content a.btn-colab,
