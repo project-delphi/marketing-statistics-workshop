@@ -13,7 +13,7 @@ title: "{{< var modules.m17.title >}}"
 {{< include /_includes/lab-17.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 136.2 s on an Apple Silicon laptop (native Python) and 161.6 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet. The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 136.2 s on an Apple Silicon laptop (native Python) and 161.6 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. On Colab (worked, full settings, 2026-10-11, at `v2026.10.2`), Run all took 642.3 s after a 45.1 s install, including the two stretch fits (135 s and 95 s); the static fit took 136 s, the drifting fit 141 s and the Prophet-baseline fit 84 s, longer than the notebook's estimates of 1.5 minutes for the static fit and about a minute for the Prophet baseline. The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. An effect per dollar that changes

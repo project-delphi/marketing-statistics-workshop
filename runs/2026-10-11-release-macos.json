@@ -1,0 +1,1688 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "source": "test_notebooks",
+  "env": "macos-arm64",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
+  "kernel": "python3",
+  "settings": {},
+  "commit": "a0f878f",
+  "ref": "v2026.10.2",
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "mode": "worked",
+      "content_sha": "d2de7a46cdb85f85",
+      "deps_sha": "417742a26dc13c77",
+      "notebook": "python/00-setup-warmup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.8,
+      "phases": {
+        "generated": 0.11,
+        "other": 0.6,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.05,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.5
+      },
+      "verified": 3,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "d2de7a46cdb85f85",
+      "deps_sha": "417742a26dc13c77",
+      "notebook": "python/00-setup-warmup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.4,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.31,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.28
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "f011280b0403c4cb",
+      "deps_sha": "e554bb5f87a0a358",
+      "notebook": "python/01-customer-base-sql",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.0,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.65,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.13,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.05
+      },
+      "verified": 4,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1b": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "f011280b0403c4cb",
+      "deps_sha": "e554bb5f87a0a358",
+      "notebook": "python/01-customer-base-sql",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.9,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.84,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.84
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "2fcae6a24f5a75c4",
+      "deps_sha": "0492a2bdb2b5b60e",
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 23.9,
+      "phases": {
+        "generated": 0.08,
+        "other": 18.68,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 3.19,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-016",
+        "seconds": 8.98
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "2fcae6a24f5a75c4",
+      "deps_sha": "0492a2bdb2b5b60e",
+      "notebook": "python/02-btyd",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.6,
+      "phases": {
+        "generated": 0.07,
+        "other": 2.34,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.34
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "c5dc553762b5d9a0",
+      "deps_sha": "be484db6d7780d1d",
+      "notebook": "python/03-btyd-vs-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 14.3,
+      "phases": {
+        "generated": 0.07,
+        "other": 10.76,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.04,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-011",
+        "seconds": 8.03
+      },
+      "verified": 2,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "design": {
+          "passed": true,
+          "whose": null
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "c5dc553762b5d9a0",
+      "deps_sha": "be484db6d7780d1d",
+      "notebook": "python/03-btyd-vs-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 4.0,
+      "phases": {
+        "generated": 0.06,
+        "other": 2.69,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.69
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "0cbabfe415ab6ce9",
+      "deps_sha": "8bd81df0d63a4782",
+      "notebook": "python/04-monetary-clv",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 69.4,
+      "phases": {
+        "generated": 0.08,
+        "other": 64.15,
+        "exercise": 0.01,
+        "solution": 0.01,
+        "checkpoint": 3.23,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-024",
+        "seconds": 18.41
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "CDNOW Gamma-Gamma benchmark": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "0cbabfe415ab6ce9",
+      "deps_sha": "8bd81df0d63a4782",
+      "notebook": "python/04-monetary-clv",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.7,
+      "phases": {
+        "generated": 0.07,
+        "other": 2.45,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.45
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "e06df310e7cccdc1",
+      "deps_sha": "1508ba718b46f980",
+      "notebook": "python/05-clv-decisions",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 36.1,
+      "phases": {
+        "generated": 0.07,
+        "other": 33.64,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.58,
+        "verify": 0.02
+      },
+      "slowest_cell": {
+        "id": "cell-011",
+        "seconds": 19.9
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 \u00b7 against the truth": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "e06df310e7cccdc1",
+      "deps_sha": "1508ba718b46f980",
+      "notebook": "python/05-clv-decisions",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.6,
+      "phases": {
+        "generated": 0.07,
+        "other": 2.37,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.33
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "923406176f284329",
+      "deps_sha": "e3a7bf0591fa80ba",
+      "notebook": "python/06-experiments",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.0,
+      "phases": {
+        "generated": 0.07,
+        "other": 1.36,
+        "exercise": 0.0,
+        "solution": 0.04,
+        "checkpoint": 0.5,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.98
+      },
+      "verified": 6,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "923406176f284329",
+      "deps_sha": "e3a7bf0591fa80ba",
+      "notebook": "python/06-experiments",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.0,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.98,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.98
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "18b26f3c67780dfc",
+      "deps_sha": "cdd588dbef3d3a67",
+      "notebook": "python/07-synthetic-control-did",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 6.0,
+      "phases": {
+        "generated": 0.07,
+        "other": 3.49,
+        "exercise": 0.0,
+        "solution": 0.03,
+        "checkpoint": 1.41,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-040",
+        "seconds": 1.72
+      },
+      "verified": 4,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Prop 99": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "18b26f3c67780dfc",
+      "deps_sha": "cdd588dbef3d3a67",
+      "notebook": "python/07-synthetic-control-did",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.6,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.79,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.75
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "610e842896be2b11",
+      "deps_sha": "3f7f7e5ce6a7a5c2",
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 26.5,
+      "phases": {
+        "generated": 0.07,
+        "other": 23.6,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.18,
+        "verify": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-024",
+        "seconds": 17.01
+      },
+      "verified": 6,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "adstock alpha": {
+          "passed": true,
+          "whose": null
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "610e842896be2b11",
+      "deps_sha": "3f7f7e5ce6a7a5c2",
+      "notebook": "python/08-bayesian-mmm",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.3,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.42,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.63
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.27
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "5a8cc3db3a05c4cf",
+      "deps_sha": "f406df28f719332d",
+      "notebook": "python/09-mmm-calibration",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 88.6,
+      "phases": {
+        "generated": 0.08,
+        "other": 85.05,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.03,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-025",
+        "seconds": 31.95
+      },
+      "verified": 4,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "5a8cc3db3a05c4cf",
+      "deps_sha": "f406df28f719332d",
+      "notebook": "python/09-mmm-calibration",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.8,
+      "phases": {
+        "generated": 0.07,
+        "other": 1.63,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.48
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "899cb68751a52af2",
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 15.1,
+      "phases": {
+        "generated": 0.07,
+        "other": 13.28,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.18,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-015",
+        "seconds": 10.95
+      },
+      "verified": 6,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "6": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "9bd4fb24b3ac47fc",
+      "deps_sha": "899cb68751a52af2",
+      "notebook": "python/10-budget-allocation",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.9,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.83,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.83
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "f9ecb7c8584c98d8",
+      "deps_sha": "4b5111dd023b0120",
+      "notebook": "python/11-uplift-econml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 24.1,
+      "phases": {
+        "generated": 0.08,
+        "other": 20.35,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.23,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-010",
+        "seconds": 14.58
+      },
+      "verified": 3,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 on the four models": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "f9ecb7c8584c98d8",
+      "deps_sha": "4b5111dd023b0120",
+      "notebook": "python/11-uplift-econml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.3,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.18,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.18
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "a8bef7b4ef4a2f07",
+      "deps_sha": "115cba2d32b80248",
+      "notebook": "python/12-capstone",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 45.4,
+      "phases": {
+        "generated": 0.09,
+        "other": 41.82,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.04,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-014",
+        "seconds": 20.34
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "1 \u00b7 fitted values": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "a8bef7b4ef4a2f07",
+      "deps_sha": "115cba2d32b80248",
+      "notebook": "python/12-capstone",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.8,
+      "phases": {
+        "generated": 0.07,
+        "other": 1.46,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.43
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "e36cbdf087451a63",
+      "deps_sha": "87dbbbd13a2eb180",
+      "notebook": "python/13-messy-real-data",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 10.5,
+      "phases": {
+        "generated": 0.09,
+        "other": 8.51,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.32,
+        "verify": 0.04
+      },
+      "slowest_cell": {
+        "id": "cell-024",
+        "seconds": 2.44
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Part A: the clean answer": {
+          "passed": true,
+          "whose": null
+        },
+        "helper = PyMC-Marketing": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "sweep: the reference row": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Online Retail II counts": {
+          "passed": true,
+          "whose": null
+        },
+        "Online Retail II fits": {
+          "passed": true,
+          "whose": null
+        },
+        "Online Retail II holdout": {
+          "passed": true,
+          "whose": null
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "e36cbdf087451a63",
+      "deps_sha": "87dbbbd13a2eb180",
+      "notebook": "python/13-messy-real-data",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 1.9,
+      "phases": {
+        "generated": 0.06,
+        "other": 0.83,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.83
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "495cf51b2e28612f",
+      "deps_sha": "e2d98d8f7cb3ff14",
+      "notebook": "python/14-survival-churn",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 8.3,
+      "phases": {
+        "generated": 0.07,
+        "other": 1.81,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 5.16,
+        "verify": 0.06
+      },
+      "slowest_cell": {
+        "id": "cell-055",
+        "seconds": 4.65
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "km-vs-truth": {
+          "passed": true,
+          "whose": null
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "495cf51b2e28612f",
+      "deps_sha": "e2d98d8f7cb3ff14",
+      "notebook": "python/14-survival-churn",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.2,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.05,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 1.03
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "8bcf39e198f03908",
+      "deps_sha": "859cddadd532de3c",
+      "notebook": "python/15-double-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 249.5,
+      "phases": {
+        "generated": 0.08,
+        "other": 183.36,
+        "checkpoint": 23.89,
+        "exercise": 0.0,
+        "solution": 38.74,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-031",
+        "seconds": 108.84
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "data": {
+          "passed": true,
+          "whose": null
+        },
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "no cross-fitting": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5 on Hillstrom": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "hidden confounder": {
+          "passed": true,
+          "whose": null
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "8bcf39e198f03908",
+      "deps_sha": "859cddadd532de3c",
+      "notebook": "python/15-double-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 3.5,
+      "phases": {
+        "generated": 0.05,
+        "other": 2.34,
+        "checkpoint": 0.01,
+        "exercise": 0.0,
+        "solution": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.32
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "e2a1c4e80311d70d",
+      "deps_sha": "bd0fb36a0483e2cc",
+      "notebook": "python/16-multi-touch-attribution",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 4.6,
+      "phases": {
+        "generated": 0.07,
+        "other": 2.57,
+        "exercise": 0.0,
+        "solution": 0.6,
+        "checkpoint": 0.22,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-055",
+        "seconds": 1.2
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "chain": {
+          "passed": true,
+          "whose": null
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "Markov credit": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "e2a1c4e80311d70d",
+      "deps_sha": "bd0fb36a0483e2cc",
+      "notebook": "python/16-multi-touch-attribution",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.2,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.17,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.98
+      }
+    },
+    {
+      "mode": "worked",
+      "content_sha": "f8359ab317f562f5",
+      "deps_sha": "d8fd47645ba77266",
+      "notebook": "python/17-mmm-time-varying",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 129.1,
+      "phases": {
+        "generated": 0.06,
+        "other": 90.27,
+        "exercise": 0.0,
+        "solution": 36.62,
+        "checkpoint": 0.26,
+        "verify": 0.03
+      },
+      "slowest_cell": {
+        "id": "cell-047",
+        "seconds": 47.9
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "static model": {
+          "passed": true,
+          "whose": null
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "drifting model": {
+          "passed": true,
+          "whose": null
+        },
+        "prophet": {
+          "passed": true,
+          "whose": null
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        }
+      },
+      "cell_errors": 0
+    },
+    {
+      "mode": "learner",
+      "content_sha": "f8359ab317f562f5",
+      "deps_sha": "d8fd47645ba77266",
+      "notebook": "python/17-mmm-time-varying",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.2,
+      "phases": {
+        "generated": 0.06,
+        "other": 1.02,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.01
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 0.82
+      }
+    }
+  ]
+}

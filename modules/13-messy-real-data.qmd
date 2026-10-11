@@ -13,7 +13,7 @@ title: "{{< var modules.m13.title >}}"
 {{< include /_includes/lab-13.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings, Run all took 11.0 s on an Apple Silicon laptop (native Python) and 21.7 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-11). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet. The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings, Run all took 11.0 s on an Apple Silicon laptop (native Python) and 21.7 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-11). Neither is a Colab time. On Colab (worked, full settings, 2026-10-11, at `v2026.10.2`), Run all took 37.9 s after a 24.4 s install. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. A log is not a list of purchases

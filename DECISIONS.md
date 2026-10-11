@@ -322,6 +322,14 @@ Newest first within each section.
   sweep (below, "Taken into `v2026.10.2`"). The commit that moves `repo.ref` removes the five
   `in_ref: false` flags and is the commit the tag is cut on. All 23 notebooks' records are stale
   at the tag, so the sweep covers the core and the extensions.
+- Sweep at `v2026.10.2` (2026-10-11): all 23 notebooks passed a worked, full-settings Run all on
+  Colab (`release-colab-external-images_20261008-060111_RC00`, 2 CPUs, 13.6 GB), three runtimes at
+  a time, by the S1 method; every record carries `mktstats_commit` a0f878f (the tag's commit) or,
+  for R, `ref: v2026.10.2`. R Module 0 downloaded CDNOW through the new `load_cdnow()`. The same
+  day, in the Docker image (`--cpus 2`) and natively on the laptop, all 23 notebooks passed worked
+  FULL and learner runs at the tag (`runs/2026-10-11-release-docker.json`, 46 of 46;
+  `-macos.json`, 36 of 36), and every Docker record reports `cpus: 2`. `release_check.py` with the
+  `evidence` records: the core is ready from 2026-10-11 through 2026-11-01 (21-day limit).
 - Run records are added on main after the tag (`repo.branch`), so links to `runs/` point at main.
   Readiness hashes main's files, not the tag's: if main's labs or deps move past the tag, the
   readiness page reports stale even though learners still get the tag. That errs on the safe side.
@@ -395,11 +403,19 @@ Newest first within each section.
   social 25%, display 46%), and its stretch comparison from the same run (uncalibrated: 2.1%
   MAPE, 0.88 coverage, search ROAS 5.20 to 5.35 by fold). Laptop times are not Colab times: the
   Colab time comes from the `v2026.10.2` sweep.
+- On Colab at `v2026.10.2` (2026-10-11) the cell took 107 s and the notebook 367 s. Not all of the
+  drop from 252 s is the fourth fold: on that runtime the notebook's two main fits also took
+  124 s and 117 s, against 209 s and 199 s at `v2026.10.1`, so the runtime was faster too.
 
 ### Queued for the next release (lab changes that need a Colab re-sweep)
 Changes to `labs/src`, `src/mktstats`, `R/` or the pins make the Colab records stale on main, and a
 new tag makes every notebook's record stale, so such changes wait for the next sweep instead of
-going to main one by one. Nothing is queued: `v2026.10.2` took the previous queue (below).
+going to main one by one. `v2026.10.2` took the previous queue (below).
+- Modules 13 and 17: the notebooks' Colab estimates predate a Colab record. Measured at
+  `v2026.10.2` (`runs/2026-10-11-colab-py-python-1{3,7}-*.json`): Module 13's model cell took 25 s
+  (the notebook says about a minute); Module 17's static fit 136 s (about a minute and a half),
+  drifting fit 141 s (about three minutes) and Prophet-baseline fit 84 s (about a minute). Quote
+  the measured times. `teach.qmd` gives instructors the measured ones until then.
 
 ### Taken into `v2026.10.2` from the queue (2026-10-11)
 - Module 9: FULL cross-validation runs 3 folds (`n_init=132`, as QUICK did), not 4 (above).

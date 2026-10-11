@@ -13,7 +13,7 @@ title: "{{< var modules.m16.title >}}"
 {{< include /_includes/lab-16.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 4.8 s on an Apple Silicon laptop (native Python) and 7.4 s in the workshop's Docker image (linux/arm64, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet. The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 4.8 s on an Apple Silicon laptop (native Python) and 7.4 s in the workshop's Docker image (linux/arm64, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. On Colab (worked, full settings, 2026-10-11, at `v2026.10.2`), Run all took 13.3 s after a 12.0 s install. The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. Credit and cause
