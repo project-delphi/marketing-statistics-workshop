@@ -42,11 +42,11 @@ environment:
 # Python packages the labs install on Colab, with the docs or source each was checked against.
 # Versions must agree with environment/requirements.txt (tests/test_variables.py).
 packages:
-  pymc-marketing: {version: "1.2.0", checked: 2026-10-10, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer); Module 17, 2026-10-10: mmm/mmm.py MMM(time_varying_media: bool | HSGPBase) (an HSGPBase instance keeps its own dims, so dims=(date, channel) gives one multiplier per channel; True gives one shared multiplier, dims (date,)), mmm/hsgp.py SoftPlusHSGP.parameterize_from_data(X, dims, X_mid=None, eta_mass=0.05, eta_upper=1.0, ls_lower=1.0, ls_upper=None, ls_mass=0.9, cov_func=CovFunc.ExpQuad, centered=False, drop_first=True) and create_variable (softplus divided by its mean over date), mmm/tvp.py (Matern 5/2 when cov_func is None), mmm/incrementality.py contribution_over_spend (window clamped to the fitted dates), mmm/lift_test.py exact_row_indices and create_time_varying_saturation (a time-varying lift row needs a date equal to a model date)", docs: https://www.pymc-marketing.io/}
+  pymc-marketing: {version: "1.2.0", checked: 2026-10-10, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer; 2026-10-10: clv/distributions.py BetaGeoNBD.logp, clv/models/gamma_gamma.py GammaGammaModel.build_model and expected_customer_spend, clv/models/beta_geo.py BetaGeoModel.expected_purchases, transcribed in mktstats.mle and tested against them); Module 17, 2026-10-10: mmm/mmm.py MMM(time_varying_media: bool | HSGPBase) (an HSGPBase instance keeps its own dims, so dims=(date, channel) gives one multiplier per channel; True gives one shared multiplier, dims (date,)), mmm/hsgp.py SoftPlusHSGP.parameterize_from_data(X, dims, X_mid=None, eta_mass=0.05, eta_upper=1.0, ls_lower=1.0, ls_upper=None, ls_mass=0.9, cov_func=CovFunc.ExpQuad, centered=False, drop_first=True) and create_variable (softplus divided by its mean over date), mmm/tvp.py (Matern 5/2 when cov_func is None), mmm/incrementality.py contribution_over_spend (window clamped to the fitted dates), mmm/lift_test.py exact_row_indices and create_time_varying_saturation (a time-varying lift row needs a date equal to a model date)", docs: https://www.pymc-marketing.io/}
   econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
   # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
-  lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13", docs: https://lifelines.readthedocs.io/}
+  lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05; needs autograd-gamma 0.5.0, pinned in requirements.txt); imports on Python 3.13; installed source lifelines 0.30.3, read again for the Module 14 build on 2026-10-10: fitters/kaplan_meier_fitter.py (KaplanMeierFitter(alpha); fit/_fit; survival_function_ = exp(cumsum(log(1 - d/n))) from utils _additive_estimate, index 0 plus every distinct duration; confidence_interval_ from _bounds, exponential Greenwood, pointwise), fitters/__init__.py (UnivariateFitter.predict = asof, flat past the data), utils/__init__.py (restricted_mean_survival_time exact step integral up to t, return_variance = variance of min(T, t); _preprocess_inputs), fitters/coxph_fitter.py (CoxPHFitter(alpha) via BaseFitter, fit(df, duration_col, event_col) uses every other column, breslow -> SemiParametricPHFitter, confidence_intervals_ on the log scale with columns '95% lower-bound' and '95% upper-bound', summary), fitters/mixins.py (hazard_ratios_ = exp(params_), check_assumptions), statistics.py (proportional_hazard_test with time_transform rank; StatisticalResult.summary sorted by name; logrank_test, multivariate_logrank_test)", docs: https://lifelines.readthedocs.io/}
   prophet: {version: "1.4.0", checked: 2026-10-10, against: "PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); installed source prophet/forecaster.py (Prophet defaults n_changepoints=25, changepoint_range=0.8, changepoint_prior_scale=0.05; predict() returns trend, yearly, holidays, additive_terms and yhat = trend * (1 + multiplicative_terms) + additive_terms; add_regressor); fitted on Python 3.13 locally (156 weekly rows, 0.04-0.16 s, identical results on repeated fits); Module 17, 2026-10-10: Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False, holidays=, uncertainty_samples=0), predict(df) columns trend, yearly, holidays, yhat (trend + yearly + holidays = yhat to 1.2e-10 on the lab data); the prophet logger and cmdstanpy log at INFO level (forecaster.py, models.py)", docs: https://facebook.github.io/prophet/}
 
 # R packages (versions come from the P3M snapshot; recorded here after the image build).
@@ -579,34 +579,39 @@ modules:
       - {name: "Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
   m13:
     slug: 13-messy-real-data
-    title: "Messy real data: BTYD and spend models on a real transaction log"
+    title: "Messy real data: cleaning a real log for BTYD and spend models"
     day: d6
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python with DuckDB for cleaning and PyMC-Marketing for the models, the same stack as Modules 1, 2 and 4."
-    summary: "Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II."
+    language_why: "Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); maximum-likelihood fits of the closed-form likelihoods for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4."
+    summary: "Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact."
     objectives:
-      - "Detect and remove the anomalies that break BTYD inputs: returns and cancellations, missing customer IDs, non-product lines and same-day repeat orders."
-      - "Show, against known truth, how much each anomaly biases BG/NBD and Gamma-Gamma estimates when left in."
-      - "Cap extreme order values at a stated percentile and measure how the cap moves the spend parameters and CLV."
-      - "Fit BG/NBD and Gamma-Gamma to UCI Online Retail II and check them on a holdout period."
+      - "Write SQL rules that flag non-product lines, exact duplicate lines, and cancellations together with the purchases they cancel, and show that they reproduce the clean RFM table of the synthetic retailer exactly."
+      - "Measure, one rule at a time, how leaving each error in moves BG/NBD and Gamma-Gamma estimates, total expected revenue and individual customer scores, against the clean answer and the known truth."
+      - "Cap extreme order values at a stated percentile and show what the cap does to the spend parameters and to the value of the capped wholesale customers."
+      - "Fit BG/NBD and Gamma-Gamma to cleaned UCI Online Retail II, check them on a holdout period, and test the spend-independence assumption with Pearson and rank correlations."
+      - "Turn the fitted models into a retention-contact list and report which cleaning or counting choice moves it most."
     outcomes:
-      - "A tested cleaning pipeline that turns a raw transaction log into a BTYD-ready RFM table"
-      - "A table of parameter bias by anomaly on the dirtied synthetic log"
-      - "Holdout tracking and CLV for Online Retail II, with the cleaning choices stated"
+      - "A tested DuckDB cleaning pipeline that turns an Online-Retail-II-style line log into purchase days and an RFM table"
+      - "A table of how each data error moves model parameters, total expected revenue and individual scores, against known truth"
+      - "A capping comparison for the spend model, with what it costs the wholesale customers' value"
+      - "Holdout tracking, an independence check and a retention-contact list for Online Retail II, with how much each cleaning or counting choice moves the list"
     prerequisites:
-      - "Module 1: the RFM table in SQL"
-      - "Module 2: BG/NBD and the calibration/holdout split"
-      - "Module 4: Gamma-Gamma and discounted CLV"
-    decision: "Decide which customers of the real retailer are worth a retention contact, and state which cleaning choice moves that list most."
-    recap: "Modules 2 and 4 fit clean data, synthetic or curated; a real log contains returns, wholesale orders and duplicate same-day lines that break the models' inputs."
-    next: "Module 14 turns to contractual customers, where churn is observed, and to survival models with covariates."
+      - "Module 1: cleaning Online Retail II in SQL, purchase days and the RFM table"
+      - "Module 2: BG/NBD, the calibration/holdout split and MAP fits"
+      - "Module 4: Gamma-Gamma, its independence assumption and expected spend per customer"
+      - "Helpful: Module 5's break-even lift for a retention campaign"
+    decision: "Decide which Online Retail II customers get a retention contact (when the assumed lift times margin times expected 26-week revenue exceeds the contact cost), and state which cleaning or counting choice moves that list most and by how many customers."
+    recap: "Module 1 cleaned Online Retail II with three rules checked only by row counts, and Modules 2 and 4 fitted curated or synthetic logs; nothing showed whether the cleaning was right or what a cleaning error does to a model or a decision."
+    next: "Module 14 turns to subscribers, whose churn is observed: survival models with censoring and covariates."
     notebooks:
-      - {path: labs/python/13-messy-real-data.ipynb, source: labs/src/13-messy-real-data.py, kernel: python3, install: [pymc-marketing, nutpie, duckdb, matplotlib, pyarrow, openpyxl]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
+      - {path: labs/python/13-messy-real-data.ipynb, source: labs/src/13-messy-real-data.py, kernel: python3, install: [pymc-marketing, duckdb, matplotlib, pyarrow, openpyxl]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/messy.py, src/mktstats/mle.py, data/synthetic/messy_lines.csv, data/synthetic/truth_messy.json, data/synthetic/retailer_transactions.csv, data/synthetic/truth.json]
     data:
       - {name: "UCI Online Retail II", url: "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip", sha256: 572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb}
+      - {name: "Synthetic messy log (messy_lines.csv: the retailer's customers 1-2,500 and 13 wholesale buyers, dirtied by mktstats.synth.messy, seed 2033; error labels only in truth_messy.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Synthetic retailer, the clean answer (generated by mktstats.synth.retailer)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
   m14:
     slug: 14-survival-churn
     title: "Survival analysis for subscription churn"
@@ -614,28 +619,31 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python with lifelines, which implements Kaplan-Meier and Cox models with the same data-frame interface as the rest of the week."
-    summary: "Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4."
+    language_why: "The lifelines library fits Kaplan-Meier curves, log-rank tests, Cox models, proportional-hazards tests and restricted mean survival time on pandas data frames. No model is sampled, so the fits are quick."
+    summary: "Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars."
     objectives:
-      - "Explain right-censoring and show how ignoring it biases a churn rate."
-      - "Estimate and plot Kaplan-Meier retention curves by plan tier, with confidence bands."
-      - "Fit a Cox proportional-hazards model and check that the true hazard ratios fall inside their 95% confidence intervals."
-      - "Test the proportional-hazards assumption and say what to do when it fails."
-      - "Compare Kaplan-Meier with the sBG model on the Fader-Hardie retention data and say which one can extrapolate."
+      - "Write the Kaplan-Meier estimator, match lifelines' KaplanMeierFitter, and show against the known truth that two retention rates that ignore censoring miss in opposite directions."
+      - "Show on the Fader-Hardie data that Kaplan-Meier reproduces observed retention but cannot extrapolate past the last observed year, while the sBG model from Module 4 can."
+      - "Fit a Cox proportional-hazards model and check that, once plan is adjusted for, the true hazard ratios of plan and onboarding lie inside their 95% confidence intervals."
+      - "Test the proportional-hazards assumption, find the covariate whose effect fades, and estimate its hazard ratio before and after a 3-month landmark."
+      - "Compute the restricted mean survival time that onboarding adds within 24 months, standardized by plan, with a 95% bootstrap interval."
     outcomes:
-      - "Kaplan-Meier curves by plan with 95% confidence bands"
-      - "A Cox model hazard-ratio table next to the true hazard ratios"
-      - "A restricted-mean-lifetime comparison that prices an onboarding intervention"
+      - "Your own Kaplan-Meier function, checked against lifelines and the true retention curve"
+      - "A hazard-ratio table with and without adjustment for plan, next to the true hazard ratios"
+      - "Hazard ratios before and after a landmark for an effect that fades"
+      - "The months of subscription onboarding adds, priced against the cost of an onboarding call"
     prerequisites:
       - "Module 4: the shifted-beta-geometric model and contractual churn"
       - "Logistic regression coefficients read as multiplicative effects"
-    decision: "Decide whether paying for an onboarding call is worth it, from the months of subscription it adds per customer and the monthly margin, and say what evidence would make the estimate causal."
-    recap: "Module 4's sBG model describes one homogeneous cohort; it cannot say which customer characteristics raise the risk of churning."
-    next: "Onboarding completion is not randomized, so its hazard ratio is an association. Module 15 estimates causal effects from observational data."
+      - "Module 6: confidence intervals, and why a randomized comparison is causal"
+    decision: "Decide whether an onboarding call is worth its cost, from the months of subscription that onboarding adds within 24 months (standardized by plan, with a 95% interval), the monthly margin and the share of called subscribers the call gets to onboard, and say why the estimate stays an association until an experiment tests it."
+    recap: "Module 4's sBG model describes one cohort that joined on the same day and has no covariates; it cannot use subscribers who joined at different dates and are still active, or say which subscribers churn faster."
+    next: "Onboarding was not randomized: adjusting for plan removes one confounder, but motivation is not in the data, so the effect is still an association. Module 15 estimates causal effects from observational data; a randomized pilot (Module 6) settles it."
     notebooks:
       - {path: labs/python/14-survival-churn.ipynb, source: labs/src/14-survival-churn.py, kernel: python3, install: [lifelines, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, data/real/sbg_retention.csv]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/survival.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/subscriptions.py, data/synthetic/subscriptions_subscribers.csv, data/synthetic/truth_subscriptions.json, data/real/sbg_retention.csv]
     data:
+      - {name: "Synthetic subscription program (subscriptions_subscribers.csv, generated by mktstats.synth.subscriptions, seed 2034; truth in truth_subscriptions.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
       - {name: "Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)", url: "https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf"}
   m15:
     slug: 15-double-ml
@@ -676,7 +684,7 @@ modules:
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
     language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
-    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway."
+    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway."
     objectives:
       - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
       - "Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion."

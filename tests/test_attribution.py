@@ -2,9 +2,11 @@
 every checkpoint check passing on the reference and failing on each wrong answer the lab brief
 lists (briefs/16-multi-touch-attribution.md, "Failure messages"), with that answer's message."""
 
+import ast
 import itertools
 import math
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -255,14 +257,78 @@ def re_mutates(P, channels):
     return pd.Series(out)
 
 
+def re_self_loop(P, channels):
+    """Removes c by making it loop to itself: I - Q is singular (LinAlgError)."""
+    p = at.conversion_probability(P)
+    out = {}
+    for c in channels:
+        removed = P.copy()
+        removed.loc[c, :] = 0.0
+        removed.loc[c, c] = 1.0
+        out[c] = 1 - at.conversion_probability(removed) / p
+    return pd.Series(out)
+
+
+def re_p_inside_loop(P, channels):
+    """Computes p from the removed copy: p_-B = 0 on TINY, so 0 / 0 (ZeroDivisionError)."""
+    out = {}
+    for c in channels:
+        removed = P.copy()
+        removed.loc[c, :] = 0.0
+        removed.loc[c, "null"] = 1.0
+        p = at.conversion_probability(removed)
+        out[c] = 1 - at.conversion_probability(removed) / p
+    return pd.Series(out)
+
+
 @pytest.mark.parametrize("wrong, message", [
     (re_delete_renormalize, "deleted and the other transitions renormalized"),
     (re_ratio, r"1 - p_-c / p, not p_-c / p"),
     (re_mutates, r"Work on `P.copy\(\)`"),
+    (re_self_loop, r"LinAlgError: Singular matrix\. .*loops to itself.*Send its transitions to"
+                   r" null instead"),
+    (re_p_inside_loop, r"ZeroDivisionError: .*computed from the removed copy inside the loop.*"
+                       r"Compute p once, from the unchanged P"),
 ])
 def test_exercise_3_messages(small, wrong, message):
     P = at.transition_matrix(small, CH)
-    _fails(message, at.check_removal_effects, wrong, P, CH)
+    msg = _fails(message, at.check_removal_effects, wrong, P, CH)
+    assert "workshop.use_reference(3)" in msg
+
+
+LAB = Path(__file__).resolve().parents[1] / "labs" / "src" / "16-multi-touch-attribution.py"
+
+
+def _lab_function(name):
+    """A provided function of the lab, defined from the lab's own source."""
+    tree = ast.parse(LAB.read_text(encoding="utf-8"))
+    defs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name]
+    assert len(defs) == 1, f"expected one def {name} in {LAB.name}"
+    ns = {"pd": pd, "np": np}
+    exec(compile(ast.Module(body=defs, type_ignores=[]), str(LAB), "exec"), ns)  # noqa: S102
+    return ns[name]
+
+
+def re_dict(P, channels):
+    """The right removal effects, returned as a dict."""
+    return dict(at.removal_effects(P, channels))
+
+
+def test_a_dict_of_removal_effects_passes_and_works_downstream(small):
+    """Checkpoint 3 accepts a dict, so the provided Markov credit cell, the bootstrap and the
+    stretch (which call removal_effects directly) must accept one too."""
+    P = at.transition_matrix(small, CH)
+    assert isinstance(at.check_removal_effects(re_dict, P, CH), pd.Series)
+    tiny = re_dict(at.transition_matrix(at.TINY, ["A", "B"]), ["A", "B"])
+    lab_markov_credit = _lab_function("markov_credit")
+    for markov_credit in (lab_markov_credit, at.markov_credit):
+        at.check_markov_credit(markov_credit(tiny, 3))
+        pd.testing.assert_series_equal(markov_credit(re_dict(P, CH), 3020),
+                                       markov_credit(at.removal_effects(P, CH), 3020))
+    rng = np.random.default_rng(0)
+    np.testing.assert_allclose(
+        at.bootstrap_credit(small, CH, 2, rng, removal_fn=re_dict),
+        at.bootstrap_credit(small, CH, 2, np.random.default_rng(0)))
 
 
 def test_delete_renormalize_values_on_tiny():
@@ -307,13 +373,43 @@ def shapley_tuple(players, v):
     return out
 
 
+def shapley_list(players, v):
+    """The right values, returned as a list."""
+    return list(at.shapley_values(players, v).values())
+
+
+def shapley_series(players, v):
+    """The right values as a Series: the provided cells call phi.values(), which a Series
+    does not have as a method."""
+    return pd.Series(at.shapley_values(players, v))
+
+
+def shapley_none_values(players, v):
+    return dict.fromkeys(players)
+
+
 @pytest.mark.parametrize("wrong, message", [
     (shapley_wrong_weight, r"\(n - \|T\|\)! in place of \(n - \|T\| - 1\)!"),
     (shapley_no_difference, "do not contain c, and compare"),
     (shapley_tuple, "v takes a frozenset"),
+    (shapley_list, r"returned a list, not a dict\..*return a dict \{player: value\}"),
+    (shapley_series, r"returned a Series, not a dict\..*return a dict \{player: value\}"),
+    (shapley_none_values, r"values are not all numbers"),
 ])
 def test_exercise_4_messages(wrong, message):
-    _fails(message, at.check_shapley_values, wrong, seed=2040)
+    msg = _fails(message, at.check_shapley_values, wrong, seed=2040)
+    if wrong is not shapley_tuple:
+        assert "calling v" not in msg
+
+
+def shapley_own_type_error(players, v):
+    """A TypeError of the learner's own (str + float), not raised by v."""
+    return {c: "phi: " + v(frozenset([c])) for c in players}
+
+
+def test_exercise_4_does_not_blame_v_for_other_errors():
+    with pytest.raises(TypeError, match="can only concatenate str"):
+        at.check_shapley_values(shapley_own_type_error, seed=2040)
 
 
 def test_wrong_weight_values_match_the_brief():

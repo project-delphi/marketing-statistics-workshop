@@ -6,16 +6,16 @@
 
 [Module 13]{.eyebrow}
 
-**[Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd)**
+**[Messy real data: cleaning a real log for BTYD and spend models](/modules/13-messy-real-data.qmd)**
 
 ::: {.module-summary}
-Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II.
+Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact.
 :::
 
-[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
+[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd), [Module 4](/modules/04-monetary-clv.qmd) and [Module 5](/modules/05-clv-decisions.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -26,13 +26,13 @@ Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day 
 **[Survival analysis for subscription churn](/modules/14-survival-churn.qmd)**
 
 ::: {.module-summary}
-Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4.
+Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars.
 :::
 
-[Builds on [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
+[Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/14-survival-churn.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -60,7 +60,7 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 **[Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd)**
 
 ::: {.module-summary}
-Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where retargeting, email and search reach users who were likely to buy anyway.
+Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway.
 :::
 
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 8](/modules/08-bayesian-mmm.qmd).]{.module-builds-on}

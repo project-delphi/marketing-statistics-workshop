@@ -33,6 +33,112 @@ Newest first within each section.
   badges, the mktstats install and the data all point at `repo.ref`. A new tag changes every
   notebook's `deps_sha`, so it needs a full Colab sweep of the core as well.
 
+### The extensions are judged and released apart from the core week (2026-10-10)
+- `days.d6` has `track: extensions`. Its modules keep the module format, the notebook contract
+  and the run records, but the readiness verdict, the README status line, the landing-page
+  counts and the notebooks table are the core workshop's (pre-work and Days 1–5); the
+  extensions get their own sentence, table and page (`extensions.qmd`), and the schedule lists
+  them without a timetable. Without this, five unwritten optional modules made the released
+  core read "16 of 23 … not yet ready" and "23 lab notebooks, 18 written so far".
+- `release_check.py` fails on the core and the readiness items by default and always reports
+  the extensions; `--extensions` (and `release.yml`'s `extensions` dispatch input) also requires
+  them, so the core can be released while extensions are built.
+- Notebook footers stay within a track: the capstone ends the core week and points to the
+  Extensions page. Footers are outside `content_sha`, so all 18 core records stayed current
+  (checked before and after). Extension module headers list their own `prerequisites`, not the
+  module before them by number.
+- Evidence: Quarto 1.10.19 render in the workshop image, 36 pages, no warnings; lychee 0.24.2
+  `--offline` as in `publish.yml`: 2,485 links, 0 errors (also with `--include-fragments`).
+
+### Module 16 writes its own attribution code; ChannelAttribution is not used (2026-10-10)
+- ChannelAttribution 2.2.5 (CRAN, published 2026-06-08) has first-, last- and linear-touch
+  heuristics and k-order Markov models with removal effects, and no Shapley function
+  (https://cran.r-project.org/web/packages/ChannelAttribution/refman/ChannelAttribution.html,
+  read 2026-10-10). Its PyPI release 2.2.5 is a source distribution only (Cython and C++), so it
+  would compile in the Colab install cell.
+- Learners write the heuristics, the first-order transition matrix, the removal effect and exact
+  Shapley values (32 coalitions for five channels), each checked on hand-worked examples; the
+  absorbing-chain solve is a provided cell (Pedagogy review: the counterfactual is the lesson,
+  the linear algebra is machinery). Checks live in `mktstats.attribution`.
+- `mktstats.synth.mta` (seed 2036, 100,000 users): exposure follows latent intent, retargeting
+  has no effect by construction, and each channel's true incremental conversions come from
+  re-running every user's outcome with that channel removed, using the same draws. A holdout
+  uses its own random stream, so the default data do not depend on it (tested).
+- The CSV stores one letter per touch (1.34 MB instead of 3.5 MB). The market stays at 100,000
+  users because the decision compares a holdout's MDE, which grows with the square root of the
+  market, with a spend-fixed break-even: at 60,000 users the decision's economics changed
+  (measured).
+- Result on the committed data (FULL, the notebook's printed output at the commit of the run
+  records): Markov and Shapley give retargeting 23.2% and 24.6% of the credit against no true
+  effect, and none of the 25 true shares lies inside its 95% bootstrap interval. Across eight
+  seeds, data-driven credit was no better than first-click or linear credit, so the lab claims
+  "not incrementality", not "worse than heuristics". The decision compares the holdout's MDE,
+  scaled to all users reached (about 250 conversions a month), with the break-even (278), not
+  with the credited conversions, which would be a weaker bar.
+
+### Module 13: a dirtied synthetic log, a maximum-likelihood helper, and Online Retail II (2026-10-10)
+- The messy log (`mktstats.synth.messy`, seed 2033) is the retailer's customers 1–2,500 plus
+  13 wholesale buyers, with the schema `load_online_retail_ii()` returns and error rates
+  measured on Online Retail II (lines without a customer ID 22.4% against 22.5%, postage
+  invoices 4.83% against 4.88%, duplicate lines 1.45% against 1.44%, cancellation lines 2.28%
+  in both). Labels go only to `truth_messy.json`. Fewer customers than the prototype keep the
+  plain CSV at 2.4 MB; it is not gzipped, because compressed bytes can differ between zlib
+  builds and the drift gate compares bytes.
+- The lesson the data support is aggregate versus individual: Module 1's cleaning rules move
+  the 52-week forecast by +2.8% but move 449 of 2,513 customers' scores by more than 10%. On
+  Online Retail II, customer 12346 is worth £18,026.64 over 26 weeks under Module 1's rules and
+  £113.12 after cancellation matching (an order of 74,215 units cancelled the same day).
+- The sweep of cleaning variants needs about 20 fits, so `mktstats.mle` maximizes
+  pymc-marketing 1.2.0's closed-form BG/NBD and Gamma-Gamma likelihoods with SciPy (each fit
+  under 0.3 s). It reproduces Fader and Hardie's notes 004 and 025 at their published
+  precision and agrees with PyMC-Marketing's flat-prior MAP to 1.6e-5 relative or better on
+  the lab's data; PyMC-Marketing is fitted once in the lab as the cross-check (Pedagogy
+  review: approved because Modules 2 and 4 already show flat-prior MAP is maximum likelihood).
+- Tolerances come from 30 independent generator seeds: the holdout forecast within 20% (the
+  largest error was 17.8%; the BG/NBD over-predicts this Pareto/NBD holdout by 8% on average)
+  and the capped population mean within 8%.
+- Olist is not used: Kaggle's API metadata gives CC BY-NC-SA 4.0, Kaggle's docs say an account
+  is needed, and only 2.2% of its customers bought on more than one day (measured on the files).
+- Library traps found in the build: PyTensor turns Python floats that float32 holds exactly
+  (2.0, 2.5) into float32 constants, so `pm.logp(BetaGeoNBD.dist(b=2.0, …))` computes
+  `gammaln(b)` in single precision (pass `np.float64`; pymc 6.3.2, pytensor 3.3.3);
+  `fit_summary()` after a MAP fit rounds its values (ArviZ `round_to="auto"`, arviz 1.3.0;
+  read `model.fit_result`); DuckDB 1.3.2's ASOF join breaks exact ties differently from run to
+  run with more than one thread, so the lab checks only counts that do not depend on the tie.
+  The join matches 123 purchases twice on Online Retail II; the lab states the approximation
+  (one-to-one pairing would change 17 customers' calibration data and one contact).
+
+### Module 14: time zero, a fading covariate, interval checks and coverage (2026-10-10)
+- `mktstats.synth.subscriptions` (seed 2034): 8,000 subscribers signing up from 2024-01-01 to
+  2025-12-31, observed to 2026-06-30; Weibull proportional hazards (shape 0.8, scale 14
+  months) in plan and onboarding; onboarding confounded by plan; an intro offer with hazard
+  ratio 2.01 before month 3 and 1 after. The truth is analytic (restricted mean survival time
+  in closed form). Time zero is the first billing date after a 14-day trial, so onboarding is
+  known when the clock starts (no immortal-time bias); the fading covariate is the offer,
+  known at sign-up, not early support tickets.
+- Checks on library confidence intervals and a stratified bootstrap live in the new
+  `mktstats/survival.py`; `checks.py`, which the core hashes, is unchanged.
+- Coverage of the checkpoint rules with the reference solutions over 80 seeds: 78–80 for every
+  rule except the two that rest on one 95% interval each, Cox onboarding (73 of 80) and the
+  RMST bootstrap (72–73 of 80). The prototype's 38–40 of 40 came from one seed set. On the
+  committed seed every rule holds and a correct solution reproduces the reference exactly.
+- The build found that 50/50 weights in Checkpoint 5 let a plain average pass; they are now
+  75/25.
+- lifelines 0.30.3 traps: `predict` carries the last value flat past the data without a
+  warning; `restricted_mean_survival_time(return_variance=True)` is the variance of min(T, t),
+  not a standard error; `confidence_intervals_` is on the log scale and its column names carry
+  the level; `CoxPHFitter.fit` uses every other column as a covariate, so passing the whole
+  table raises `TypeError: Cannot cast DatetimeArray to dtype float64`.
+
+### BLAS and OpenMP oversubscribe under a Docker CPU quota (2026-10-10, Module 16 build)
+- In the workshop image with `--cpus 2` on a 10-core Mac, OpenBLAS 0.3.27 starts 10 threads:
+  200 matrix-vector products (8,441 × 64) took 5.0 s, against 0.02 s with 1 or 2 threads. Module
+  16's bootstrap took 13.5 s in Docker against 1.2 s natively until it used `np.bincount`
+  (1.4 s). Docker `--cpus N` times of BLAS- or OpenMP-heavy cells can therefore overstate what a
+  machine with N real cores (Colab: 2) takes. Later extension builds run their Docker records
+  with `OMP_NUM_THREADS` and `OPENBLAS_NUM_THREADS` set to the quota and say so in the record.
+  Run records report `os.cpu_count()` (the host's cores), not the quota.
+
 ## Environment
 
 ### Python pins follow Colab's own package list (2026-10-09)

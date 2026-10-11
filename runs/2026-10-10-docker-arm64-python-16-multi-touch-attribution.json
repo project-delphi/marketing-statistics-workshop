@@ -6,29 +6,29 @@
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "ba1b3e8",
+  "commit": "2fec4d0",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "caf9cd173e25c06d",
-  "deps_sha": "d6536eaa52f8bf16",
+  "content_sha": "e2a1c4e80311d70d",
+  "deps_sha": "99359e008a9d0712",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/16-multi-touch-attribution",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 7.6,
+      "seconds": 7.4,
       "phases": {
-        "generated": 0.25,
-        "other": 4.34,
+        "generated": 0.16,
+        "other": 4.73,
         "exercise": 0.0,
-        "solution": 1.22,
-        "checkpoint": 0.25,
-        "verify": 0.03
+        "solution": 0.75,
+        "checkpoint": 0.24,
+        "verify": 0.02
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.33
+        "seconds": 2.6
       },
       "verified": 5,
       "python": "3.13.14",
@@ -85,25 +85,27 @@
           "whose": "the REFERENCE solution"
         }
       },
-      "cell_errors": 0
+      "cell_errors": 0,
+      "note": "docker run --cpus 2 with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop, thread counts set to the quota; DECISIONS.md 'BLAS and OpenMP oversubscribe under a Docker CPU quota'); `cpus` is the core count the container sees, not the quota. TZ=America/Bogota (the host's zone), so the date is the local one."
     },
     {
       "mode": "learner",
       "notebook": "python/16-multi-touch-attribution",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 4.0,
+      "seconds": 3.9,
       "phases": {
-        "generated": 0.26,
-        "other": 2.46,
+        "generated": 0.15,
+        "other": 2.41,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.24
-      }
+        "seconds": 2.17
+      },
+      "note": "docker run --cpus 2 with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop, thread counts set to the quota; DECISIONS.md 'BLAS and OpenMP oversubscribe under a Docker CPU quota'); `cpus` is the core count the container sees, not the quota. TZ=America/Bogota (the host's zone), so the date is the local one."
     }
   ]
 }
