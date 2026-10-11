@@ -50,6 +50,62 @@ Newest first within each section.
 - Evidence: Quarto 1.10.19 render in the workshop image, 36 pages, no warnings; lychee 0.24.2
   `--offline` as in `publish.yml`: 2,485 links, 0 errors (also with `--include-fragments`).
 
+### Module 15: double machine learning on histogram boosting, against an overlap-weighted truth (2026-10-10)
+- `mktstats.synth.app_install` (seed 2035): 20,000 customers with nine pre-launch covariates;
+  installing the app depends on them nonlinearly (loyal, recent, phone-using customers
+  install), and the effect on 26-week spend varies with the customer. Nothing is hidden by
+  default, so selection is on observables.
+- Nuisance models are scikit-learn 1.6.1's histogram gradient boosting with
+  `early_stopping=False` (`"auto"` switches early stopping on above 10,000 rows). LightGBM
+  4.6.0 was not used: its macOS wheel needs Homebrew's libomp (it failed to import on the
+  laptop without it), and inside EconML it raised feature-name warnings on every fit. econml
+  0.17.0 still installs it as a dependency.
+- Because the effect varies, residual-on-residual regression estimates the average effect
+  weighted by e(1 − e), not the ATE; the checkpoints compare with that overlap-weighted truth
+  ($14.28 against an ATE of $13.58 on the committed data), and the briefing derives it. Over
+  30 seeds the 95% interval covered it in 27 of 30 (n = 20,000) and 29 of 30 (n = 10,000).
+- EconML's `LinearDML` with the lab's folds reproduces the hand estimate to 2e-15; its
+  interval is the hand HC0 interval times √(n/(n − 1)) (its default inference is HC1) and
+  1.959964/1.96.
+- On the committed data: naive $65.64, regression with linear controls $32.11, DML $13.51
+  (95% CI $10.51 to $16.50). Leaving out one confounder (`mobile_share`) moves the estimate
+  by +$6.39 and flips the decision. On a confounded subsample of the randomized Hillstrom test
+  (outcome `visit`), the naive interval excluded the randomized benchmark (4.52 points) and
+  `LinearDML` covered it in 30 of 30 spoiling seeds at full settings.
+- A labeled check of provided data may now come before Checkpoint 1; the runner's learner
+  verdict judges the first numbered checkpoint.
+
+### Module 17: per-channel drift through PyMC-Marketing's HSGP; a Prophet baseline measured, not assumed (2026-10-10)
+- pymc-marketing 1.2.0's `time_varying_media=True` is one multiplier shared by all channels
+  (`mmm/mmm.py`; its docs notebook: "We assume all channels share the same time-dependent
+  fluctuations"). Passing `SoftPlusHSGP.parameterize_from_data(..., dims=("date",
+  "channel"), cov_func="matern52")` gives each channel its own mean-1 path with shared
+  lengthscale and amplitude priors, so no custom PyMC model is needed. The user's example, a
+  Gaussian random walk, is described in the briefing as the alternative.
+  `parameterize_from_data` defaults to ExpQuad (Matérn 5/2 is only the default for
+  `time_varying_media=True`), so the lab sets the kernel. All fits: 0 divergences at
+  `target_accept` 0.98.
+- `mktstats.synth.mmm_drift` (seed 2037): 156 weeks, Module 8's channels, social's effect
+  fades from about 1.0 to 0.40 of its first-year level, with quarterly social pushes that
+  make the drift identifiable. On the committed data the static MMM puts social's
+  last-quarter ROAS at 3.88 (94% HDI 3.48 to 4.28) against a true 2.11 and says keep; the
+  drifting model gives 2.53 (1.94 to 3.15) and says cut.
+- Robyn 3.12.1 fits Prophet to the dependent variable and uses its trend, season and holiday
+  components as regressors (`R/R/inputs.R`, read 2026-10-10). Fed into the MMM the same way,
+  the Prophet baseline moved social's all-period ROAS from 3.90 to 2.90 against a true 4.00:
+  Prophet's trend takes up the fading channel's contribution. In this simulation no variant
+  tried helped every channel; the lab measures the practice and does not recommend it.
+- Over 15 generator seeds (QUICK) every fit-against-truth check held in 15 of 15 except the
+  Prophet checkpoint's fit check (12 of 15); the decision said cut in 14 of 15.
+- Library traps: cmdstanpy 1.3.0 resets its logger to DEBUG on first use unless it already
+  has a handler, so silencing Prophet needs a `NullHandler` first; without plotly, importing
+  prophet logs an ERROR line; a lift-test row on a time-varying MMM needs a `date` equal to a
+  model date.
+- `scripts/test_notebooks.py --note` writes run conditions (Docker CPU quota, thread
+  variables, time zone) into run records, so no record is edited by hand. Docker runs after
+  midnight UTC need `-e TZ=<local zone>`, or the record carries tomorrow's date and fails the
+  record check; runs from a worktree need `-e MKTSTATS_COMMIT`.
+
 ### Module 16 writes its own attribution code; ChannelAttribution is not used (2026-10-10)
 - ChannelAttribution 2.2.5 (CRAN, published 2026-06-08) has first-, last- and linear-touch
   heuristics and k-order Markov models with removal effects, and no Shapley function
