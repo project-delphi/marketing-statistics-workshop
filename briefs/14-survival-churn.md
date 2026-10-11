@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab is built: the generator, the notebook and every run are still to come. Numbers marked *prototype* come from a throwaway generator and fits written to test this design (scratchpad, not the repo) on a 10-core Apple Silicon laptop, native environment; they are not run records and not Colab times. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the changes and their reasons are under "Pedagogy review" at the end. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md` (changes and reasons under "Pedagogy review" at the end). **Built and run** by the Technical Expert on 2026-10-10: worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-14-survival-churn.json`, `runs/2026-10-10-docker-arm64-python-14-survival-churn.json`); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (seed 2034), re-read by the Academic Director from a worked run on 2026-10-10 (FULL unless QUICK is named) at the content and deps hashes of the run records; seed-coverage figures come from `tolerances` in `data/synthetic/truth_subscriptions.json`. Numbers still marked *prototype* come from the throwaway generator written to test the design (scratchpad, laptop) and were not re-measured by the build. "Build reconciliation" at the end lists what changed. |
 | Notebook | `labs/src/14-survival-churn.py` → `labs/python/14-survival-churn.ipynb` |
 | Lab slot | 55 min (`modules.m14.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (10 + 7 + 7 + 8 + 8; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it and after its checkpoint. Minutes are estimates until a pilot. |
 | Day | Extensions (`d6`), optional. Builds on Module 4; does not need Module 13. |
@@ -133,11 +133,13 @@ The truth is computed in continuous time; rounding cancellations up to whole day
 by less than a day. On 1,000,000 prototype rows this raised S(1 month) by under 0.002 and left
 S(3)-S(24) within sampling error. State it in the generator's docstring.
 
-**Prototype on seed 2034** (scratch generator, so the Technical Expert's numbers will differ slightly):
-4,427 of 8,000 cancellations observed (55.3%); longest follow-up 29.9 months; about 495 subscribers
-observed for at least 24 months (mean over 40 seeds, 456 to 526). The plan × onboarding table: 31% of
-basic, 55% of standard and 81% of premium subscribers onboarded. "Over 40 seeds" below means seeds
-1000-1039 of the prototype at these settings (n = 8,000, sign-ups doubling); the bootstrap used B = 100.
+**Build on seed 2034** (the committed data; the build's generator reproduces the prototype's draws):
+4,427 of 8,000 cancellations observed (55.3%); longest follow-up 29.9 months; 504 subscribers observed
+for at least 24 months (`sample.n_followed_24_months`; the prototype's 40-seed mean was about 495). The
+plan × onboarding table: 30.7% of 3,977 basic, 55.1% of 2,417 standard and 81.4% of 1,606 premium
+subscribers onboarded. "Over seeds" below means the build's `tolerances` block: seeds 1000-1039 (the
+prototype's seeds) and 3000-3039 (an independent check), 80 in all, n = 8,000, sign-ups doubling,
+reference solutions, B = 100 and 200 for the bootstrap.
 
 ## Model fits
 
@@ -149,7 +151,7 @@ Nothing is sampled; every fit takes well under a second.
 | Cox, full period, all covariates | Exercise 3 checkpoint, inside the learner's `cox_hazard_ratios`; fitted once more as `cph` in the provided PH-test cell, because the function returns a table, not the fitted model | `CoxPHFitter(alpha=0.05)`, Efron ties (default) | 0.18 s |
 | Cox, onboarding only | Exercise 3 checkpoint (unadjusted) | same | < 0.1 s |
 | Two landmark Cox fits | Exercise 4 checkpoint: `cox_hazard_ratios` on each part returned by the learner's `landmark_split` | same | < 0.5 s together |
-| Stratified bootstrap of Exercise 5's function | Exercise 5 checkpoint and decision, computed once | B = 200 (FULL), 100 (QUICK); resample within plan × onboarding; `numpy.random.default_rng(14)` | 4.6-5.4 s (B = 200), 2.3 s (B = 100) |
+| Stratified bootstrap of Exercise 5's function | Exercise 5 checkpoint and decision, computed once | B = 200 (FULL), 100 (QUICK); resample within plan × onboarding; `mktstats.survival.bootstrap_interval(..., seed=14)` | 4.6-5.4 s (B = 200), 2.3 s (B = 100). *Build*, run records: the Checkpoint 5 cell was the slowest cell, 4.81 s on macOS and 5.94 s in Docker (`--cpus 2`), FULL |
 
 QUICK changes only B. The data are the same in both modes, so every checkpoint except Exercise 5's sees
 identical numbers; the header says so, and that QUICK's interval can differ in the second decimal.
@@ -228,19 +230,20 @@ Reads the CSV, computes `tenure_months` = (cancel date, or 2026-06-30 if none, m
 / 30.4375 and `churned` = 1 if `cancel_date` is present. Defines right-censoring in one sentence ("we know
 the subscriber stayed at least this long, not when they will leave"). Prints two 12-month retention rates
 a dashboard might show: **A**, the share of all subscribers who did not cancel within 12 months of
-starting (prototype 52.8%), and **B**, the same share among subscribers whose 12-month status is known,
-that is, who cancelled within 12 months or were observed for at least 12 months (prototype 42.5%).
+starting (build 52.8%), and **B**, the same share among subscribers whose 12-month status is known,
+that is, who cancelled within 12 months or were observed for more than 12 months (build 42.5%, 6,570
+of 8,000 subscribers).
 Nothing in this cell shows the truth: Exercise 1's Predict asks about it.
 
 ### Exercise 1 · Write the Kaplan-Meier estimator (10 minutes)
 
 - **Predict.** Neither dashboard number is the true 12-month retention. Where is the truth: above A,
   between A and B but nearer A, between them but nearer B, or below B? Write your guess in the cell
-  below. (Prototype: A 52.8%, B 42.5%, truth 51.1%: between, nearer A, about 3.5 points above the
+  below. (Build: A 52.8%, B 42.5%, truth 51.1%: between, nearer A, about 3.5 points above the
   midpoint.)
 - **Function.** `kaplan_meier(duration, event) -> pd.Series`: index = the distinct times with at least
   one cancellation, ascending; values Ŝ(t) just after each; name `"survival"`. A subscriber censored at
-  t counts as at risk at t. Durations are in whole days, so there are ties (prototype: 899 distinct
+  t counts as at risk at t. Durations are in whole days, so there are ties (build: 899 distinct
   tenures and 664 distinct cancellation times among 8,000 rows); group them. `duration` and `event` are
   array-likes of the same length (lists, NumPy arrays or Series); `event` is 1 for a cancellation, 0 for
   censored.
@@ -259,7 +262,7 @@ Nothing in this cell shows the truth: Exercise 1's Predict asks about it.
      (by hand: 3 at risk at t = 1, 2 cancel, 1 − 2/3). The first toy never has two cancellations at one
      time, so it cannot catch a tie mistake; this one does, and `subs` has many ties.
   3. On `subs`: equals lifelines' `KaplanMeierFitter().fit(...).survival_function_` (`kmf_subs`) at every
-     cancellation time within 1e-9 (prototype largest gap 5.8e-15).
+     cancellation time within 1e-9 (build largest gap 6e-15).
 - **Failure messages** (the four parts of `_lab-standard.md` §5, each ending with
   `workshop.use_reference(1)`). The wrong answers on the toys were computed by the Pedagogy Expert on
   2026-10-10.
@@ -284,10 +287,11 @@ now equals to 1e-9:
 
   3. Truth: the true S(t) at 6, 12, 18 and 24 months (`truth.survival.overall`) lies inside lifelines'
      95% pointwise confidence interval (exponential Greenwood, R's "log-log"; read with `.asof(t)`) for at
-     least 3 of 4 times. Prototype seed 2034: 4 of 4 (S(12) truth 0.511, KM 0.505, interval [0.494,
-     0.516]). Over 40 seeds: 4 of 4 in 34, 3 in 5, 1 in 1; S(12) alone inside in 40.
-  4. Both dashboard numbers lie outside the 95% interval at 12 months (prototype: 0.528 and 0.425;
-     40 of 40 seeds).
+     least 3 of 4 times. Build, seed 2034: 4 of 4 (S(12) truth 0.511, KM 0.505, interval [0.494,
+     0.516]). Over seeds: at least 3 of 4 in 78 of 80 (39 in each set), all 4 in 68 (34 and 34); S(12)
+     alone inside in 79 (40 and 39).
+  4. Both dashboard numbers lie outside the 95% interval at 12 months (build: 0.528 and 0.425; 80 of
+     80 seeds).
 
 These compare the data with the truth, so once Checkpoint 1 passes they cannot fail because of the
 learner's code; their message says so ("this compares the data with the truth, not your code; if it fails,
@@ -337,9 +341,9 @@ after 7, so they are shown after the checkpoint. It builds four NumPy arrays for
      with horizon 4 it raises `ValueError`.
   2. Kaplan-Meier's own curve (`km_years`, years 0-7, 8 values) with horizon 12 raises.
   3. Actual Regular (`actual_years`, Table 1), horizon 12: 4.406 (exact).
-  4. sBG with the published α, β: within 1% of the actual (prototype 4.410, +0.1%).
+  4. sBG with the published α, β: within 1% of the actual (build 4.410, +0.1%).
   5. Kaplan-Meier carried flat (`km_flat`; lifelines' `predict` returns it without a warning):
-     overstates the actual by more than 3% (prototype 4.563, +3.6%).
+     overstates the actual by more than 3% (build 4.563, +3.6%).
 
   Rechecked by the Pedagogy Expert on 2026-10-10 with lifelines 0.30.3 on `data/real/sbg_retention.csv`:
   Regular 4.406 actual, 4.410 sBG, 4.563 flat; High End 7.166, 7.156, 7.381; Regular at year 12: 241 flat,
@@ -379,14 +383,16 @@ billing date"). Part B is where the lab first compares groups, so the sentence g
 Part A, where the learner's attention is on censoring. Defines the hazard. Plots Kaplan-Meier curves by
 plan with 95% bands and by onboarding, with one sentence before each plot saying
 what to look at; prints the plan × onboarding table (share onboarded per plan), which Exercise 3's Predict
-and Explain use. Prototype: onboarded 60.3% vs 41.4% retained at 12 months. Also makes the dummy columns
+and Explain use. Build: onboarded 60.3% vs 41.4% retained at 12 months. Also makes the dummy columns
 `plan_standard` and `plan_premium` (basic is the reference).
 
 *Moved to the briefing (Pedagogy review, item 4):* the log-rank tests, kept here for the module page: the
 log-rank test (a test of whether two or more groups have the same churn rate at every tenure; most
 powerful when one group's hazard is a constant multiple of the other's), `multivariate_logrank_test`
-across plans and `logrank_test` for onboarding. Prototype: log-rank χ² = 345 (p ≈ 5e-77) for onboarding;
-plans χ² = 415.
+across plans and `logrank_test` for onboarding. On the committed data (computed by the Academic
+Director with lifelines 0.30.3 on 2026-10-10 for the module page; the lab does not run it): log-rank
+χ² = 345.2 (p ≈ 5e-77) for onboarding; plans χ² = 415.4 on 2 degrees of freedom (p ≈ 6e-91). The same
+as the prototype's.
 
 ### Exercise 3 · Hazard ratios adjusted for plan (7 minutes)
 
@@ -410,13 +416,18 @@ plans χ² = 415.
   `upper`; 0 < lower < hr < upper in every row. Then:
   1. With `COVARIATES` (`["plan_standard", "plan_premium", "onboarded", "intro_offer"]`): the true HR
      of onboarding (0.670) inside its 95% confidence interval, and at least 2 of the 3 true HRs (0.779,
-     0.549, 0.670) inside theirs. Prototype seed 2034: 0.740 [0.691, 0.793], 0.508 [0.462, 0.559],
-     0.680 [0.637, 0.725], all three inside. Over 40 seeds: all three inside in 34; the rule above held in 39.
-     The estimates are unbiased even though `intro_offer` breaks proportional hazards (40-seed means
-     0.782, 0.549, 0.669).
+     0.549, 0.670) inside theirs. Build, seed 2034: 0.740 [0.691, 0.793], 0.508 [0.462, 0.559],
+     0.680 [0.637, 0.725], all three inside. Over seeds: all three inside in 66 of 80 (34 and 32); the
+     rule above held in 73 of 80, about 91%: 39 on the prototype's seeds 1000-1039 (as the prototype
+     found) but 34 on the independent set 3000-3039, so "39 of 40" overstated it. It rests on one 95%
+     interval (onboarding's), so about 1 seed in 10 fails it: roughly the nominal 5% and some chance.
+     In the set 3000-3039 its five failures (3000, 3028, 3034, 3035, 3037) were the seeds on which
+     Checkpoint 5 also failed, where the onboarding effect came out stronger than the truth. The
+     estimates are unbiased even though `intro_offer` breaks proportional hazards (means over seeds
+     1000-1039: 0.782, 0.549, 0.669; 3000-3039: 0.779, 0.549, 0.662).
   2. With `["onboarded"]` alone: the truth 0.670 is outside the 95% interval and the HR is lower than the
-     adjusted one (prototype 0.568 [0.535, 0.603]; outside in 40 of 40 seeds, and in all 70 seeds of two
-     other settings tried). This also catches a function that ignores `covariates`.
+     adjusted one (build 0.568 [0.535, 0.603]; outside in 80 of 80 seeds, and in all 70 prototype seeds of
+     two other settings tried). This also catches a function that ignores `covariates`.
 - **Failure messages** (each ending with `workshop.use_reference(3)`):
   - A hazard ratio at or below 0, or about −0.39 for onboarding (ln 0.68): "you returned the coefficient
     γ, which is on the log scale; the hazard ratio is exp(γ), `cph.hazard_ratios_`."
@@ -426,9 +437,12 @@ plans χ² = 415.
   - Structure right but a true ratio outside its interval: "use the dummy columns `plan_standard` and
     `plan_premium` (basic is the reference), not a text `plan` column or dummies with another plan as
     the reference."
-  - Passing all of `subs` stops inside lifelines, before the checkpoint's messages, with a `ValueError`
-    such as "could not convert string to float: 'basic'" (reproduced by the Pedagogy Expert with lifelines
-    0.30.3 on 2026-10-10); the stub's hint and `teach.qmd` cover it.
+  - Passing all of `subs` stops inside lifelines, before the checkpoint's messages. In the build it
+    raises `TypeError: Cannot cast DatetimeArray to dtype float64` (the date columns come first;
+    reproduced by the Academic Director with lifelines 0.30.3 on the committed data, 2026-10-10). The
+    Pedagogy Expert's earlier `ValueError` ("could not convert string to float: 'basic'") is what a
+    frame without the date columns gives. The stub's hint and `teach.qmd` cover it; `teach.qmd` should
+    quote the `TypeError`.
 - **Explain.** Compare with your guess. Which way did plan bias the unadjusted ratio, and why? Point to the
   share onboarded per plan and the plan hazard ratios.
 - `<details>`: Plan affects both onboarding and churn, so the unadjusted comparison credits onboarding
@@ -443,10 +457,10 @@ Fits `cph = CoxPHFitter(alpha=ALPHA)` on `COVARIATES` (the same fit as Exercise 
 prototype) and prints `proportional_hazard_test(cph, data, time_transform="rank").summary`: a test,
 from scaled Schoenfeld residuals (Grambsch & Therneau 1994), of whether each covariate's effect changes
 with tenure. In the notebook this is one table and one sentence ("the test asks, for each covariate, whether its hazard ratio
-changes with tenure; a small p-value says it does"); how the test works is in the briefing. Prototype:
-`intro_offer` χ² = 99 (p < 1e-20); onboarding p = 0.44, plans 0.54 and 0.82. Over 40 seeds the offer was
-flagged at p < 0.01 every time, and another covariate once (three tests at 0.01 give about a 3% chance of
-a false flag per seed). Use the test, not `check_assumptions(show_plots=True)`, which
+changes with tenure; a small p-value says it does"); how the test works is in the briefing. Build:
+`intro_offer` χ² = 99.25 (p = 2.2e-23); onboarding p = 0.44, plans 0.54 (premium) and 0.82 (standard).
+Over 80 seeds the offer was flagged at p < 0.01 every time, and another covariate once (three tests at
+0.01 give about a 3% chance of a false flag per seed). Use the test, not `check_assumptions(show_plots=True)`, which
 bootstraps lowess curves with an unseeded generator and prints advice. The monthly churn-rate plot by
 offer that the first draft put here comes after Exercise 4's checkpoint: it shows where the two rates
 meet, which is the answer to Exercise 4's Predict.
@@ -471,11 +485,12 @@ meet, which is the answer to Exercise 4's Predict.
   and no `churned` = 1 where the original tenure is above it; "after" has exactly the rows of `subs` with
   tenure > 3 and no tenure ≤ 0; `subs` is unchanged (equal to a copy taken before the call). Then
   on `COVARIATES`: the true offer HR 2.014 inside the "before" 95% interval
-  and 1.0 inside the "after" one; the true onboarding HR 0.670 inside both. Prototype seed 2034: offer
-  2.061 [1.878, 2.261] and 0.955 [0.873, 1.045]; onboarding 0.680 [0.614, 0.753] and 0.681 [0.626, 0.741];
-  the PH test then flags nothing at 0.01 in either period. Over 40 seeds the four held in 95%, 100%, 93%
-  and 95% of seeds, all four together in 33 and at least 3 of 4 in 40, so the checkpoint requires at
-  least 3 of the 4.
+  and 1.0 inside the "after" one; the true onboarding HR 0.670 inside both. Build, seed 2034: offer
+  2.061 [1.878, 2.261] and 0.955 [0.873, 1.045]; onboarding 0.680 [0.614, 0.753] and 0.681 [0.626, 0.741]
+  (the prototype's PH test then flagged nothing at 0.01 in either period; the build does not print it).
+  Over seeds 1000-1039 the four held in 38, 40, 37 and 38 seeds, all four together in 33; over
+  3000-3039 in 40, 37, 37 and 38, all four in 32; at least 3 of 4 in 80 of 80, so the checkpoint
+  requires at least 3 of the 4.
 - **Failure messages** (each ending with `workshop.use_reference(4)`):
   - "before" has fewer rows than `subs`: "before keeps every subscriber and stops their clock at the
     landmark (`clip(upper=landmark)`); do not filter."
@@ -501,8 +516,9 @@ it.
 - `<details>`: The full-period ratio averages a doubled churn rate in the first three months with no
   difference afterwards, weighted by when cancellations happen. Splitting at the landmark recovers both.
   Deal-seekers leave when the discount ends; those who stay are like everyone else. Alternatives:
-  `strata=["intro_offer"]` gives the offer its own baseline and keeps the other ratios (prototype
-  0.742, 0.511, 0.680) but reports no offer effect; a time-varying coefficient
+  `strata=["intro_offer"]` gives the offer its own baseline and keeps the other ratios (0.742, 0.511,
+  0.680 on the committed data, checked by the Academic Director on 2026-10-10; the lab does not run it)
+  but reports no offer effect; a time-varying coefficient
   (`CoxTimeVaryingFitter` on episode data) is the general tool. Caution: here subscribers differ only in
   observed ways, so the survivors at month 3 are comparable; in real data the survivors are a selected
   group and an after-landmark ratio carries that selection (Hernán 2010).
@@ -511,7 +527,9 @@ it.
 
 *Provided before it* (read inside the 8 minutes): the unadjusted RMST(24) difference between onboarded
 and not, from two lifelines
-Kaplan-Meier fits and `restricted_mean_survival_time(kmf, t=24)` (prototype 4.06 months), which shows the
+Kaplan-Meier fits and `restricted_mean_survival_time(kmf, t=24)` (build: 15.24 against 11.18 months, a
+gain of 4.06; target population 4,139 subscribers, plan mix basic 0.666, standard 0.262, premium 0.072),
+which shows the
 learner the call their function repeats; the
 definition of RMST with a sentence on why it suits a decision (it is in months, needs no proportional
 hazards and multiplies by a monthly margin; Royston & Parmar 2013); and the target population: the
@@ -520,24 +538,34 @@ RMST by plan and onboarding: the Predict asks what standardizing does.
 
 - **Predict.** Unadjusted, onboarded subscribers stay about 4.1 more months within the first 24. Standardized
   by plan, will the gain be larger, about the same or smaller? By how much: under 0.5 month, 0.5-2, over 2?
-  Write your guess in the cell below. (Prototype: smaller by 1.4 months; truth 1.15.)
+  Write your guess in the cell below. (Build: smaller by 1.4 months, 4.06 to 2.67; truth 1.15, 4.061 to
+  2.907.)
 - **Function.** `rmst_gain(subs, horizon, weights) -> float`: for each plan p, RMST(horizon) of the
   onboarded minus that of the not onboarded, each from its own `KaplanMeierFitter` and
   `restricted_mean_survival_time`; return Σ_p weights[p] × difference. `weights` is a dict or Series over
   plans summing to 1 (assert it). The reference is about eight lines.
-- **Checkpoint.** The fast checks run first, then the bootstrap (estimated under 30 s on Colab; the
-  Markdown above the cell says "while it runs, read the Explain prompt below").
+- **Checkpoint.** The fast checks run first, then the bootstrap (the Markdown above the cell says
+  "while it runs, read the Explain prompt below"; build: 4.81 s on macOS and 5.94 s in Docker, FULL, from
+  the run records; not yet timed on Colab).
   1. With weights {"basic": 1.0}: equals the difference of the two lifelines RMSTs for basic computed
      directly (exact).
-  2. With weights {"basic": 0.5, "premium": 0.5}: the average of the two plans' direct differences
+  2. With weights {"basic": 0.75, "premium": 0.25}: 0.75 × basic's direct difference + 0.25 × premium's
      (exact). A function that averages the plans without the weights passes check 1 and fails this one.
-  3. Weights that sum to 0.5 raise an error (the assertion the task asks for).
+     The first draft used 0.5 and 0.5, which a plain average of the two plans also passes; the build
+     changed it.
+  3. Weights that sum to 0.5 ({"basic": 0.25, "premium": 0.25}) raise an error (the assertion the task
+     asks for).
   4. Truth: the target-population gain 2.907 months (`truth.rmst.gain_target`) lies inside the 95%
      bootstrap percentile interval of `rmst_gain` (stratified by plan × onboarding, B and seed as above).
-     Prototype seed 2034: estimate 2.672; intervals [2.022, 3.218] (B = 200) and [2.283, 3.122]
-     (B = 100); over 40 seeds (B = 100) the truth was inside 38 times, and the 40-seed mean estimate was
-     2.897 (truth 2.907).
-  5. The unadjusted 4.06 lies outside that interval (40 of 40 seeds).
+     Build, seed 2034: estimate 2.672; intervals [2.22, 3.10] (B = 200, FULL) and [2.28, 3.12] (B = 100,
+     QUICK). The prototype's B = 200 interval was [2.022, 3.218]: the build's bootstrap
+     (`mktstats.survival.bootstrap_interval`) draws its resamples differently, so its intervals differ
+     at the same seed. Over seeds the truth was inside in 72 of 80 with B = 100 (38 and 34) and 73 of 80
+     with B = 200 (38 and 35), about 91%: the prototype's seeds give its 38 of 40 again, the independent
+     set fewer. The check rests on one 95% percentile interval, which misses at about the nominal rate
+     plus some undercoverage. Mean estimates
+     2.897 (seeds 1000-1039) and 2.971 (3000-3039) against the truth 2.907.
+  5. The unadjusted 4.06 lies outside that interval (80 of 80 seeds, both B).
 - **Failure messages** (each ending with `workshop.use_reference(5)`):
   - Check 1 negative: "you subtracted the other way: onboarded minus not onboarded."
   - Check 1 otherwise wrong: "for each plan, fit one `KaplanMeierFitter` to its onboarded subscribers and
@@ -549,8 +577,9 @@ RMST by plan and onboarding: the Predict asks what standardizing does.
     are caught."
   - Check 5, the unadjusted 4.06 inside the interval: "you compared onboarded with not onboarded across
     all plans; compare within each plan, then weight by the target population's plan mix."
-  - Check 4 alone fails: "the truth fell outside the interval in 2 of 40 prototype seeds, but on the
-    committed data the reference passes; compare your estimate with `workshop.use_reference(5)`."
+  - Check 4 alone fails (build wording): "a 95% interval misses now and then (on other seeds of this
+    generator the reference missed in about 1 in 10), but on the committed data the reference passes;
+    compare your estimate with `workshop.use_reference(5)`."
 
 *Provided after it · The gain plan by plan:* one row per plan with RMST(24) onboarded and not onboarded,
 the difference, the weight, and weight × difference, and their sum (the estimate). The Explain points at
@@ -563,8 +592,9 @@ it.
   within plan and weighting by the plan mix of the people a call would reach answers the decision's
   question. Stratifying fully adjusts here because onboarding depends on plan alone. Lifelines'
   `restricted_mean_survival_time(..., return_variance=True)` returns the variance of min(T, 24) across
-  subscribers (prototype SD 9.45 months), not the uncertainty of the estimate; that is why the interval
-  comes from the bootstrap.
+  subscribers (SD 9.45 months over all subscribers on the committed data, checked by the Academic
+  Director on 2026-10-10; the lab does not print it), not the uncertainty of the estimate; that is why
+  the interval comes from the bootstrap.
 
 ### Decision · Is an onboarding call worth its cost? (5 minutes)
 
@@ -573,14 +603,15 @@ Provided cell, in the standard order, printing the mode:
 - **Number:** ΔRMST(24) for subscribers who did not onboard, mean and 95% bootstrap percentile interval
   (Exercise 5), beside the unadjusted 4.06; value per call q × ΔRMST × m with its interval for q in
   `Q_GRID`; break-even q\* = c / (ΔRMST × m) with its interval; the share of bootstrap resamples in which
-  the call pays at each q (label it as that, not as a probability). Prototype: value at q = 0.35 is $11.22
-  [$8.49, $13.51] against $15 (unadjusted: $17.03); q\* = 0.468 [0.388, 0.618] (true 0.430; unadjusted
-  0.308); the call pays in 0%, 0% and 70-80% of resamples at q = 0.20, 0.35, 0.50.
+  the call pays at each q (label it as that, not as a probability). Build (FULL): value at q = 0.35 is
+  $11.22 [$9.31, $13.03] against $15 (from the unadjusted gain it would be about $17); q\* = 0.468
+  [0.403, 0.564] (true 0.430; unadjusted 0.308); the call pays in 0%, 0% and 74% of resamples at
+  q = 0.20, 0.35, 0.50 (80% at q = 0.50 with QUICK's B = 100).
 - **Rule** (stated before the numbers): call when q × ΔRMST × m > c, with m = $12 a month and c = $15 a
   call; q is not known.
 - **Recommendation** (the learner's sentence, with what would change it): for example, do not roll out
   calls on this evidence: at q = 35% they return about $11 for each $15; they pay only if a call gets more
-  than about 40-60% of reached subscribers to onboard. The unadjusted comparison would have funded them.
+  than about 40-56% of reached subscribers to onboard (the build's break-even interval). The unadjusted comparison would have funded them.
   Before spending, run a randomized pilot (Module 6) that measures q and 6-month retention, because
   onboarding was not randomized and motivation may drive both (Module 15 estimates such effects from
   observational data). A cheaper nudge changes the answer: at an illustrative $3 a nudge, the
@@ -597,47 +628,59 @@ Provided cell, in the standard order, printing the mode:
   bootstrap measures sampling noise only; confounding, if any, would shift every resample the same way.
 
 The Markdown above the cell states the rule and its economics first, then says "run the cell, then write
-your sentence". The printed layout, in the order of `_lab-standard.md` §7 (the cell fills every number;
-"…" marks the ones this brief has no prototype value for):
+your sentence". The printed layout, in the order of `_lab-standard.md` §7, as the build prints it (FULL,
+committed data):
 
 ```text
-Number          : onboarding adds 2.67 months within 24 (95% bootstrap interval 2.02 to 3.22)
+Number          : onboarding adds 2.67 months within 24 (95% bootstrap interval 2.22 to 3.10)
                   for subscribers who did not onboard, standardized by plan. Unadjusted: 4.06.
 Rule            : call when q × ΔRMST × m > c, with m = $12 a month and c = $15 a call; q is not known.
-Value per call  : q = 0.20: $… (95% interval $… to $…); calls pay in …% of bootstrap resamples
-                  q = 0.35: $11.22 (95% interval $8.49 to $13.51); calls pay in 0% of resamples
-                  q = 0.50: $… (95% interval $… to $…); calls pay in …% of resamples
-Break-even q    : 0.468 (0.388 to 0.618); from the unadjusted gain it would be 0.308.
-Scale           : … subscribers did not onboard; calling all of them costs $… and returns $… at q = 0.35.
+Value per call  : q = 0.20: $6.41 (95% interval $5.32 to $7.45); calls pay in 0% of bootstrap resamples
+                  q = 0.35: $11.22 (95% interval $9.31 to $13.03); calls pay in 0% of bootstrap resamples
+                  q = 0.50: $16.03 (95% interval $13.29 to $18.61); calls pay in 74% of bootstrap resamples
+Break-even q    : 0.468 (0.403 to 0.564); from the unadjusted gain it would be 0.308.
+Scale           : 4,139 subscribers did not onboard; calling all of them costs $62,085 and returns $46,444 at q = 0.35.
 Assumes         : onboarding prompted by a call works like onboarding chosen during the trial.
                   Onboarding was not randomized, so the gain is an association, not a measured effect.
 Recommendation  : (yours) what to do, for how many subscribers, how sure, and what would change it.
-What would change it: a pilot's measured q and retention; a cheaper nudge; discounting (about 10% less).
+What would change it: a pilot's measured q and retention; a cheaper nudge (at $3 the break-even q is 9%); discounting at 0.8% a month (10% less in the simulation's truth).
 Your sentence   : ________________________________________________
 Mode            : FULL run.
 ```
+
+The truth cell after it prints the true gain 2.907 (the interval covers it), the unadjusted truth 4.061,
+a call's true worth at q = 0.20, 0.35, 0.50 ($6.98, $12.21, $17.44 against $15) and the true break-even
+q 0.430.
 
 ## Stretch (optional) · A confounder that is not in the data
 
 Regenerate live with `subscriptions(seed=2034, hidden_confounding=0.5)` (under a second): motivation
 now raises the odds of onboarding and lowers churn. Rerun `cox_hazard_ratios` and `rmst_gain` and compare
-with the truth, the mean of `true_rmst24_gain` among subscribers who did not onboard. Prototype: Cox HR
+with the truth, the mean of `true_rmst24_gain` among subscribers who did not onboard. Build: Cox HR
 0.584 [0.547, 0.623] against the conditional truth 0.670; adjusted gain 3.80 months against a true 2.74.
 Adjusting for plan no longer removes the bias, and nothing in the data says so. Two shorter options:
 `rmst_gain` per plan (one weight of 1.0) with bootstrap intervals, to see that the data cannot separate
-the plans (truth 2.99, 2.82, 2.44 months; prototype estimates 2.69, 2.54, 2.99); and the decision with
-Module 4's 0.8% monthly discount.
+the plans (truth 2.99, 2.82, 2.44 months; build estimates on the default data 2.69, 2.54, 2.99, from the
+"gain plan by plan" table); and the decision with Module 4's 0.8% monthly discount.
 
-## Expected run time (estimates; no run record yet)
+## Run time (measured where a run record exists)
 
-| | Estimate | Basis |
-|---|---|---|
-| Install on Colab | under 1 minute | Colab already has autograd 1.9.1, formulaic 1.2.2 and interface_meta 2.0.1 (`environment/colab-constraints.txt`); only `lifelines` and `autograd-gamma`, both pure-Python wheels, are added. Target ≤ 3 min. |
-| Longest cell | the bootstrap, under 30 s on Colab | 4.6-5.4 s for B = 200 on the laptop prototype; Colab's 2 vCPUs assumed 2-5 times slower. Target ≤ 4 min. |
-| Total compute | about 1 minute FULL, less QUICK | Every other step took under 0.5 s on the laptop. Target ≤ 15 min. |
+| | macOS laptop (run record) | Docker, `--cpus 2` (run record) | Colab |
+|---|---|---|---|
+| Worked, FULL, whole notebook | 9.0 s | 11.6 s | not run |
+| Learner mode (Run all stops at the first unwritten exercise, as designed) | 3.0 s | 3.7 s | not run |
+| Slowest cell: Checkpoint 5's bootstrap, B = 200 | 4.81 s | 5.94 s | not run |
+| Install | 0 s (preinstalled) | 0 s (preinstalled) | not run; estimated under 1 minute |
 
-These are estimates from prototype code on a laptop. The Technical Expert replaces them with measured
-Docker and Colab times from run records.
+Records: `runs/2026-10-10-macos-arm64-python-14-survival-churn.json` and
+`runs/2026-10-10-docker-arm64-python-14-survival-churn.json`, both at `ref` v2026.10.1, content
+`7264963f11767143`, deps `d36add16277e80bd`; the laptop was shared with other build agents during the
+runs. The Colab install estimate is unchanged: Colab already has autograd 1.9.1, formulaic 1.2.2 and
+interface_meta 2.0.1 (`environment/colab-constraints.txt`), so only `lifelines` and `autograd-gamma`,
+both pure-Python wheels, are added (target ≤ 3 min). The lab cannot run on Colab until a release tag
+contains it: the Colab badge, the mktstats install and the data all read `repo.ref`, and the tag
+v2026.10.1 has no `labs/python/14-survival-churn.ipynb`. Targets on Colab (cell ≤ 4 min, total ≤ 15 min)
+are unmeasured until then.
 
 ## Known pitfalls
 
@@ -698,6 +741,14 @@ and run in the prototype:
   autograd, autograd-gamma, formulaic.
 
 ## Open items for the Technical Expert
+
+All six were done in the build (checked by the Academic Director on 2026-10-10 against the files named):
+the generator and its `EXTENSIONS` entry with an 80-seed `tolerances` block (1); `modules.m14.deps` (2);
+`src/mktstats/survival.py` with `ci_contains`, `k_of_K_ci_contains` and `bootstrap_interval`, and tests
+that feed them broken input in `tests/test_survival.py` (3); `survival.monthly_churn_rate` (4); the
+module header lists `modules.m14.prerequisites` (5); and the worked runs pass in QUICK and FULL with
+every checkpoint failing on its stub (6; re-run by the Academic Director on 2026-10-10). The list as
+written:
 
 1. Write `src/mktstats/synth/subscriptions.py` to the spec above (seeded `make_rng`, `SynthResult` with
    table `subscribers`, the truth block, `sig()` rounding) and register `"subscriptions"` in
@@ -846,3 +897,41 @@ guess about the simulation.
 **For the Academic Director to reconsider.** The "Assumes" line in the Decision is a new statement of an
 assumption, not a new fact; check its wording against the module page. The log-rank test is out of the lab;
 if you want it back, the stretch is the place, not a core cell.
+
+## Build reconciliation (2026-10-10, Academic Director)
+
+The brief now describes the lab as built. I re-ran the notebook in worked mode (FULL, then QUICK) at
+the content and deps hashes of the two run records and read its printed output; every number marked
+*build* above comes from that output, from `truth_subscriptions.json` (truth, `sample`, `tolerances`)
+or from the run records. What changed against the prototype brief:
+
+1. **Checkpoint 5, check 2 uses weights {basic 0.75, premium 0.25}**, not 0.5 and 0.5: with equal
+   weights a plain average of the two plans passed, so the check could not catch the mistake it names.
+2. **Coverage is about 91% for Checkpoints 3 and 5, not 38-40 of 40.** Over 80 seeds (1000-1039 and an
+   independent 3000-3039) Checkpoint 3 held in 73 and Checkpoint 5's truth-inside check in 72 (B = 100)
+   and 73 (B = 200). On the prototype's own 40 seeds the build gives the prototype's 39 and 38; the
+   independent 40 give 34 and 34-35. Each rests on one 95% interval, so about 1 seed in 10 misses: the nominal 5% plus
+   some undercoverage of the percentile bootstrap, and on 3000-3039 the two failed on the same five
+   seeds. Checkpoint 4 (3 of 4) held in 80 of 80, the Kaplan-Meier check (3 of 4) in 78, and every
+   "unadjusted is outside" check in 80. All rules hold on the committed seed in QUICK and FULL. The
+   failure message of Checkpoint 5 says "about 1 in 10", not "2 of 40".
+3. **The bootstrap intervals differ from the prototype's** at the same seed, because the build's
+   `bootstrap_interval` draws its resamples differently: FULL (B = 200) gives an RMST gain of 2.672
+   [2.22, 3.10] against the true 2.907 (prototype [2.022, 3.218]); QUICK (B = 100) [2.28, 3.12]. The
+   Decision's intervals follow: $11.22 [$9.31, $13.03] per call at q = 0.35 and break-even q 0.468
+   [0.403, 0.564], so the sample recommendation now says "about 40-56%".
+4. **Passing all of `subs` to `CoxPHFitter` raises `TypeError: Cannot cast DatetimeArray to dtype
+   float64`**, not the `ValueError` the brief quoted (the date columns are reached first).
+5. **Run times are measured**, from the two run records (9.0 s worked FULL on macOS, 11.6 s in Docker
+   with `--cpus 2`; slowest cell the bootstrap, 4.81 s and 5.94 s). Colab: not run; it needs a release
+   tag that contains the lab.
+6. **Unchanged**: every point estimate on seed 2034 (dashboards, Kaplan-Meier, Fader-Hardie totals, Cox
+   and landmark hazard ratios with their intervals, PH test, RMST by plan, stretch). The generator
+   reproduces the prototype's draws, so these equal the prototype's to the digits quoted; the build
+   prints the PH test's statistic as 99.25 (p = 2.2e-23), where the prototype said 99 (p < 1e-20).
+7. **Numbers the lab does not print** and that the module page quotes (log-rank χ² 345.2 and 415.4, the
+   stratified Cox ratios, the SD of min(T, 24)) were computed by the Academic Director on the committed
+   data with lifelines 0.30.3 on 2026-10-10 and are labeled as such where they appear.
+8. **On the two points left for me to reconsider:** the Decision's "Assumes" line is kept as written; the
+   module page states the same assumption in its decision section. The log-rank test stays out of the
+   lab; the module page carries it.

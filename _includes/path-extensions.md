@@ -8,11 +8,11 @@
 [13]{.path-num}
 
 ::: {.path-body}
-[Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd){.path-title} [Optional]{.chip}
+[Messy real data: cleaning a real log for BTYD and spend models](/modules/13-messy-real-data.qmd){.path-title} [Optional]{.chip}
 
-Clean a real e-commerce log (returns, cancellations, wholesale orders, same-day purchases, extreme spend) so that BTYD and Gamma-Gamma assumptions hold, check each cleaning step on a deliberately dirtied copy of the synthetic retailer whose clean answer is known, then fit the models to UCI Online Retail II.
+Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact.
 
-[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.path-builds-on}
+[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd), [Module 4](/modules/04-monetary-clv.qmd) and [Module 5](/modules/05-clv-decisions.qmd).]{.path-builds-on}
 :::
 :::
 ::: {.path-step .path-step-optional}
