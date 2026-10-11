@@ -387,7 +387,12 @@ The ASOF join is new SQL to most of this audience; the minutes include reading t
 - **Checkpoint (two).**
   1. Toy: a same-day full cancellation is matched; a return of fewer units than bought is not; a
      cancellation dated before the purchase is not; with two identical earlier purchases, the later one is
-     matched.
+     matched. *Build (checkpoint fixes, 2026-10-10):* the toy has 20 lines and 8 cancellations; four
+     more cases separate the join conditions that the original toy let through (a later matching purchase
+     by another customer; a later purchase with another stock code at the same price and quantity; the
+     same code at another price; a cancellation in the same minute as its purchase), and a join that
+     matches no toy cancellation gets its own message. Without them, a missing customer, stock-code or
+     price condition, or `>` for `>=`, passed here and failed only in Part D.
   2. On the messy log: one row per cancellation line (`truth["rules"]["cancellation"]["cancel_lines"]`;
      prototype 1,751; *build* 644), every one matched, no `original_id` twice.
 - **Failure messages** (four parts, each ending with "To move on now, run `workshop.use_reference(2)`").
@@ -501,7 +506,8 @@ not 15%, because the largest error over 30 independent generator seeds was 17.8%
   `largest_change_pct` (100 × the largest absolute change) for the reader.
 - **Checkpoint.** Toy frame with hand-computed answers (no value exactly at the threshold; one customer
   whose score falls, one whose score rises, and a total change that differs from the mean of the
-  per-customer changes); the reference row is all zeros; on the sweep's `scores`, equal to an independent
+  per-customer changes; *build:* a fourth toy customer at a ratio of 0.905 catches an inverted ratio,
+  reference ÷ variant); the reference row is all zeros; on the sweep's `scores`, equal to an independent
   computation in the checkpoint cell to 1e-9 (as Module 1's cohort check). The display cell after it
   prints the table with `largest_change_pct` added.
 - **Failure messages** (four parts, each ending with `workshop.use_reference(3)`):
