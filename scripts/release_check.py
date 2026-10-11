@@ -85,7 +85,7 @@ def notebook_blockers(v: dict, e: dict) -> list[str]:
         out.append(f"{e['id']}: {e['why']}")
     if not e["written"]:
         return out
-    if not common.notebook_by_id(v)[e["id"]]["in_ref"]:
+    if not e["in_ref"]:
         out.append(
             f"{e['id']}: declared `in_ref: false`, so its Colab link cannot open it: move"
             f" repo.ref ({v['repo']['ref']}) to a tag that contains it and remove the flag"

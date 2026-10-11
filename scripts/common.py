@@ -71,6 +71,12 @@ def module_track(v: dict, key: str) -> str:
     return day_track(v, v["modules"][key]["day"])
 
 
+def track_page(v: dict, dkey: str) -> str:
+    """The page stem of a non-core day: its track's name (`extensions` -> extensions.qmd).
+    The site's page and the notebook footers both link it, so the rule lives here."""
+    return day_track(v, dkey)
+
+
 def extension_days(v: dict) -> list[str]:
     """Keys of the days on a track other than the core (the extensions), in order."""
     return [k for k in sorted(v["days"], key=lambda k: int(k[1:])) if day_track(v, k) != CORE]

@@ -147,6 +147,7 @@ def evidence(
         "id": entry["id"],
         "module": entry["module"],
         "track": entry["track"],
+        "in_ref": entry["in_ref"],
         "kernel": entry["kernel"],
         "written": written,
         "lanes": lanes,

@@ -255,7 +255,7 @@ def day_page(v: dict, dkey: str) -> str | None:
     if v["days"][dkey].get("blocks"):
         return day_link(dkey)
     if not is_core(v, dkey):
-        return f"/{common.day_track(v, dkey)}.qmd"
+        return f"/{common.track_page(v, dkey)}.qmd"
     return None
 
 
@@ -292,11 +292,18 @@ def referenced_modules(text: str) -> list[int]:
     return nums
 
 
+# A prerequisite that starts like this is a suggestion, not something the module builds on.
+NOT_REQUIRED = re.compile(r"^\s*(helpful|optional|recommended)\b", re.IGNORECASE)
+
+
 def builds_on(v: dict, key: str) -> list[str]:
-    """The other modules a module's `prerequisites` name, in order (module keys)."""
+    """The other modules a module's `prerequisites` name, in order (module keys); items
+    marked "Helpful", "Optional" or "Recommended" are suggestions and are skipped."""
     known = {module_number(k): k for k in v["modules"]}
     out = []
     for item in v["modules"][key].get("prerequisites") or []:
+        if NOT_REQUIRED.match(str(item)):
+            continue
         for n in referenced_modules(str(item)):
             if n in known and known[n] != key and known[n] not in out:
                 out.append(known[n])
@@ -320,11 +327,19 @@ def link_modules(v: dict, text: str) -> str:
         return text  # already has links
     known = {module_number(k): k for k in v["modules"]}
 
-    def repl(match: re.Match) -> str:
-        k = known.get(int(match.group(1)))
-        return f"[{match.group(0)}]({module_link(k, v['modules'][k])})" if k else match.group(0)
+    def link(n: int, label: str) -> str:
+        k = known.get(n)
+        return f"[{label}]({module_link(k, v['modules'][k])})" if k else label
 
-    return re.sub(r"\bModule (\d+)\b", repl, text)
+    def repl(match: re.Match) -> str:
+        whole, nums = match.group(0), match.group(1)
+        if whole.startswith("Module "):  # 'Module 4': link the whole phrase, as before
+            return link(int(nums), whole)
+        # 'Modules 6 and 7', 'Modules 8–10': link each number, keep the words between
+        linked = re.sub(r"\d+", lambda m: link(int(m.group(0)), m.group(0)), nums)
+        return whole[: match.start(1) - match.start(0)] + linked
+
+    return MODULE_REF.sub(repl, text)
 
 
 def text_or(value, fallback: str) -> str:

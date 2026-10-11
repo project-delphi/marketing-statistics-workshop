@@ -463,7 +463,7 @@ def footer_source(v: dict, entry: dict) -> str:
         lines.append("**This is the last notebook of the core workshop.**")
         for dkey in common.extension_days(v):
             d = v["days"][dkey]
-            page = f"{site}/{common.day_track(v, dkey)}.html"
+            page = f"{site}/{common.track_page(v, dkey)}.html"
             lines += [
                 "",
                 f"**Optional, after the week:** [{d['label']} · {d['title']}]({page})"
@@ -471,7 +471,7 @@ def footer_source(v: dict, entry: dict) -> str:
                 " modules beyond the core week.",
             ]
     elif nxt is None:
-        page = f"{site}/{entry['track']}.html"
+        page = f"{site}/{common.track_page(v, v['modules'][entry['module']]['day'])}.html"
         lines.append(f"**This is the last extension notebook.** [All extensions]({page})")
     else:
         title = f"Module {nxt['n']} · {v['modules'][nxt['module']]['title']}"

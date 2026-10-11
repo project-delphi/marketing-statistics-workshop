@@ -303,10 +303,10 @@ def reference_results(weekly: pd.DataFrame, latent: pd.DataFrame, truth: Mapping
                                 4) for c in CHANNELS}
     ratio = drift_ratio(mult, W["first_year"], W["last_quarter"])
     out["drift_ratio"] = {c: _summ(ratio.sel(channel=c)) for c in CHANNELS}
-    out["fading"] = [c for c in CHANNELS if _hdi(ratio.sel(channel=c).values)[1] < 1]
+    ratio_hdi = {c: _hdi(ratio.sel(channel=c).values) for c in CHANNELS}
+    out["fading"] = [c for c in CHANNELS if ratio_hdi[c][1] < 1]
     out["constant_ratio_hdis_contain_1"] = all(
-        _hdi(ratio.sel(channel=c).values)[0] <= 1 <= _hdi(ratio.sel(channel=c).values)[1]
-        for c in CHANNELS if c != soc)
+        ratio_hdi[c][0] <= 1 <= ratio_hdi[c][1] for c in CHANNELS if c != soc)
     sm = mult.sel(channel=soc).stack(s=("chain", "draw")).transpose("date", "s").values
     band = np.array([_hdi(row) for row in sm])
     true_rel = latent[f"multiplier_rel_{soc}"].to_numpy()

@@ -224,3 +224,37 @@ def test_release_still_fails_when_the_core_is_not_ready():
     assert any(b.startswith(f"{CORE_NB[0]['id']}:") for b in found["core"])
     _, blocked = release_check.report_text(V, found, DAY, extensions=False)
     assert blocked
+
+
+def test_a_helpful_or_optional_prerequisite_is_not_something_a_module_builds_on():
+    v = copy.deepcopy(V)
+    key = EXT_MODULES[0]
+    v["modules"][key]["prerequisites"] = [
+        "Module 1: the RFM table",
+        "Helpful: Module 5's break-even lift",
+        "Optional: Module 3's covariates",
+    ]
+    assert g.builds_on(v, key) == ["m01"]
+
+
+@pytest.mark.parametrize(
+    "text, linked",
+    [
+        ("Module 4: sBG", ["[Module 4](/modules/04-monetary-clv.qmd)"]),
+        ("Modules 6 and 7: experiments", ["[6](/modules/06-experiments.qmd)",
+                                          "[7](/modules/07-geo-experiments.qmd)"]),
+        ("Modules 8–10: the MMM", ["[8](/modules/08-bayesian-mmm.qmd)",
+                                   "[10](/modules/10-budget-allocation.qmd)"]),
+    ],
+)
+def test_link_modules_links_the_same_forms_referenced_modules_reads(text, linked):
+    out = g.link_modules(V, text)
+    for piece in linked:
+        assert piece in out
+    assert "Module" in out and "](" in out  # the words stay; the numbers or phrase link
+
+
+def test_the_track_page_rule_lives_in_one_place():
+    for dkey in common.extension_days(V):
+        page = common.track_page(V, dkey)
+        assert g.day_page(V, dkey) == f"/{page}.qmd"

@@ -12,7 +12,7 @@
 Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact.
 :::
 
-[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd), [Module 4](/modules/04-monetary-clv.qmd) and [Module 5](/modules/05-clv-decisions.qmd).]{.module-builds-on}
+[Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
 [Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}

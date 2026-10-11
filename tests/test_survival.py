@@ -210,9 +210,9 @@ def test_landmark_split_stops_the_clock_and_restarts_it():
     np.testing.assert_allclose(after["tenure_months"], [1.0, 0.5, 4.0, 3.0])
 
 
-def test_rmst_gain_asserts_its_weights_and_weights_the_plans():
+def test_rmst_gain_checks_its_weights_and_weights_the_plans():
     subs = toy_subs()
-    with pytest.raises(AssertionError, match="sum to 1"):
+    with pytest.raises(ValueError, match="sum to 1"):
         sv.rmst_gain(subs, 6, {"basic": 0.25, "premium": 0.25})
     basic = sv.rmst_gain(subs, 6, {"basic": 1.0})
     premium = sv.rmst_gain(subs, 6, {"premium": 1.0})
@@ -503,3 +503,11 @@ def test_checkpoint_5_explains_a_gain_that_is_not_a_number(lab):
     msg = checkpoint_message(lab, 5, rmst_gain=rmst_gain_without_t)
     assert "your gain is nan months" in msg
     assert "restricted_mean_survival_time(kmf) without t" in msg and "Pass t=horizon." in msg
+
+
+def test_dashboard_rates_says_when_no_status_is_known():
+    subs = pd.DataFrame({"tenure_months": [1.0, 2.0, 3.0], "churned": [0, 0, 0]})
+    with pytest.raises(ValueError, match="no subscriber's status"):
+        sv.dashboard_rates(subs, months=12)
+    a, b = sv.dashboard_rates(pd.DataFrame({"tenure_months": [5.0, 13.0], "churned": [1, 0]}), 12)
+    assert (a, b) == (0.5, 0.5)

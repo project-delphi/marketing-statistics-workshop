@@ -212,9 +212,12 @@ def _maximize(ll_fn: Callable, names: tuple[str, ...], start: Mapping[str, float
             # optimum the function cannot resolve the step, the gradient can
             base = mean_ll(theta)[0]
             noise = 1e-12 * max(1.0, abs(base))
-            k = 0
-            while k < 30 and not mean_ll(theta + step)[0] >= base - noise:
-                step, k = step / 2, k + 1
+            for _ in range(30):
+                if mean_ll(theta + step)[0] >= base - noise:
+                    break
+                step = step / 2
+            else:
+                break  # no step along this direction keeps the likelihood: keep theta
             theta = theta + step
             if np.max(np.abs(step)) < 1e-12:
                 break

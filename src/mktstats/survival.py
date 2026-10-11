@@ -276,7 +276,8 @@ def rmst_gain(subs: pd.DataFrame, horizon: float, weights) -> float:
     from lifelines.utils import restricted_mean_survival_time
 
     w = pd.Series(weights, dtype=float)
-    assert abs(w.sum() - 1) < 1e-9, f"weights must sum to 1, not {w.sum():.4g}"
+    if not abs(w.sum() - 1) < 1e-9:
+        raise ValueError(f"weights must sum to 1, not {w.sum():.4g}")
     total = 0.0
     for plan, weight in w.items():
         area = {}
@@ -309,8 +310,14 @@ def dashboard_rates(subs: pd.DataFrame, months: float = 12.0) -> tuple[float, fl
     known (cancelled by then, or observed for longer)."""
     cancelled = (subs["churned"] == 1) & (subs["tenure_months"] <= months)
     beyond = subs["tenure_months"] > months
+    known = int((cancelled | beyond).sum())
+    if known == 0:
+        raise ValueError(
+            f"no subscriber's status at {months:g} months is known (none cancelled by then or"
+            " was observed for longer), so dashboard B has no denominator"
+        )
     a = 1 - float(cancelled.mean())
-    b = float(beyond.sum() / (cancelled | beyond).sum())
+    b = float(beyond.sum()) / known
     return a, b
 
 
