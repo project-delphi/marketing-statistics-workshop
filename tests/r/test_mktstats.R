@@ -35,6 +35,14 @@ expect("an unwritten TODO re-raises", !is.null(r$error))
 expect("and prints the recovery message",
        grepl("TODO 1 is not written yet", r$text) && grepl("use_reference\\(1\\)", r$text))
 
+r <- captured(checkpoint("data", { stopifnot(double(2) == 4) }))  # no exercise "data"
+expect("a labeled check names the unwritten exercise",
+       grepl("Checkpoint data uses TODO 1, which is not written yet", r$text, fixed = TRUE) &&
+         grepl("use_reference(1)", r$text, fixed = TRUE) && !grepl("use_reference(N)", r$text, fixed = TRUE))
+r <- captured(use_reference(1))
+expect("use_reference says to rerun the checkpoint first",
+       grepl("Rerun its checkpoint cell, then the cells below it", r$text, fixed = TRUE))
+
 double <- function(x) x + 1
 solution(1, "double", function(x) 2 * x)
 r <- captured(checkpoint(1, { if (double(2) != 4) stop("double(2) should be 4") }))
@@ -116,6 +124,25 @@ expect("check_columns fails", fails_with(check_columns(a, c("id", "spend")), "mi
 # ---- data --------------------------------------------------------------------------------------
 Sys.setenv(MKTSTATS_REPO_ROOT = root)
 expect("mkt_data reads the checkout", fails_with(mkt_data("no/such/file.csv"), "No such file"))
+
+# load_cdnow tries its sources in order and keeps only a file with the expected hash
+src <- tempfile(fileext = ".csv")
+writeLines(c("_id,id,date,cds_bought,spent", "4,1,19970101,1,11.77"), src)
+Sys.setenv(MKTSTATS_CACHE = tempfile())
+tx <- load_cdnow(urls = paste0("file://", c(tempfile(), src)), sha256 = unname(tools::sha256sum(src)))
+expect("load_cdnow falls back to the next source", nrow(tx) == 1 && "_id" %in% names(tx))
+Sys.setenv(MKTSTATS_CACHE = tempfile())
+expect("load_cdnow refuses a file with another hash",
+       fails_with(load_cdnow(urls = paste0("file://", src), sha256 = strrep("0", 64)), "SHA-256"))
+Sys.unsetenv("MKTSTATS_CACHE")
+expect("load_cdnow's first source is the pymc-marketing 1.2.0 tag", grepl("/1.2.0/", .mkt_cdnow_urls[1], fixed = TRUE))
+
+# .ws_cpus caps the core count by a cgroup CPU quota
+cg <- tempfile(); dir.create(cg)
+writeLines("150000 100000", file.path(cg, "cpu.max"))
+expect(".ws_cpus rounds a quota up", .ws_cpus(cg) == min(parallel::detectCores(), 2))
+writeLines("max 100000", file.path(cg, "cpu.max"))
+expect(".ws_cpus without a quota is the core count", .ws_cpus(cg) == parallel::detectCores())
 
 if (failures) quit(status = 1)
 cat("all R helper tests passed\n")

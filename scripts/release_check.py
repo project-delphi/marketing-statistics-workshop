@@ -18,8 +18,8 @@ required)" and the exit status is decided by the core alone, so the five-day wor
 be released while extensions are still being built. Pass --extensions to release the
 extensions as ready to teach too: then their blockers count like the core's.
 
-Records dated after the release date (plus one day of slack: records carry the recorder's
-date) are ignored. The same commit, date and flags always give the same answer. This gates
+Records dated after the release date (plus one day of slack: records carry the UTC date)
+are ignored. The same commit, date and flags always give the same answer. This gates
 the "ready to teach" release (run it before tagging one), not the site deploy.
 
     python scripts/release_check.py [--as-of 2026-10-30] [--extensions]

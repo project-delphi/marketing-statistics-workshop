@@ -6,7 +6,7 @@ Three kinds of data, with different rules.
 |---|---|---|---|
 | `data/synthetic/` | Seeded synthetic datasets with known truth | yes (generated, never edited by hand) | `mktstats.data.load_synthetic`, `load_truth`; R reads the CSVs |
 | `data/real/` | Small real datasets whose licence allows redistribution | yes | `load_prop99`, `load_sbg_retention` |
-| download cache | Larger real datasets, fetched on first use and checked with sha256 | no | `load_cdnow`, `load_mmm_example`, `load_online_retail_ii`, `load_hillstrom` |
+| download cache | Larger real datasets, fetched on first use and checked with sha256 | no | `load_cdnow` (also in the R helpers, `R/mktstats.R`, with the same sources and hash), `load_mmm_example`, `load_online_retail_ii`, `load_hillstrom` |
 
 The download cache is `$MKTSTATS_CACHE`, default `~/.cache/mktstats`. `MKTSTATS_OFFLINE=1` forbids
 downloads; a missing file then raises with the URL to fetch by hand and the path to save it at.

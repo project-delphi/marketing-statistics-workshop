@@ -18,12 +18,14 @@ from modules that are already loaded.
 from __future__ import annotations
 
 import importlib.metadata as metadata
+import math
 import os
 import platform
 import re
 import subprocess
 import sys
 from collections.abc import Iterable, Mapping
+from pathlib import Path
 
 COLAB, SAGEMAKER, LOCAL = "colab", "sagemaker", "local"
 HOSTED = (COLAB, SAGEMAKER)
@@ -191,13 +193,44 @@ def memory_gb() -> float | None:
         return None
 
 
+def cgroup_cpu_quota(root: str | os.PathLike = "/sys/fs/cgroup") -> float | None:
+    """The CPU quota of this process's cgroup in CPUs (``docker run --cpus 2`` gives 2.0),
+    from cgroup v2 ``cpu.max`` or v1 ``cpu/cpu.cfs_quota_us``; None when there is none."""
+    root = Path(root)
+    try:
+        quota, period = (root / "cpu.max").read_text().split()[:2]
+        return None if quota == "max" else int(quota) / int(period)
+    except (OSError, ValueError):
+        pass
+    try:
+        quota = int((root / "cpu" / "cpu.cfs_quota_us").read_text())
+        period = int((root / "cpu" / "cpu.cfs_period_us").read_text())
+    except (OSError, ValueError):
+        return None
+    return quota / period if quota > 0 and period > 0 else None
+
+
+def cpus() -> int | None:
+    """The CPUs this process can use: the core count, capped by the CPU affinity mask and
+    by a cgroup quota (rounded up), neither of which ``os.cpu_count()`` sees."""
+    n = os.cpu_count()
+    try:
+        n = len(os.sched_getaffinity(0))
+    except (AttributeError, OSError):
+        pass
+    quota = cgroup_cpu_quota()
+    if n and quota:
+        n = min(n, max(1, math.ceil(quota)))
+    return n
+
+
 def info() -> dict:
     """What this runtime is: used by the environment check in Module 0 and run records."""
     return {
         "runtime": detect(),
         "python": platform.python_version(),
         "platform": f"{platform.system()} {platform.machine()}",
-        "cpus": os.cpu_count(),
+        "cpus": cpus(),
         "memory_gb": memory_gb(),
         "colab_release": os.environ.get("COLAB_RELEASE_TAG"),
     }

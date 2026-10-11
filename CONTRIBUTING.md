@@ -163,8 +163,11 @@ Python (`src/mktstats/harness.py`; the generated harness cell calls `start(...)`
 - `with workshop.checkpoint(n):` — runs the checks; prints "passed on your code" / "passed on the
   REFERENCE solution" / a recovery message (`NotImplementedError` → "TODO n is not written yet …
   workshop.use_reference(n)"), then re-raises so Run all stops.
-- `with workshop.checkpoint(label="..."):` — the same for checks of provided code (no exercise).
-- `workshop.use_reference(n)`, `workshop.summary()`, `workshop.run_record()`.
+- `with workshop.checkpoint(label="..."):` — the same for checks of provided code (no exercise);
+  when the code it checks calls an unwritten exercise, the recovery line names that exercise
+  from the stub's `"TODO n"` message.
+- `workshop.use_reference(n)` (tells the learner to rerun that exercise's checkpoint cell, then
+  the cells below it), `workshop.summary()`, `workshop.run_record()`.
 - Test hooks used by `scripts/test_notebooks.py`: `workshop._verify_begin(n)`, `workshop._verify_end(n)`.
 - Settings read from the environment: `MKTSTATS_QUICK`, `MKTSTATS_WORKED` (`1` forces worked mode,
   `0` forces learner mode), `MKTSTATS_SABOTAGE` (`"2,3"`: those exercises keep their stubs even in
@@ -178,7 +181,8 @@ R (`R/mktstats.R`, sourced by the install cell): `solution(n, name, fn)`, `check
 No Colab forms in R. The generated harness cell calls `.ws_start(notebook, content_sha, deps_sha,
 ref, exercises)`. Checks: `check_columns`, `check_rfm_table`, `check_in_interval`, `check_close`,
 `check_frames_agree`. `mkt_data(path)` reads a committed file under `data/` (the checkout when
-`MKTSTATS_REPO_ROOT` is set, else raw GitHub at the ref).
+`MKTSTATS_REPO_ROOT` is set, else raw GitHub at the ref); `load_cdnow()` downloads the CDNOW log
+from the same sources, in the same order and with the same sha256 as Python's `load_cdnow`.
 
 ### Running and recording
 

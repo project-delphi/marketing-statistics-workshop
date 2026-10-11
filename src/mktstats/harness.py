@@ -21,6 +21,7 @@ import importlib.metadata as _metadata
 import json
 import os
 import platform
+import re
 import sys
 import time
 from contextlib import AbstractContextManager
@@ -82,6 +83,13 @@ def _numbers(text: str) -> set[int]:
         if part.isdigit():
             out.add(int(part))
     return out
+
+
+def _todo_number(exc) -> int | None:
+    """The exercise a NotImplementedError comes from: stubs raise "TODO n", and a solution
+    whose TODO cell has not run says "run your TODO n cell first"."""
+    m = re.search(r"\bTODO (\d+)\b", str(exc))
+    return int(m.group(1)) if m else None
 
 
 def mktstats_commit() -> str | None:
@@ -241,8 +249,8 @@ class Workshop:
             self.ns[name] = objs[-1]
         self.chosen.add(n)
         print(
-            f"Exercise {n}: now using the REFERENCE solution. Rerun the cells below it."
-            f" To switch back to your code, rerun your TODO {n} cell."
+            f"Exercise {n}: now using the REFERENCE solution. Rerun its checkpoint cell, then"
+            f" the cells below it. To switch back to your code, rerun your TODO {n} cell."
         )
 
     # ---- checkpoints ----------------------------------------------------------------
@@ -278,10 +286,17 @@ class Workshop:
         if isinstance(exc, KeyboardInterrupt):
             print(f"[workshop] Checkpoint {label} was interrupted.")
         elif isinstance(exc, NotImplementedError):
-            if whose is None:
+            todo = _todo_number(exc) if whose is None else None
+            if whose is None and todo is None:
                 print(
                     f"[workshop] Checkpoint {label} uses an exercise you have not written yet."
                     " Finish it, or go on with workshop.use_reference(N) for that exercise."
+                )
+            elif whose is None:
+                print(
+                    f"[workshop] Checkpoint {label} uses TODO {todo}, which {NOT_WRITTEN}."
+                    " Write it, run its cell, then rerun this one. To go on without it, run"
+                    f" workshop.use_reference({todo})"
                 )
             else:
                 print(
@@ -295,11 +310,11 @@ class Workshop:
                 " with the lab or the runtime, not with your code. Tell the instructor."
             )
         elif whose is None:
-            print(f"[workshop] Checkpoint {label} failed. Read the message above.")
+            print(f"[workshop] Checkpoint {label} failed. Read the last line of the error below.")
         else:
             print(
-                f"[workshop] Checkpoint {label} failed on {whose}. Read the message above,"
-                f" fix TODO {n} and rerun its cell, or go on with"
+                f"[workshop] Checkpoint {label} failed on {whose}. Read the last line of the"
+                f" error below, fix TODO {n} and rerun its cell, or go on with"
                 f" workshop.use_reference({n!r})."
             )
 
@@ -398,7 +413,7 @@ class Workshop:
             "platform": f"{platform.system()} {platform.machine()}",
             "runtime": runtime.detect(),
             "colab_release": os.environ.get("COLAB_RELEASE_TAG") or None,
-            "cpus": os.cpu_count(),
+            "cpus": runtime.cpus(),
             "memory_gb": runtime.memory_gb(),
             "packages": package_versions(),
             "checkpoints": {

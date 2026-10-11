@@ -93,3 +93,29 @@ def test_info_reports_the_runtime(monkeypatch):
     monkeypatch.setenv("MKTSTATS_RUNTIME", "local")
     i = runtime.info()
     assert i["runtime"] == "local" and i["cpus"] >= 1 and i["python"].startswith("3.")
+
+
+def test_cgroup_cpu_quota_reads_v2_and_v1(tmp_path):
+    (tmp_path / "cpu.max").write_text("200000 100000\n")
+    assert runtime.cgroup_cpu_quota(tmp_path) == 2.0
+    (tmp_path / "cpu.max").write_text("max 100000\n")
+    assert runtime.cgroup_cpu_quota(tmp_path) is None
+    v1 = tmp_path / "v1"
+    (v1 / "cpu").mkdir(parents=True)
+    (v1 / "cpu" / "cpu.cfs_quota_us").write_text("150000\n")
+    (v1 / "cpu" / "cpu.cfs_period_us").write_text("100000\n")
+    assert runtime.cgroup_cpu_quota(v1) == 1.5
+    (v1 / "cpu" / "cpu.cfs_quota_us").write_text("-1\n")
+    assert runtime.cgroup_cpu_quota(v1) is None
+    assert runtime.cgroup_cpu_quota(tmp_path / "none") is None
+
+
+def test_cpus_is_capped_by_the_quota(monkeypatch):
+    monkeypatch.setattr(runtime.os, "cpu_count", lambda: 10)
+    monkeypatch.setattr(runtime.os, "sched_getaffinity", lambda pid: set(range(10)), raising=False)
+    monkeypatch.setattr(runtime, "cgroup_cpu_quota", lambda: 1.5)
+    assert runtime.cpus() == 2  # docker run --cpus 1.5: rounded up
+    monkeypatch.setattr(runtime, "cgroup_cpu_quota", lambda: None)
+    assert runtime.cpus() == 10
+    monkeypatch.setattr(runtime, "cgroup_cpu_quota", lambda: 64.0)
+    assert runtime.cpus() == 10

@@ -12,6 +12,7 @@
 #   .ws_verify_begin(n), .ws_verify_end(n)   used by scripts/test_notebooks.py
 #   check_rfm_table(), check_in_interval(), check_close(), check_columns()
 #   mkt_data(path)         reads a committed file under data/
+#   load_cdnow()           the CDNOW transaction log, downloaded once, checked and cached
 #
 # No Colab forms in R: WORKED_EXAMPLE and QUICK are plain variables, overridden by the
 # environment variables MKTSTATS_WORKED and MKTSTATS_QUICK.
@@ -137,8 +138,8 @@ use_reference <- function(n) {
   if (is.null(ws$ref[[key]])) stop(sprintf("Exercise %s has no reference solution yet: run its solution cell", key))
   for (name in names(ws$ref[[key]])) assign(name, ws$ref[[key]][[name]], envir = globalenv())
   ws$chosen <- union(ws$chosen, key)
-  cat(sprintf(paste0("Exercise %s: now using the REFERENCE solution. Rerun the cells below it.",
-                     " To switch back to your code, rerun your TODO %s cell.\n"), key, key))
+  cat(sprintf(paste0("Exercise %s: now using the REFERENCE solution. Rerun its checkpoint cell, then",
+                     " the cells below it. To switch back to your code, rerun your TODO %s cell.\n"), key, key))
   invisible(NULL)
 }
 
@@ -156,6 +157,12 @@ use_reference <- function(n) {
 
 .ws_is_todo <- function(message) {
   grepl("^\\s*TODO\\s*[0-9]+", message) || grepl("run your TODO", message, fixed = TRUE)
+}
+
+# The exercise an unwritten-TODO error comes from ("TODO 3", "run your TODO 3 cell first").
+.ws_todo_number <- function(message) {
+  m <- regmatches(message, regexpr("TODO\\s*[0-9]+", message))
+  if (length(m)) sub("TODO\\s*", "", m) else NA_character_
 }
 
 checkpoint <- function(n, expr, label = NULL) {
@@ -178,9 +185,14 @@ checkpoint <- function(n, expr, label = NULL) {
       on <- if (is.na(whose)) "" else paste0(" on ", whose)
       cat(sprintf("[workshop] Checkpoint %s passed%s.\n", label, on))
     } else if (.ws_is_todo(conditionMessage(err))) {
-      if (is.na(whose)) {
+      todo <- .ws_todo_number(conditionMessage(err))
+      if (is.na(whose) && is.na(todo)) {
         cat(sprintf(paste0("[workshop] Checkpoint %s uses an exercise you have not written yet.",
                            " Finish it, or go on with use_reference(N) for that exercise.\n"), label))
+      } else if (is.na(whose)) {
+        cat(sprintf(paste0("[workshop] Checkpoint %s uses TODO %s, which %s. Write it, run its cell,",
+                           " then rerun this one. To go on without it, run use_reference(%s)\n"),
+                    label, todo, .ws_not_written, todo))
       } else {
         cat(sprintf(paste0("[workshop] Checkpoint %s: TODO %s %s. Write it, run its cell, then",
                            " rerun this one. To go on without it, run use_reference(%s)\n"),
@@ -262,6 +274,24 @@ workshop_summary <- function() {
   out
 }
 
+# The CPUs this session can use: the core count, capped by a cgroup CPU quota (docker run
+# --cpus 2), which parallel::detectCores() does not see. cgroup v2 cpu.max, else v1.
+.ws_cpus <- function(root = "/sys/fs/cgroup") {
+  n <- parallel::detectCores()
+  first <- function(file) tryCatch(readLines(file.path(root, file), warn = FALSE)[1],
+                                   error = function(e) NA_character_, warning = function(w) NA_character_)
+  quota <- NA_real_
+  v2 <- strsplit(first("cpu.max"), " ")[[1]]
+  if (length(v2) >= 2 && v2[1] != "max") quota <- as.numeric(v2[1]) / as.numeric(v2[2])
+  if (is.na(quota)) {
+    q <- suppressWarnings(as.numeric(first("cpu/cpu.cfs_quota_us")))
+    p <- suppressWarnings(as.numeric(first("cpu/cpu.cfs_period_us")))
+    if (!is.na(q) && !is.na(p) && q > 0 && p > 0) quota <- q / p
+  }
+  if (!is.na(n) && !is.na(quota)) n <- min(n, max(1, ceiling(quota)))
+  n
+}
+
 .ws_record <- function() {
   ws <- .ws
   passed <- vapply(ws$results, function(r) isTRUE(r$passed), logical(1))
@@ -289,7 +319,7 @@ workshop_summary <- function() {
     platform = paste(Sys.info()[["sysname"]], Sys.info()[["machine"]]),
     runtime = runtime,
     colab_release = if (nzchar(colab)) colab else NULL,
-    cpus = parallel::detectCores(),
+    cpus = .ws_cpus(),
     memory_gb = mem,
     packages = .ws_packages(),
     checkpoints = lapply(ws$results, function(r) list(passed = isTRUE(r$passed), whose = r$whose))
@@ -439,6 +469,37 @@ check_frames_agree <- function(left, right, on, tol = 1e-9,
 }
 
 # ---- data -------------------------------------------------------------------------------------
+
+# The CDNOW log (one row per purchase; columns _id, id, date, cds_bought, spent) from
+# PyMC-Marketing's example data, as Python's mktstats.data loads it: the 1.2.0 tag first, the
+# main branch second, each checked against the same SHA-256 hash, and cached.
+.mkt_cdnow_urls <- sprintf("https://raw.githubusercontent.com/pymc-labs/pymc-marketing/%s/data/cdnow_transactions.csv",
+                           c("1.2.0", "main"))
+.mkt_cdnow_sha256 <- "7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac"
+
+load_cdnow <- function(urls = .mkt_cdnow_urls, sha256 = .mkt_cdnow_sha256) {
+  cache <- Sys.getenv("MKTSTATS_CACHE", file.path(path.expand("~"), ".cache", "mktstats"))
+  path <- file.path(cache, "cdnow_transactions.csv")
+  good <- function() file.exists(path) && identical(unname(tools::sha256sum(path)), sha256)
+  if (!good()) {
+    dir.create(cache, recursive = TRUE, showWarnings = FALSE)
+    for (url in urls) {
+      for (attempt in 1:3) {
+        done <- tryCatch({ utils::download.file(url, path, quiet = TRUE, mode = "wb"); TRUE },
+                         error = function(e) FALSE, warning = function(w) FALSE)
+        if (done) break
+        Sys.sleep(2 * attempt)
+      }
+      if (good()) break  # else the next source
+    }
+    if (!good()) {
+      unlink(path)
+      stop("Could not download the CDNOW file with the expected SHA-256 hash. ",
+           "Check the network and rerun; if it fails again, tell the instructor.", call. = FALSE)
+    }
+  }
+  utils::read.csv(path, check.names = FALSE)  # keep the column name `_id`
+}
 
 mkt_data <- function(path, ref = getOption("mktstats.ref", Sys.getenv("MKTSTATS_REF", "main"))) {
   root <- Sys.getenv("MKTSTATS_REPO_ROOT")

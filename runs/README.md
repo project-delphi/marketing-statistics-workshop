@@ -24,6 +24,25 @@ evidence; `scripts/release_check.py` gates a ready-to-teach release
 
 A test run writes to the file named by `--record`; if it exists, the new entries are added.
 
+In the Docker image on a laptop, from the repository root (build the image first with
+`docker build -f environment/Dockerfile -t mktstats-env .`):
+
+```bash
+docker run --rm --cpus 2 -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 \
+  -v "$PWD":/home/sagemaker-user/work -w /home/sagemaker-user/work mktstats-env \
+  python scripts/test_notebooks.py --notebooks ID --full --mode both \
+    --record runs/FILE.json --env docker-arm64
+```
+
+- `--cpus 2` is a CPU quota. The record's `cpus` reports it (rounded up), read from the
+  container's cgroup; records made before `v2026.10.2` report the host's core count.
+- Set `OMP_NUM_THREADS` and `OPENBLAS_NUM_THREADS` to the quota: OpenMP and OpenBLAS start one
+  thread per visible core, not per CPU of the quota (DECISIONS.md).
+- The record's `commit` comes from git inside the container. From a git worktree, whose `.git`
+  file points outside the mounted folder, git fails there: add
+  `-e MKTSTATS_COMMIT="$(git rev-parse --short HEAD)"`.
+- Dates are UTC everywhere, so the container's time zone does not matter.
+
 ## Staleness
 
 A record names the code it ran with two hashes, both embedded in the notebook's harness cell
@@ -93,7 +112,7 @@ shared fields may sit at the top; `notebook`, `scope`, `status` and `seconds` ar
 | Field | Values |
 |---|---|
 | `schema` | `1` |
-| `date` | `YYYY-MM-DD`, the recorder's date |
+| `date` | `YYYY-MM-DD`, the date in UTC (the notebooks' own records and `test_notebooks.py` both use UTC) |
 | `source` | `test_notebooks`, `colab`, `notebook` or `backfill` (above) |
 | `env` | a key of `readiness.envs` in `_variables.yml`, not a `documented_only` one |
 | `env_detail` | free text: OS, machine, runner Python |

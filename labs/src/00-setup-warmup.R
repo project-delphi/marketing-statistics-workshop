@@ -50,37 +50,11 @@ cat("QUICK:        ", QUICK, "(it has no effect in this lab)\n")
 # | `cds_bought` | number of CDs in the purchase |
 # | `spent` | amount paid, in dollars |
 #
-# The next cell downloads the file once, checks it against a known SHA-256 hash (so you know
-# you have the same bytes as everyone else), and caches it.
+# The next cell calls `load_cdnow()` from the workshop's R helpers. It downloads the file once,
+# checks it against a known SHA-256 hash (so you know you have the same bytes as everyone
+# else), and caches it.
 
 # %%
-# TODO(mktstats data loaders): switch to the shared CDNOW loader once the package has one.
-CDNOW_URL <- "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/main/data/cdnow_transactions.csv"
-CDNOW_SHA256 <- "7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac"
-
-load_cdnow <- function(url = CDNOW_URL, sha256 = CDNOW_SHA256) {
-  cache <- Sys.getenv("MKTSTATS_CACHE", file.path(path.expand("~"), ".cache", "mktstats"))
-  path <- file.path(cache, "cdnow_transactions.csv")
-  good <- function() file.exists(path) && identical(unname(tools::sha256sum(path)), sha256)
-  if (!good()) {
-    dir.create(cache, recursive = TRUE, showWarnings = FALSE)
-    for (attempt in 1:3) {
-      done <- tryCatch({
-        utils::download.file(url, path, quiet = TRUE, mode = "wb")
-        TRUE
-      }, error = function(e) FALSE, warning = function(w) FALSE)
-      if (done) break
-      Sys.sleep(2 * attempt)
-    }
-    if (!good()) {
-      unlink(path)
-      stop("Could not download the CDNOW file with the expected SHA-256 hash. ",
-           "Check the network and rerun; if it fails again, tell the instructor.", call. = FALSE)
-    }
-  }
-  utils::read.csv(path, check.names = FALSE)  # keep the column name `_id`
-}
-
 tx_raw <- load_cdnow()
 con <- suppressMessages(dbConnect(duckdb::duckdb()))  # quiet the storage notice
 duckdb::duckdb_register(con, "transactions", tx_raw)

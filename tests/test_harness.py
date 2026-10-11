@@ -139,6 +139,34 @@ def test_a_failure_on_the_reference_is_not_the_learners_fault(ip, monkeypatch):
     assert not result.success and "Tell the instructor" in text
 
 
+def test_a_check_of_provided_code_names_the_unwritten_exercise(ip):
+    cell(ip, START)
+    cell(ip, STUB)
+    cell(ip, REFERENCE)
+    text, result = printed(ip, "with workshop.checkpoint(label='data'):\n    double(2)")
+    assert isinstance(result.error_in_exec, NotImplementedError)
+    assert "Checkpoint data uses TODO 1, which is not written yet" in text
+    assert "workshop.use_reference(1)" in text and "use_reference(N)" not in text
+
+
+def test_use_reference_says_to_rerun_the_checkpoint_first(ip):
+    cell(ip, START)
+    cell(ip, MINE)
+    cell(ip, REFERENCE)
+    text, _ = printed(ip, "workshop.use_reference(1)")
+    assert "Rerun its checkpoint cell, then the cells below it" in text
+
+
+def test_a_failed_check_points_at_the_error_below(ip):
+    cell(ip, START)
+    cell(ip, MINE)
+    cell(ip, REFERENCE)
+    text, _ = printed(ip, CHECK)
+    assert "Read the last line of the error below" in text and "above" not in text
+    text, _ = printed(ip, "with workshop.checkpoint(label='data'):\n    assert 1 == 2")
+    assert "Checkpoint data failed. Read the last line of the error below." in text
+
+
 def test_a_check_of_provided_code_names_no_owner(ip):
     cell(ip, START)
     text, result = printed(ip, "with workshop.checkpoint(label='data'):\n    assert 1 == 1")

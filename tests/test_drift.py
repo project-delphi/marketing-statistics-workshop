@@ -527,4 +527,5 @@ def test_drifting_model_cell_gives_the_recovery_line_without_exercise_3(capsys):
     with pytest.raises(NotImplementedError, match="TODO 3"):
         exec(compile(cell, str(lab), "exec"), ns)  # noqa: S102
     out = capsys.readouterr().out
-    assert "Checkpoint drifting model uses an exercise you have not written yet" in out, out
+    assert "Checkpoint drifting model uses TODO 3, which is not written yet" in out, out
+    assert "workshop.use_reference(3)" in out, out

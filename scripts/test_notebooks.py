@@ -263,7 +263,7 @@ def git_commit() -> str | None:
 def entry_of(r: dict, env: str, v: dict, note: str | None = None) -> dict:
     rec = r["record"] or {}
     entry = {
-        "date": dt.date.today().isoformat(),
+        "date": dt.datetime.now(dt.UTC).date().isoformat(),  # as the notebooks' records
         "source": "test_notebooks",
         "env": env,
         "env_detail": f"{platform.platform()}, runner Python {platform.python_version()}",
