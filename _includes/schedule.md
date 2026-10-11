@@ -121,7 +121,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 
 Optional and self-paced, with no timetable: they are not part of the five days. Do them on your own after the week, or swap one into a custom schedule in place of a core module. Each is one module, a briefing, a lab and a debrief:
 
-- [Module 13 · Messy real data: BTYD and spend models on a real transaction log](/modules/13-messy-real-data.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
+- [Module 13 · Messy real data: cleaning a real log for BTYD and spend models](/modules/13-messy-real-data.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
 - [Module 14 · Survival analysis for subscription churn](/modules/14-survival-churn.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
 - [Module 15 · Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
 - [Module 16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
