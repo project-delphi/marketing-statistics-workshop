@@ -27,9 +27,11 @@ itself, and we say what we relied on instead. How we checked is explained at the
 
 - Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). *Implementing the BG/NBD model for customer base
   analysis in Excel* (note, June 2005). <https://www.brucehardie.com/notes/004/>\
-  *Verified (2026-10-09).* Maximum-likelihood BG/NBD estimates for the 2,357 CDNOW customers over a
-  39-week calibration period (r = 0.243, α = 4.414, a = 0.793, b = 2.426). Module 2 uses these as a
-  checkpoint: a correct RFM table reproduces them.
+  *Verified (2026-10-09; the PDF read again on 2026-10-10 for Module 13).* Maximum-likelihood BG/NBD
+  estimates for the 2,357 CDNOW customers over a 39-week calibration period (r = 0.243, α = 4.414,
+  a = 0.793, b = 2.426). Module 2 uses these as a checkpoint: a correct RFM table reproduces them.
+  Module 13 writes the BG/NBD likelihood in the note's form, and its maximum-likelihood helper is tested
+  against these estimates.
 
 - Fader, P. S., Hardie, B. G. S., & Shang, J. (2010). Customer-base analysis in a discrete-time
   noncontractual setting. *Marketing Science*, 29(6), 1086–1108. <https://doi.org/10.1287/mksc.1100.0580>\
@@ -62,18 +64,22 @@ itself, and we say what we relied on instead. How we checked is explained at the
 
 - Fader, P. S., & Hardie, B. G. S. (2013). *The Gamma-Gamma model of monetary value* (note, February 2013).
   <https://www.brucehardie.com/notes/025/>\
-  *Verified (2026-10-09).* The Gamma-Gamma spend model assumes spend per transaction is independent of the
-  purchase process; a customer's expected spend is a weighted average of the population mean and their
-  own average. Estimates on the 946 CDNOW repeat buyers: p = 6.25, q = 3.74, γ = 15.44. Module 4 uses the
-  independence check and these estimates as a checkpoint.
+  *Verified (2026-10-09; the PDF read again on 2026-10-10 for Module 13).* The Gamma-Gamma spend model
+  assumes spend per transaction is independent of the purchase process ("the distribution of average
+  transaction values across customers is independent of the transaction process"); a customer's expected
+  spend is a weighted average of the population mean and their own average. Estimates on the 946 CDNOW
+  repeat buyers: p = 6.25, q = 3.74, γ = 15.44. Module 4 uses the independence check and these estimates
+  as a checkpoint. Module 13 runs the same check on Online Retail II, and its maximum-likelihood helper is
+  tested against these estimates.
 
 - Fader, P. S., & Hardie, B. G. S. (2007). How to project customer retention. *Journal of Interactive
   Marketing*, 21(1), 76–90. <https://doi.org/10.1002/dir.20074>\
   *Verified (2026-10-09).* The shifted-beta-geometric (sBG) model, fitted to seven years of retention
   data, projects survival to year 12 accurately, while curve-fitting regressions do not; aggregate
   retention rises only because customers differ. Table 1 gives the survival percentages for "Regular" and
-  "High End" customers used in Module 4. The paper prints the High End α as 0.688 in the text and 0.668 in
-  Appendix B; our own maximum-likelihood fit to the Appendix B counts gives 0.668 (β = 3.806).
+  "High End" customers used in Module 4, and in Module 14, which sets Kaplan-Meier beside the sBG on the
+  same table. The paper prints the High End α as 0.688 in the text and 0.668 in Appendix B; our own
+  maximum-likelihood fit to the Appendix B counts gives 0.668 (β = 3.806).
 
 - Gupta, S., Hanssens, D., Hardie, B., Kahn, W., Kumar, V., Lin, N., Ravishanker, N., & Sriram, S.
   (2006). Modeling customer lifetime value. *Journal of Service Research*, 9(2), 139–155.
@@ -123,9 +129,14 @@ itself, and we say what we relied on instead. How we checked is explained at the
 - Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). A comparison of approaches to
   advertising measurement: Evidence from big field experiments at Facebook. *Marketing Science*, 38(2),
   193–225. <https://doi.org/10.1287/mksc.2018.1135>\
-  *Verified (2026-10-09).* Across 15 advertising experiments, common observational methods often failed
-  to reproduce the lift measured by the randomized experiments. This is the evidence behind "attribution
-  is not incrementality" in Module 6.
+  *Verified (2026-10-09; again on 2026-10-10 for Module 15).* Across 15 advertising experiments, common
+  observational methods often failed to reproduce the lift measured by the randomized experiments. This
+  is the evidence behind "attribution is not incrementality" in Module 6. Modules 15 (observational
+  estimates against an experiment) and 16 (attribution credit against incrementality) cite it again. On
+  2026-10-10 the publisher's page refused automated access; the Marketing Science Institute's summary,
+  read that day, says the 15 were US advertising experiments at Facebook and that matching and
+  regression-based methods overestimated effectiveness relative to the experiments:
+  <https://msi.org/working-papers/a-comparison-of-approaches-to-advertising-measurement-evidence-from-big-field-experiments-at-facebook-2/>.
 
 ### Geo-experiments and quasi-experiments (Module 7)
 
@@ -247,8 +258,12 @@ itself, and we say what we relied on instead. How we checked is explained at the
 - Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018).
   Double/debiased machine learning for treatment and structural parameters. *The Econometrics Journal*,
   21(1), C1–C68. <https://doi.org/10.1111/ectj.12097>\
-  *Verified (2026-10-09).* Orthogonal scores with cross-fitting remove the bias that regularized
-  machine-learning models introduce, the basis of EconML's `CausalForestDML`.
+  *Verified (2026-10-09; again on 2026-10-10 for Module 15).* Orthogonal scores with cross-fitting remove
+  the bias that regularized machine-learning models introduce, the basis of EconML's `CausalForestDML`
+  (Module 11) and of the double machine learning that Module 15 writes by hand and then fits with
+  EconML's `LinearDML`. The abstract, read at <https://arxiv.org/abs/1608.00060>, describes K-fold sample
+  splitting ("cross-fitting") and estimates that converge at the 1/√n rate, are approximately unbiased
+  and normal, and give valid confidence intervals.
 
 - Radcliffe, N. J., & Surry, P. D. (2011). *Real-world uplift modelling with significance-based uplift
   trees* (Portrait Technical Report TR-2011-1, Stochastic Solutions white paper).
@@ -263,9 +278,196 @@ itself, and we say what we relied on instead. How we checked is explained at the
   Radcliffe & Surry (2011) above, which says Qini curves and measures are discussed in detail in this
   paper. The title ends "uplift model" in every record we found.
 
+## Extensions · What changes when the data are messy, observational, path-shaped or drifting? {#extensions}
+
+The optional modules after the core week (see [Extensions](extensions.qmd)). Their sources were checked
+on 2026-10-10. A source that a core module already cites keeps its place above and names the extension
+module as well; library documentation and datasets are in their own sections below.
+
+### Messy real data (Module 13)
+
+Module 13's sources are all listed elsewhere on this page: Fader, Hardie & Lee's note 004 under
+[Day 1](#day-1), Fader & Hardie's note 025 under [Day 2](#day-2), DuckDB's guide to the AsOf join under
+[Library documentation](#library-docs), and Online Retail II, with Olist (considered, not used), under
+[Datasets](#datasets).
+
+### Survival analysis for subscription churn (Module 14)
+
+- Kaplan, E. L., & Meier, P. (1958). Nonparametric estimation from incomplete observations. *Journal of
+  the American Statistical Association*, 53(282), 457–481.
+  <https://doi.org/10.1080/01621459.1958.10501452>\
+  *Verified (2026-10-10), record only.* We confirmed the Crossref record, but the publisher refused
+  automated access, so we did not read the text. Cited as the origin of the product-limit (Kaplan-Meier)
+  estimator; the formula Module 14 uses is the one in the lifelines documentation
+  ([Library documentation](#library-docs)).
+
+- Cox, D. R. (1972). Regression models and life-tables. *Journal of the Royal Statistical Society,
+  Series B*, 34(2), 187–220. <https://doi.org/10.1111/j.2517-6161.1972.tb00899.x>\
+  *Verified (2026-10-10), abstract only.* The proportional-hazards model: the hazard is a function of
+  the explanatory variables and regression coefficients multiplied by an arbitrary, unknown function of
+  time, and inference comes from a conditional likelihood. Module 14 fits it to adjust a confounded
+  comparison. Abstract read on the EPA's HERO record <https://hero.epa.gov/reference/8785/>. Crossref
+  gives pages 187–202, the paper without the discussion.
+
+- Grambsch, P. M., & Therneau, T. M. (1994). Proportional hazards tests and diagnostics based on weighted
+  residuals. *Biometrika*, 81(3), 515–526. <https://doi.org/10.1093/biomet/81.3.515>\
+  *Verified (2026-10-10), abstract only.* A coefficient that changes over time (their example: a
+  treatment effect that weakens) shows up when a residual plot is smoothed, and several
+  proportional-hazards tests are weighted least-squares lines on that plot. The basis of lifelines'
+  `proportional_hazard_test`, which Module 14 uses to find the effect that fades. Abstract read on the
+  publisher's page.
+
+- Royston, P., & Parmar, M. K. B. (2013). Restricted mean survival time: an alternative to the hazard
+  ratio for the design and analysis of randomized trials with a time-to-event outcome. *BMC Medical
+  Research Methodology*, 13, 152. <https://doi.org/10.1186/1471-2288-13-152>\
+  *Verified (2026-10-10).* The restricted mean survival time is "a measure of average survival from time
+  0 to a specified time point", the area under the survival curve up to that point. It is valid whatever
+  the distribution of the event times, so it needs no proportional hazards. Module 14 prices onboarding
+  in these months of subscription. Read on PubMed Central:
+  <https://pmc.ncbi.nlm.nih.gov/articles/PMC3922847/>.
+
+- Hernán, M. A. (2010). The hazards of hazard ratios. *Epidemiology*, 21(1), 13–15.
+  <https://doi.org/10.1097/EDE.0b013e3181c1ea43>\
+  *Verified (2026-10-10).* A hazard ratio can change during follow-up, "period-specific HRs have a
+  built-in selection bias", and adjusted survival curves are a clearer summary. Why Module 14 ends in
+  months of subscription rather than a hazard ratio. Read on PubMed Central:
+  <https://pmc.ncbi.nlm.nih.gov/articles/PMC3653612/>.
+
+- Giobbie-Hurder, A., Gelber, R. D., & Regan, M. M. (2013). Challenges of guarantee-time bias. *Journal of
+  Clinical Oncology*, 31(23), 2963–2969. <https://doi.org/10.1200/JCO.2013.49.5283>\
+  *Verified (2026-10-10).* A landmark analysis "selects a fixed time during follow-up as the landmark";
+  guarantee-time bias includes immortal-time bias. Module 14 estimates hazard ratios before and after a
+  3-month landmark. Read on PubMed Central: <https://pmc.ncbi.nlm.nih.gov/articles/PMC3732313/>.
+
+- Lee, H., & Nunan, D. (2020). Immortal time bias. *Catalogue of Bias*.
+  <https://catalogofbias.org/biases/immortal-time-bias/>\
+  *Verified (2026-10-10).* Assigning groups with information from after time zero distorts the
+  comparison; "assignment and time-zero must be aligned". Why Module 14's clock starts at the first
+  billing date, when onboarding is already known.
+
+Also for Module 14: Fader & Hardie (2007) under [Day 2](#day-2), and lifelines with its paper under
+[Library documentation](#library-docs).
+
+### Causal effects without an experiment (Module 15)
+
+- Robinson, P. M. (1988). Root-N-consistent semiparametric regression. *Econometrica*, 56(4), 931–954.
+  <https://doi.org/10.2307/1912705>\
+  *Verified (2026-10-10), abstract only.* Estimates based on a wrong parametric form for the
+  nonparametric part of the model are generally inconsistent; inserting nonparametric regression
+  estimates gives a root-N-consistent, asymptotically normal estimator of the slope. The ancestor of
+  partialling out, which Module 15 writes by hand. Abstract read on RePEc:
+  <https://ideas.repec.org/a/ecm/emetrp/v56y1988i4p931-54.html>.
+
+- Li, F., Morgan, K. L., & Zaslavsky, A. M. (2018). Balancing covariates via propensity score weighting.
+  *Journal of the American Statistical Association*, 113(521), 390–400.
+  <https://doi.org/10.1080/01621459.2016.1260466>\
+  *Verified (2026-10-10), abstract only.* Overlap weights, proportional to each unit's probability of
+  being assigned to the other group, are bounded and minimize the asymptotic variance of the weighted
+  average treatment effect. Module 15 uses them to say whose effect double machine learning estimates;
+  the weight *e*(1 − *e*), with *e* the propensity score, is derived in the module, not quoted from the
+  paper. Crossref record, and the abstract on arXiv <https://arxiv.org/abs/1609.07494>, whose listing
+  says the preprint was withdrawn by the author; the journal article stands.
+
+- Crump, R. K., Hotz, V. J., Imbens, G. W., & Mitnik, O. A. (2009). Dealing with limited overlap in
+  estimation of average treatment effects. *Biometrika*, 96(1), 187–199.
+  <https://doi.org/10.1093/biomet/asn055>\
+  *Verified (2026-10-10), abstract only.* For a wide range of distributions, a good approximation to the
+  authors' optimal rule is to discard units whose estimated propensity score lies outside [0.1, 0.9].
+  Module 15 trims at this rule and at [0.2, 0.8]. Abstract read on the publisher's page.
+
+- LaLonde, R. J. (1986). Evaluating the econometric evaluations of training programs with experimental
+  data. *American Economic Review*, 76(4), 604–620.
+  <https://ideas.repec.org/a/aea/aecrev/v76y1986i4p604-20.html>\
+  *Verified (2026-10-10), abstract only.* Compares nonexperimental estimates with the results of a
+  randomized employment and training experiment; many econometric procedures fail to replicate the
+  experimental results. The design of Module 15's Hillstrom benchmark. Abstract read on RePEc.
+
+- Chernozhukov, V., Cinelli, C., Newey, W., Sharma, A., & Syrgkanis, V. (2026). Long story short: Omitted
+  variable bias in causal machine learning. *Review of Economics and Statistics*, published online
+  2026-02-04. <https://doi.org/10.1162/REST.a.1705>\
+  *Verified (2026-10-10), abstract only.* Bounds on omitted-variable bias for causal parameters,
+  including in partially linear models, from plausibility judgments on how much the omitted variables
+  could explain, with inference that can use machine-learning estimators. Module 15's third stretch
+  exercise only; we did not check EconML's `c_y` and `c_t` against the paper. Abstract read on arXiv
+  <https://arxiv.org/abs/2112.13398>; journal details from Crossref. For its sensitivity methods,
+  EconML's references page cites a 2022 NBER working paper of the same title (No. 30302), which it lists
+  with N. Kallus as a sixth author.
+
+Also for Module 15: Chernozhukov et al. (2018) under [Day 5](#day-5), Gordon et al. (2019) under
+[Day 3](#day-3), EconML's `LinearDML` and LightGBM under [Library documentation](#library-docs), and the
+Hillstrom experiment under [Datasets](#datasets).
+
+### Multi-touch attribution (Module 16)
+
+- Shao, X., & Li, L. (2011). Data-driven multi-touch attribution models. *Proceedings of KDD 2011*,
+  258–264. <https://doi.org/10.1145/2020408.2020453>\
+  *Verified (2026-10-10), abstract only.* Multi-touch attribution gives credit to more than one ad
+  according to its contribution, instead of all of it to the last ad; the authors frame the task as
+  interpreting each interaction's influence accurately and stably, not only as classifying users.
+  Crossref record, and the abstract through OpenAlex (the ACM page refused automated access).
+
+- Dalessandro, B., Perlich, C., Stitelman, O., & Provost, F. (2012). Causally motivated attribution for
+  online advertising. *Proceedings of the Sixth International Workshop on Data Mining for Online
+  Advertising and Internet Economy (ADKDD 2012)*, 1–9. <https://doi.org/10.1145/2351356.2351363>\
+  *Verified (2026-10-10), abstract only.* Attribution posed as a causal estimation problem, with
+  approximate methods that draw on cooperative game theory; where the causal assumptions are violated,
+  these approximations are measures of variable importance. Crossref record, and the abstract through
+  OpenAlex.
+
+- Anderl, E., Becker, I., von Wangenheim, F., & Schumann, J. H. (2016). Mapping the customer journey:
+  Lessons learned from graph-based online attribution modeling. *International Journal of Research in
+  Marketing*, 33(3), 457–474. <https://doi.org/10.1016/j.ijresmar.2016.03.001>\
+  *Verified (2026-10-10), abstract only.* Customer paths modeled as first- and higher-order Markov walks,
+  applied to four large data sets with at least seven online channels each; the results differ
+  substantially from last-click attribution. Abstract read on RePEc
+  <https://ideas.repec.org/a/eee/ijrema/v33y2016i3p457-474.html>; ScienceDirect refused automated access,
+  so the removal-effect formula on the Module 16 page is the module's own statement, not quoted from the
+  paper.
+
+- Shapley, L. S. (1953). A value for n-person games. In *Contributions to the Theory of Games (AM-28),
+  Volume II* (pp. 307–318). Princeton University Press. <https://doi.org/10.1515/9781400881970-018>\
+  *Verified (2026-10-10).* We read the Crossref record and pages 1–7 of the earlier version, RAND paper
+  P-295 (1952). The value is deduced from three axioms: symmetry, efficiency and additivity (Shapley's
+  "law of aggregation": the value of the sum of two games is the sum of their values), which determine it
+  uniquely. That a player who adds nothing to any coalition gets zero (the null-player property) is his
+  Lemma 1. Module 16 computes the value exactly, with the conversion rate of each set of channels as the
+  value of a coalition. Pages 307–318 as Crossref lists them.
+
+- Zhao, K., Mahboobi, S. H., & Bagheri, S. R. (2018). *Shapley value methods for attribution modeling in
+  online advertising.* arXiv:1804.05327. <https://arxiv.org/abs/1804.05327>\
+  *Verified (2026-10-10), abstract only.* Shapley-value attribution across channels, a simplified
+  formula, and an "ordered" variant that uses the order of touches. Mentioned in the Module 16 briefing;
+  we did not read the full text, so the module does not describe its value function.
+
+Also for Module 16: Gordon et al. (2019) under [Day 3](#day-3), and ChannelAttribution, considered and
+not used, under [Library documentation](#library-docs).
+
+### MMM with drifting effects and a Prophet baseline (Module 17)
+
+- Taylor, S. J., & Letham, B. (2018). Forecasting at scale. *The American Statistician*, 72(1), 37–45.
+  <https://doi.org/10.1080/00031305.2017.1380080>\
+  *Verified (2026-10-10), abstract only.* The paper behind Prophet; Prophet's README cites it as
+  "Prophet paper". The abstract proposes "a modular regression model with interpretable parameters that
+  can be intuitively adjusted by analysts with domain knowledge about the time series". Crossref record,
+  and the abstract on Semantic Scholar; the publisher's page and the PeerJ preprint page refused
+  automated access.
+
+- Riutort-Mayol, G., Bürkner, P.-C., Andersen, M. R., Solin, A., & Vehtari, A. (2023). Practical Hilbert
+  space approximate Bayesian Gaussian processes for probabilistic programming. *Statistics and
+  Computing*, 33, 17. <https://doi.org/10.1007/s11222-022-10167-2>\
+  *Verified (2026-10-10), record only.* We confirmed the Crossref record (published online 2022-12-14,
+  issue dated February 2023) but did not read the paper. Cited because PyMC-Marketing models Module 17's
+  drifting effects with a Hilbert-space approximation to a Gaussian process (HSGP): in the installed
+  PyMC-Marketing 1.2.0, `parameterize_from_data` sets the number of basis functions and the boundary with
+  `approx_hsgp_hyperparams`, whose docstring says it is "Based on recommendations from" this paper.
+
+Also for Module 17: Prophet, PyMC-Marketing's time-varying notebooks and Robyn's use of Prophet under
+[Library documentation](#library-docs).
+
 ## Library documentation {#library-docs}
 
-Versions are the ones the labs pin (see `_variables.yml`).
+Versions are the ones the labs pin (`_variables.yml`, and `environment/requirements.txt` for libraries
+not listed there).
 
 - **PyMC-Marketing** (PyMC Labs; version 1.2.0 on PyPI, released 2026-09-29).
   CLV quickstart <https://www.pymc-marketing.io/en/stable/notebooks/clv/clv_quickstart.html>;
@@ -273,13 +475,21 @@ Versions are the ones the labs pin (see `_variables.yml`).
   lift-test calibration <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html>;
   time-slice cross-validation and parameter stability <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_time_slice_cross_validation.html>;
   budget allocation <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_budget_allocation_example.html>;
-  MMM API <https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.mmm.MMM.html>\
-  *Verified (2026-10-09).* Bayesian BG/NBD, Pareto/NBD (with covariates), Gamma-Gamma and sBG models;
-  an MMM class with lift-test calibration (`add_lift_test_measurements`) and an SLSQP budget optimizer.
-  The lift-test page adds tests "to the model likelihood"; the time-slice cross-validation page
-  (read 2026-10-09) refits the MMM on successive time splits and checks out-of-sample predictions and
-  the stability of the parameters across splits. The older `pymc_marketing.mmm.multidimensional`
-  module is marked deprecated in favour of `pymc_marketing.mmm.mmm`.
+  MMM API <https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.mmm.MMM.html>;
+  MMM with time-varying media baseline <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_time_varying_media_example.html>;
+  MMM with time-varying parameters <https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_tvp_example.html>\
+  *Verified (2026-10-09; the two time-varying pages on 2026-10-10).* Bayesian BG/NBD, Pareto/NBD (with
+  covariates), Gamma-Gamma and sBG models; an MMM class with lift-test calibration
+  (`add_lift_test_measurements`) and an SLSQP budget optimizer. The lift-test page adds tests "to the
+  model likelihood"; the time-slice cross-validation page (read 2026-10-09) refits the MMM on successive
+  time splits and checks out-of-sample predictions and the stability of the parameters across splits.
+  The older `pymc_marketing.mmm.multidimensional` module is marked deprecated in favor of
+  `pymc_marketing.mmm.mmm`. For Module 17: with `time_varying_media=True` the time-varying media page
+  assumes "all channels share the same time-dependent fluctuations" and models the shared multiplier with
+  an HSGP; the time-varying parameters page models a time-varying intercept as a Gaussian process, notes
+  "Out-of-sample, the GP reverts to its prior mean", and recommends a linear or Fourier basis instead for
+  trends and seasonality. Both pages' metadata show version 1.0.0.dev0; Module 17 follows the installed
+  1.2.0 source, in which an HSGP over date and channel gives each channel its own multiplier.
 
 - **PyMC** <https://www.pymc.io/> and **nutpie** <https://pymc-devs.github.io/nutpie/>\
   *Verified (2026-10-09).* PyMC is the probabilistic programming library under PyMC-Marketing; nutpie is
@@ -290,9 +500,19 @@ Versions are the ones the labs pin (see `_variables.yml`).
   (`stats.ci_prob = 0.89`, `stats.ci_kind = "eti"`). The labs therefore always state the interval type and
   probability, for example "94% HDI".
 
-- **EconML** (PyWhy) <https://www.pywhy.org/EconML/reference.html>\
-  *Verified (2026-10-09).* `CausalForestDML` and the S-, T- and X-learners (`econml.metalearners`). The
-  online documentation is labelled 0.16.0; the labs pin 0.17.0, whose signatures we checked in the
+- **EconML** (PyWhy) <https://www.pywhy.org/EconML/reference.html>; `LinearDML` reference
+  <https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html>; double machine learning user
+  guide <https://www.pywhy.org/EconML/spec/estimation/dml.html>\
+  *Verified (2026-10-09; the `LinearDML` and user-guide pages on 2026-10-10).* `CausalForestDML` and the
+  S-, T- and X-learners (`econml.metalearners`) for Module 11; `LinearDML` for Module 15. The user guide
+  writes the model as Y = θ(X) T + g(X, W) + ε, residualizes Y and T on (X, W), regresses residual on
+  residual, requires cross-fitted predictions for the first stage, and credits Neyman orthogonality for
+  the robustness. `LinearDML`'s final stage is "implemented as a statsmodel regression", its `cv`
+  argument accepts an iterable of (train, test) splits, and its sensitivity methods
+  (`sensitivity_interval`, `sensitivity_summary`, `robustness_value`) are "Based on [Chernozhukov2022]",
+  which EconML's references page <https://www.pywhy.org/EconML/spec/references.html> resolves to the NBER
+  working paper version of the omitted-variable-bias paper listed under [Extensions](#extensions). The
+  online documentation is labeled 0.16.0; the labs pin 0.17.0, whose signatures we checked in the
   installed package.
 
 - **CLVTools** <https://cran.r-project.org/package=CLVTools>; reference pages for
@@ -321,14 +541,23 @@ Versions are the ones the labs pin (see `_variables.yml`).
   GitHub-only, MIT-licensed.
 
 - **Robyn** <https://facebookexperimental.github.io/Robyn/> and <https://cran.r-project.org/package=Robyn>;
-  commit history <https://github.com/facebookexperimental/Robyn/commits/main>\
-  *Verified (2026-10-09).* Meta's open-source MMM, version 3.12.1 on CRAN (2025-07-02). It uses the
-  Python library Nevergrad (through reticulate) for hyperparameter search and nloptr for its budget
-  allocator; the main functions are `robyn_inputs`, `robyn_run`, `robyn_outputs` and `robyn_allocator`,
-  and `robyn_inputs` takes experiment results through its `calibration_input` argument (checked with
-  `formals()` in the workshop image). The latest commit on the GitHub main branch is dated 2025-06-27,
-  which is why Module 9 calls Robyn effectively unmaintained. Used in Module 9's R notebook (the Robyn
-  spike passed in Docker).
+  commit history <https://github.com/facebookexperimental/Robyn/commits/main>; Features page
+  <https://facebookexperimental.github.io/Robyn/docs/features/>; source of `robyn_inputs` and
+  `prophet_decomp` <https://raw.githubusercontent.com/facebookexperimental/Robyn/main/R/R/inputs.R>\
+  *Verified (2026-10-09; the Features page and `inputs.R` on 2026-10-10).* Meta's open-source MMM,
+  version 3.12.1 on CRAN (2025-07-02). It uses the Python library Nevergrad (through reticulate) for
+  hyperparameter search and nloptr for its budget allocator; the main functions are `robyn_inputs`,
+  `robyn_run`, `robyn_outputs` and `robyn_allocator`, and `robyn_inputs` takes experiment results through
+  its `calibration_input` argument (checked with `formals()` in the workshop image). The latest commit on
+  the GitHub main branch is dated 2025-06-27, which is why Module 9 calls Robyn effectively unmaintained.
+  Used in Module 9's R notebook (the Robyn spike passed in Docker). For Module 17, which tests Robyn's
+  use of Prophet as an MMM baseline: the Features page says "Robyn provides trend, season, holiday &
+  weekday decomposition out of the box using Prophet" and treats trend, season and holiday as baseline
+  ("non-steerable") variables. In `R/R/inputs.R` on main (version 3.12.1 in `R/DESCRIPTION`),
+  `prophet_decomp()` fits Prophet to the dependent variable and returns the components it was asked for;
+  `add_regressor` is called only for one-hot-encoded `factor_vars`, so paid media are not Prophet
+  regressors; and `robyn_inputs()` adds the components to the model's independent variables. The
+  documentation of the `prophet_vars` argument recommends "trend", "season", "holiday" for weekly data.
 
 - **Meridian** <https://developers.google.com/meridian>; installation guide
   <https://developers.google.com/meridian/docs/user-guide/installing>; ROI priors and calibration
@@ -346,6 +575,59 @@ Versions are the ones the labs pin (see `_variables.yml`).
   *Verified (2026-10-09).* `scipy.optimize.minimize(method="SLSQP")` accepts bounds and equality and
   inequality constraints: everything Module 10's allocator needs.
 
+- **DuckDB** *AsOf join* guide <https://duckdb.org/docs/current/guides/sql_features/asof_join.html>\
+  *Verified (2026-10-10).* An ASOF join matches each left row with the nearest preceding right row, at
+  most one; `ASOF LEFT JOIN` keeps unmatched left rows, with NULLs. Module 13 matches each cancellation to
+  the latest earlier purchase with the same customer, product, price and opposite quantity this way. The
+  labs pin DuckDB 1.3.2, whose ASOF join broke exact ties differently from run to run with more than one
+  thread (DECISIONS.md), so the lab checks only counts that do not depend on the tie.
+
+- **lifelines**: "Introduction to survival analysis"
+  <https://lifelines.readthedocs.io/en/latest/Survival%20Analysis%20intro.html>; "Survival analysis with
+  lifelines" <https://lifelines.readthedocs.io/en/latest/Survival%20analysis%20with%20lifelines.html>;
+  "Testing the proportional hazard assumptions"
+  <https://lifelines.readthedocs.io/en/latest/jupyter_notebooks/Proportional%20hazard%20assumption.html>\
+  *Verified (2026-10-10).* Davidson-Pilon, C. (2019). lifelines: survival analysis in Python. *Journal of
+  Open Source Software*, 4(40), 1317. <https://doi.org/10.21105/joss.01317> (read at
+  <https://joss.theoj.org/papers/10.21105/joss.01317>). Version 0.30.3 (PyPI, uploaded 2026-03-05),
+  checked against the installed source. The introduction calls ignoring right-censored subjects "a common
+  mistake"; the second page gives the product-limit (Kaplan-Meier) formula, Kaplan-Meier intervals from
+  the exponential Greenwood formula, and the log-rank test; the third checks proportional hazards with
+  scaled Schoenfeld residuals, lists stratification, binning, a different functional form and
+  time-varying covariates as remedies, and warns that with a large sample "even very small violations"
+  are flagged. Module 14.
+
+- **LightGBM** 4.6.0: Python package README
+  <https://raw.githubusercontent.com/microsoft/LightGBM/v4.6.0/python-package/README.rst>; `LGBMRegressor`
+  reference <https://lightgbm.readthedocs.io/en/v4.6.0/pythonapi/lightgbm.LGBMRegressor.html>\
+  *Verified (2026-10-10).* Considered for Module 15's prediction models and not used. The README says the
+  macOS wheels need the OpenMP library, installed with `brew install libomp`; without it the wheel did not
+  import on the laptop the module was prepared on. The reference gives the constructor's defaults and
+  what `random_state` and `n_jobs` do. The lab uses scikit-learn's histogram gradient boosting instead.
+  LightGBM 4.6.0 is still among the pins, because EconML 0.17.0 requires it.
+
+- **ChannelAttribution** (R) <https://CRAN.R-project.org/package=ChannelAttribution>; reference manual
+  <https://cran.r-project.org/web/packages/ChannelAttribution/refman/ChannelAttribution.html>; Python
+  package <https://pypi.org/project/ChannelAttribution/>\
+  *Verified (2026-10-10).* Considered for Module 16 and not used. Version 2.2.5 on CRAN and PyPI (both
+  published 2026-06-08; GPL-3; maintainer Davide Altomare), implemented in C++: first-, last- and
+  linear-touch heuristics (`heuristic_models`) and k-order Markov models (`markov_model`, which returns
+  transition probabilities and removal effects with `out_more = TRUE`), and no Shapley function. The PyPI
+  release is a source archive only (Cython and C++, no wheels), so it would compile during a Colab
+  install. Module 16's learners write the heuristics, the removal effect and exact Shapley values
+  themselves.
+
+- **Prophet**: "Trend changepoints" <https://facebook.github.io/prophet/docs/trend_changepoints.html>;
+  "Seasonality, holiday effects, and regressors"
+  <https://facebook.github.io/prophet/docs/seasonality,_holiday_effects,_and_regressors.html>\
+  *Verified (2026-10-10).* Version 1.4.0, the version Colab preinstalls. "By default, Prophet specifies 25
+  potential changepoints which are uniformly placed in the first 80% of the time series", and
+  `changepoint_prior_scale` defaults to 0.05. Holidays are a table with columns `holiday` and `ds`;
+  `add_regressor` adds a regressor to the linear part of the model, and a regressor "must be known for
+  both the history and for future dates". Module 17 decomposes sales with Prophet into trend, seasonality
+  and holidays and gives the components to an MMM as its baseline, as Robyn does. The method paper is
+  Taylor & Letham (2018), under [Extensions](#extensions).
+
 ## Datasets {#datasets}
 
 - **CDNOW** (1/10th sample), distributed by Bruce Hardie. <https://www.brucehardie.com/datasets/>\
@@ -355,10 +637,14 @@ Versions are the ones the labs pin (see `_variables.yml`).
   Real data. Modules 1–4.
 
 - **Online Retail II**. Chen, D. (2012). UCI Machine Learning Repository.
-  <https://doi.org/10.24432/C5CG6D>\
-  *Verified (2026-10-09).* Transactions of a UK-based online gift-ware retailer, many of whose customers
-  are wholesalers, from 01/12/2009 to 09/12/2011; 1,067,371 rows; licence CC BY 4.0; donated 2019 (the
-  citation line gives 2012). Real data. Module 1.
+  <https://doi.org/10.24432/C5CG6D>; dataset page <https://archive.ics.uci.edu/dataset/502/online+retail+ii>\
+  *Verified (2026-10-09; again on 2026-10-10 for Module 13).* "A real online retail transaction data set
+  of two years": transactions of a UK-based online gift-ware retailer, many of whose customers are
+  wholesalers, from 01/12/2009 to 09/12/2011; 1,067,371 rows; license CC BY 4.0; donated 2019-09-20 (the
+  citation line gives 2012). The variable descriptions say an invoice number that starts with the letter
+  "c" marks a cancellation, a stock code is a five-digit number for each product, and prices are in
+  sterling; the file names the columns `Invoice` and `Price` where the page says `InvoiceNo` and
+  `UnitPrice`. Real data. Modules 1 and 13.
 
 - **Online Retail** (the one-year predecessor). Chen, D. (2015). UCI Machine Learning Repository.
   <https://doi.org/10.24432/C5BW33>. Introductory paper: Chen, D., Sain, S. L., & Guo, K. (2012). Data
@@ -368,12 +654,24 @@ Versions are the ones the labs pin (see `_variables.yml`).
   *Verified (2026-10-09)* for the dataset page and the paper's record; we did not read the paper's
   abstract. Background for Module 1 only.
 
+- **Olist** (considered for Module 13, not used). *Brazilian E-Commerce Public Dataset by Olist*, Kaggle.
+  <https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce>; metadata from Kaggle's API
+  <https://www.kaggle.com/api/v1/datasets/view/olistbr/brazilian-ecommerce>\
+  *Verified (2026-10-10).* "100k orders from 2016 to 2018"; license CC BY-NC-SA 4.0; last updated
+  2021-10-01. Kaggle's API documentation
+  <https://raw.githubusercontent.com/Kaggle/kaggle-api/main/docs/README.md> says "First, you will need a
+  Kaggle account". Not used, for three reasons: the non-commercial license, the account a learner
+  would need, and few repeat buyers (2.2% of customers bought on more than one day, measured on the files
+  downloaded that day). Real data.
+
 - **Hillstrom e-mail experiment**. Hillstrom, K. (2008, March 20). *The MineThatData e-mail analytics and
   data mining challenge.* MineThatData blog.
   <https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html>\
-  *Verified (2026-10-09).* 64,000 customers who bought in the past twelve months, randomly split into
-  thirds: Mens e-mail, Womens e-mail, no e-mail; outcomes are visit, conversion and spend in the following
-  two weeks. Real, randomized data. Modules 6 and 11.
+  *Verified (2026-10-09; again on 2026-10-10 for Module 15).* 64,000 customers who bought in the past
+  twelve months, randomly split into thirds: Mens e-mail, Womens e-mail, no e-mail; outcomes are visit,
+  conversion and spend in the following two weeks. Real, randomized data. Modules 6, 11 and 15; Module 15
+  draws a deliberately confounded sample from it and checks double machine learning against the
+  randomized answer.
 
 - **Proposition 99 panel** (California and 38 control states, 1970–2000), as the `smoking` dataset in the
   tidysynth R package. Dunford, E. tidysynth, version 0.2.1 (CRAN, 2025-03-24).
@@ -387,7 +685,7 @@ Versions are the ones the labs pin (see `_variables.yml`).
   *Verified (2026-10-09).* Table 1 gives the percentage of a cohort surviving at least 0–12 years for
   "Regular" and "High End" customers; Table B1 gives counts for 1,000 High End customers for years 1–7.
   Counts for Regular customers are not printed and are derived from the percentages (out of 1,000).
-  Module 4.
+  Modules 4 and 14.
 
 - **PyMC-Marketing `mmm_example.csv`**.
   <https://github.com/pymc-labs/pymc-marketing/blob/main/data/mmm_example.csv>\
@@ -402,22 +700,38 @@ Versions are the ones the labs pin (see `_variables.yml`).
   based on simulated data and are for illustration only. Module 9's R notebook.
 
 - **Synthetic retailer** (this workshop). Generated by `mktstats.synth` with the true parameters in
-  `data/synthetic/truth.json`. Simulated, with known truth; every module.
+  `data/synthetic/truth.json`. Simulated, with known truth; Modules 1–13. The extensions' own generated
+  data (Module 13's dirtied log, Module 14's subscribers, Module 15's app installs, Module 16's customer
+  journeys and Module 17's weekly MMM with a fading channel) keep their truth in separate files,
+  `data/synthetic/truth_<name>.json`.
 
 ## How the entries were checked {#how-checked}
 
-- Every entry above was opened on 2026-10-09: the DOI or publisher page, the Crossref record, arXiv, the
-  author's own page, or the documentation site. Several publisher pages (INFORMS, ACM, Taylor & Francis,
-  PNAS) refused automated access; for those we took the bibliographic details from Crossref and read the
-  abstract on arXiv, an author or institution page, or Semantic Scholar.
+- Every entry for the core week was opened on 2026-10-09, and every entry added or read again for the
+  Extensions (Modules 13–17) on 2026-10-10: the DOI or publisher page, the Crossref record, arXiv, the
+  author's own page, or the documentation site. Several publisher pages (INFORMS, ACM, Elsevier's
+  ScienceDirect, Taylor & Francis, PNAS) refused automated access; for those we took the bibliographic
+  details from Crossref and read the abstract on arXiv, an author or institution page, PubMed Central,
+  RePEc, OpenAlex, the EPA's HERO database, the Marketing Science Institute or Semantic Scholar.
+- A few pages we read are not linked, because they refuse automated clients (HTTP 403) and would fail
+  the site's monthly link check: RAND's page for Shapley's paper P-295, and the Oxford Academic abstract
+  pages of Grambsch & Therneau (1994) and Crump et al. (2009). Their DOIs are linked instead.
 - The sentence after each tag says what the page we read supports in this workshop. Where the page
   differed from a commonly quoted version (a title, a year, an author list, a parameter value), we
   give what the page says and note the difference.
 - *Not read* marks an entry we cite because other sources rely on it, but whose text we could not open.
-  Entries we could not confirm at all are left out.
+  Entries we could not confirm at all are left out. *Record only* means we confirmed the bibliographic
+  record but read neither the abstract nor the text. *Abstract only*, a tag used on the entries checked
+  on 2026-10-10, means we read the abstract but not the full text.
 - Where a source reports estimates that a lab uses as a checkpoint, we refitted them. On 2026-10-09,
   PyMC-Marketing 1.2.0 with flat priors (MAP) reproduced the BG/NBD estimates for CDNOW in note 004 and
   the Gamma-Gamma estimates in note 025, and a direct maximum-likelihood fit reproduced the sBG estimates
   in Fader & Hardie (2007). These were laptop runs while writing the lab briefs, not workshop run records.
-- Software versions agree with `_variables.yml`. A library's documentation changes with each release; the
-  labs are checked against the installed version, not against these pages.
+  On 2026-10-10, Module 13's maximum-likelihood helper (`mktstats.mle`) reproduced the estimates of notes
+  004 and 025 at their published precision (its unit tests), and a maximum-likelihood fit to years 0–7 of
+  Table 1 in Fader & Hardie (2007) reproduced the published sBG estimates for both segments (Regular
+  α = 0.704, β = 1.182; High End α = 0.668, β = 3.806, as in Appendix B), the fit Module 14 compares with
+  Kaplan-Meier. Both were run again on the laptop for this page.
+- Versions of the libraries the labs use agree with `_variables.yml` and `environment/requirements.txt`;
+  ChannelAttribution, which no lab uses, is described at the version we read. A library's documentation
+  changes with each release; the labs are checked against the installed version, not against these pages.
