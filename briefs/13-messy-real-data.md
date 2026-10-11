@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. The lab is **not written and has not run**. Numbers marked *prototype* come from throwaway scripts run on a laptop (Apple Silicon, the repository's `.venv` with the pinned versions: pandas 2.2.3, numpy 2.1.3, scipy 1.16.3, duckdb 1.3.2, pymc-marketing 1.2.0). They are not lab results, not Colab times, and must be re-measured on the generator the Technical Expert builds. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the rulings, the changes and their reasons are under "Pedagogy review" at the end. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the rulings, the changes and their reasons are under "Pedagogy review" at the end. **Built and run** by the Technical Expert on 2026-10-10 ("Build notes" at the end): worked FULL runs on macOS and in Docker are recorded (`runs/2026-10-10-macos-arm64-python-13-messy-real-data.json`, `runs/2026-10-10-docker-arm64-python-13-messy-real-data.json`, the entries with content hash `e2b154bc6d081825`); not yet run on Colab, which needs a release tag that contains the lab. Numbers marked *build* are the notebook's printed output on the committed data (messy seed 2033, retailer seed 2026) and the sha256-checked Online Retail II, re-read by the Academic Director from a worked FULL run at the run records' content and deps hashes, or come from `data/synthetic/truth_messy.json`. Numbers still marked *prototype* come from throwaway scripts run on a laptop before the build (Apple Silicon, the repository's `.venv` with the pinned versions: pandas 2.2.3, numpy 2.1.3, scipy 1.16.3, duckdb 1.3.2, pymc-marketing 1.2.0); where the build replaced one, the build's value is given. "Build reconciliation" at the end lists what changed. |
 | Notebook | `labs/src/13-messy-real-data.py` → `labs/python/13-messy-real-data.ipynb` |
 | Lab slot | 55 min (`modules.m13.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (8 + 10 + 7 + 7 + 8; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells immediately before it, so provided cells print short summaries, not long tables. Minutes are estimates until a pilot. |
 | Track | Extensions (day `d6`), optional. Assumes Modules 1, 2 and 4; Module 5's break-even lift helps. |
@@ -32,20 +32,22 @@ labeled errors at **rates measured on Online Retail II** (the labels live only i
 learner writes the cleaning rules in DuckDB SQL and proves them by reproducing the clean RFM table
 exactly. A one-rule-at-a-time sweep then measures what each error does. Because dozens of fits are needed,
 the sweep uses a maximum-likelihood helper (numerical optimization of closed-form likelihoods) that maximizes the same likelihoods as
-PyMC-Marketing (prototype agreement: largest relative difference 1.2 × 10⁻⁴), confirmed once in the lab
+PyMC-Marketing (prototype agreement on cleaned Online Retail II: largest relative difference 1.2 × 10⁻⁴;
+*build*, the lab's cross-check on the messy log: 1.6 × 10⁻⁵), confirmed once in the lab
 with PyMC-Marketing itself. The same pipeline is then applied unchanged to Online Retail II.
 
-What the prototype data show, and therefore what the lab promises: at Online Retail II's error rates,
-row-level errors move **aggregate** quantities only a few percent (Module 1's rules: +2.7% on the 52-week
-purchase forecast, +4.2% on the population mean spend), but they move **individual customers** a lot
-(2,610 of 5,025 customers' expected 52-week revenue moves by more than 10%) and they move the individual
-Gamma-Gamma parameters a lot (p −19%, v +38%, because p, q and v trade off against each other). Counting
-invoices instead of purchase days does more damage than any row-level error. A few wholesale buyers distort
-the spend parameters; capping at the 99th percentile restores them, at the price of the wholesale
-customers' value if the capped amounts are also used for valuation. On the real data, the assumed lift of
-the contact moves the decision far more than any cleaning choice, but cleaning errors concentrate on
-specific customers (under Module 1's rules a test account is worth £18,027 over 26 weeks instead of
-£113).
+What the data show, and therefore what the lab promises (*build* values; the prototype's in brackets): at
+Online Retail II's error rates, row-level errors move **aggregate** quantities only a few percent (Module 1's
+rules: +2.8% on the 52-week purchase forecast [+2.7%], +3.5% on the population mean spend [+4.2%]), but they
+move **individual customers** a lot (449 of 2,513 customers' expected 52-week revenue moves by more than
+10% [2,610 of 5,025]) and they move the individual Gamma-Gamma parameters a lot (p −24.7%, v +48.0% [−19%,
++38%], because p, q and v trade off against each other). Counting invoices instead of purchase days does
+more damage than any row-level error. A few wholesale buyers distort the spend parameters; capping at the
+99th percentile moves them most of the way to the truth (close to a fit without the wholesale buyers), at
+the price of the wholesale customers' value if the capped amounts are also used for valuation. On the real
+data, the assumed lift of the contact moves the decision far more than any cleaning choice, but cleaning
+errors concentrate on specific customers (under Module 1's rules a test account is worth £18,027 over 26
+weeks instead of £113; the same in the build).
 
 ## Notation (as in Modules 1, 2 and 4)
 
@@ -102,12 +104,14 @@ capstone's 2032 (check against Modules 14–17).
 
 **Data-generating process.**
 
-1. **Clean purchases.** Start from `synth.retailer(seed=2026).transactions` (38,637 purchases of 5,000
-   customers, identical to `retailer_transactions.csv`). Add **25 wholesale customers**, IDs 5001–5025,
-   acquired on a uniform day in the first 26 weeks, with the retailer's reference-channel Pareto/NBD
+1. **Clean purchases.** Start from `synth.retailer(seed=2026).transactions` (*prototype*: all 38,637
+   purchases of 5,000 customers, identical to `retailer_transactions.csv`; *build*: customers 1 to 2,500
+   only, to keep the CSV small). Add **wholesale customers** (*prototype* 25, IDs 5001–5025; *build* 13,
+   IDs 5001–5013, still 0.5% of customers), acquired on a uniform day in the first 26 weeks, with the retailer's reference-channel Pareto/NBD
    (r 0.8, α 5, s 0.5, β 10 per week) and Gamma-Gamma spend with p 6, q 4 and v = 15 × 40 = 600 (mean
    spend per purchase $1,200, 40 times the retail population mean of $30). The **clean log** is the union.
-2. **Invoices and lines.** Each clean purchase becomes one invoice of 1 + Poisson(1) product lines with
+2. **Invoices and lines.** Each clean purchase becomes one invoice of 1 + Poisson(1) product lines
+   (*build*: 1 + Poisson(0.25), for size) with
    distinct stock codes from a 600-code catalog matching `^[0-9]{5}[A-Z]?$`. Quantities × prices add up to
    the purchase amount **exactly in cents** (quantities from {1, 2, 3, 4, 6, 12}; wholesale also 24, 48,
    96). Timestamp: the purchase date plus a uniform minute between 08:00 and 19:59. Description
@@ -125,9 +129,17 @@ capstone's 2032 (check against Modules 14–17).
 | `cancelled_order` | An extra order (same customer, on a purchase day or up to 14 days later) and a `C` invoice negating every line | 1.2% of purchases; same day for 15% (re-measured 2026-10-10: 20.1% of matched cancellation lines fall on their purchase's day; 11.1% of the 2,868 `C` invoices with a match have all their matched lines on that day) | `cancellation` |
 | `returned_line` | An extra line on a real invoice and a later `C` invoice returning it in full (same code, price, quantity), 1–30 days later (same day 15%) | 2% of purchases | `cancellation` |
 | `same_day_split` | A purchase with ≥ 2 lines split into two invoices 5–180 minutes apart on the same day | 9% of purchases (10.0% of identified invoices that are not cancellations are a customer's second or later invoice that day, counting invoices with a product line; re-measured 2026-10-10) | counting purchase days |
-| `wholesale` | The 25 wholesale customers (step 1) | 0.5% of customers | none: they are real (Part C) |
+| `wholesale` | The wholesale customers (step 1; *build* 13) | 0.5% of customers | none: they are real (Part C) |
 
-   Combined, cancellation lines are ≈ 2.1% of identified lines (real 2.28%). Every synthetic cancellation
+   *Build:* with fewer lines per invoice the rate parameters were retuned (`truth_messy.json` `rates`:
+   guest invoices 0.285 per identified invoice, postage 0.051, carriage 0.007, manual fee 0.065 and bank
+   charge 0.02 of customers, duplicate 0.0152, cancelled order 0.0105, returned line 0.0175, same-day
+   cancellation 0.15, same-day split 0.08). Measured on the committed log (`measured`), against Online
+   Retail II: lines without an ID 22.4% (22.5%), POST invoices 4.83% (4.88%), fee-only invoices 1.04%
+   (1.02%), duplicates 1.45% of identified lines (1.44%), cancellation lines 2.28% of identified lines
+   (2.28%), extra same-day invoices 10.0% (10.0%).
+
+   Combined, cancellation lines are ≈ 2.1% of identified lines in the prototype (*build* 2.28%; real 2.28%). Every synthetic cancellation
    has an original, so exact recovery is possible; in the real data only some do (Part D). Invoice
    numbers: six digits in timestamp order from 500000; cancellation invoices get a `C` prefix. No synthetic
    cancellation or return crosses `2025-12-28`; some cross the calibration end (2024-12-29), so the
@@ -142,17 +154,17 @@ capstone's 2032 (check against Modules 14–17).
 `holdout_end` 2025-12-28; for each **rule** (`no_customer`, `non_product`, `duplicate`, then
 `cancellation` applied to the lines the first three keep, then Module 1's `quantity > 0 and price > 0`):
 the number of lines it flags and a sha256 of the sorted 0-based row positions (for `cancellation`, also
-`cancel_lines`, the number of cancellation lines, prototype 1,751 of 3,502 flagged); for each **label** in the
+`cancel_lines`, the number of cancellation lines, prototype 1,751 of 3,502 flagged; *build* 644 of 1,288); for each **label** in the
 table above, the line count and the sha256 of its positions; `wholesale`: IDs, the multiplier, each
 customer's true λ, μ, alive at the calibration end, true mean spend, their **clean transactions**
-(about 200 rows, so a checkpoint can rebuild the full clean log as `retailer_transactions` plus these), and
+(prototype about 200 rows; *build* 98, so a checkpoint can rebuild the full clean log as `retailer_transactions` plus these), and
 their true expected 26- and 52-week revenue (closed form, undiscounted:
-alive · m · λ · (1 − e^(−μh)) / μ, with the limit λ h when μ = 0); the same totals for the 5,000 retail
-customers from `retailer_customers.csv`; the realized holdout purchase days of the clean log;
+alive · m · λ · (1 − e^(−μh)) / μ, with the limit λ h when μ = 0; *build* $16,368.5 and $30,309.0); the same totals for the retail
+customers from `retailer_customers.csv` (*build*: the 2,500 retail customers, $140,045 and $259,909); the realized holdout purchase days of the clean log (*build* 7,787);
 `tolerances` measured over independent generator seeds (Open items).
 
 **Size.** Prototype: 110,480 lines, 7.2 MB as CSV (1.5 MB gzipped), five times the largest committed
-data file (Open items).
+data file (Open items). *Build:* 36,453 lines, 2,443,418 bytes (2.33 MiB), 2,513 customers, committed as a plain CSV.
 
 ## Model fits
 
@@ -161,7 +173,7 @@ No MCMC in the core lab. Every fit is a maximum-likelihood (flat-prior MAP) fit:
 | Fit | How | Count | Prototype time (laptop) |
 |---|---|---|---|
 | BG/NBD and Gamma-Gamma for each variant (Parts B–D) | new helper `mktstats.mle` (closed-form log-likelihoods, scipy) | about 20 fits in all | 0.08 s (BG/NBD, CDNOW) to 0.2 s (retailer) each; whole synthetic sweep 2.1 s, real sweep 3.2 s |
-| BG/NBD and Gamma-Gamma on the messy log's reference pipeline (start of Part B, before the first sweep) | PyMC-Marketing `BetaGeoModel` / `GammaGammaModel`, `Prior("HalfFlat")` for every parameter, `method="map"` | 2 (once, as a cross-check) | 2.6 s and 0.2 s after earlier compiles (prototype on cleaned Online Retail II; agreement on the retailer 4 × 10⁻⁵ and < 10⁻⁵) |
+| BG/NBD and Gamma-Gamma on the messy log's reference pipeline (start of Part B, before the first sweep) | PyMC-Marketing `BetaGeoModel` / `GammaGammaModel`, `Prior("HalfFlat")` for every parameter, `method="map"` | 2 (once, as a cross-check) | 2.6 s and 0.2 s after earlier compiles (prototype on cleaned Online Retail II; agreement on the retailer 4 × 10⁻⁵ and < 10⁻⁵). *Build*, run records: this cell (import plus both fits) was the slowest cell, 2.65 s on macOS and 12.85 s in Docker (`--cpus 2`); agreement on the messy log 1.6 × 10⁻⁵ (BG/NBD) and 9.5 × 10⁻⁸ (Gamma-Gamma) |
 
 Why the helper: on Colab a single PyMC-Marketing MAP fit costs tens of seconds, mostly compilation (spike
 S2: a first BG/NBD MAP on CDNOW took 30.3 s), so twenty of them would break the 4-minute cell target.
@@ -206,6 +218,12 @@ million rows: under 1 s on the laptop. Both sweeps: under 30 s each. The PyMC-Ma
 the start of Part B (import plus two MAP fits): 1 to 2 minutes, the largest cell (from S2: import 16.8 s,
 first BG/NBD MAP 30.3 s); the Markdown before it tells the learner to read Exercise 3's Predict while it
 runs. Total compute: under 3 minutes. Targets: install ≤ 3 min, any cell ≤ 4 min, total ≤ 15 min.
+
+**Measured (*build*, run records; not Colab times).** Worked FULL, whole notebook: 11.2 s on the Apple
+Silicon laptop (native environment, 10 cores) and 25.6 s in the workshop's Docker image on the same laptop
+with `--cpus 2`; slowest cell the PyMC-Marketing cross-check, 2.65 s and 12.85 s. Learner mode stopped at
+Checkpoint 1 as designed (2.2 s and 3.2 s). Colab: not run; the Colab estimates above stand until a
+release tag contains the lab.
 
 ## Parts and exercises
 
@@ -270,7 +288,7 @@ lines per invoice, the share of lines without a customer ID and on `C` invoices,
 1's three rules keep (Exercise 1's Predict uses it), and three example rows found by pattern, not by label:
 a `POST` line, a `C` invoice line and a line without a customer ID. Online Retail II is **not** loaded here:
 it loads in Part D, so nothing before Exercise 1's first checkpoint downloads more than the messy log
-(prototype 7.2 MB as CSV, 1.5 MB gzipped; Open item 2).
+(prototype 7.2 MB as CSV, 1.5 MB gzipped; *build* 2.33 MiB; Open item 2).
 
 ### Exercise 1 · Flag non-product and duplicate lines (8 minutes)
 
@@ -279,8 +297,8 @@ The minutes include reading the opening cell; this is the first exercise of the 
 - **Predict.** Module 1's three rules keep about three lines in four of this log (the opening cell prints the
   count). Of the lines they keep, what share will your two new rules flag as non-product or duplicate:
   under 1%, 1 to 10%, or over 10%? Write your guess. (Not measured directly in the prototype; its shares of
-  all lines, 2.4% non-product and 1.5% duplicate, put it near 5%. The checkpoint cell prints the measured
-  share.)
+  all lines, 2.4% non-product and 1.5% duplicate, put it near 5%. *Build*: 1,836 of the 27,640 lines Module
+  1 keeps, 6.6%; the checkpoint cell prints the measured share.)
 - **Function.** `flag_lines(con, table: str = "lines") -> pd.DataFrame` with one row per line, ordered by
   `line_id`: `line_id`, `no_customer` (`customer_id IS NULL`), `non_product` (stock code does not start
   with five digits: `NOT regexp_matches(stock_code, '^[0-9]{5}')`), `duplicate` (an exact copy of an earlier
@@ -349,7 +367,8 @@ The ASOF join is new SQL to most of this audience; the minutes include reading t
 
 - **Predict.** Module 1 drops cancellation lines but keeps the purchases they cancel. Does that make the
   average customer look like a bigger spender, a more frequent buyer, both, or neither? Write your guess.
-  (Prototype: both, slightly: mean frequency +1.4%, mean repeat spend +1.2%. The exact-recovery cell after
+  (Prototype: both, slightly: mean frequency +1.4%, mean repeat spend +1.2%; *build*: +1.2% and +1.0%,
+  3.727 against 3.683 and $36.09 against $35.73. The exact-recovery cell after
   the pipeline prints both means under Module 1's cancellation rule and under yours.)
 - **Function.** `match_cancellations(con, table: str = "kept") -> pd.DataFrame` with columns `cancel_id`,
   `original_id` (the `line_id`s of the cancellation line and of the purchase line it cancels; `original_id`
@@ -370,7 +389,7 @@ The ASOF join is new SQL to most of this audience; the minutes include reading t
      cancellation dated before the purchase is not; with two identical earlier purchases, the later one is
      matched.
   2. On the messy log: one row per cancellation line (`truth["rules"]["cancellation"]["cancel_lines"]`;
-     prototype 1,751), every one matched, no `original_id` twice.
+     prototype 1,751; *build* 644), every one matched, no `original_id` twice.
 - **Failure messages** (four parts, each ending with "To move on now, run `workshop.use_reference(2)`").
   The toy's four cases, checked with DuckDB 1.3.2 on 2026-10-10, separate the likely mistakes:
   - Partial return matched (no quantity condition): "this cancellation returns 1 of the 3 units bought;
@@ -401,8 +420,8 @@ give recency 0 with frequency 1.
 **Run · Exact recovery** (provided, right after the pipeline; a label checkpoint, "Part A: the clean
 answer"). The pipeline turns the kept lines into purchase days, and `calibration_rfm(tx, "2024-12-29")`
 must equal the RFM of the clean log (`retailer_transactions` plus the truth's wholesale transactions) for
-all 5,025 customers: `checks.frames_agree(..., on="customer_id")` at its default 1e-9 tolerances.
-Prototype: exact. On a failure the cell prints the first customers that differ and which label touches
+all 5,025 customers (*build*: 2,513): `checks.frames_agree(..., on="customer_id")` at its default 1e-9 tolerances.
+Prototype: exact; *build*: exact, and 11 matched pairs straddle the calibration end. On a failure the cell prints the first customers that differ and which label touches
 them, and the message routes the learner: a `duplicate`, `postage`, `carriage` or `fee_invoice` label →
 Exercise 1, `workshop.use_reference(1)`; a `cancelled_order` or `returned_line` label → Exercise 2,
 `workshop.use_reference(2)`. On a pass it prints the Predict's answer (mean frequency and mean repeat
@@ -414,7 +433,7 @@ falls on or before the calibration end and whose cancellation falls after it (th
   matched cancellations within each part, what would happen to those purchases? Details: their
   cancellations would be in the holdout part, so the purchases would stay in the calibration data as if
   they were real; clean the whole log, then split. The matching also runs after the duplicate rule: a
-  duplicated original would otherwise be the match. On real data, the prototype matched 6,107 of 17,586
+  duplicated original would otherwise be the match. On real data, the prototype (and the *build*) matched 6,107 of 17,586
   cancellation lines (35%); the rest return part of an order, adjust a price or return goods bought before
   December 2009. They are dropped without netting, so those purchases
   keep their gross amount: an approximation the notebook states.
@@ -438,7 +457,8 @@ paragraph, in this spirit:
 Then one Run cell: the reference pipeline's calibration RFM of the messy log (from Part A), fitted with the
 helper and with PyMC-Marketing (`Prior("HalfFlat")` for every parameter, `method="map"`), printed side by
 side with each method's seconds **measured in this run**, and a label checkpoint ("helper = PyMC-Marketing")
-that the two agree within 0.5% per parameter (prototype on the retailer: 4 × 10⁻⁵ and < 10⁻⁵). The
+that the two agree within 0.5% per parameter (prototype on the retailer: 4 × 10⁻⁵ and < 10⁻⁵; *build* on the
+messy log: 1.6 × 10⁻⁵ and 9.5 × 10⁻⁸). The
 Markdown before the cell says: "This cell takes about a minute on Colab (an estimate), most of it
 PyMC-Marketing compiling its model. While it runs, read Exercise 3's Predict below and write your guess."
 Failure message: "The helper and PyMC-Marketing disagree on <param> (<a> against <b>). Your Part A code is
@@ -450,27 +470,29 @@ version mismatch). To move on now, run the next cell: Part B uses the helper's v
 The minutes include reading the sweep's two tables, which are printed after the Predict.
 
 - **Predict.** Under Module 1's rules, does total expected 52-week revenue change by under 2%, 2 to 10%, or
-  over 10%? And how many of the 5,025 customers see their own score move by more than 10%: under 100, 100
-  to 1,000, or over 1,000? Write both guesses. (Prototype: +6.7%; 2,610.)
+  over 10%? And how many of the 5,025 customers (*build*: 2,513) see their own score move by more than 10%: under 100, 100
+  to 1,000, or over 1,000? Write both guesses. (Prototype: +6.7%; 2,610. *Build*: +6.4%; 449.)
 
 **Run · One rule at a time** (provided sweep, inside Exercise 3, after the Predict). Variants on the
 messy log: the reference pipeline; keep non-product lines; keep duplicate lines; Module 1's cancellation
 rule (drop `C` lines, keep their originals); Module 1's rules (all three kept); count invoices, not
 purchase days. For each: calibration RFM, `mle.bgnbd_mle`, `mle.gamma_gamma_mle`, and per-customer
 expected 52-week revenue `scores[variant] = R_i(52)`. Counting **lines** as purchases is shown as a
-mean-frequency line only (prototype: 8.34 against 3.55): the BG/NBD fit degenerates on it in the prototype
-(r and α → 0), so it is not fitted. The output is **two narrow tables**, not one ten-column table that
+mean-frequency line only (prototype: 8.34 against 3.55; *build*: 5.00 against 3.68): the BG/NBD fit degenerates on it in the prototype
+(r and α → 0), so it is not fitted (in the build, with fewer lines per invoice, it converges; the lab
+still does not fit it and does not claim it degenerates). The output is **two narrow tables**, not one ten-column table that
 scrolls sideways: the purchase model (r, α, a, b, the 52-week forecast of holdout purchase days against
-the clean log's realized 14,882, prototype) and the spend model (p, q, v and the population mean spend
+the clean log's realized 14,882, prototype; *build* 7,787) and the spend model (p, q, v and the population mean spend
 against the retail truth, $30; the wholesale customers are in every variant). The reference row shows
 values; the other rows show the change from it in percent, as in the prototype table under "Prototype
-evidence".
+evidence" (the build's tables are under "Build reconciliation").
 
 One sentence before the tables: "Look at which table moves more: the purchase model or the spend model." A
 label checkpoint: the reference row equals the fit on the clean log (it is the same table); its holdout
 forecast lies within the tolerance the Technical Expert measures (prototype: 16,178 predicted against
 14,882 realized, +8.7%, because a BG/NBD is fitted to Pareto/NBD data and the holdout is a single
-realization; no looser than 15%, as Module 2).
+realization; no looser than 15%, as Module 2). *Build*: 8,358 against 7,787, +7.3%; the tolerance is 20%,
+not 15%, because the largest error over 30 independent generator seeds was 17.8% (mean +8.0%).
 
 - **Function.** `variant_effects(scores: pd.DataFrame, reference: str = "reference", threshold: float =
   0.10) -> pd.DataFrame`, one row per column of `scores` (index `customer_id`, one column per variant):
@@ -490,22 +512,25 @@ realization; no looser than 15%, as Module 2).
   - A fraction instead of a percent (0.067 for 6.7): "`total_change_pct` is in percent: multiply by 100".
   - A non-zero reference row: "compare every column with the `reference` column, including the reference
     itself, which must give 0 and 0".
-- **Explain.** Compare with your prediction. Why can the total move a few percent while thousands of
-  customers move by more than 10%? Point to the p, q, v columns of the spend-model table. Details:
+- **Explain.** Compare with your prediction. Why can the total move a few percent while hundreds of
+  customers move by more than 10%? (*build* wording; the prototype's 2,610 made it "thousands") Point to the p, q, v columns of the spend-model table. Details:
   Module 1's leftovers shift a minority of customers' data, but the spend parameters are shared by
   everyone, and p, q, v trade off against each other (prototype: p −19%, v +38%, population mean
-  +4.2%), so every customer's shrinkage toward the population mean changes. Counting invoices does more damage than any row-level rule
-  (prototype: r/α +30%, p −57%, v +138%; 1,504 customers moved). Duplicates leave the purchase model
+  +4.2%; *build*: p −24.7%, v +48.0%, population mean +3.5%), so every customer's shrinkage toward the population mean changes. Counting invoices does more damage than any row-level rule
+  (prototype: r/α +30%, p −57%, v +138%; 1,504 customers moved; *build*: α −27.6%, b −23.5%, forecast
+  +8.5%, p −68.7%, v +231.7%, population mean −9.9%; 1,710 customers moved). Duplicates leave the purchase model
   untouched (they never add a day). Report the quantity your decision uses, not the parameters.
 
 ### Run · The wholesale customers (provided, start of Part C)
 
 Exercise 4's Predict needs a scale, so Part C opens with one sentence and one small table: 25 of the 5,025
-customers are wholesale buyers (IDs 5001–5025); their true mean spend per purchase day is $1,200, against
+customers are wholesale buyers (IDs 5001–5025; *build*: 13 of 2,513, IDs 5001–5013); their true mean spend per purchase day is $1,200, against
 $30 for the retail population, and they are real customers, not errors. The table lists the ten largest
 calibration purchase days with customer ID and amount. Reading time comes out of Exercise 4's minutes.
 (Prototype, for the builder: 90 of the 229 calibration purchase days above the 99th percentile are
-wholesale.)
+wholesale. *Build*, computed by the Academic Director from the committed data: 118 of the 11,768
+calibration purchase days lie above the 99th percentile ($171.91), and 55 of them are wholesale, which is
+every wholesale calibration purchase day; the ten largest are all wholesale.)
 
 ### Exercise 4 · Cap order values for the spend fit (7 minutes)
 
@@ -516,17 +541,18 @@ keeps the RFM step out of the learner's function.
   spend move toward the true $30 or away from it? And if the capped amounts are also used to value
   customers, will the 25 wholesale customers' predicted 52-week revenue, compared with their true value,
   be lower by under 25%, 25 to 75%, or over 75%? Write both guesses. (Prototype: toward, 31.66 → 30.69;
-  over 75%, −90%.)
+  over 75%, −90%. *Build*: 13 wholesale customers; toward, $32.42 → $31.43; −79%, so the bins became
+  under 25%, 25 to 50% and over 50%.)
 - **Function.** `capped_spend_fit(tx, pct: float, cal_end: str) -> dict` returning `cap` (the `pct`
   percentile of the calibration purchase-day amounts, all customers, first purchases included, pandas'
   default linear interpolation) and `p`, `q`, `v` from `mle.gamma_gamma_mle` on the calibration RFM of
   `tx` with amounts clipped at `cap` (`calibration_rfm`, repeat buyers only). The Task text gives the
   percentile convention as a hint: `pct` is in percent, and `Series.quantile(0.99)` of 1, 2, …, 100 is
   99.01 with the default linear interpolation (checked with pandas 2.2.3 on 2026-10-10).
-- **Checkpoint.** On the messy log at `pct=99`, the cap equals the reference (prototype $149.48) and p, q, v
-  lie within the truth tolerance measured over generator seeds
+- **Checkpoint.** On the messy log at `pct=99`, the cap equals the reference (prototype $149.48; *build*
+  $171.91) and p, q, v lie within the truth tolerance measured over generator seeds
   (`truth["tolerances"]["capped_gamma_gamma"]`; prototype on the committed seed: 6.134, 4.058, 15.300
-  against 6, 4, 15); the population mean spend within the same block's tolerance. At `pct=100` the cap is
+  against 6, 4, 15; *build*: 6.685, 3.773, 13.039, within p 90%, q 15%, v 55%); the population mean spend within the same block's tolerance. At `pct=100` the cap is
   the largest calibration amount and p, q, v equal the reference row of Part B's spend table to 1e-6 (so
   the cap is applied to the amounts and nothing else changed).
 - **Failure messages** (four parts, each ending with `workshop.use_reference(4)`). The checkpoint computes the
@@ -549,9 +575,9 @@ keeps the RFM step out of the learner's function.
   the spend distribution, which is why P99 lands near the oracle; capping deeper (95th percentile) also
   trims ordinary large retail orders and biases the parameters the other way. Gamma-Gamma shrinks each
   customer's mean toward the population mean, and most wholesale customers have few repeat purchases, so
-  even uncapped they are undervalued (prototype −29%). **Cap for fitting, not for valuation:** with
-  P99-fitted parameters and their raw means, the wholesale value error is −33%, against −90% with capped
-  amounts. A segment of its own is the real fix (stretch).
+  even uncapped they are undervalued (prototype −29%; *build* −18%). **Cap for fitting, not for valuation:** with
+  P99-fitted parameters and their raw means, the wholesale value error is −33% (*build* −19%), against −90%
+  (*build* −79%) with capped amounts. A segment of its own is the real fix (stretch).
 
 ### Run · Online Retail II through the tested pipeline (provided, Part D)
 
@@ -568,8 +594,8 @@ text below." The cell:
    this comparison moved here from the opening so that nothing before Exercise 1 downloads it).
 2. Runs the learner's `flag_lines` and `match_cancellations` and the provided pipeline unchanged. Label
    checkpoint "Online Retail II counts": each rule's count equals the reference measured on the
-   sha256-checked table (prototype: no customer 235,287; non-product 5,992; duplicate 11,812; cancellation
-   lines among kept lines 17,586, of which 6,107 matched, 123 of them to a purchase line another cancellation had already picked (109 purchase lines picked more than once; re-measured 2026-10-10, the same on every run although DuckDB's ASOF picks either of two identical purchase lines on one invoice and minute); 23,570 lines
+   sha256-checked table (prototype, and the same in the *build*: no customer 235,287; non-product 5,992; duplicate 11,812; cancellation
+   lines among kept lines 17,586, of which 6,107 matched, 123 of them to a purchase line another cancellation had already picked (109 purchase lines picked more than once; re-measured 2026-10-10, the same on every run although DuckDB's ASOF picks either of two identical purchase lines on one invoice and minute; see "Build reconciliation" for when the pick changes); 23,570 lines
    dropped by the cancellation rule; 32,721 purchase days of 5,839 customers). A failure routes the learner
    as the exact-recovery check does: a flag count → `workshop.use_reference(1)`; a cancellation count →
    `workshop.use_reference(2)`.
@@ -581,19 +607,19 @@ text below." The cell:
 **D2 · Fits and the holdout.** One sentence before the plot: "Look at whether the predicted and actual
 bars agree for customers with few and with many calibration purchases."
 
-1. Calibration RFM at 2011-06-30 (prototype: 5,008 customers, 3,390 repeat buyers) and holdout purchase
+1. Calibration RFM at 2011-06-30 (prototype and *build*: 5,008 customers, 3,390 repeat buyers) and holdout purchase
    days to 2011-12-09. The cell names **left censoring**: customers who bought before December 2009 enter
    the data as if new (Module 1's cohort plot), so their T is too short (stretch).
 2. Fits with the `mle` helper only (it was checked against PyMC-Marketing at the start of Part B). Label
    checkpoint: each parameter within 0.5% of the reference value measured on the sha256-checked table
-   (prototype: r 0.672, α 9.444, a 0.150, b 3.051; p 2.402, q 3.553, v 418.8; population mean £393.9; the
+   (prototype and *build*: r 0.672, α 9.444, a 0.150, b 3.051; p 2.402, q 3.553, v 418.8; population mean £393.9; the
    prototype's PyMC-Marketing flat-prior MAP agreed with these to a largest relative difference of
    1.2 × 10⁻⁴; Open item 1 asks for a test that keeps checking it).
 3. Holdout tracking by calibration frequency (0, 1, …, 6, 7+), table and plot (the Module 2 pattern). Label
-   checkpoint: total predicted within 10% of actual (prototype: 6,738 against 7,107, −5.2%). The holdout
+   checkpoint: total predicted within 10% of actual (prototype and *build*: 6,738 against 7,107, −5.2%). The holdout
    includes the pre-Christmas season, which the BG/NBD does not model; the cell says so.
 4. Independence check among repeat buyers: Pearson and Spearman (rank) correlation of frequency and
-   monetary value, printed on one line (prototype: 0.134 and 0.255; Pearson 0.184 with monetary value capped
+   monetary value, printed on one line (prototype and *build*: 0.134 and 0.255; Pearson 0.184 with monetary value capped
    at its own 99th percentile), and two sentences, no prompt: Gamma-Gamma assumes spend per purchase is
    independent of how often a customer buys (Fader & Hardie, note 025; Module 4 accepted 0.11 on CDNOW); a
    positive rank correlation means frequent buyers tend to spend more per purchase, so a customer with few
@@ -612,11 +638,11 @@ comes from lines your pipeline removes."
    product.") in December 2009 and January 2010, plus an order of 74,215 `MEDIUM CERAMIC TOP STORAGE JAR`
    at £1.04 (£77,183.60) on 2011-01-18 that was cancelled the same day (`C541433`). After the pipeline:
    frequency 1, mean repeat spend £142.31; expected 26-week revenue falls from £18,026.6 to £113.1
-   (prototype). The largest line in the data, 80,995 `PAPER CRAFT , LITTLE BIRDIE` at £2.08 (£168,469.60,
+   (prototype; the *build* prints £18,026.64 and £113.12). The largest line in the data, 80,995 `PAPER CRAFT , LITTLE BIRDIE` at £2.08 (£168,469.60,
    customer 16446, 2011-12-09), was cancelled the same day too (`C581484`); it falls in the holdout.
 2. The scale for Exercise 5's Predict: the mean and the median customer's expected 26-week revenue under
-   the reference pipeline, printed on one line, and `exp_purchases` and `exp_spend` (26 weeks, from the
-   reference fits) left in variables for Exercise 5.
+   the reference pipeline, printed on one line (*build*: mean £713, median £283), and `exp_purchases` and
+   `exp_spend` (26 weeks, from the reference fits) left in variables for Exercise 5.
 
 ### Exercise 5 · The retention-contact list (8 minutes)
 
@@ -626,7 +652,8 @@ The minutes include reading D1–D3. The function itself is short; the one new i
   purchases by 10%. (a) How much expected 26-week revenue must a customer have before a contact pays: about
   £33, about £333, or about £3,333? (b) With the mean and median printed above, what share of the 5,008
   customers clears that bar: under 25%, 25 to 50%, or over 50%? Write both guesses. (Answers: £333.33 =
-  10 / (0.10 × 0.30); prototype 44%. The display cell after the checkpoint prints the share.)
+  10 / (0.10 × 0.30); prototype and *build* 44%, 2,212 of 5,008. The display cell after the checkpoint
+  prints the share.)
 - **Function.** `contact_list(exp_purchases: pd.Series, exp_spend: pd.Series, cost: float, margin: float,
   lift: float) -> pd.Series` of booleans on the same index: True when lift × margin × exp_purchases ×
   exp_spend > cost. This is Module 5's break-even rule turned around: contact when the break-even lift,
@@ -636,7 +663,7 @@ The minutes include reading D1–D3. The function itself is short; the one new i
   so cost £4 is not contacted and cost £3.50 is; 0.1 × 0.3 is not exact, so a hand case built from it
   could land on either side); the count never rises when the cost rises (`checks.monotone` on counts
   over a cost grid); on Online Retail II with 26-week scores from the reference fits at (£10, 0.30, 0.10),
-  the count equals the reference (prototype 2,212 of 5,008).
+  the count equals the reference (prototype and *build* 2,212 of 5,008).
 - **Failure messages** (four parts, each ending with `workshop.use_reference(5)`):
   - The customer exactly at the bar contacted (`>=`): "a customer whose expected gain equals the cost gains
     nothing net: contact only when the gain is greater than the cost".
@@ -664,9 +691,9 @@ saying so); the margin is Module 5's 30%.
 Then one provided cell prints:
 
 - **Number:** customers to contact under the reference pipeline, at £10 cost, 30% margin, 10% lift and a
-  26-week horizon (prototype: 2,212 of 5,008), with the money it concerns: the total contact cost
+  26-week horizon (prototype and *build*: 2,212 of 5,008), with the money it concerns: the total contact cost
   (customers × £10) and the expected extra margin at the assumed lift (Σ lift × margin × expected 26-week
-  revenue over the list); then the count at a 5% and a 20% lift (prototype: 1,114 and 3,446); then a table,
+  revenue over the list); then the count at a 5% and a 20% lift (prototype and *build*: 1,114 and 3,446); then a table,
   one row per cleaning choice, of customers added and dropped against the reference list, sorted by the
   total moved. Measured in the recorded FULL runs (2026-10-10, `runs/2026-10-10-*-python-13-messy-real-data.json`),
   at a 10% lift: count invoices instead of days 153 (14 added, 139 dropped; the prototype's 164 left out the
@@ -700,7 +727,8 @@ Your sentence   : ________________________________________________
 
 1. **Missing IDs that cleaning cannot fix.** In the messy log, remove the customer ID from a seeded 10% of
    identified invoices (guest checkout by known customers), rerun the pipeline and the sweep, and compare
-   frequency, r/α and the holdout forecast with the truth. Unlike the errors above, this one cannot be
+   frequency, r/α and the holdout forecast with the truth (*build*: with the reference pipeline, since the
+   BG/NBD has no true values on this log). Unlike the errors above, this one cannot be
    cleaned away; Online Retail II's 22.5% of lines without an ID may hide some of it.
 2. **Left censoring.** On Online Retail II, keep only customers whose first observed purchase is on or after
    2010-04-01 and compare the BG/NBD parameters and the contact list.
@@ -708,7 +736,8 @@ Your sentence   : ________________________________________________
    and value them with their own mean spend instead of the shrunk Gamma-Gamma estimate; compare with the
    wholesale truth on the messy log.
 4. **A posterior for the borderline customers** (adds compute: two MCMC fits with nutpie, estimated at one
-   to two minutes on Colab): apply the contact rule to each draw and report, for customers near the bar,
+   to two minutes on Colab; *build*: the lab asks for `method="mcmc"` with 2 chains and says it adds
+   minutes; nutpie is not in the lab's install list): apply the contact rule to each draw and report, for customers near the bar,
    the probability that contacting pays.
 
 ## Known pitfalls
@@ -783,6 +812,9 @@ Your sentence   : ________________________________________________
 
 ## Prototype evidence (throwaway scripts, laptop, 2026-10-10; not lab results)
 
+Kept as the record of the design. The build changed the log's size and rates, so these numbers do not
+describe the committed data; the build's numbers are under "Build reconciliation".
+
 Messy log (prototype generator with the rates above): 110,480 lines, 23.0% without an ID; POST on 4.46% of
 identified invoices; cancellation lines 2.06% of identified lines; duplicates 1.45%; non-product revenue
 2.1% (real 1.76%); extra same-day invoices 7.9%. The reference rules flag exactly the labeled lines, and
@@ -813,7 +845,7 @@ Capping (Gamma-Gamma MLE; truth p 6, q 4, v 15, mean $30): no cap 7.615, 3.583, 
 4.155, 15.687, $30.36. Wholesale 52-week revenue against its truth ($28,413): no cap −29%, P99 values
 −90%, P99 for fitting only −33%. 229 calibration purchase days exceed P99, 90 of them wholesale.
 
-## Open items for the Technical Expert
+## Open items for the Technical Expert (1-5 and 7 done 2026-10-10, see "Build notes"; 6 open)
 
 1. **New helper module** `src/mktstats/mle.py` (a new file; nothing existing changes): `bgnbd_mle(rfm) ->
    {r, alpha, a, b}`, `gamma_gamma_mle(rfm) -> {p, q, v}` (repeat buyers only),
@@ -923,7 +955,8 @@ from the spec above, and why:
 - **Size.** The committed `messy_lines.csv` must stay a plain CSV of about 2.5 MB at most, so the
   generator takes the retailer's customers 1 to 2,500 (not all 5,000) and 13 wholesale customers
   (IDs 5001 to 5013, 0.5% as before), with 1 + Poisson(0.25) product lines per invoice: 36,453 lines,
-  2.39 MiB, 2,513 customers. At the prototype's configuration the generator reproduces the prototype's
+  2.39 MiB, 2,513 customers. [Academic Director, 2026-10-10: the committed file is 2,443,418 bytes,
+  2.33 MiB.] At the prototype's configuration the generator reproduces the prototype's
   reference row exactly (forecast 16,178; P99 cap $149.48 with p 6.134, q 4.058, v 15.300).
 - **Rates** were retuned to fewer lines per invoice and measured on the committed log against Online
   Retail II: lines without an ID 22.4% (22.5%), POST invoices 4.83% (4.88%), fee-only invoices 1.04%
@@ -942,3 +975,78 @@ from the spec above, and why:
   lab still shows it as a mean-frequency line only and does not claim degeneration.
 - **The 123 double matches** are left as a stated approximation: pairing one to one matches 39 more
   purchase lines (£4,955), changes 17 customers' calibration RFM and adds one customer to the list.
+
+## Build reconciliation (2026-10-10, Academic Director)
+
+The brief now describes the lab as built. I re-ran the notebook in worked mode with FULL settings
+(`scripts/test_notebooks.py --notebooks python/13-messy-real-data --full --mode worked`, macOS, at content
+hash `e2b154bc6d081825` and deps hash `3718bae0a0e3d068`, the hashes of the current run records; it passed,
+every checkpoint verified on its stub) and read its printed output. Every number marked *build* above
+comes from that output, from `truth_messy.json` or from the two run records. QUICK changes nothing in this
+lab, so there is no QUICK column. What changed against the prototype brief:
+
+1. **A smaller log.** The retailer's customers 1 to 2,500 and 13 wholesale buyers (IDs 5001 to 5013), with
+   1 + Poisson(0.25) lines per invoice: 36,453 lines, 29,270 invoices, 2,513 customers, 2,443,418 bytes.
+   Every count in the prompts follows: "the 2,513 customers", "the 13 wholesale customers".
+2. **Exercise 3's individual count is 449 of 2,513, not 2,610 of 5,025.** The Technical Expert found this
+   count volatile across error realizations; it sits well inside the Predict's middle bin (100 to 1,000).
+   The sweep on the committed log (change from the reference row):
+
+   | Variant | r | α | a | b | 52-week forecast | p | q | v | population mean |
+   |---|---|---|---|---|---|---|---|---|---|
+   | reference (values) | 0.385 | 2.619 | 0.402 | 2.915 | 8,358 | 8.333 | 3.375 | 9.242 | $32.42 |
+   | keep non-product lines | +6.5% | +6.2% | −7.3% | −11.1% | +2.7% | −16.5% | +5.1% | +29.1% | +0.6% |
+   | keep duplicate lines | +0.0% | +0.0% | +0.0% | +0.0% | +0.0% | +2.3% | −0.9% | −1.9% | +1.7% |
+   | Module 1's cancellation rule | +0.3% | −2.2% | +3.4% | +2.1% | +0.0% | −14.2% | +1.0% | +19.8% | +1.4% |
+   | Module 1's rules | +6.8% | +3.8% | −4.0% | −8.9% | +2.8% | −24.7% | +5.4% | +48.0% | +3.5% |
+   | count invoices, not days | −1.0% | −27.6% | −1.8% | −23.5% | +8.5% | −68.7% | +10.8% | +231.7% | −9.9% |
+
+   Total change of the 52-week revenue scores and customers moved by more than 10%: keep non-product +3.6%,
+   225; keep duplicates +1.5%, 75; Module 1's cancellation rule +1.3%, 127; Module 1's rules +6.4%, 449;
+   count invoices −3.2%, 1,710. The largest single change (+37.7 million percent under "keep non-product
+   lines") is a customer whose reference score was nearly zero. Counting lines: mean frequency 5.00
+   against 3.68 (not fitted).
+3. **The forecast tolerance is 20%, not "no looser than 15%".** Over 30 independent generator seeds the
+   reference forecast's largest error was 17.8% (mean +8.0%: the BG/NBD over-predicts this Pareto/NBD
+   holdout); on the committed log 8,358 against 7,787 realized, +7.3%. The capped Gamma-Gamma tolerances
+   are p 90%, q 15%, v 55% and population mean 8% (largest errors 86.2%, 14.0%, 51.4%, 7.3%): p, q and v
+   trade off, their mean is tight.
+4. **Capping (Exercise 4).** No cap p 8.333, q 3.375, v 9.242, mean $32.42; P99.9 ($958.20) 8.204,
+   3.398, 9.458, $32.36; P99.5 ($323.73) 7.339, 3.581, 11.212, $31.88; P99 ($171.91) 6.685, 3.773, 13.039,
+   $31.43; P95 ($83.09) 5.392, 4.469, 19.353, $30.08; wholesale dropped (oracle) 6.576, 3.917, 13.713,
+   $30.92. Wholesale 52-week revenue against its truth ($30,309): no cap −18%, P99 for fitting only −19%,
+   P99 amounts for valuation too −79%; the Predict's bins became under 25%, 25 to 50%, over 50%. Computed
+   by me from the committed data (the lab does not print it): the P99 cap is above 118 of the 11,768
+   calibration purchase days, and 55 of those are wholesale, every wholesale calibration day.
+5. **Online Retail II counts and fits** equal the corrected values above (the Technical Expert re-measured
+   them on the sha256-checked table; commit 819086d). The 123 double matches of the ASOF join stay as a
+   stated approximation: pairing one to one matches 39 more purchase lines (£4,955), changes 17
+   customers' calibration RFM and adds one customer to the contact list (Build notes).
+6. **DuckDB's ASOF join breaks exact ties differently from run to run with more than one thread.** Checked
+   by me on 2026-10-10 with DuckDB 1.3.2 on the laptop (10 cores), running the lab's reference
+   `flag_lines` and `match_cancellations` SQL on Online Retail II: with `SET threads = 1`, 8 runs gave one
+   match set; with 10 threads, 8 runs gave two different sets, and 12 more runs gave two again. The two
+   sets differ for 2 cancellation lines, each choosing between two purchase lines on the same invoice and
+   minute that differ only in description (`SPOTTY BUNTING` and `BUNTING , SPOTTY`, invoice 554084), so
+   the matched count (6,107), the purchase days and the amounts are the same either way.
+7. **Run times are measured** (run records, entries with content hash `e2b154bc6d081825`): 11.2 s on
+   macOS, 25.6 s in Docker with `--cpus 2`; slowest cell the PyMC-Marketing cross-check, 2.65 s and
+   12.85 s. Colab: not run; it needs a release tag that contains the lab.
+8. **Unchanged:** the question, the decision, the exercises and their functions, the datasets, the
+   references, and every Online Retail II result (the real log did not change): 2,212 of 5,008 customers
+   on the list (1,114 at a 5% lift, 3,446 at 20%), customer 12346 (£18,026.64 under Module 1's rules,
+   £113.12 after the pipeline), the fits, the holdout (−5.2%) and the correlations (0.134, 0.255, 0.184).
+9. **Numbers the module page quotes that the lab does not print**, all computed by me on 2026-10-10 from
+   the committed data or the sha256-checked Online Retail II, and labeled on the page as computed for it:
+   items 4 and 6; the P99.9 cap touches 12 and the P99.5 cap 54 of the 55 wholesale calibration days (the
+   smallest is $323.72, just under the P99.5 cap); the largest single change of Exercise 3 is customer
+   1311 (14 purchase days from 2024-03-28 to 2024-06-05, then a standalone $56.97 `M` invoice on
+   2024-11-24; reference 52-week score $0.00057, $213 with non-product lines kept); of the 11,479 Online
+   Retail II cancellation lines that find no purchase, 9,049 have an earlier purchase of the same product
+   at the same price in a larger quantity, 1,530 have no earlier purchase of that product by that customer,
+   706 have earlier purchases only at another price and 194 only smaller ones; and shrinkage weights and
+   rates computed from the printed parameters.
+10. **One real rate depends on its definition.** Extra same-day invoices on Online Retail II: the spec
+   table says 10.0% and `messy.py`'s comment 10.2%; counting, among identified non-cancellation invoices
+   with a product line, each customer-day's invoices after the first, I get 10.2% (3,717 of 36,597). The
+   committed log's 10.0% is close to both. The page says "about 10%".
