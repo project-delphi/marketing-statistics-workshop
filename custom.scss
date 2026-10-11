@@ -45,6 +45,10 @@ $ms-navbar-bg: #0e3a44 !default;
 $ms-navbar-fg: #ffffff !default;
 $ms-shadow: 0 1px 2px rgba(15, 37, 44, 0.06), 0 4px 14px rgba(15, 37, 44, 0.05) !default;
 $ms-on-ink-rule: rgba(255, 255, 255, 0.2) !default; // hairlines on the hero band
+// What the browser draws itself (scrollbars of wide equations, tables and the sidebar,
+// form controls) follows this. Quarto leaves it unset, so the dark theme had light
+// scrollbars wherever scrollbars take space (Windows, Linux, macOS set to always show them).
+$ms-color-scheme: light !default;
 
 $primary: $ms-ink !default;
 $body-bg: $ms-bg !default;
@@ -93,6 +97,10 @@ $font-size-root: 17px;
 // ---------------------------------------------------------------------------
 // Reading experience
 // ---------------------------------------------------------------------------
+
+:root {
+  color-scheme: $ms-color-scheme;
+}
 
 body {
   text-rendering: optimizeLegibility;
@@ -424,6 +432,13 @@ main.content .quarto-figure {
 main.content img {
   max-width: 100%;
   height: auto;
+}
+
+// In a table cell, max-width: 100% let the column shrink below the image: the notebooks
+// page drew its "Open in Colab" badges (117 x 20) at 63 x 11 px on a laptop and 37 x 6 px
+// at phone width. The table scrolls in its own box instead.
+main.content td img {
+  max-width: none;
 }
 
 // Tab sets (Python / R tabs).
@@ -1852,6 +1867,16 @@ main.content .timetable table {
 body.landing {
   #title-block-header {
     display: none; // the hero carries the title
+  }
+
+  // The hero and, at phone width, the integration figure are sized from 100vw, which
+  // counts a classic scrollbar: with one (Windows, Linux, macOS set to always show
+  // scrollbars) they stuck out 8 px past the page. body's overflow-x: clip passes to the
+  // viewport, where it acts as hidden: a reader could not scroll sideways, but the document
+  // was still 8 px wider and a script or an anchor jump could shift it. Clipping here, on
+  // the full-width container below the viewport, keeps the page exactly as wide as it.
+  #quarto-content {
+    overflow-x: clip;
   }
 
   // The id selector outranks Quarto's `#quarto-content > *` top padding, so the hero
