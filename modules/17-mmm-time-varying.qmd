@@ -13,7 +13,7 @@ title: "{{< var modules.m17.title >}}"
 {{< include /_includes/lab-17.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 140.8 s on an Apple Silicon laptop (native Python) and 169.9 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 140.2 s on an Apple Silicon laptop (native Python) and 169.7 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. An effect per dollar that changes
@@ -92,8 +92,11 @@ The three constant channels change a little between windows, because saturation 
 Why the average stays high follows from @eq-window-roas. Split the weeks into windows $W_1, \dots, W_K$ that do not overlap. The all-period ROAS is then the spend-weighted average of the windows' ROAS:
 
 $$
-\text{ROAS}_c(\text{all}) = \sum_{k=1}^{K} \frac{X_{c,k}}{X_c}\; \text{ROAS}_c(W_k),
-\qquad X_{c,k} = \sum_{t \in W_k} x_{c,t}, \quad X_c = \sum_{k} X_{c,k} .
+\begin{aligned}
+\text{ROAS}_c(\text{all}) &= \sum_{k=1}^{K} \frac{X_{c,k}}{X_c}\; \text{ROAS}_c(W_k), \\[4pt]
+X_{c,k} &= \sum_{t \in W_k} x_{c,t}, \\[4pt]
+X_c &= \sum_{k} X_{c,k} .
+\end{aligned}
 $$ {#eq-weighted}
 
 Social's last quarter carried 7.9% of its three-year spend. The weeks before it returned 4.16, so the average is $0.079 \times 2.11 + 0.921 \times 4.16 = 4.00$. A bad quarter barely moves a three-year average.
@@ -429,7 +432,7 @@ The first stretch exercise runs the lift test the rule would call for: one rando
 | @eq-static | the static model by window | Provided: the static fit; a labeled check compares your function with PyMC-Marketing's `contribution_over_spend` over all weeks and social's last quarter with the truth |
 | @eq-residual | residual-spend correlation by year | **Exercise 2**: `residual_spend_corr(resid, spend, year)`; Checkpoint 2 checks a toy against `np.corrcoef`, the reference, and social's fall |
 | @eq-drift-mmm, @eq-gp, @eq-hsgp | the drifting MMM and its prior | Provided: `drifting_mmm()`, 1,000 prior draws and the fit |
-| @eq-ratio (drift ratio) | how much drift the prior allows | **Exercise 3**: `drift_ratio(mult, early, late)`; Checkpoint 3 checks a constant and a linear toy and the prior draws' dimensions |
+| @eq-ratio (drift ratio) | how much drift the prior allows | **Exercise 3**: `drift_ratio(mult, early, late)`; Checkpoint 3 checks a constant, a linear and a one-week spike toy and the prior draws' dimensions |
 | @eq-ratio (coverage) | does the band cover the true path | **Exercise 4**: `path_coverage(mult_draws, true_path, prob)`; Checkpoint 4 runs four toys (one that catches an equal-tailed or 89% interval, one that catches a band pooled over weeks), then the fit |
 | @eq-grw | the random-walk alternative | Briefing only |
 | @eq-prophet, @eq-prophet-mmm | Prophet's components as a baseline | Provided: `prophet_components(weekly, holidays)` with a labeled check, and the Prophet-baseline fit |

@@ -13,7 +13,7 @@ title: "{{< var modules.m15.title >}}"
 {{< include /_includes/lab-15.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 48.3 s on an Apple Silicon laptop (native Python, two threads) and 52.8 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 47.0 s on an Apple Silicon laptop (native Python, two threads) and 49.7 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. A choice nobody randomized
@@ -101,9 +101,11 @@ $m$ and $c$ play the roles they had in Modules 6 and 11. Module 6 used $\theta$ 
 The **naive difference** is mean spend of installers minus mean spend of non-installers, $\bar Y_1 - \bar Y_0$, with Module 6's standard error. In a randomized experiment it estimates the ATE. Here, adding and subtracting $E[Y(0) \mid T = 1]$,
 
 $$
-E[Y \mid T = 1] - E[Y \mid T = 0]
-= \underbrace{E\big[Y(1) - Y(0) \mid T = 1\big]}_{\text{ATT}}
-+ \underbrace{E[Y(0) \mid T = 1] - E[Y(0) \mid T = 0]}_{\text{selection bias}} .
+\begin{aligned}
+&E[Y \mid T = 1] - E[Y \mid T = 0] \\[4pt]
+&\qquad = \underbrace{E\big[Y(1) - Y(0) \mid T = 1\big]}_{\text{ATT}} \\[4pt]
+&\qquad\quad + \underbrace{E[Y(0) \mid T = 1] - E[Y(0) \mid T = 0]}_{\text{selection bias}} .
+\end{aligned}
 $$ {#eq-selection}
 
 The second term is how much more installers would have spent than non-installers *without* the app. In the simulation the naive difference estimates \$65.73 (truth file): the ATT of \$17.64 plus \$48.09 of selection bias.
@@ -380,8 +382,11 @@ Nothing in the run without `mobile_share` signals a problem: the models fit, the
 Why (3) is plausible here, and only here. In the simulation each customer installs if a uniform draw $U_i$ falls below $e(x_i) = \operatorname{expit}\big(\eta(x_i)\big)$, where $\operatorname{expit}(u) = 1/(1 + e^{-u})$ and $\eta$ is the install log-odds. A credit that multiplies the odds of installing by $\kappa$ makes the customer install if $U_i < \operatorname{expit}(\eta + \log \kappa)$. The persuaded customers are those in between, so customer $i$ is persuaded with probability
 
 $$
-w_i = \operatorname{expit}\big(\eta_i + \log \kappa\big) - \operatorname{expit}(\eta_i) \approx \log \kappa \cdot e_i\,(1 - e_i)
+\begin{aligned}
+w_i &= \operatorname{expit}\big(\eta_i + \log \kappa\big) - \operatorname{expit}(\eta_i) \\[4pt]
+&\approx \log \kappa \cdot e_i\,(1 - e_i)
 \quad\text{for } \kappa \text{ near } 1,
+\end{aligned}
 $$ {#eq-persuaded}
 
 because the slope of $\operatorname{expit}$ at $\eta$ is $e(1 - e)$. A small credit persuades customers in proportion to $e(1 - e)$: exactly the weights of @eq-overlap. This is a property of the logistic install model the simulation uses, not a general law. A larger credit reaches further into the customers who were unlikely to install, who gain less.
