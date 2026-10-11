@@ -46,7 +46,7 @@ packages:
   econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
   # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
-  lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13", docs: https://lifelines.readthedocs.io/}
+  lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05; needs autograd-gamma 0.5.0, pinned in requirements.txt); imports on Python 3.13; installed source lifelines 0.30.3, read again for the Module 14 build on 2026-10-10: fitters/kaplan_meier_fitter.py (KaplanMeierFitter(alpha); fit/_fit; survival_function_ = exp(cumsum(log(1 - d/n))) from utils _additive_estimate, index 0 plus every distinct duration; confidence_interval_ from _bounds, exponential Greenwood, pointwise), fitters/__init__.py (UnivariateFitter.predict = asof, flat past the data), utils/__init__.py (restricted_mean_survival_time exact step integral up to t, return_variance = variance of min(T, t); _preprocess_inputs), fitters/coxph_fitter.py (CoxPHFitter(alpha) via BaseFitter, fit(df, duration_col, event_col) uses every other column, breslow -> SemiParametricPHFitter, confidence_intervals_ on the log scale with columns '95% lower-bound' and '95% upper-bound', summary), fitters/mixins.py (hazard_ratios_ = exp(params_), check_assumptions), statistics.py (proportional_hazard_test with time_transform rank; StatisticalResult.summary sorted by name; logrank_test, multivariate_logrank_test)", docs: https://lifelines.readthedocs.io/}
   prophet: {version: "1.4.0", checked: 2026-10-10, against: "PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); fits on Python 3.13 locally", docs: https://facebook.github.io/prophet/}
 
 # R packages (versions come from the P3M snapshot; recorded here after the image build).
@@ -619,28 +619,31 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python with lifelines, which implements Kaplan-Meier and Cox models with the same data-frame interface as the rest of the week."
-    summary: "Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4."
+    language_why: "The lifelines library fits Kaplan-Meier curves, log-rank tests, Cox models, proportional-hazards tests and restricted mean survival time on pandas data frames. No model is sampled, so the fits are quick."
+    summary: "Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars."
     objectives:
-      - "Explain right-censoring and show how ignoring it biases a churn rate."
-      - "Estimate and plot Kaplan-Meier retention curves by plan tier, with confidence bands."
-      - "Fit a Cox proportional-hazards model and check that the true hazard ratios fall inside their 95% confidence intervals."
-      - "Test the proportional-hazards assumption and say what to do when it fails."
-      - "Compare Kaplan-Meier with the sBG model on the Fader-Hardie retention data and say which one can extrapolate."
+      - "Write the Kaplan-Meier estimator, match lifelines' KaplanMeierFitter, and show against the known truth that two retention rates that ignore censoring miss in opposite directions."
+      - "Show on the Fader-Hardie data that Kaplan-Meier reproduces observed retention but cannot extrapolate past the last observed year, while the sBG model from Module 4 can."
+      - "Fit a Cox proportional-hazards model and check that, once plan is adjusted for, the true hazard ratios of plan and onboarding lie inside their 95% confidence intervals."
+      - "Test the proportional-hazards assumption, find the covariate whose effect fades, and estimate its hazard ratio before and after a 3-month landmark."
+      - "Compute the restricted mean survival time that onboarding adds within 24 months, standardized by plan, with a 95% bootstrap interval."
     outcomes:
-      - "Kaplan-Meier curves by plan with 95% confidence bands"
-      - "A Cox model hazard-ratio table next to the true hazard ratios"
-      - "A restricted-mean-lifetime comparison that prices an onboarding intervention"
+      - "Your own Kaplan-Meier function, checked against lifelines and the true retention curve"
+      - "A hazard-ratio table with and without adjustment for plan, next to the true hazard ratios"
+      - "Hazard ratios before and after a landmark for an effect that fades"
+      - "The months of subscription onboarding adds, priced against the cost of an onboarding call"
     prerequisites:
       - "Module 4: the shifted-beta-geometric model and contractual churn"
       - "Logistic regression coefficients read as multiplicative effects"
-    decision: "Decide whether paying for an onboarding call is worth it, from the months of subscription it adds per customer and the monthly margin, and say what evidence would make the estimate causal."
-    recap: "Module 4's sBG model describes one homogeneous cohort; it cannot say which customer characteristics raise the risk of churning."
-    next: "Onboarding completion is not randomized, so its hazard ratio is an association. Module 15 estimates causal effects from observational data."
+      - "Module 6: confidence intervals, and why a randomized comparison is causal"
+    decision: "Decide whether an onboarding call is worth its cost, from the months of subscription that onboarding adds within 24 months (standardized by plan, with a 95% interval), the monthly margin and the share of called subscribers the call gets to onboard, and say why the estimate stays an association until an experiment tests it."
+    recap: "Module 4's sBG model describes one cohort that joined on the same day and has no covariates; it cannot use subscribers who joined at different dates and are still active, or say which subscribers churn faster."
+    next: "Onboarding was not randomized: adjusting for plan removes one confounder, but motivation is not in the data, so the effect is still an association. Module 15 estimates causal effects from observational data; a randomized pilot (Module 6) settles it."
     notebooks:
       - {path: labs/python/14-survival-churn.ipynb, source: labs/src/14-survival-churn.py, kernel: python3, install: [lifelines, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, data/real/sbg_retention.csv]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/survival.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/subscriptions.py, data/synthetic/subscriptions_subscribers.csv, data/synthetic/truth_subscriptions.json, data/real/sbg_retention.csv]
     data:
+      - {name: "Synthetic subscription program (subscriptions_subscribers.csv, generated by mktstats.synth.subscriptions, seed 2034; truth in truth_subscriptions.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
       - {name: "Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)", url: "https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf"}
   m15:
     slug: 15-double-ml
@@ -680,26 +683,29 @@ modules:
     optional: true
     minutes: {briefing: 45, lab: 55, debrief: 10}
     language: [python]
-    language_why: "Python. The Markov removal effect and Shapley values are short enough to write from scratch with NumPy and check by hand."
-    summary: "Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted."
+    language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
+    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway."
     objectives:
-      - "Compute last-click, first-click and linear attribution from journey paths."
-      - "Build a first-order Markov transition matrix from journeys and compute each channel's removal effect."
-      - "Compute Shapley values from conversion rates of channel coalitions and check the efficiency property."
-      - "Compare every method's credit with the true incremental conversions per channel and explain the gap."
+      - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
+      - "Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion."
+      - "Compute exact Shapley values from the conversion rates of channel sets and verify the efficiency, symmetry and null-player properties."
+      - "Score five attribution methods against each channel's true incremental conversions, with 95% bootstrap intervals, and explain why targeted exposure and the efficiency property keep credit away from incrementality."
+      - "Decide, with Module 6's minimum detectable effect, whether a holdout test should come before any budget move."
     outcomes:
-      - "Your own markov_removal_effects() and shapley_values() functions, checked on hand-worked examples"
-      - "A table of credit by channel under five methods next to true incrementality"
+      - "Your own heuristic_credit(), transition_matrix(), removal_effects() and shapley_values() functions, each checked on a hand-worked example"
+      - "A table of credited conversions under five methods next to the true incremental conversions, with 95% bootstrap intervals"
+      - "A test-or-move recommendation for retargeting, with the holdout's minimum detectable effect and the margin at risk"
     prerequisites:
-      - "Module 6: why attribution is not incrementality"
-      - "Module 8: ROAS per channel from an MMM"
-    decision: "Decide whether to move budget toward the channels data-driven attribution credits most, or to run a holdout test first, and name the channel where credit and incrementality disagree most."
-    recap: "Module 6 showed with a simulation that last-click credits conversions that would have happened anyway; data-driven attribution claims to fix this."
-    next: "Module 17 returns to the MMM, where a channel's effect can drift over time."
+      - "Module 6: the minimum detectable effect, and why attribution is not incrementality"
+      - "Module 8: ROAS per channel from a marketing mix model"
+    decision: "Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, by checking that the holdout can detect the channel's break-even number of incremental conversions."
+    recap: "Module 6 showed with one randomized email test that last-touch credit counts conversions that would have happened anyway; data-driven multi-touch attribution shares credit across every touch in a journey instead, but nothing so far tested whether that credit measures what a channel causes."
+    next: "Attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM, where a channel's effect can drift over time."
     notebooks:
-      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
-    data: []
+      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/attribution.py, src/mktstats/synth/_common.py, src/mktstats/synth/mta.py, data/synthetic/mta_journeys.csv, data/synthetic/truth_mta.json]
+    data:
+      - {name: "Synthetic user journeys with targeted exposure: 69,410 journeys of 100,000 users over five channels, with each channel's true incremental conversions (mta_journeys.csv from mktstats.synth.mta, seed 2036, one letter per touch; truth in truth_mta.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
   m17:
     slug: 17-mmm-time-varying
     title: "MMM with drifting effects and a Prophet baseline"

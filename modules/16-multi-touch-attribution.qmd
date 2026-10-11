@@ -2,17 +2,429 @@
 title: "{{< var modules.m16.title >}}"
 ---
 
-<!--
-Stub so the sidebar, the Extensions page and the internal link check resolve (Technical Expert,
-2026-10-10). The Academic Director replaces it with the briefing; keep the two includes.
--->
-
 {{< include /_includes/module-16.md >}}
 
-::: {.callout-note appearance="simple"}
-The briefing for this optional extension is being written.
+::: {.recap}
+**Where we are.** Module 6 compared the conversions that last-touch attribution gave one email with the conversions the email caused, measured against a randomized control group: more than half of the credited conversions would have happened anyway. Module 8 measured what each channel's dollars returned from weekly totals of spend and sales. Those totals cover every channel, TV included, but they cannot see any one customer's path. Digital channels do leave a path for each user: a display ad, then a social post, then a search, then a retargeting ad, then a purchase. **Multi-touch attribution** (MTA) uses those paths to share each conversion among the touches before it, by fixed rules or by rules learned from the data, and it needs no experiment. Nothing in the core week tested whether that credit, however it is shared, measures the conversions a channel causes. This module tests it in a simulation where the answer is known.
 :::
 
 ## The lab {#lab}
 
 {{< include /_includes/lab-16.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 5.7 s on an Apple Silicon laptop (native Python) and 7.6 s in the workshop's Docker image (linux/arm64, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
+
+## 1. Credit and cause
+
+**Attribution** assigns each conversion to the marketing channels a customer met before it. Three terms carry the whole module:
+
+- a **touch** is one ad impression, click or email that the tracking records for a user;
+- a **journey** (or path) is all of one user's touches in the period, in time order, for example `display > search > retargeting`;
+- **credit** is the number of conversions a method assigns to a channel.
+
+Every method in this module hands out all the tracked conversions: if 3,020 journeys converted, each method's credits add up to 3,020. Shao and Li (2011) framed data-driven multi-touch attribution as giving credit to more than one ad according to its contribution, instead of all of it to the last ad.
+
+The business wants a different number: how many conversions would not have happened had the channel not reached the users it reached. These are the channel's **incremental conversions** (Module 6). Credit is computed from the paths alone; incremental conversions need a counterfactual, what the same users would have done without the channel. This module asks whether any way of sharing credit recovers them.
+
+The data are simulated: one month of the retailer's online marketing to 100,000 users through five channels. **Display** is prospecting with broad reach, **social** is paid social prospecting, **search** is paid search, **email** goes to subscribers, and **retargeting** shows display ads to recent site visitors. Each user has a purchase **intent**, a standard normal score that no marketer observes. The simulation decides, for each channel, whether it reaches a user, how many touches it delivers and when, and whether the user buys at the end of the month. Two of its assumptions matter most:
+
+- **Exposure is targeted.** Search, email and retargeting (and, slightly, social) are more likely to reach users with high intent. The simulation's stories: people search when they are in the market, subscribers are mostly past buyers, and retargeting follows recent visitors. A channel that reaches users who were already likely to buy has users who convert more often whether or not it works. This is **selection**. Attribution reports are built from journeys like these, in which nobody randomized who saw what.
+- **Only reach matters for buying.** A user's chance of buying depends on intent and on which channels reached them, not on the order or the number of touches. This is a simplification. It is stated so that the order of touches can be ruled out as an explanation later.
+
+69,410 of the 100,000 users received at least one tracked touch. Their journeys average 3.57 touches, and 3,020 of them converted (4.35%). Users with no touch have no journey, but some of them buy: 405 conversions came from users the tracking never saw. TV, which Module 8 models, leaves no user-level touch at all, so it is absent here. That is one reason MTA and a marketing mix model answer different questions.
+
+Nothing in the lab fits a model. Every method is counting, one small linear solve, or an exact sum over the 32 subsets of five channels.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $\mathcal C$, $K$ | the channels (display, social, search, email, retargeting); $K = 5$ |
+| $i$, $N$ | a journey (one user's touches), and the number of journeys (69,410) |
+| $c_{il}$, $L_i$ | the channel of touch $l$ of journey $i$, and the journey's number of touches |
+| $y_i$, $Y$ | 1 if user $i$ converted, else 0; $Y$ the number of converting journeys (3,020) |
+| $n_{ab}$, $p_{ab}$, $P$ | the number of $a \to b$ transitions over all journeys, the transition probability, and the matrix of all $p_{ab}$ |
+| $\mathcal T$, $Q$, $\mathbf r$ | the transient states (start and the channels); $P$ restricted to $\mathcal T \times \mathcal T$; the column of $P$ for conv on those rows |
+| $x_a$ | the probability that a journey now in state $a$ eventually converts |
+| $p$, $p_{-c}$ | the chain's conversion probability, and the same with channel $c$ removed |
+| $\text{RE}_c$ | the removal effect of channel $c$ |
+| $S$, $T$ | sets of channels (coalitions) |
+| $v(S)$, $\varphi_c(v; S)$ | a value function on coalitions, and channel $c$'s Shapley value in the game $v$ on the players $S$ |
+| $Y_S$ | conversions among the journeys whose set of channels is exactly $S$ |
+| $z_i$, $U_i$ | user $i$'s purchase intent and conversion draw (simulation only) |
+| $R_{ic}$ | 1 if channel $c$ reached user $i$ |
+| $g_c$, $\theta_c$ | how strongly channel $c$'s reach follows intent, and its true effect on the log-odds of buying |
+| $\Delta_c$ | channel $c$'s true incremental conversions |
+| $D_m$ | the share error of attribution method $m$ |
+| $n_1$, $n_0$ | users served and users held out in a holdout test |
+
+## 2. Rules of thumb: last-click, first-click and linear
+
+**Objective for this section:** compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand.
+
+The simplest rules fix credit by position. For journey $i$ with touches $c_{i1}, \dots, c_{iL_i}$ and outcome $y_i$,
+
+$$
+\begin{aligned}
+\text{last}_c &= \sum_{i} y_i \,\mathbb 1\big[c_{iL_i} = c\big], \\[4pt]
+\text{first}_c &= \sum_{i} y_i \,\mathbb 1\big[c_{i1} = c\big], \\[4pt]
+\text{linear}_c &= \sum_{i} y_i \,\frac{\#\{l : c_{il} = c\}}{L_i},
+\end{aligned}
+$$ {#eq-heuristic}
+
+where $\mathbb 1[\cdot]$ is 1 when the condition holds and 0 otherwise. Only converting journeys ($y_i = 1$) give credit. **Last-click** gives each conversion to the last touch, **first-click** to the first, and **linear** splits it equally over the touches. Linear is per touch here, so a channel touched twice in a journey gets two shares. A version that splits per distinct channel gives different numbers, so say which one you report.
+
+The lab checks each rule on `TINY`, five journeys over two channels:
+
+| Journey | Path | Converted |
+|---|---|---|
+| 1 | A > B | 1 |
+| 2 | A | 0 |
+| 3 | B | 1 |
+| 4 | B > A | 0 |
+| 5 | A > A > B | 1 |
+
+Every converting journey ends in B, so last-click gives A 0 and B 3. Journeys 1 and 5 start with A, so first-click gives A 2 and B 1. Linear gives journey 1 half to each channel, journey 3 all to B, and journey 5 two thirds to A and one third to B: A gets $\tfrac12 + \tfrac23 = \tfrac76$ and B gets $\tfrac12 + 1 + \tfrac13 = \tfrac{11}{6}$.
+
+On the journeys (FULL run), each rule's share of the 3,020 conversions, next to where each channel sits. "Opens" and "closes" are, among the journeys with two or more channels that contain the channel, the share in which it is the first touch and the share in which it is the last:
+
+| Channel | In journeys | Opens | Closes | Last-click | First-click | Linear |
+|---|---|---|---|---|---|---|
+| display | 51% | 77% | 17% | 14.9% | 39.2% | 26.4% |
+| social | 42% | 42% | 34% | 16.8% | 26.6% | 22.7% |
+| search | 21% | 17% | 44% | 17.6% | 10.3% | 14.6% |
+| email | 21% | 43% | 48% | 13.8% | 14.3% | 12.2% |
+| retargeting | 24% | 12% | 82% | 36.9% | 9.6% | 24.1% |
+
+Retargeting appears in a quarter of the journeys and gets 36.9% of the last-click credit, because it closes 82% of its multichannel journeys. Display opens 77% of its journeys and gets 39.2% of the first-click credit. A positional rule credits whatever sits at that position: move retargeting's touches earlier and its credit would follow them, with no change in what anyone bought. Neither rule asks whether a touch changed the outcome. Linear spreads each conversion over the journey, but every touch of a converting journey still gets a share, whatever it did.
+
+## 3. The journey as a Markov chain
+
+**Objective for this section:** estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion.
+
+### Transition probabilities
+
+A data-driven alternative learns from all journeys, converting or not, how users move between channels. A **first-order Markov chain** models a journey as a sequence of **states** in which the next state depends only on the current one. The states are `start`, the five channels, `conv` (the journey ends in a conversion) and `null` (it ends without one). Each journey contributes one start → first-touch transition, one transition between each pair of consecutive touches, and one last-touch → conv or null transition. The **transition probability** from state $a$ to state $b$ is the share of departures from $a$ that go next to $b$:
+
+$$
+p_{ab} = \frac{n_{ab}}{\sum_{b'} n_{ab'}} .
+$$ {#eq-transition}
+
+`conv` and `null` are **absorbing states**: a journey that reaches one never leaves it ($p_{\text{conv},\text{conv}} = p_{\text{null},\text{null}} = 1$). On `TINY`, start goes to A with probability 3/5 and to B with 2/5; A goes to A 1/5, to B 2/5 and to null 2/5; B goes to A 1/4 and to conv 3/4.
+
+The matrix estimated on the journeys (FULL run; rows are the current state, and the start column, all zeros, is left out):
+
+| From | display | social | search | email | retargeting | conv | null |
+|---|---|---|---|---|---|---|---|
+| start | 0.450 | 0.275 | 0.078 | 0.119 | 0.079 | 0.000 | 0.000 |
+| display | 0.508 | 0.122 | 0.043 | 0.048 | 0.052 | 0.005 | 0.222 |
+| social | 0.122 | 0.379 | 0.057 | 0.055 | 0.084 | 0.009 | 0.294 |
+| search | 0.057 | 0.083 | 0.215 | 0.069 | 0.195 | 0.024 | 0.357 |
+| email | 0.098 | 0.093 | 0.065 | 0.310 | 0.129 | 0.015 | 0.292 |
+| retargeting | 0.022 | 0.038 | 0.058 | 0.052 | 0.543 | 0.022 | 0.264 |
+
+The diagonal entries are **self-loops**: runs of touches from the same channel. Display's is 0.508. A self-loop only delays the next step: once the journey leaves channel $c$, it goes to $d$ with probability $p_{cd} / (1 - p_{cc})$, whatever $p_{cc}$ is. Once a journey leaves display, it goes to social with probability 0.248 and ends without converting with probability 0.451. So repeated touches in a row do not change where a journey goes next. Nor do they change the probability of converting from $c$: solving @eq-absorb below for $x_c$ gives $x_c = \sum_{b \neq c} p_{cb}\, x_b / (1 - p_{cc})$, summing over every state but $c$ with $x_{\text{conv}} = 1$ and $x_{\text{null}} = 0$. That depends only on where the journey goes once it leaves $c$. Markov credit does not reward a channel for repeating itself. (A test in the repository checks that collapsing every run of repeated touches leaves every removal effect unchanged on the committed journeys.)
+
+### The probability of reaching conversion
+
+Let $x_a$ be the probability that a journey now in state $a$ eventually converts. Take one step, then carry on from where you land. With $\mathcal T$ the transient states (start and the five channels), $Q$ the matrix of transition probabilities among them, and $\mathbf r$ their probabilities of going straight to conv,
+
+$$
+\begin{gathered}
+x_a = p_{a,\text{conv}} + \sum_{b \in \mathcal T} p_{ab}\, x_b
+\quad\Longleftrightarrow\quad
+\mathbf x = Q\,\mathbf x + \mathbf r, \\[4pt]
+\mathbf x = (I - Q)^{-1}\,\mathbf r, \qquad p = x_{\text{start}} .
+\end{gathered}
+$$ {#eq-absorb}
+
+$I - Q$ can be inverted because every journey ends: from every transient state the chain reaches conv or null with probability 1. The chain's **conversion probability** $p$ is $x_{\text{start}}$. The lab provides this solve as `conversion_probability(P)`. On `TINY`, $p = 3/5$; on the journeys, $p = 0.043510$, which is exactly the share of journeys that converted, 3,020 of 69,410.
+
+::: {.callout-note collapse="true" title="Why a chain estimated by counting reproduces the observed conversion share"}
+Write $n_a = \sum_b n_{ab}$ for the departures from state $a$, so $p_{ab} = n_{ab}/n_a$ and the chain's equations become $n_a x_a = \sum_b n_{ab} x_b$, with $x_{\text{conv}} = 1$ and $x_{\text{null}} = 0$. Add them up over the transient states. Each channel state is entered exactly as often as it is left, so every channel's term appears once on each side and cancels; start is never entered. What remains is $n_{\text{start}}\, x_{\text{start}} = (\text{transitions into conv}) = Y$. Every journey leaves start once, so $n_{\text{start}} = N$ and $p = x_{\text{start}} = Y/N$.
+
+On `TINY`: $x_A = \tfrac15 x_A + \tfrac25 x_B$ and $x_B = \tfrac14 x_A + \tfrac34$, so $x_B = 6/7$, $x_A = 3/7$ and $p = \tfrac35 \cdot \tfrac37 + \tfrac25 \cdot \tfrac67 = \tfrac35$: three of five journeys converted.
+:::
+
+So the chain's overall conversion probability tells us nothing new. What the chain adds is a way to ask what happens when one channel is taken away.
+
+### Removal effects
+
+The **removal effect** of channel $c$ is the share of the chain's conversion probability that is lost when every journey that reaches $c$ stops there without converting. Replace row $c$ of the transition matrix with a certain move to null (in @eq-absorb, row $c$ of $Q$ and entry $c$ of $\mathbf r$ become 0, so $x_c = 0$), solve again for $p_{-c}$, and compare:
+
+$$
+\begin{aligned}
+\text{RE}_c &= 1 - \frac{p_{-c}}{p}, \\[4pt]
+\text{credit}^{\text{Markov}}_c &= Y \cdot \frac{\text{RE}_c}{\sum_{k} \text{RE}_k} .
+\end{aligned}
+$$ {#eq-removal}
+
+On `TINY`, removing A leaves only the journeys that start at B and convert there before reaching A: $p_{-A} = \tfrac25 \cdot \tfrac34 = \tfrac{3}{10}$, so $\text{RE}_A = 1/2$. Every conversion in `TINY` passes through B, so $p_{-B} = 0$ and $\text{RE}_B = 1$. The removal effects add up to 1.5, and Markov credit splits the three conversions in proportion: A gets 1 and B gets 2.
+
+On the journeys (FULL run):
+
+| Channel | Removal effect | Markov credit |
+|---|---|---|
+| display | 0.481 | 738 |
+| social | 0.426 | 654 |
+| search | 0.308 | 472 |
+| email | 0.298 | 456 |
+| retargeting | 0.456 | 700 |
+
+The removal effects add up to 1.97, not 1. Removing one channel breaks every path through it, so a converting journey through three channels is lost in three removal scenarios: the effects overlap. Dividing each by their sum, as @eq-removal does, makes the credit add up to $Y$; it is a choice, not a law. And the removal effect asks what the *fitted chain* predicts if journeys stopped at $c$. It treats "on the path to a conversion" as "caused the conversion".
+
+Anderl et al. (2016) modeled customer paths as first- and higher-order Markov walks on four large data sets, each with at least seven online channels, and found results that differed substantially from last-click attribution. The R package ChannelAttribution fits $k$-order Markov models and reports removal effects. The removal used here (journeys stop at $c$) is this workshop's statement; check a library's definition before comparing its numbers with these.
+
+::: {.self-check}
+**Check yourself.** A colleague removes channel A from `TINY`'s chain by deleting A's row and column and rescaling every other row to add up to 1. What removal effect does that give A, and what does it assume about the users who would have seen A?
+
+::: {.callout-tip collapse="true" title="Answer"}
+After deleting A, start goes to B with probability 1, and B, which went to A 1/4 and to conv 3/4, now goes to conv with probability 1. So $p_{-A} = 1$ and $\text{RE}_A = 1 - 1/(3/5) = -2/3$: a negative removal effect. Rescaling reroutes every journey around A, as if the users who would have seen A went on to B instead, and converted there. The lab's removal stops those journeys at A ($\text{RE}_A = 1/2$). The two are different counterfactuals of the fitted chain; neither is a measurement of what A did to anyone's buying.
+:::
+:::
+
+## 4. Shapley values
+
+**Objective for this section:** compute exact Shapley values from the conversion rates of channel sets and verify the efficiency, symmetry and null-player properties.
+
+### Sharing a value among players
+
+Cooperative game theory asks how to share a value that players create together. A **coalition** is a set of players, here channels, and a **value function** $v$ gives the value $v(S)$ that coalition $S$ creates, with $v(\varnothing) = 0$. The **Shapley value** of player $c$ is its added value, $v(T \cup \{c\}) - v(T)$, averaged over every order in which the players of $S$ could join:
+
+$$
+\varphi_c(v; S) = \sum_{T \subseteq S \setminus \{c\}} \frac{|T|!\,\big(|S| - |T| - 1\big)!}{|S|!}\, \big[v(T \cup \{c\}) - v(T)\big] .
+$$ {#eq-shapley}
+
+The sum runs over the coalitions $T$ that leave $c$ out, and the weight is the share of the $|S|!$ join orders in which exactly the players of $T$ come before $c$. For five channels that is 16 coalitions per channel. The value has three properties the lab checks:
+
+- **efficiency:** the players' values add up to $v(S) - v(\varnothing)$;
+- **symmetry:** two players that add the same to every coalition get the same value;
+- **null player:** a player that adds nothing to any coalition gets 0.
+
+Shapley (1953) took symmetry, efficiency and additivity (his "law of aggregation": the value of the sum of two games is the sum of their values) as axioms, and showed that these three determine the value uniquely; the null-player property follows from them (Lemma 1 in the 1952 RAND version of the paper). Additivity is the property behind the lab's third stretch exercise.
+
+In the lab's three-player game, C adds nothing to any coalition:
+
+| $S$ | $\varnothing$ | A | B | C | AB | AC | BC | ABC |
+|---|---|---|---|---|---|---|---|---|
+| $v(S)$ | 0 | 0.10 | 0.20 | 0 | 0.40 | 0.10 | 0.20 | 0.40 |
+
+So $\varphi_C = 0$, and the game is really one between A and B. In the order A then B, A adds 0.10 and B adds 0.30; in the order B then A, B adds 0.20 and A adds 0.20. Averaging: $\varphi_A = 0.15$ and $\varphi_B = 0.25$, adding up to 0.40. A and B do not split equally, because B adds more to every coalition it joins.
+
+In Shapley's paper a game is superadditive: two disjoint coalitions together are worth at least the sum of their values. For such games with nonnegative values no Shapley value is negative (Corollary 1 in the RAND version: each player gets at least what it is worth alone). The formula runs on any $v$, though, and then values can be negative. The lab's random five-player game, in which every coalition's value is drawn at random, has two (−0.03 and −0.11). Report negative values; never clip them.
+
+### The game for journeys
+
+For journeys, the players are the channels on a journey and $v(S)$ is the **conversion rate of the journeys whose set of channels is exactly $S$**, in any order and with any number of touches. $v(\varnothing) = 0$, because users with no touch are not in the data. A converting journey with channel set $S$ is split among its channels in the shares $\varphi_c(v; S) / v(S)$ of the game on its own set, which add up to 1 by efficiency:
+
+$$
+\text{credit}^{\text{Shapley}}_c = \sum_{S \ni c} Y_S \, \frac{\varphi_c(v; S)}{v(S)} .
+$$ {#eq-shapley-credit}
+
+This needs $v$ for every subset of every converting journey's set. With five channels there are 31 non-empty sets, and all of them occur in the data; the smallest has 177 journeys. A set with no journeys would have an unknown rate, not a rate of 0, so the lab stops rather than fill in 0. With many more channels, both the number of coalitions ($2^K$) and the number of sets with few or no journeys grow quickly; exact enumeration suits a handful of channels. Zhao et al. (2018) describe Shapley-value attribution across channels, with a simplified formula and an "ordered" variant that uses the order of touches; this module uses only the set-based game above.
+
+FULL run: the smallest Shapley value over all 31 sets is +0.0118, so no share is negative. Shapley credit: display 624, social 654, search 644, email 354 and retargeting 744 conversions.
+
+::: {.self-check}
+**Check yourself.** Two channels have $v(A) = 0.10$, $v(B) = 0.05$ and $v(AB) = 0.20$, with $v(\varnothing) = 0$. Compute both Shapley values by averaging over the two join orders. Then suppose users with no touch convert at 0.04, so that $v(\varnothing) = 0.04$. What changes, and what does not?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A then B: A adds 0.10, B adds 0.10. B then A: B adds 0.05, A adds 0.15. So $\varphi_A = 0.125$ and $\varphi_B = 0.075$, adding up to $v(AB) = 0.20$. With $v(\varnothing) = 0.04$: A first adds 0.06, then B adds 0.10; B first adds 0.01, then A adds 0.15. Now $\varphi_A = 0.105$ and $\varphi_B = 0.055$, adding up to 0.16: only the part above the baseline is shared out. That removes the conversions that would happen with no marketing, if 0.04 were the right baseline. It does not remove selection: if B reaches users who intend to buy, $v(B)$ and $v(AB)$ are high because of who B reaches, and B still gets the credit. In the lab's data the users with no tracked touch are not a clean baseline either. They converted at 1.3% (405 of 30,590, from the truth file), but they are the users no channel reached, and every channel except display reaches high-intent users more often, so this group leans toward low intent.
+:::
+:::
+
+## 5. Credit against the truth
+
+**Objective for this section:** score five attribution methods against each channel's true incremental conversions, with 95% bootstrap intervals, and explain why targeted exposure and the efficiency property keep credit away from incrementality.
+
+### The truth
+
+The simulation draws each user's intent $z_i \sim \text{Normal}(0, 1)$ and a conversion draw $U_i \sim \text{Uniform}(0, 1)$. With $\operatorname{expit}(u) = 1/(1 + e^{-u})$, the function that turns log-odds into a probability,
+
+$$
+\begin{aligned}
+P(R_{ic} = 1 \mid z_i) &= \operatorname{expit}(a_c + g_c\, z_i), \\[4pt]
+P(y_i = 1 \mid z_i, R_i) &= \operatorname{expit}\Big(\theta_0 + \delta\, z_i + \sum_{c} \theta_c R_{ic}\Big),
+\end{aligned}
+$$ {#eq-dgp}
+
+where $R_i$ stands for all of user $i$'s $R_{ic}$. Here $a_c$ sets channel $c$'s overall reach, $\theta_0 = -4.2$ sets the base rate of buying, and $\delta = 1.0$ is the effect of intent; the user converts when $U_i$ falls below that probability. A positive $g_c$ means the channel targets users who already intend to buy. A channel's **true incremental conversions** are the conversions that would not have happened had it not reached the users it reached, counted over all $n = 100{,}000$ users, tracked or not:
+
+$$
+\Delta_c = \sum_{i=1}^{n} \big(y_i - y_i^{(-c)}\big),
+$$ {#eq-incremental}
+
+where $y_i^{(-c)}$ is user $i$'s outcome with $R_{ic}$ set to 0 and the user's intent, conversion draw and other channels unchanged. Only a simulation can compute this.
+
+| Channel | Targeting $g_c$ | True effect $\theta_c$ (log-odds) | True incremental $\Delta_c$ | Share of $\sum_k \Delta_k$ |
+|---|---|---|---|---|
+| display | 0.0 | 0.30 | 358 | 0.284 |
+| social | 0.2 | 0.40 | 448 | 0.356 |
+| search | 1.2 | 0.35 | 340 | 0.270 |
+| email | 0.8 | 0.15 | 114 | 0.090 |
+| retargeting | 1.8 | 0.00 | 0 | 0 |
+
+Retargeting has no effect by construction. That is a stylized assumption chosen to make the mechanism visible, not a claim about retargeting in general.
+
+Two facts about the truth shape the comparison. First, most conversions are not incremental: switching every channel off would lose 1,077 of the 3,425 conversions, so 2,348 would have happened with no marketing at all. Second, incremental conversions do not add up across channels: the five $\Delta_c$ add up to 1,260, not 1,077, because the channels' effects add on the log-odds scale, not on conversions. Credit always adds up to the tracked conversions and incremental conversions add up to nothing in particular, so the lab compares **shares**. The **share error** of method $m$ is the share of credit that would have to move between channels for its shares to match the true incremental shares:
+
+$$
+D_m = \frac12 \sum_{c} \left| \frac{\text{credit}^m_c}{\sum_k \text{credit}^m_k} - \frac{\Delta_c}{\sum_k \Delta_k} \right| ,
+$$ {#eq-share-error}
+
+the total variation distance between the two sets of shares: 0 means the same shares and 1 means no overlap. The factor ½ is there because each misplaced share is counted twice, once where it is missing and once where it is extra.
+
+### Five methods, one truth
+
+FULL run, credited conversions:
+
+| Channel | Last-click | First-click | Linear | Markov | Shapley | True $\Delta_c$ |
+|---|---|---|---|---|---|---|
+| display | 450 | 1,183 | 797 | 738 | 624 | 358 |
+| social | 506 | 804 | 685 | 654 | 654 | 448 |
+| search | 532 | 312 | 441 | 472 | 644 | 340 |
+| email | 418 | 431 | 369 | 456 | 354 | 114 |
+| retargeting | 1,114 | 290 | 728 | 700 | 744 | 0 |
+| **Share error $D_m$** | **0.42** | **0.26** | **0.27** | **0.29** | **0.27** | |
+
+Three readings.
+
+- **Retargeting gets credit it did not earn.** It caused no conversions, yet Markov gives it 23.2% of the credit and Shapley 24.6%, more than any other channel under Shapley. Retargeting is the channel with the largest gap between credit share and true share under last-click, linear, Markov and Shapley. First-click's largest gap is search, which it under-credits by 0.167.
+- **The data-driven methods were no better than first-click or linear on this simulation.** Markov (0.29) and Shapley (0.27) beat last-click (0.42). But Markov's share error was larger than first-click's (0.26) and linear's (0.27), and Shapley's equaled linear's (0.273 for both) and was larger than first-click's. Markov credit is within 90 conversions of linear credit for every channel. This is one simulated world: it does not rank the methods in general, and it does not make first-click a good method. It says that no method that only counts journeys recovered the true shares here: the closest still misplaced a quarter of the credit.
+- **The gap is bias, not noise.** A **95% bootstrap percentile interval** resamples the journeys with replacement, recomputes each method's credit shares, and takes the 2.5th and 97.5th percentiles over the resamples. With 200 resamples, **none** of the 25 true shares (five methods × five channels) lies inside its method's interval. The intervals describe sampling noise only; a method that is wrong in the same direction on every resample stays wrong however many journeys you collect.
+
+### Why: selection, then efficiency
+
+Who each channel reaches, from the truth file (all 100,000 users):
+
+| Channel | Share of users reached | Mean intent of users reached | Conversion rate, reached | Conversion rate, not reached |
+|---|---|---|---|---|
+| display | 35.5% | 0.00 | 4.1% | 3.1% |
+| social | 29.2% | 0.14 | 4.9% | 2.8% |
+| search | 14.8% | 0.86 | 8.5% | 2.6% |
+| email | 14.3% | 0.64 | 6.5% | 2.9% |
+| retargeting | 16.7% | 1.05 | 8.3% | 2.4% |
+
+The users retargeting reaches sit 1.05 standard deviations above the average user in intent. They convert at 8.3% against 2.4% for users it did not reach, although it causes nothing. Every method reads that difference as credit. Two other explanations can be ruled out for Shapley, whose $v$ uses only the set of channels on a journey: position and the number of touches. Runs of repeated touches cannot explain Markov's credit either, since self-loops do not change it. The main mechanism is **selection**.
+
+The first stretch exercise removes it. It simulates the same users with every random draw unchanged and each channel's reach share unchanged, but reach no longer depends on intent. Share errors fall (last-click 0.262, first-click 0.204, linear 0.181, Markov 0.227, Shapley 0.143), but retargeting still receives 10.6% of the Shapley credit and 14.9% of the Markov credit. What remains is **efficiency**: every method must give every tracked conversion, including the ones that would have happened with no marketing, to some channel on its path. Why Shapley gains more than Markov under random exposure is left as a question for the stretch; the lab does not test an answer.
+
+Dalessandro et al. (2012) make the general point. They pose attribution as a causal estimation problem, propose approximate methods that draw on cooperative game theory, and note that where the causal assumptions are violated, these approximations are variable-importance measures.
+
+## 6. The decision
+
+**Objective for this section:** decide, with Module 6's minimum detectable effect, whether a holdout test should come before any budget move.
+
+The attribution report says which paid channel is cheapest per conversion: spend divided by credit. A conversion is worth one order at the retailer's mean spend of \$30 times its 30% gross margin, **\$9** (repeat purchases are ignored; Modules 4 and 5 value them). The monthly spend per channel is an assumption of the simulated world. Email goes to a list and cannot scale, so it is left out.
+
+A **holdout** withholds a channel from a randomly chosen share of the users it would reach; comparing them with the users served measures its incremental conversions, as Module 6's experiment did. The **minimum detectable effect** (MDE, Module 6) of a holdout with $n_1$ users served and $n_0$ held out, for a conversion rate $p$ (so the outcome variance is $p(1-p)$), at $\alpha = 0.05$ two-sided and 80% power, and the **break-even** of channel $c$, are
+
+$$
+\begin{aligned}
+\text{MDE} &= (z_{0.975} + z_{0.8}) \sqrt{p(1-p)\left(\frac{1}{n_1} + \frac{1}{n_0}\right)}, \\[4pt]
+\text{break-even}_c &= \frac{\text{spend}_c}{\text{margin per conversion}} ,
+\end{aligned}
+$$ {#eq-mde}
+
+where $z_q$ is the $q$-quantile of the standard normal. The MDE is a difference in conversion rate; multiplied by the number of users the channel reaches, it becomes the incremental conversions a month the test can detect. The break-even is the number of incremental conversions a month the channel must cause to pay back.
+
+::: {.module-decision}
+**Decision.** The rule, fixed before any number: attribution credit cannot separate a channel's effect from the intent of the users it reaches. Move budget toward a channel only when an experiment (Modules 6 and 7) or a lift-calibrated MMM (Module 9) shows that its cost per incremental conversion is below the \$9 margin per conversion. Run a holdout first when it can tell a channel that pays back from one that does not: its MDE, scaled to all the users the channel reaches, must be below the break-even. If it is not, make the holdout larger or longer before running it.
+
+FULL run, using only what a team would have at work (credit, spend, margin, and the test's MDE). Cost per credited conversion, with 95% bootstrap percentile intervals over 200 resamples:
+
+| Channel | Spend per month | Markov | Shapley |
+|---|---|---|---|
+| display | \$4,000 | \$5.42 (\$5.21 to \$5.67) | \$6.42 (\$5.79 to \$7.18) |
+| social | \$3,500 | \$5.35 (\$5.13 to \$5.64) | \$5.35 (\$4.77 to \$5.92) |
+| search | \$2,500 | \$5.30 (\$5.04 to \$5.60) | \$3.88 (\$3.55 to \$4.37) |
+| retargeting | \$2,500 | \$3.57 (\$3.40 to \$3.73) | \$3.36 (\$3.13 to \$3.68) |
+
+- **Cheapest by attribution:** retargeting, under both methods. By attribution every paid channel pays back, since every cost is below \$9. The intervals cover sampling noise in the credit, not the bias section 5 found.
+- **The holdout:** withhold retargeting from 20% of the 16,741 users it reaches for one month (13,393 served, 3,348 held out). Their conversion rate is 8.30%. @eq-mde gives an MDE of 1.49 percentage points: about 200 conversions among the served users, about 250 a month scaled to all 16,741 users reached.
+- **Break-even:** \$2,500 ÷ \$9 = 278 incremental conversions a month. The test's 250 is below 278, so it can tell a channel that pays back from one that does not.
+- **Margin at risk** during the test, if the credit were real: 20% × 700 credited × \$9 = \$1,260.
+- **Recommendation: test retargeting first.** Withhold it from 20% of the users it reaches for one month, and move budget toward it only if the holdout shows more than 278 incremental conversions a month (a cost per incremental conversion below \$9).
+
+Why compare the MDE with the break-even rather than with the 700 credited conversions: that would be a weaker bar. A test with an MDE of 600 would pass it, and could still not tell a channel that breaks even from one that does nothing.
+
+The lab then reveals the truth. True cost per incremental conversion: display \$11.17, social \$7.81, search \$7.35, email \$2.63, and none for retargeting, which caused no conversions. Moving budget to retargeting would have bought nothing. Display does not pay back either (\$11.17 against \$9), although attribution put it at \$5.42 to \$6.42. Of the four paid channels that attribution said pay back, two do. What would change the recommendation: a holdout result above the break-even (then move budget), a smaller or shorter holdout whose scaled MDE is above the break-even (then enlarge it first), or a different margin or spend, which moves the break-even.
+:::
+
+The second stretch exercise runs that holdout in the simulation. With 20% of retargeting's users withheld, the estimate of its incremental conversions among the served users is −131 (95% CI −275 to 13). The interval includes zero, the truth, and lies far below the 700 conversions Markov credits. It only just includes zero from below, a sampling fluctuation around a true effect of zero.
+
+::: {.self-check}
+**Check yourself.** To put less margin at risk, the team proposes a 10% holdout instead of 20%. Using @eq-mde with the same 16,741 users and the 8.30% conversion rate, does the rule still say "test first"?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With 15,067 served and 1,674 held out,
+
+$$
+\text{MDE} = 2.80 \sqrt{0.083 \times 0.917 \times \Big(\frac{1}{15{,}067} + \frac{1}{1{,}674}\Big)} \approx 0.0199 ,
+$$
+
+about 2.0 points, or about 333 conversions a month across all users reached. That is above the break-even of 278, so the rule says make the holdout larger or longer first. The margin at risk would halve, to about \$630, but a test that cannot detect the break-even buys no decision for it.
+:::
+:::
+
+## 7. What attribution cannot tell you
+
+- **What a channel causes.** Every method here shares out conversions according to its own rule: position, a fitted chain's prediction, or the conversion rates of channel sets. None compares users who saw a channel with comparable users who did not. When exposure follows intent, as it did for search, email and retargeting, credit follows intent too.
+- **The baseline.** Efficiency forces every tracked conversion onto some channel, including the conversions that would have happened with no marketing. Here that was most of them.
+- **What the tracking does not see.** TV, 405 conversions without a tracked touch, and any touch that is not recorded are invisible to every method. Credit can only be shared among the touches the data contain.
+- **Whether it is right.** On real data there is no truth, so the share error cannot be computed. Narrow intervals and agreement between methods are not evidence: here the bootstrap intervals were narrow and missed every true share, and four of the five methods ranked retargeting first or second. Gordon et al. (2019) found the same pattern on real campaigns: across 15 advertising experiments at Facebook, common observational methods often failed to reproduce the lift the randomized experiments measured.
+
+What attribution does give is a description of the journeys: which channels open and close them, which appear together, how users move between them. It is a sensible place to find candidates for a test. The test, not the credit, says what to spend.
+
+## Summary
+
+- Credit is the conversions a method assigns to a channel, and every method hands out all tracked conversions. Incremental conversions are the ones a channel caused; only a counterfactual measures them.
+- Positional rules (@eq-heuristic) credit whatever sits at the position: retargeting closes 82% of its multichannel journeys and gets 36.9% of last-click credit.
+- A first-order Markov chain (@eq-transition) estimated by counting reproduces the observed conversion share exactly (@eq-absorb). Its removal effects (@eq-removal) overlap, adding up to 1.97 here, and self-loops do not change them.
+- Shapley values (@eq-shapley) share a value by efficiency, symmetry and the null-player property; on journeys they share each set's conversion rate (@eq-shapley-credit), baseline included.
+- Against the truth (@eq-incremental, @eq-share-error), the data-driven methods beat last-click but were no better than first-click or linear. Retargeting, with no effect, got about a quarter of their credit, and none of the 25 true shares lay inside its 95% bootstrap interval: bias, not noise.
+- Selection (exposure that follows intent) is the main mechanism; efficiency keeps some error even when exposure is random.
+- Decision: do not move budget on credit. A 20% holdout of retargeting can detect about 250 incremental conversions a month, below its break-even of 278 (@eq-mde), so test first.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 16 |
+|---|---|---|
+| @eq-heuristic | last-click, first-click and linear credit | **Exercise 1**: `heuristic_credit(journeys, rule, channels)`; Checkpoint 1 checks `TINY` by hand and that each rule's credit adds up to the converting journeys |
+| @eq-transition | the transition matrix | **Exercise 2**: `transition_matrix(journeys, channels)`; Checkpoint 2 checks `TINY` by hand, rows adding up to 1, and conv and null absorbing |
+| @eq-absorb | the probability of reaching conversion | Provided: `conversion_probability(P)`; a labeled check finds $p = 3/5$ on `TINY` and the observed share on the journeys |
+| @eq-removal | removal effects and Markov credit | **Exercise 3**: `removal_effects(P, channels)`; Checkpoint 3 checks `TINY`'s 1/2 and 1 and that `P` is unchanged; then the provided Markov credit |
+| @eq-shapley | the Shapley value | **Exercise 4**: `shapley_values(players, v)`; Checkpoint 4 checks two hand games, efficiency, the average over all 120 join orders, and symmetry |
+| @eq-shapley-credit | Shapley credit on journeys | Provided: the coalition table and Shapley credit, calling your `shapley_values` |
+| @eq-incremental, @eq-share-error | the truth and the share error | **Exercise 5**: `credit_vs_truth(credit, incremental)`; Checkpoint 5 checks a hand example and the reference; then the provided bootstrap |
+| @eq-mde | holdout MDE and break-even | Provided: the Decision cell |
+
+## Gotchas
+
+- **Only converting journeys give credit.** Each method's credits must add up to the converting journeys, not to all journeys.
+- **Linear is per touch here.** A per-distinct-channel version gives different numbers; say which you use.
+- **Removal stops journeys at the channel.** Deleting the channel and rescaling the other transitions is a different counterfactual and can give a negative removal effect.
+- **conv and null are absorbing,** and start has no incoming transitions.
+- **Removal effects overlap.** They add up to more than 1; dividing by their sum is a choice.
+- **A set with no journeys has an unknown $v$,** not $v = 0$.
+- **Shapley values can be negative.** Report them; do not clip them.
+- **Exact Shapley grows as $2^K$.** Five channels give 32 coalitions; many channels need another approach and more data per set.
+- **Compare shares, not counts.** Credit adds up to the tracked conversions; incremental conversions are fewer and do not add up across channels.
+- **Bootstrap intervals cover noise, not bias.** Narrow intervals around credit say nothing about whether the credit measures an effect.
+- **Cost per credited conversion is not cost per incremental conversion.** Here the cheapest channel by credit caused nothing.
+
+## Next steps
+
+Attribution cannot tell a channel's effect from the intent of the users it reaches. Experiments can: a randomized holdout like the one designed here (Module 6), a geo test (Module 7), or a marketing mix model calibrated with such tests (Module 9). A holdout's result is a measured lift for one channel, the kind of evidence Module 9 adds to an MMM. Module 17 returns to the MMM, where a channel's effect can drift over time, for example as an audience tires of an ad, and a model that assumes one constant effect averages the drift away.
+
+## Further reading
+
+1. Shao, X., & Li, L. (2011). [Data-driven multi-touch attribution models](https://doi.org/10.1145/2020408.2020453). *Proceedings of the 17th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD '11)*, 258–264. Credit to more than one ad according to its contribution, instead of all to the last.
+2. Anderl, E., Becker, I., von Wangenheim, F., & Schumann, J. H. (2016). [Mapping the customer journey: Lessons learned from graph-based online attribution modeling](https://doi.org/10.1016/j.ijresmar.2016.03.001). *International Journal of Research in Marketing*, 33(3), 457–474. Customer paths as first- and higher-order Markov walks on four large data sets.
+3. Shapley, L. S. (1953). [A value for n-person games](https://doi.org/10.1515/9781400881970-018). In *Contributions to the Theory of Games (AM-28), Volume II* (pp. 307–318). Princeton University Press. The value, its three axioms and its uniqueness; first circulated as RAND paper P-295 (1952).
+4. Dalessandro, B., Perlich, C., Stitelman, O., & Provost, F. (2012). [Causally motivated attribution for online advertising](https://doi.org/10.1145/2351356.2351363). *Proceedings of the Sixth International Workshop on Data Mining for Online Advertising and Internet Economy (ADKDD '12)*, 1–9. Attribution as causal estimation, and what game-theoretic approximations measure when the causal assumptions fail.
+5. Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: Evidence from big field experiments at Facebook](https://doi.org/10.1287/mksc.2018.1135). *Marketing Science*, 38(2), 193–225. Observational methods against randomized experiments on real campaigns.
+
+Also cited above: Zhao, K., Mahboobi, S. H., & Bagheri, S. R. (2018), [Shapley value methods for attribution modeling in online advertising](https://arxiv.org/abs/1804.05327), arXiv:1804.05327; and the [ChannelAttribution](https://CRAN.R-project.org/package=ChannelAttribution) package for R (2.2.5), which offers first-, last- and linear-touch heuristics and $k$-order Markov models but no Shapley function; its [Python package](https://pypi.org/project/ChannelAttribution/) is published as source only, so it would compile during a Colab install. Each entry was checked on 2026-10-10, except Gordon et al. (2019), checked on 2026-10-09; the [References](/references.qmd) page lists the workshop's entries with what each supports.

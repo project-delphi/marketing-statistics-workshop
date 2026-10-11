@@ -1,0 +1,283 @@
+{
+  "about": "True parameters of the subscriptions extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "subscriptions_subscribers.csv"
+  ],
+  "description": "Monthly subscription program, three plans, sign-ups growing over two years, observed until observation_end. Weibull proportional-hazards churn in plan and onboarding; an intro offer that raises the hazard only before the landmark. Subscribers still active at observation_end are right-censored.",
+  "seed": 2034,
+  "n": 8000,
+  "signup_window": [
+    "2024-01-01",
+    "2025-12-31"
+  ],
+  "signup_growth": 2.0,
+  "observation_end": "2026-06-30",
+  "days_per_month": 30.4375,
+  "time_zero": "The first billing date, when the 14-day trial ends: onboarding is completed (or not) during the trial, so it is known when the clock starts and no subscriber's group depends on how long they stayed (no immortal-time bias).",
+  "model": {
+    "hazard": "h(t | z) = h0(t) exp(eta), eta = -0.25 standard - 0.60 premium - 0.40 onboarded - u; H(t) = exp(eta) [exp(0.70 intro_offer) H0(min(t, 3)) + max(H0(t) - H0(3), 0)], H0(t) = (t / 14) ** 0.8, t in months of 30.4375 days",
+    "weibull_shape": 0.8,
+    "weibull_scale_months": 14.0,
+    "reference_group": "basic plan, not onboarded, no intro offer",
+    "log_hazard_ratios": {
+      "plan_standard": -0.25,
+      "plan_premium": -0.6,
+      "onboarded": -0.4
+    },
+    "hazard_ratios": {
+      "plan_standard": 0.778801,
+      "plan_premium": 0.548812,
+      "onboarded": 0.67032
+    },
+    "intro_offer": {
+      "landmark_months": 3.0,
+      "log_hr_before": 0.7,
+      "hr_before": 2.01375,
+      "hr_after": 1.0
+    },
+    "hidden_confounding": 0.0,
+    "hidden_confounding_note": "u = hidden_confounding * N(0, 1) adds to the log-odds of onboarding and subtracts from eta; the hazard ratios above are conditional on u."
+  },
+  "covariates": {
+    "plan_probs": {
+      "basic": 0.5,
+      "standard": 0.3,
+      "premium": 0.2
+    },
+    "onboard_prob_by_plan": {
+      "basic": 0.3,
+      "standard": 0.55,
+      "premium": 0.8
+    },
+    "intro_offer_prob": 0.3,
+    "share_onboarded": 0.475,
+    "independence": "Onboarding depends on plan (and on u when hidden_confounding > 0) and nothing else; the intro offer is independent of plan, onboarding and u."
+  },
+  "survival": {
+    "times_months": [
+      3,
+      6,
+      12,
+      18,
+      24
+    ],
+    "overall": {
+      "3": 0.766504,
+      "6": 0.659458,
+      "12": 0.510667,
+      "18": 0.408376,
+      "24": 0.333265
+    },
+    "by_plan": {
+      "basic": {
+        "3": 0.716223,
+        "6": 0.590911,
+        "12": 0.42392,
+        "18": 0.315337,
+        "24": 0.239825
+      },
+      "standard": {
+        "3": 0.788526,
+        "6": 0.688178,
+        "12": 0.543933,
+        "18": 0.440974,
+        "24": 0.363054
+      },
+      "premium": {
+        "3": 0.859173,
+        "6": 0.787747,
+        "12": 0.677633,
+        "18": 0.592075,
+        "24": 0.522181
+      }
+    },
+    "by_observed_onboarding": {
+      "onboarded": {
+        "3": 0.824457,
+        "6": 0.73845,
+        "12": 0.610566,
+        "18": 0.515424,
+        "24": 0.440653
+      },
+      "not_onboarded": {
+        "3": 0.71407,
+        "6": 0.58799,
+        "12": 0.420282,
+        "18": 0.311523,
+        "24": 0.236104
+      }
+    },
+    "standardized": {
+      "onboarded": {
+        "3": 0.809734,
+        "6": 0.717655,
+        "12": 0.582552,
+        "18": 0.483692,
+        "24": 0.407185
+      },
+      "not_onboarded": {
+        "3": 0.731923,
+        "6": 0.61195,
+        "12": 0.449708,
+        "18": 0.342181,
+        "24": 0.266026
+      }
+    },
+    "by_intro_offer_note": "the offer is independent of plan and onboarding"
+  },
+  "rmst": {
+    "horizon_months": 24,
+    "definition": "RMST(t*) = integral of S(t) from 0 to t*: expected months subscribed within the first t* months",
+    "by_plan": {
+      "basic": {
+        "onboarded": 13.3981,
+        "not_onboarded": 10.4055,
+        "gain": 2.99267,
+        "gain_among_not_onboarded": 2.99267
+      },
+      "standard": {
+        "onboarded": 15.1205,
+        "not_onboarded": 12.2988,
+        "gain": 2.82173,
+        "gain_among_not_onboarded": 2.82173
+      },
+      "premium": {
+        "onboarded": 17.2294,
+        "not_onboarded": 14.789,
+        "gain": 2.44036,
+        "gain_among_not_onboarded": 2.44036
+      }
+    },
+    "observed_groups": {
+      "onboarded": 15.287,
+      "not_onboarded": 11.2263,
+      "unadjusted_gain": 4.06065
+    },
+    "target_population": "subscribers who did not complete onboarding",
+    "target_plan_weights": {
+      "basic": 0.666667,
+      "standard": 0.257143,
+      "premium": 0.0761905
+    },
+    "gain_target": 2.90663,
+    "gain_target_definition": "mean over the target population of RMST(24) with onboarding set to 1 minus with it set to 0; with hidden_confounding = 0 it equals the plan-weighted sum of the per-plan gains",
+    "gain_target_sample_mean": 2.90213,
+    "monthly_discount": 0.008,
+    "gain_target_discounted": 2.61365,
+    "discounting": "each month subscribed at time t is worth (1 + monthly_discount) ** -t"
+  },
+  "decision": {
+    "margin_per_month": 12.0,
+    "call_cost": 15.0,
+    "q_assumed": 0.35,
+    "q_grid": [
+      0.2,
+      0.35,
+      0.5
+    ],
+    "rule": "call a subscriber who did not onboard when q * gain * margin > call_cost",
+    "true_value_per_call": {
+      "0.2": 6.97591,
+      "0.35": 12.2078,
+      "0.5": 17.4398
+    },
+    "true_break_even_q": 0.430051,
+    "n_target": 4139
+  },
+  "sample": {
+    "n_churned": 4427,
+    "share_churned": 0.553375,
+    "max_follow_up_months": 29.9302,
+    "n_followed_24_months": 504,
+    "share_onboarded_by_plan": {
+      "basic": 0.307267,
+      "standard": 0.550683,
+      "premium": 0.814446
+    }
+  },
+  "tolerances": {
+    "basis": "How often each checkpoint rule of Module 14 holds when the reference solutions are run on data from other seeds of the same generator (n = 8,000, default settings). A rule that holds in nearly every seed passes on a correct solution and still fails on the wrong ones it targets. Intervals are named: 95% pointwise (exponential Greenwood) for Kaplan-Meier, 95% Wald confidence intervals for Cox hazard ratios, and the 95% bootstrap percentile interval (stratified by plan x onboarding, seed 14) for the RMST gain.",
+    "measured": "2026-10-10, lifelines 0.30.3, numpy 2.1.3, pandas 2.2.3",
+    "seed_sets": {
+      "1000-1039": {
+        "n_seeds": 40,
+        "km_truth_3_of_4": 39,
+        "km_truth_all_4": 34,
+        "km_s12_inside": 40,
+        "dashboards_outside": 40,
+        "cox_onboarded_inside_and_2_of_3": 39,
+        "cox_all_3_inside": 34,
+        "cox_unadjusted_outside_and_lower": 40,
+        "ph_offer_flagged_p_below_0_01": 40,
+        "ph_other_covariate_flagged": 1,
+        "landmark_3_of_4": 40,
+        "landmark_all_4": 33,
+        "landmark_each": {
+          "offer_before": 38,
+          "offer_after": 40,
+          "onboarded_before": 37,
+          "onboarded_after": 38
+        },
+        "rmst_truth_inside_B100": 38,
+        "rmst_truth_inside_B200": 38,
+        "rmst_unadjusted_outside_B100": 40,
+        "rmst_unadjusted_outside_B200": 40,
+        "means": {
+          "hr_standard": 0.7822,
+          "hr_premium": 0.5493,
+          "hr_onboarded": 0.6694,
+          "hr_offer_full_period": 1.3823,
+          "hr_onboarded_unadjusted": 0.5698,
+          "rmst_gain": 2.8974,
+          "rmst_unadjusted": 4.0525,
+          "dashboard_a": 0.5341,
+          "dashboard_b": 0.4285
+        },
+        "note": "the seeds of the brief's prototype; this generator reproduces its draws"
+      },
+      "3000-3039": {
+        "n_seeds": 40,
+        "km_truth_3_of_4": 39,
+        "km_truth_all_4": 34,
+        "km_s12_inside": 39,
+        "dashboards_outside": 40,
+        "cox_onboarded_inside_and_2_of_3": 34,
+        "cox_all_3_inside": 32,
+        "cox_unadjusted_outside_and_lower": 40,
+        "ph_offer_flagged_p_below_0_01": 40,
+        "ph_other_covariate_flagged": 0,
+        "landmark_3_of_4": 40,
+        "landmark_all_4": 32,
+        "landmark_each": {
+          "offer_before": 40,
+          "offer_after": 37,
+          "onboarded_before": 37,
+          "onboarded_after": 38
+        },
+        "rmst_truth_inside_B100": 34,
+        "rmst_truth_inside_B200": 35,
+        "rmst_unadjusted_outside_B100": 40,
+        "rmst_unadjusted_outside_B200": 40,
+        "means": {
+          "hr_standard": 0.7793,
+          "hr_premium": 0.5493,
+          "hr_onboarded": 0.6618,
+          "hr_offer_full_period": 1.3932,
+          "hr_onboarded_unadjusted": 0.564,
+          "rmst_gain": 2.9712,
+          "rmst_unadjusted": 4.1146,
+          "dashboard_a": 0.5343,
+          "dashboard_b": 0.4294
+        },
+        "note": "an independent check; checkpoints 3 and 5 failed together on the same seeds (3000, 3028, 3034, 3035, 3037), where the onboarding effect came out stronger than the truth by chance"
+      }
+    },
+    "summary": "Over 80 seeds: Kaplan-Meier truth 3 of 4 in 78, dashboards outside in 80; checkpoint 3 in 73 and its unadjusted check in 80; checkpoint 4 (3 of 4) in 80; checkpoint 5's truth inside in 72 (B = 100) and 73 (B = 200), the unadjusted gain outside in 80. Checkpoints 3 and 5 rest on one 95% interval each, so about 1 seed in 10 misses: roughly the nominal 5% plus some undercoverage of the percentile bootstrap. On the committed seed (2034) every rule holds with the reference in QUICK and FULL, and a correct solution reproduces the reference's numbers exactly.",
+    "rules": {
+      "km_vs_truth": "true S(t) at 6, 12, 18 and 24 months inside the 95% pointwise interval for at least 3 of 4; dashboards A and B outside it at 12 months",
+      "checkpoint_3": "true onboarding HR (0.670) inside its 95% CI and at least 2 of the 3 true HRs (standard, premium, onboarded) inside theirs; with onboarding alone, the truth outside the CI and the HR below the adjusted one",
+      "checkpoint_4": "at least 3 of 4 inside their 95% CIs: offer HR 2.014 before month 3, 1.0 after, onboarding HR 0.670 before and after",
+      "checkpoint_5": "true target-population gain (2.907 months) inside the 95% bootstrap percentile interval; the unadjusted Kaplan-Meier gain outside it"
+    }
+  }
+}

@@ -26,13 +26,13 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 **[Survival analysis for subscription churn](/modules/14-survival-churn.qmd)**
 
 ::: {.module-summary}
-Estimate retention curves for subscribers with right-censored data using Kaplan-Meier, model how covariates change the hazard of churning with a Cox proportional-hazards model, check the proportional-hazards assumption, and compare with the shifted-beta-geometric model from Module 4.
+Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars.
 :::
 
-[Builds on [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
+[Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/14-survival-churn.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -60,13 +60,13 @@ Estimate the effect of a customer action nobody randomized (installing the app) 
 **[Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd)**
 
 ::: {.module-summary}
-Credit conversions to channels along user journeys with last-click, first-click, a Markov-chain removal effect and Shapley values, and score every method against the incremental conversions each channel truly causes in a simulation where exposure is targeted.
+Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway.
 :::
 
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 8](/modules/08-bayesian-mmm.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}

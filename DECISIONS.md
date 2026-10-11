@@ -33,6 +33,58 @@ Newest first within each section.
   badges, the mktstats install and the data all point at `repo.ref`. A new tag changes every
   notebook's `deps_sha`, so it needs a full Colab sweep of the core as well.
 
+### The extensions are judged and released apart from the core week (2026-10-10)
+- `days.d6` has `track: extensions`. Its modules keep the module format, the notebook contract
+  and the run records, but the readiness verdict, the README status line, the landing-page
+  counts and the notebooks table are the core workshop's (pre-work and Days 1–5); the
+  extensions get their own sentence, table and page (`extensions.qmd`), and the schedule lists
+  them without a timetable. Without this, five unwritten optional modules made the released
+  core read "16 of 23 … not yet ready" and "23 lab notebooks, 18 written so far".
+- `release_check.py` fails on the core and the readiness items by default and always reports
+  the extensions; `--extensions` (and `release.yml`'s `extensions` dispatch input) also requires
+  them, so the core can be released while extensions are built.
+- Notebook footers stay within a track: the capstone ends the core week and points to the
+  Extensions page. Footers are outside `content_sha`, so all 18 core records stayed current
+  (checked before and after). Extension module headers list their own `prerequisites`, not the
+  module before them by number.
+- Evidence: Quarto 1.10.19 render in the workshop image, 36 pages, no warnings; lychee 0.24.2
+  `--offline` as in `publish.yml`: 2,485 links, 0 errors (also with `--include-fragments`).
+
+### Module 16 writes its own attribution code; ChannelAttribution is not used (2026-10-10)
+- ChannelAttribution 2.2.5 (CRAN, published 2026-06-08) has first-, last- and linear-touch
+  heuristics and k-order Markov models with removal effects, and no Shapley function
+  (https://cran.r-project.org/web/packages/ChannelAttribution/refman/ChannelAttribution.html,
+  read 2026-10-10). Its PyPI release 2.2.5 is a source distribution only (Cython and C++), so it
+  would compile in the Colab install cell.
+- Learners write the heuristics, the first-order transition matrix, the removal effect and exact
+  Shapley values (32 coalitions for five channels), each checked on hand-worked examples; the
+  absorbing-chain solve is a provided cell (Pedagogy review: the counterfactual is the lesson,
+  the linear algebra is machinery). Checks live in `mktstats.attribution`.
+- `mktstats.synth.mta` (seed 2036, 100,000 users): exposure follows latent intent, retargeting
+  has no effect by construction, and each channel's true incremental conversions come from
+  re-running every user's outcome with that channel removed, using the same draws. A holdout
+  uses its own random stream, so the default data do not depend on it (tested).
+- The CSV stores one letter per touch (1.34 MB instead of 3.5 MB). The market stays at 100,000
+  users because the decision compares a holdout's MDE, which grows with the square root of the
+  market, with a spend-fixed break-even: at 60,000 users the decision's economics changed
+  (measured).
+- Result on the committed data (FULL, the notebook's printed output at the commit of the run
+  records): Markov and Shapley give retargeting 23.2% and 24.6% of the credit against no true
+  effect, and none of the 25 true shares lies inside its 95% bootstrap interval. Across eight
+  seeds, data-driven credit was no better than first-click or linear credit, so the lab claims
+  "not incrementality", not "worse than heuristics". The decision compares the holdout's MDE,
+  scaled to all users reached (about 250 conversions a month), with the break-even (278), not
+  with the credited conversions, which would be a weaker bar.
+
+### BLAS and OpenMP oversubscribe under a Docker CPU quota (2026-10-10, Module 16 build)
+- In the workshop image with `--cpus 2` on a 10-core Mac, OpenBLAS 0.3.27 starts 10 threads:
+  200 matrix-vector products (8,441 × 64) took 5.0 s, against 0.02 s with 1 or 2 threads. Module
+  16's bootstrap took 13.5 s in Docker against 1.2 s natively until it used `np.bincount`
+  (1.4 s). Docker `--cpus N` times of BLAS- or OpenMP-heavy cells can therefore overstate what a
+  machine with N real cores (Colab: 2) takes. Later extension builds run their Docker records
+  with `OMP_NUM_THREADS` and `OPENBLAS_NUM_THREADS` set to the quota and say so in the record.
+  Run records report `os.cpu_count()` (the host's cores), not the quota.
+
 ## Environment
 
 ### Python pins follow Colab's own package list (2026-10-09)
