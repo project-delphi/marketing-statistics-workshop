@@ -196,6 +196,6 @@ Nothing here may change a file the 18 core notebooks' run records hash.
 - [ ] M16 multi-touch attribution (heuristics, Markov removal effect, Shapley) scored against true incrementality — brief [AD] ✓, review [PE] ✓, build + macOS and Docker FULL runs [TE] ✓ (merged 5e49461), notebook review ✓, module page ✓, checkpoint-message fixes and re-recorded runs ✓ (38cc6c8); Colab needs a tag
 - [ ] M17 time-varying MMM and a Prophet baseline, scored against truth — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 68032d0); module page [AD] and notebook review [PE] in progress; Colab needs a tag
 - [ ] [PE] review of briefs and notebooks; teach.qmd and knowledge checks for the track
-- [ ] [AD] module pages from the recorded runs; references.qmd entries
+- [ ] [AD] module pages from the recorded runs (13, 14, 16 ✓; 15, 17 in progress); references.qmd entries ✓ (f7f4d2d)
 - [ ] [UI] browser check of the track's pages (desktop and phone width, both themes)
 - [ ] [Lead] new release tag + full Colab sweep (core and extensions) — needs the user's go-ahead
