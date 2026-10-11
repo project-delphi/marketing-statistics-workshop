@@ -43,7 +43,7 @@ environment:
 # Versions must agree with environment/requirements.txt (tests/test_variables.py).
 packages:
   pymc-marketing: {version: "1.2.0", checked: 2026-10-09, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer)", docs: https://www.pymc-marketing.io/}
-  econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
+  econml: {version: "0.17.0", checked: 2026-10-10, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py (Module 11); for Module 15 the installed source of econml/dml/dml.py (LinearDML.__init__ and fit, _FirstStageWrapper, sensitivity_interval, robustness_value), econml/_ortho_learner.py (cv: an iterable of splits is used as given), econml/_cate_estimator.py (ate, ate_interval, intercept__inference), econml/inference/_inference.py (StatsModelsInference cov_type='HC1' by default), econml/dml/_rlearner.py (nuisance_scores_y/_t), econml/dr/_drlearner.py (LinearDRLearner)", docs: https://www.pywhy.org/EconML/}
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
   # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
   lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05); imports on Python 3.13", docs: https://lifelines.readthedocs.io/}
@@ -665,10 +665,10 @@ modules:
     recap: "Modules 6, 7 and 11 estimate effects of things the company randomized or switched on; installing an app, joining a loyalty program or finishing onboarding (Module 14) are chosen by customers, and the customers who choose them differ from those who do not."
     next: "Module 16 looks at another observational claim made every day: the credit multi-touch attribution gives each channel."
     notebooks:
-      - {path: labs/python/15-double-ml.ipynb, source: labs/src/15-double-ml.py, kernel: python3, install: [econml, lightgbm, scikit-learn, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py]
+      - {path: labs/python/15-double-ml.ipynb, source: labs/src/15-double-ml.py, kernel: python3, install: [econml, scikit-learn, statsmodels, matplotlib]}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/dml.py, src/mktstats/synth/_common.py, src/mktstats/synth/app_install.py, data/synthetic/app_install_customers.csv, data/synthetic/truth_app_install.json]
     data:
-      - {name: "Synthetic app-install customers (20,000 customers, observational, known effects; app_install_customers.csv and truth_app_install.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md"}
+      - {name: "Synthetic app-install customers: 20,000 customers who chose whether to install the retailer's app, with each customer's true propensity and true effect (app_install_customers.csv from mktstats.synth.app_install, seed 2035; truth in truth_app_install.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
       - {name: "Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)", url: "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv", sha256: 0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece}
   m16:
     slug: 16-multi-touch-attribution

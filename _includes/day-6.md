@@ -49,7 +49,7 @@ Estimate how much installing the app, which customers chose for themselves, chan
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/15-double-ml.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/15-double-ml.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/15-double-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
