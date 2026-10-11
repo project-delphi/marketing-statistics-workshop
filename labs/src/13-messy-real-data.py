@@ -24,10 +24,11 @@
 # Module 1 cleaned UCI Online Retail II with three rules (drop lines without a customer ID, drop
 # invoices that start with `C`, drop `quantity <= 0` or `price <= 0`) and checked them only by row
 # counts. This lab builds a cleaning pipeline you can prove right, measures what each cleaning
-# choice does to the BG/NBD and Gamma-Gamma models of Modules 2 and 4, and then runs the same
-# pipeline on the real log to choose whom to contact.
+# choice does to the models of Modules 2 and 4 (the **BG/NBD**: how often each customer buys and
+# the chance they have stopped; the **Gamma-Gamma**: how much they spend per purchase), and then
+# runs the same pipeline on the real log to choose whom to contact.
 #
-# Three terms used throughout. A **line** is one row of the log: one product on one invoice. An
+# Four terms used throughout. A **line** is one row of the log: one product on one invoice. An
 # **invoice** is one order, usually several lines. A **purchase day** is all of a customer's
 # invoices on one calendar day, merged into one purchase, as in Module 1. A **cancellation line**
 # is a line on an invoice whose number starts with `C`; its quantity is negative.
@@ -105,9 +106,14 @@ pd.concat([lines.loc[lines["stock_code"] == "POST"].head(1), lines.loc[is_c].hea
 # `duplicate`. A line can carry more than one flag. Two DuckDB tools:
 #
 # - `regexp_matches(text, pattern)` is true when the pattern matches part of the text; the
-#   pattern `'^[0-9]{5}'` means five digits at the start;
+#   pattern `'^[0-9]{5}'` means five digits at the start. `non_product` is true when the code
+#   does **not** match;
 # - `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY line_id)` numbers the rows of each group, as in
 #   Module 1.
+#
+# **Watch the braces.** The query is a Python f-string (that is how `{table}` gets filled in), so
+# a brace meant for SQL must be doubled: type the pattern as `'^[0-9]{{5}}'`. Typed with single
+# braces, Python turns `{5}` into `5` and the pattern silently changes.
 #
 # The eight original columns are `invoice, stock_code, description, quantity, invoice_date,
 # price, customer_id, country`. Delete the `raise` line when your query is complete. The
@@ -224,8 +230,9 @@ with workshop.checkpoint(1):
         )
 
 # %% [markdown]
-# Look at the last line printed: that is your Predict answer. Then find the customer's two
-# non-product lines in the table.
+# The line that starts "Your two new rules flag" is your Predict answer. Then look at the
+# customer printed last: find their non-product lines (codes that do not start with five digits)
+# and note which invoice each one sits on.
 
 # %%
 flags = flag_lines(con)
@@ -328,6 +335,11 @@ con.sql("""
 # `invoice_date` picks the latest earlier purchase. The stub holds the two inputs: `c`, the
 # cancellation lines, and `p`, the purchase lines. Delete the `raise` line when your query is
 # complete.
+#
+# Write every part of the rule: four equalities and one inequality. On the messy log a few
+# missing conditions change nothing, so the checkpoint cannot catch them all; Part D's counts on
+# the real log will. Stuck after about ten minutes? Run `workshop.use_reference(2)`, go on, and
+# come back to this after the Decision.
 
 # %% tags=["exercise"]
 def match_cancellations(con, table="kept"):
@@ -439,7 +451,8 @@ with workshop.checkpoint(2):
 # %% [markdown]
 # ### Run · The pipeline
 #
-# The **pipeline** is the ordered list of cleaning rules; a **variant** is the pipeline with one
+# The **pipeline** is the ordered list of cleaning rules; the **reference pipeline** applies all
+# of them (yours from Exercises 1 and 2, then Module 1's); a **variant** is the pipeline with one
 # rule changed. The next cell defines three functions that Parts B, C and D reuse; read their
 # docstrings (the code is there if you want it). `purchases` drops what your flags and matches
 # say, then applies Module 1's rules, and adds up `quantity * price` per customer and purchase
@@ -514,6 +527,13 @@ print(f"{len(matches):,} cancellation lines matched to {matches['original_id'].n
 # %% [markdown]
 # ### Run · Part A: the clean answer
 #
+# The models are fitted on the **calibration period**, the purchases up to the calibration end
+# (2024-12-29 for the messy log); the year after it is the **holdout**, kept back to check the
+# forecasts. The **RFM table** has one row per customer, as in Modules 1, 2 and 4: `frequency`
+# (repeat purchase days), `recency` (weeks from the first to the last purchase day), `T` (weeks
+# from the first purchase day to the calibration end) and `monetary_value` (mean amount over the
+# repeat purchase days).
+#
 # Your pipeline turns the kept lines into purchase days. If the rules are right, the calibration
 # RFM table equals that of the clean log (the retailer's transactions for customers 1 to 2,500,
 # plus the wholesale buyers' transactions stored in the truth) for every customer, to 1e-9.
@@ -580,10 +600,10 @@ print(f"{straddle.sum():,} matched purchases fall in the calibration period and 
       f" cancellations after it (after {CAL_END}).")
 
 # %% [markdown]
-# **Explain** (Exercise 2). Compare with your guess: the two lines above are the answer. Then look
-# at the matched pairs that straddle the calibration end. If you had split the log at the
-# calibration end first and matched cancellations within each part, what would have happened to
-# those purchases?
+# **Explain** (Exercise 2). Compare with your guess: the two lines that start "Module 1's
+# cancellation rule" and "your pipeline" are the answer. Then look at the last line: matched
+# pairs that straddle the calibration end. If you had split the log at the calibration end first
+# and matched cancellations within each part, what would have happened to those purchases?
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -607,9 +627,10 @@ print(f"{straddle.sum():,} matched purchases fall in the calibration period and 
 #
 # From here on, the lab fits the BG/NBD and the Gamma-Gamma many times: once for each way of
 # cleaning the log. Each fit is a **maximum-likelihood fit**: the parameter values that make the
-# observed RFM table most likely. You have met it: in Modules 2 and 4, PyMC-Marketing's MAP with
-# flat priors gave exactly these values and reproduced Fader, Hardie & Lee's published CDNOW
-# estimates. `mktstats.mle` maximizes the same two likelihoods (written with NumPy from the
+# observed RFM table most likely. You have met it: in Modules 2 and 4, PyMC-Marketing's MAP (the
+# single most probable parameter values under the posterior) with flat priors gave exactly these
+# values and reproduced Fader, Hardie & Lee's published CDNOW estimates.
+# `mktstats.mle` maximizes the same two likelihoods (written with NumPy from the
 # formulas in PyMC-Marketing's source) with SciPy's optimizer. It builds no PyMC model, so there is
 # nothing to compile; the next cell times both. Like MAP, it gives one number per parameter and no
 # interval: every comparison in Parts B to D is between point estimates. As in Module 4, the
@@ -680,7 +701,11 @@ with workshop.checkpoint(label="helper = PyMC-Marketing"):
 # ### Run · One rule at a time
 #
 # Look at which table moves more: the purchase model or the spend model. The reference row
-# shows values; the other rows show the change from it in percent.
+# shows values; the other rows show the change from it in percent. The columns, as in Modules 2
+# and 4: r and α (`alpha`) describe how purchase rates vary across customers, a and b the chance
+# of dropping out after a purchase; p is the shape of each customer's spend per purchase, q and v
+# describe how customers' average spend varies, and the **population mean spend** is
+# p v / (q − 1), the average spend per purchase day across customers.
 
 # %%
 VARIANTS = {
@@ -740,6 +765,9 @@ print(f"\nCounting lines as purchases (not fitted): mean frequency {line_rfm['fr
 # - `total_change_pct` = 100 × (sum of the variant ÷ sum of the reference − 1);
 # - `customers_moved` = the number of customers whose score changed by more than `threshold`
 #   in either direction: |variant ÷ reference − 1| > `threshold`.
+#
+# Tip: `scores.div(scores[reference], axis=0)` divides every column by the reference column,
+# customer by customer, and `.sum()` on a table of True/False counts the Trues in each column.
 
 # %% tags=["exercise"]
 def variant_effects(scores, reference="reference", threshold=0.10):
@@ -827,7 +855,12 @@ with workshop.checkpoint(label="sweep: the reference row"):
 
 # %% [markdown]
 # Look at the `customers_moved` column next to `total_change_pct`: compare them with your two
-# guesses. `largest_change_pct` is the largest single customer's change.
+# guesses. `largest_change_pct` is the largest single customer's change, in percent. In the two
+# rows that keep non-product lines it runs to tens of millions of percent. That is not a bug: it
+# is one customer who bought often early in the calibration period and then went quiet for
+# months, so the reference gives them a score of almost nothing, and whom one manual-adjustment
+# (`M`) invoice near the calibration end makes look active again. A percent change from almost
+# nothing is enormous; read this column as "one customer moved a lot", never as a size.
 
 # %%
 effects = variant_effects(scores)
@@ -890,8 +923,9 @@ largest
 # percentile of the calibration purchase-day amounts: all customers, first purchases included,
 # days on or before `cal_end`) and `p`, `q`, `v` from `mle.gamma_gamma_mle` fitted on the
 # calibration RFM of `tx` with every amount clipped at `cap` (`calibration_rfm`, then repeat
-# buyers only). Hint: `pct` is in percent, and pandas' `Series.quantile` takes a fraction:
-# `quantile(0.99)` of 1, 2, ..., 100 is 99.01 (linear interpolation, the default).
+# buyers only). Two hints: `pct` is in percent, and pandas' `Series.quantile` takes a fraction:
+# `quantile(0.99)` of 1, 2, ..., 100 is 99.01 (linear interpolation, the default). Clip with
+# `Series.clip(upper=cap)` and name the argument: `clip(cap)` sets a floor, not a cap.
 
 # %% tags=["exercise"]
 def capped_spend_fit(tx, pct, cal_end):
@@ -964,8 +998,11 @@ with workshop.checkpoint(4):
                      name=f"{param} at pct=100 against the reference spend fit (nothing capped)")
 
 # %% [markdown]
-# Look at where each row lands against the truth (p 6, q 4, v 15, mean $30), then at the
-# wholesale customers' value three ways.
+# Look at where each row lands against the truth (p 6, q 4, v 15, mean $30). The **oracle** row
+# drops the 13 wholesale customers using the truth's labels, which a real analyst would not have:
+# it shows what a perfect fix would give. Then look at the wholesale customers' value three ways:
+# no cap; parameters fitted on capped amounts but each customer valued on their own uncapped
+# mean ("raw means"); and capped amounts used for the valuation too.
 
 # %%
 true_ww = truth["wholesale"]["true_expected_revenue_52w"]
@@ -995,7 +1032,9 @@ for label, spend in ways.items():
 
 # %% [markdown]
 # **Explain.** Compare with your guesses. Which of the three would you use to value customers, and
-# why does the cap belong in the fit but not in the valuation?
+# why does the cap belong in the fit but not in the valuation? Point to the P99 row of the first
+# table (against the oracle row, on p, q and v, not only the mean) and to the three wholesale
+# lines.
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -1003,23 +1042,28 @@ for label, spend in ways.items():
 # holdout leaks in; clipping the purchase-day amounts before the RFM table caps each purchase, not
 # each customer's mean. A cap stops a few huge purchases from dictating the shape of the spend
 # distribution, which is why P99 lands near the oracle that drops the wholesale buyers using the
-# truth; capping deeper (95th percentile) also trims ordinary large retail orders and biases the
-# parameters the other way. The Gamma-Gamma shrinks each customer's mean toward the population
-# mean, and most wholesale customers have few repeat purchases, so even uncapped they are
-# undervalued. **Cap for fitting, not for valuation:** with P99-fitted parameters and their raw
-# means the wholesale customers lose little; with capped amounts they lose most of their value. A
-# segment of their own is the real fix (stretch).
+# truth; capping deeper (95th percentile) also trims ordinary large retail orders and biases p, q
+# and v the other way (its population mean lands near $30 only because those shifts offset). The
+# Gamma-Gamma shrinks each customer's mean toward the population mean, and most wholesale
+# customers have few repeat purchases, so even uncapped they are undervalued. **Cap for fitting,
+# not for valuation:** with P99-fitted parameters and their raw means the wholesale customers are
+# valued about as well as with no cap, while everyone else gets parameters close to the oracle's;
+# with capped amounts the wholesale customers lose most of their value. A segment of their own is
+# the real fix (stretch).
 # </details>
 
 # %% [markdown]
 # # Part D · Online Retail II
+#
+# Part D opens with three provided cells, D1 to D3. Reading them takes about four minutes (an
+# estimate), counted in Exercise 5's 8 minutes.
 #
 # ### Run · D1 · Your pipeline on the real log
 #
 # The next cell loads Online Retail II. The first time, it downloads a 7 MB copy and checks its
 # SHA-256 hash (seconds); if that copy cannot be reached, it downloads the 45 MB original from UCI
 # and converts it, which takes minutes. While it loads, read D2's text below. Then compare the
-# two logs' first rows: same columns, same kinds of mess. The cell runs your `flag_lines` and
+# two logs' first rows: the same eight columns. The cell runs your `flag_lines` and
 # `match_cancellations` and the pipeline unchanged.
 
 # %%
@@ -1051,6 +1095,10 @@ print(f"{len(retail_tx):,} purchase days of {retail_tx['customer_id'].nunique():
 # same purchase (the number printed above); one-to-one pairing is left as an approximation. When
 # the lab was built, pairing them one to one matched 39 more purchase lines (£4,955) and changed
 # one customer's place on the contact list of the Decision (measured 2026-10-10).
+#
+# The next check compares your counts with the reference. If it fails, run the
+# `workshop.use_reference(...)` its message names, then rerun D1 (the cell above, which computes
+# the counts) before rerunning the check.
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(label="Online Retail II counts"):
@@ -1161,7 +1209,8 @@ print(f"Repeat buyers ({len(repeat):,}): frequency and monetary value, Pearson"
 # %% [markdown]
 # ### Run · D3 · One customer, two pipelines
 #
-# Look at how much of this customer's value comes from lines your pipeline removes.
+# Look at how much of this customer's value comes from lines your pipeline removes. The
+# "dropped by" column names the rule that removes each line; a blank means the line is kept.
 
 # %%
 HORIZON = 26  # weeks: the contact decision looks half a year ahead
@@ -1296,7 +1345,9 @@ print(listed.nsmallest(10, "gain")[show].round(2).to_string(index=False))
 
 # %% [markdown]
 # **Explain.** Compare with your guesses. Which customers clear the bar: frequent, recent buyers or
-# big one-time spenders? Point to the rows above.
+# big one-time spenders? Point to the rows above, and find the customers with frequency 0 in the
+# second table: their `exp_spend` is a number D2 printed. Which one, and why does every customer
+# with no repeat purchase get it?
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -1374,15 +1425,17 @@ moved
 # **Recommendation.** Write one sentence a manager could act on: how many customers to contact and
 # what it costs; how sure you are, which here means how much the list depends on the assumed lift
 # compared with the cleaning choices (no cleaning choice above moves as many customers as halving
-# or doubling the lift); and what would change it: a measured lift, for example from a randomized
-# holdout of the list (Module 6). Cleaning still decides *who* is on the list: look again at
-# customer 12346 under Module 1's rules.
+# or doubling the lift); and what would change it: a measured lift, for example from contacting a
+# random part of the list and holding the rest back as a control group (Module 6; not the
+# time-period holdout of Parts B and D). Cleaning still decides *who* is on the list: look again
+# at customer 12346 under Module 1's rules.
 #
 # ```text
 # Number          : (printed above)
 # Rule            : contact when 10% lift x 30% margin x expected 26-week revenue > £10.
 # Cleaning        : (printed above)
-# What would change it: the lift. A randomized holdout from the list (Module 6) would measure it.
+# What would change it: the lift. A randomized control group held back from the list
+#                   (Module 6) would measure it.
 # Your sentence   : ________________________________________________
 # ```
 
