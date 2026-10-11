@@ -10,6 +10,7 @@ record, and the HTML classes the generated includes use. Change a contract here 
 |---|---|---|
 | A module's title, timing, objectives, decision | `_variables.yml` | `python scripts/gen_tables.py` |
 | A lab | `labs/src/NN-slug.py` or `.R` | `python scripts/gen_notebooks.py` |
+| Whether `repo.ref` contains a notebook (Colab link or "Colab after the next release") | `_variables.yml` `in_ref: false` on its notebook entry | `python scripts/gen_notebooks.py`, `python scripts/gen_tables.py` |
 | Notebook header, install, harness, record or footer cells | `scripts/gen_notebooks.py`, `src/mktstats/harness.py`, `R/mktstats.R` | `python scripts/gen_notebooks.py` |
 | Synthetic data or its truth | `src/mktstats/synth/` | `python scripts/make_synthetic.py` |
 | Package pins | `environment/requirements.in`, `_variables.yml` `packages` | `uv pip compile …` (see the file), `python scripts/gen_tables.py` |
@@ -22,8 +23,9 @@ from them and from `_variables.yml`; never edit the `.ipynb` files. Cells are ma
 generator adds the Colab/Jupyter metadata (`cellView: form`, `jupyter.source_hidden`) and the kernelspec
 (`python3` or `ir`).
 
-The generator writes five cells around the source: **header** (title, Colab badge at `repo.ref`, day,
-minutes, goals, stack), **install** (runtime detection and pinned installs), **harness**
+The generator writes five cells around the source: **header** (title; Colab badge at `repo.ref`,
+or for a notebook declared `in_ref: false` a note that it runs on Colab after the next release;
+day, minutes, goals, stack), **install** (runtime detection and pinned installs), **harness**
 (`WORKED_EXAMPLE`, `QUICK`, the `workshop` object), **record** (summary + run record) and **footer**
 (next lab, site, licences). A source file contains everything between the harness and the record.
 
@@ -94,7 +96,37 @@ step table adds up both against the slot.
 Each notebook entry in `_variables.yml` has `install:`, the packages its install cell makes
 sure of (Python: versions from `packages`, else `environment/requirements.txt`; R: CRAN
 packages from the P3M snapshot and `github_packages` from their pinned archives). A notebook's
-id in run records is its path under `labs/` without `.ipynb`: `python/00-setup-warmup`.
+id in run records is its path under `labs/` without `.ipynb`: `python/00-setup-warmup`. An
+entry may also say `in_ref: false`: see the next section.
+
+### Notebooks a release does not contain yet
+
+Colab links, the install cell's `mktstats` install and constraints file, and the data downloads
+all use `repo.ref`, a release tag. A notebook added after that tag is not in it, so a Colab link
+to it at `repo.ref` answers 404. Its `modules.*.notebooks` entry then says `in_ref: false`:
+
+```yaml
+- {path: labs/python/13-messy-real-data.ipynb, source: labs/src/13-messy-real-data.py, kernel: python3, install: [...], in_ref: false}
+```
+
+- **What it changes.** Everywhere a Colab link would be (module header, lab block, day card,
+  notebooks table, run sheet) the pages show a "Colab after the next release" chip linking to
+  `setup.qmd#local`; the notebook's header cell says the same instead of the badge; the footer
+  of the notebook before it links to its module page. The header and footer are outside
+  `content_sha` and the flag is not in `deps_sha`, so adding or removing it stales no run
+  record. `release_check.py` lists a flagged notebook as a blocker (core always, extensions
+  with `--extensions`).
+- **Why a flag and not a git lookup.** The generators and their `--check` runs must give the same
+  output on every checkout, and most CI jobs check out without tags. `tests/test_colab_ref.py`
+  compares the flag with git (`git ls-tree <ref> -- <path>`) in both directions wherever
+  `repo.ref` resolves (locally, and in `publish.yml`, which checks out with `fetch-depth: 0`),
+  and skips elsewhere. Only `false` is ever written.
+- **When a release is cut.** In the commit that moves `repo.ref` to the new tag (the commit the
+  tag is cut on), remove `in_ref: false` from every notebook that commit contains, run
+  `scripts/gen_notebooks.py` and `scripts/gen_tables.py`, check with `scripts/release_check.py`,
+  then cut the tag. Moving `repo.ref` changes every notebook's `deps_sha`, so a full Colab sweep
+  follows (DECISIONS.md). A notebook declared later, after the tag, gets the flag in the same
+  commit that declares it; the cross-check test fails until it does.
 
 ### One exercise, R
 
