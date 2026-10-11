@@ -97,3 +97,43 @@ def test_list_matrix_gives_ids_and_artifact_safe_slugs(capsys):
 def test_learner_and_verify_flags_are_separate_runs():
     with pytest.raises(SystemExit):
         tn.main(["--learner", "--verify-checkpoints", "--notebooks", "python/00-setup-warmup"])
+
+
+def test_the_learner_verdict_passes_labeled_checks_before_checkpoint_1():
+    """A labeled check of provided code (Module 15's `data` check) comes before checkpoint 1
+    and passes on an unwritten notebook: the run must still stop at checkpoint 1."""
+    data = code('with workshop.checkpoint(label="data"):\n    check()', ["checkpoint"])
+    data.outputs = [stream("[workshop] Checkpoint data passed.")]
+    checkpoint = code("with workshop.checkpoint(1):\n    f()", ["checkpoint"])
+    checkpoint.outputs = [
+        stream("[workshop] Checkpoint 1: TODO 1 is not written yet."),
+        error_output(),
+    ]
+    ok, why = tn.learner_verdict(notebook([data, checkpoint]), "python3")
+    assert ok, why
+    checkpoint.outputs = []
+    data.outputs = [error_output()]
+    ok, why = tn.learner_verdict(notebook([data, checkpoint]), "python3")
+    assert not ok and "not at checkpoint 1" in why
+
+
+def test_a_note_goes_into_every_new_entry():
+    r = {
+        "entry": {"id": "python/00-setup-warmup"},
+        "kernel": "python3",
+        "mode": "worked",
+        "ok": True,
+        "verdict": "ran to the end",
+        "seconds": 1.0,
+        "verified": 1,
+        "content_sha": "0" * 16,
+        "deps_sha": "0" * 16,
+        "record": None,
+        "phases": {},
+        "slowest_cell": None,
+        "settings": {},
+    }
+    assert tn.entry_of(r, "macos-arm64", V, "OMP_NUM_THREADS=2")["note"] == "OMP_NUM_THREADS=2"
+    assert "note" not in tn.entry_of(r, "macos-arm64", V)
+    failed = {**r, "ok": False, "verdict": "stopped with an error"}
+    assert tn.entry_of(failed, "macos-arm64", V, "x")["note"] == "stopped with an error. x"
