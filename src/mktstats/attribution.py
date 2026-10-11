@@ -21,7 +21,7 @@ from __future__ import annotations
 import itertools
 import math
 from collections import Counter
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
@@ -93,8 +93,10 @@ def removal_effects(P: pd.DataFrame, channels: list[str]) -> pd.Series:
     return pd.Series(out, dtype=float)
 
 
-def markov_credit(removal: pd.Series, conversions: float) -> pd.Series:
-    """Y * RE_c / sum_k RE_k (the lab's normalization: removal effects add up to more than 1)."""
+def markov_credit(removal: pd.Series | dict, conversions: float) -> pd.Series:
+    """Y * RE_c / sum_k RE_k (the lab's normalization: removal effects add up to more than 1).
+    Accepts a dict {channel: RE_c} as well, since Checkpoint 3 accepts one."""
+    removal = pd.Series(removal, dtype=float)
     return conversions * removal / removal.sum()
 
 
@@ -463,11 +465,32 @@ def check_chain(prob_fn: Callable, P_tiny: pd.DataFrame, P: pd.DataFrame,
     return p
 
 
+def _call_removal(fn: Callable, P: pd.DataFrame, channels: list[str], call: str):
+    """Call the learner's removal_effects, turning the two errors a wrong removal raises
+    into recovery messages."""
+    try:
+        return fn(P, channels)
+    except np.linalg.LinAlgError as exc:
+        raise AssertionError(
+            f"Checkpoint 3: {call} raised LinAlgError: {exc}. The chain has no solution when the"
+            " removed channel loops to itself (`P.loc[c, c] = 1`): a journey that reaches c never"
+            " leaves it, so I - Q has a row of zeros. Send its transitions to null instead: set"
+            " row c to 0, then `P.loc[c, 'null'] = 1`." + _recover(3)) from None
+    except ZeroDivisionError as exc:
+        raise AssertionError(
+            f"Checkpoint 3: {call} raised ZeroDivisionError: {exc}. In TINY, removing B loses"
+            " every conversion, so p_-B = 0, while p = 3/5. Dividing by zero usually means p was"
+            " computed from the removed copy inside the loop (then p is p_-c). Compute p once,"
+            " from the unchanged P, before the loop, and divide by it: RE = 1 - p_-c / p."
+            + _recover(3)) from None
+
+
 def check_removal_effects(fn: Callable, P: pd.DataFrame, channels: list[str]) -> pd.Series:
     """Exercise 3: TINY by hand (and P unchanged), then the journeys against the reference."""
     P_tiny = transition_matrix(TINY, TINY_CHANNELS)
     before = P_tiny.copy()
-    got = _as_series(fn(P_tiny, TINY_CHANNELS), "removal_effects(P_tiny, ['A', 'B'])", 3)
+    call = "removal_effects(P_tiny, ['A', 'B'])"
+    got = _as_series(_call_removal(fn, P_tiny, TINY_CHANNELS, call), call, 3)
     if not P_tiny.equals(before):
         raise AssertionError(
             "Checkpoint 3: removal_effects changed the matrix P it was given. Then each channel"
@@ -524,15 +547,21 @@ def check_markov_credit(credit_tiny: pd.Series) -> None:
 
 
 class _Game:
-    """A strict value function: takes a frozenset, looks it up in a table."""
+    """A strict value function: takes a frozenset, looks it up in a table. ``rejected`` keeps
+    the first argument it refused, so a check can tell v's errors from the caller's own."""
 
     def __init__(self, table: dict[frozenset, float]):
         self.table = table
+        self.rejected = None
 
     def __call__(self, S):
+        if isinstance(S, frozenset) and S in self.table:
+            return self.table[S]
+        if self.rejected is None:
+            self.rejected = S
         if not isinstance(S, frozenset):
             raise TypeError(f"v takes a frozenset, not a {type(S).__name__}")
-        return self.table[S]
+        raise KeyError(S)
 
 
 def random_game(players: list[str], seed: int) -> dict[frozenset, float]:
@@ -557,13 +586,29 @@ def check_shapley_values(fn: Callable, seed: int) -> dict[str, float]:
     """Exercise 4: two hand examples, then efficiency, brute force and symmetry on a random
     five-player game. Returns the five-player values."""
     def call(players, table):
+        game = _Game(table)
         try:
-            return {k: float(x) for k, x in dict(fn(players, _Game(table))).items()}
+            out = fn(players, game)
         except (KeyError, TypeError) as exc:
+            if game.rejected is None:  # not v's error: let the learner's own traceback show
+                raise
             raise AssertionError(
                 f"Checkpoint 4: calling v inside shapley_values raised {type(exc).__name__}: {exc}."
                 " v takes a frozenset of players (a coalition); a list, tuple or set fails. Call"
                 " `v(frozenset(T) | {c})` and `v(frozenset(T))`." + _recover(4)) from None
+        if not isinstance(out, Mapping):
+            raise AssertionError(
+                f"Checkpoint 4: shapley_values({players}, v) returned a {type(out).__name__}, not a"
+                " dict. The cells after this checkpoint use the result as a dict (`phi[c]` and"
+                " `phi.values()`), so return a dict {player: value}: `values[c] = total` for each"
+                " player c, then `return values`." + _recover(4))
+        try:
+            return {k: float(x) for k, x in out.items()}
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(
+                f"Checkpoint 4: shapley_values({players}, v) returned a dict whose values are not"
+                f" all numbers ({type(exc).__name__}: {exc}). Return a dict {{player: value}} with"
+                " one number per player." + _recover(4)) from None
 
     three = call(["A", "B", "C"], THREE_PLAYER_GAME)
     if abs(three.get("C", np.nan)) > 1e-12:

@@ -299,17 +299,15 @@ def entry_of(r: dict, env: str, v: dict, note: str | None = None) -> dict:
     ):
         if rec.get(field) is not None:
             entry[field] = rec[field]
-    notes = [note] if note else []
-    if not r["ok"]:
-        notes.insert(0, r["verdict"])
+    notes = [n for n in (None if r["ok"] else r["verdict"], note) if n]
     if notes:
-        entry["note"] = ". ".join(notes)
+        entry["note"] = "; ".join(notes)
     return entry
 
 
 def write_record(path: Path, env: str, results: list[dict], v: dict,
                  note: str | None = None) -> Path:
-    """Write (or extend) one run-record batch file; ``note`` goes into every new entry."""
+    """Write (or extend) one run-record batch file."""
     new = [entry_of(r, env, v, note) for r in results]
     old = []
     if path.exists():
@@ -356,9 +354,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--save", type=Path, help="write executed notebooks here")
     parser.add_argument("--record", type=Path, help="write a run-record batch to this file")
     parser.add_argument("--env", help="a key of readiness.envs (with --record)")
-    parser.add_argument(
-        "--note", help="free text for the record's note field (with --record), e.g. the threads"
-    )
+    parser.add_argument("--note", help="a note for every entry the --record batch gets, e.g. the"
+                        " docker run's CPU and thread settings (runs/README.md: `note`)")
     parser.add_argument("--timeout", type=int, default=TIMEOUT, help="seconds per cell")
     parser.add_argument("--list-matrix", action="store_true", help="print notebooks as JSON")
     args = parser.parse_args(argv)

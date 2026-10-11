@@ -117,23 +117,22 @@ def test_the_learner_verdict_passes_labeled_checks_before_checkpoint_1():
     assert not ok and "not at checkpoint 1" in why
 
 
-def test_a_note_goes_into_every_new_entry():
-    r = {
-        "entry": {"id": "python/00-setup-warmup"},
-        "kernel": "python3",
-        "mode": "worked",
-        "ok": True,
-        "verdict": "ran to the end",
-        "seconds": 1.0,
-        "verified": 1,
-        "content_sha": "0" * 16,
-        "deps_sha": "0" * 16,
-        "record": None,
-        "phases": {},
-        "slowest_cell": None,
-        "settings": {},
-    }
-    assert tn.entry_of(r, "macos-arm64", V, "OMP_NUM_THREADS=2")["note"] == "OMP_NUM_THREADS=2"
-    assert "note" not in tn.entry_of(r, "macos-arm64", V)
-    failed = {**r, "ok": False, "verdict": "stopped with an error"}
-    assert tn.entry_of(failed, "macos-arm64", V, "x")["note"] == "stopped with an error. x"
+
+def _result(ok=True):
+    entry = next(e for e in common.existing_notebooks(V) if e["kernel"] == "python3")
+    return {"record": {}, "mode": "worked", "kernel": "python3", "settings": {}, "ok": ok,
+            "verdict": "ran to the end" if ok else "stopped in cell 3", "content_sha": "0" * 16,
+            "deps_sha": "0" * 16, "entry": entry, "seconds": 1.0, "phases": {},
+            "slowest_cell": None, "verified": 0}
+
+
+def test_record_note_goes_on_every_entry_and_keeps_a_failure_verdict():
+    """--note (e.g. a docker run's CPU and thread settings) is written by the runner, so no
+    record needs editing by hand."""
+    assert "note" not in tn.entry_of(_result(), "docker-arm64", V)
+    assert tn.entry_of(_result(), "docker-arm64", V, "OMP_NUM_THREADS=2")["note"] == (
+        "OMP_NUM_THREADS=2")
+    failed = tn.entry_of(_result(ok=False), "docker-arm64", V, "OMP_NUM_THREADS=2")
+    assert failed["note"] == "stopped in cell 3; OMP_NUM_THREADS=2"
+    with pytest.raises(SystemExit):
+        tn.main(["--notebooks", "python/00-setup-warmup", "--note", "x"])
