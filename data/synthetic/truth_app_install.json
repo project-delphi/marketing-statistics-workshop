@@ -1,0 +1,312 @@
+{
+  "about": "True parameters of the app_install extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "app_install_customers.csv"
+  ],
+  "seed": 2035,
+  "n": 20000,
+  "description": "The retailer launched a shopping app and announced it by e-mail and on the checkout page during 4 launch weeks. Customers who open e-mails, shop on their phones or had bought recently were more likely to install it, and loyal, frequent, recent customers also spend most in the next 26 weeks: installers would have spent more without the app. Each customer has a true propensity to install e(x), a true expected spend without the app mu0(x) and a true effect of the app tau(x) = 8 + 0.12 mu0(x) dollars over 26 weeks. Every common cause of install and spend is among the nine covariates in the file (channel as two indicators), so the assumption of no unobserved confounding holds given all of them; drop one that enters both (mobile_share, for example) and it fails.",
+  "columns": [
+    "customer_id",
+    "acquisition_channel",
+    "tenure_months",
+    "orders_12m",
+    "days_since_last_order",
+    "avg_order_value",
+    "email_open_rate",
+    "mobile_share",
+    "loyalty_member",
+    "app_installed",
+    "spend_next_26w",
+    "true_propensity",
+    "true_effect",
+    "true_baseline"
+  ],
+  "covariates": [
+    "tenure_months",
+    "orders_12m",
+    "days_since_last_order",
+    "avg_order_value",
+    "email_open_rate",
+    "mobile_share",
+    "loyalty_member",
+    "channel_social",
+    "channel_referral"
+  ],
+  "truth_columns": [
+    "true_propensity",
+    "true_effect",
+    "true_baseline"
+  ],
+  "parameters": {
+    "t0": -4.2,
+    "t_recent": 3.0,
+    "t_orders": 0.5,
+    "t_mobile": 2.4,
+    "t_email": 1.2,
+    "t_loyal": 0.5,
+    "t_social": 0.4,
+    "t_referral": -0.2,
+    "recent_days": 30.0,
+    "r_scale": 0.3,
+    "r_base": 0.3,
+    "r_recent": 1.6,
+    "r_loyal": 0.2,
+    "m_base": 0.5,
+    "m_mobile": 1.0,
+    "tau0": 8.0,
+    "tau_slope": 0.12,
+    "spend_shape": 3.0
+  },
+  "formulas": {
+    "a": "a ~ Normal(0, 1), latent activity, not saved; never enters T or Y",
+    "acquisition_channel": "Categorical(search 0.45, social 0.35, referral 0.20)",
+    "tenure_months": "clip(round(3 + Gamma(shape 2, scale 12)), 3, 96)",
+    "orders_12m": "1 + Poisson(exp(0.55 + 0.6 a + 0.15 [referral]))",
+    "days_since_last_order": "clip(round(365 Beta(1, 1 + 0.6 orders_12m)), 1, 365)",
+    "avg_order_value": "round(exp(Normal(log 55 + 0.15 [referral] + 0.1 a, sd 0.45)), 2)",
+    "email_open_rate": "round(Beta(6 mu, 6 (1 - mu)), 3), mu = expit(-0.8 + 0.5 a)",
+    "mobile_share": "round(Beta(4 mu, 4 (1 - mu)), 3), mu = expit(-0.3 + 0.9 [social] + 0.2 [search] - 0.01 (tenure_months - 24))",
+    "loyalty_member": "Bernoulli(expit(-1.3 + 0.7 a + 0.015 tenure_months))",
+    "r30": "exp(-days_since_last_order / recent_days)",
+    "eta": "t0 + t_recent r30 + t_orders log(1 + orders_12m) + t_mobile mobile_share + t_email email_open_rate + t_loyal loyalty_member + t_social [social] + t_referral [referral]",
+    "true_propensity": "e(x) = expit(eta)",
+    "app_installed": "T = 1[U < e(x)], U ~ Uniform(0, 1)",
+    "r26": "r_scale orders_12m (r_base + r_recent r30) (1 + r_loyal loyalty_member)",
+    "true_baseline": "mu0(x) = r26 avg_order_value (m_base + m_mobile mobile_share)",
+    "true_effect": "tau(x) = tau0 + tau_slope mu0(x), dollars over 26 weeks",
+    "spend_next_26w": "with probability p = 1 - exp(-r26): Gamma(shape spend_shape, mean (mu0 + T tau) / p), rounded to cents; otherwise 0. E[Y | X, T] = mu0(X) + T tau(X)"
+  },
+  "estimands": {
+    "ate": {
+      "value": 13.582,
+      "definition": "mean of true_effect over all n customers (average treatment effect)"
+    },
+    "att": {
+      "value": 17.6445,
+      "definition": "sum(e tau) / sum(e) with e = true_propensity: the average effect among installers, each customer weighted by their probability of installing"
+    },
+    "atc": {
+      "value": 11.8738,
+      "definition": "sum((1 - e) tau) / sum(1 - e): the average effect among non-installers, each customer weighted by their probability of not installing"
+    },
+    "effect_overlap": {
+      "value": 14.2844,
+      "definition": "sum(e (1 - e) tau) / sum(e (1 - e)): the overlap-weighted average effect, which residual-on-residual (partialling-out) DML estimates when effects vary (briefs/15-double-ml.md, 'What theta is when effects vary')"
+    },
+    "naive_expected": {
+      "value": 65.7331,
+      "definition": "sum(e (mu0 + tau)) / sum(e) - sum((1 - e) mu0) / sum(1 - e): the population difference in mean spend between installers and non-installers, what a naive comparison estimates"
+    }
+  },
+  "incentive": {
+    "odds_multiplier": 2.0,
+    "effect_persuaded": 13.655,
+    "share_persuaded": 0.122153,
+    "table": [
+      {
+        "odds_multiplier": 1.25,
+        "effect_persuaded": 14.0738,
+        "share_persuaded": 0.0371916
+      },
+      {
+        "odds_multiplier": 1.5,
+        "effect_persuaded": 13.9069,
+        "share_persuaded": 0.0691957
+      },
+      {
+        "odds_multiplier": 2.0,
+        "effect_persuaded": 13.655,
+        "share_persuaded": 0.122153
+      },
+      {
+        "odds_multiplier": 3.0,
+        "effect_persuaded": 13.3277,
+        "share_persuaded": 0.200231
+      },
+      {
+        "odds_multiplier": 5.0,
+        "effect_persuaded": 12.968,
+        "share_persuaded": 0.299738
+      },
+      {
+        "odds_multiplier": 10.0,
+        "effect_persuaded": 12.5796,
+        "share_persuaded": 0.425247
+      }
+    ],
+    "assumption": "Each customer installs in the launch window if U < e(x). A credit that multiplies the odds of installing by k makes them install if U < expit(eta(x) + log k); the persuaded customers are those in between, with weight w = expit(eta + log k) - e(x). Nobody who failed to install in the window would install later without the credit, so every credit paid buys a persuaded install (cost per persuaded install = credit). As k -> 1, w is proportional to e (1 - e), the overlap weights: a property of the logistic install model, not a general law."
+  },
+  "decision": {
+    "margin": 0.3,
+    "credit": 2.5,
+    "horizon_weeks": 26,
+    "break_even_effect": 8.33333,
+    "rule": "Offer the $2.50 install credit only if the lower end of the 95% confidence interval of the incremental margin per persuaded install over 26 weeks (margin x effect) is above the credit; equivalently, the effect's interval lies above break_even_effect = credit / margin.",
+    "persuasion_assumption": "Each customer installs in the launch window if U < e(x). A credit that multiplies the odds of installing by k makes them install if U < expit(eta(x) + log k); the persuaded customers are those in between, with weight w = expit(eta + log k) - e(x). Nobody who failed to install in the window would install later without the credit, so every credit paid buys a persuaded install (cost per persuaded install = credit). As k -> 1, w is proportional to e (1 - e), the overlap weights: a property of the logistic install model, not a general law.",
+    "true_margin_per_persuaded_install": 4.0965
+  },
+  "confounders": {
+    "acquisition_channel": "install",
+    "tenure_months": "neither",
+    "orders_12m": "both",
+    "days_since_last_order": "both",
+    "avg_order_value": "spend",
+    "email_open_rate": "install",
+    "mobile_share": "both",
+    "loyalty_member": "both"
+  },
+  "install_rate": 0.29265,
+  "spend": {
+    "mean_installers": 97.5399,
+    "mean_non_installers": 31.8973,
+    "share_zero": 0.61,
+    "max": 3145.81
+  },
+  "propensity": {
+    "quantiles": {
+      "1%": 0.0356659,
+      "5%": 0.0567768,
+      "50%": 0.231563,
+      "95%": 0.761364,
+      "99%": 0.894729
+    },
+    "share_below_0.05": 0.03265,
+    "share_above_0.95": 0.00095
+  },
+  "tolerances": {
+    "basis": "Generator seeds 2035-2064, each run as the lab runs it: the data, the QUICK subsample (10,000 of 20,000 customers), the 5 stratified folds and the boosted models all from the seed (mktstats.dml.measure_app). Coverage counts how often the true value lies inside the 95% normal-approximation confidence interval (HC0 for the hand-written estimate, EconML's HC1 for LinearDML). Checkpoints compare with effect_overlap recomputed on the rows in use.",
+    "n_seeds": 30,
+    "interval": "95% normal-approximation confidence interval, estimate +- 1.96 se",
+    "checkpoint_1": {
+      "claim": "the naive and the regression 95% intervals both lie above the true ATT",
+      "full": {
+        "holds": 30,
+        "regression_min": 28.18,
+        "regression_max": 37.03
+      },
+      "quick": {
+        "holds": 30,
+        "regression_min": 29.15,
+        "regression_max": 38.22
+      }
+    },
+    "checkpoint_3": {
+      "target": "effect_overlap on the rows in use",
+      "full": {
+        "covered": 27,
+        "missed_seeds": [
+          2040,
+          2044,
+          2045
+        ],
+        "mean_error": -0.197,
+        "error_sd": 1.656,
+        "mean_se": 1.556,
+        "covered_ate": 27
+      },
+      "quick": {
+        "covered": 29,
+        "missed_seeds": [
+          2059
+        ],
+        "mean_error": -0.019,
+        "error_sd": 2.276,
+        "mean_se": 2.215,
+        "covered_ate": 28
+      }
+    },
+    "checkpoint_4": {
+      "trim": [
+        0.05,
+        0.95
+      ],
+      "target": "effect_overlap over the kept rows",
+      "full": {
+        "covered": 27,
+        "weight_dropped_below_customers_dropped": 30
+      },
+      "quick": {
+        "covered": 29,
+        "weight_dropped_below_customers_dropped": 30
+      }
+    },
+    "checkpoint_5": {
+      "estimate_rel_tolerance": 1e-06,
+      "bounds_rel_tolerance": 0.0001,
+      "bounds_note": "EconML's bounds are compared with the hand interval widened by sqrt(n / (n - 1)) (HC1 vs HC0); EconML also uses the exact normal quantile 1.959964 where the lab uses 1.96",
+      "full": {
+        "covered": 27,
+        "max_rel_diff_estimate": 2.3e-15,
+        "max_rel_diff_bounds": 2.8e-06
+      },
+      "quick": {
+        "covered": 29,
+        "max_rel_diff_estimate": 2e-15,
+        "max_rel_diff_bounds": 2.4e-05
+      }
+    },
+    "no_cross_fitting": {
+      "check": "in-sample standard error >= min_ratio x the cross-fitted one",
+      "min_ratio": 2.0,
+      "full": {
+        "holds": 30,
+        "min": 4.0,
+        "median": 4.58,
+        "max": 6.49
+      },
+      "quick": {
+        "holds": 30,
+        "min": 34.14,
+        "median": 39.44,
+        "max": 50.25
+      }
+    },
+    "hidden_confounder": {
+      "check": "the estimate without mobile_share minus the estimate with it > min_shift",
+      "min_shift": 3.0,
+      "full": {
+        "holds": 30,
+        "min": 4.33,
+        "median": 6.11,
+        "max": 7.2
+      },
+      "quick": {
+        "holds": 30,
+        "min": 4.67,
+        "median": 5.84,
+        "max": 8.2
+      }
+    },
+    "hillstrom": {
+      "basis": "Womens E-Mail vs No E-Mail, outcome visit; spoiling seeds 2035-2064 (mktstats.dml.measure_hillstrom); the folds and models use the same seed",
+      "kept_tolerance": 0.02,
+      "full": {
+        "kept_ok": 30,
+        "naive_excludes_benchmark": 30,
+        "linear_dml_covers": 30
+      },
+      "quick_lab_half": {
+        "half_seed": 2035,
+        "kept_ok": 30,
+        "naive_excludes_benchmark": 29,
+        "linear_dml_covers": 30
+      },
+      "quick_random_halves": {
+        "kept_ok": 30,
+        "naive_excludes_benchmark": 27,
+        "linear_dml_covers": 30
+      }
+    },
+    "decision": {
+      "full": {
+        "offer": 28,
+        "offer_after_mobile_share_shift": 1
+      },
+      "quick": {
+        "offer": 21,
+        "offer_after_mobile_share_shift": 2
+      }
+    }
+  }
+}

@@ -214,8 +214,18 @@ def _mta() -> tuple[dict[str, pd.DataFrame], dict]:
     return {"mta_journeys.csv": mta.encode_paths(res.journeys)}, res.truth
 
 
+def _app_install() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 15: customers who chose to install the app, with known propensities and
+    effects (seed 2035, 20,000 customers)."""
+    from mktstats.synth import app_install
+
+    res = app_install.app_install()
+    return {"app_install_customers.csv": res.customers}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
     "mta": _mta,
+    "app_install": _app_install,
 }
 
 
