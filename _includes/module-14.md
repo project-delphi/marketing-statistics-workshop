@@ -10,7 +10,7 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/14-survival-churn.ipynb){.btn-colab} [Python]{.chip}
+[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
 :::
 :::
 

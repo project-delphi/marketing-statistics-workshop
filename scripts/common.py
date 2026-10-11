@@ -100,7 +100,9 @@ def notebook_id(path: str) -> str:
 
 def notebooks(v: dict) -> list[dict]:
     """Every notebook declared in modules.*.notebooks, in module order: one dict with the
-    module key, its track (day_track), id, path, source, kernel, language and install list."""
+    module key, its track (day_track), id, path, source, kernel, language, install list and
+    in_ref (False when the entry says `in_ref: false`: repo.ref does not contain the notebook,
+    so a Colab link at repo.ref would not open it; see colab_ready)."""
     out = []
     for key in sorted(v["modules"], key=module_number):
         m = v["modules"][key]
@@ -118,6 +120,7 @@ def notebooks(v: dict) -> list[dict]:
                     "kernel": nb["kernel"],
                     "language": k["language"],
                     "install": list(nb.get("install") or []),
+                    "in_ref": nb.get("in_ref", True) is not False,
                 }
             )
     return out
@@ -125,6 +128,21 @@ def notebooks(v: dict) -> list[dict]:
 
 def existing_notebooks(v: dict) -> list[dict]:
     return [e for e in notebooks(v) if (ROOT / e["path"]).exists()]
+
+
+# What a page or notebook shows instead of a Colab link for a notebook that is written but not
+# in repo.ref (`in_ref: false`), and where it sends the reader: running the lab locally.
+NOT_IN_REF = "Colab after the next release"
+LOCAL_SETUP = "setup.qmd#local"
+
+
+def colab_ready(entry: dict) -> bool:
+    """A Colab link at repo.ref opens this notebook: it is written and repo.ref contains it.
+
+    Whether repo.ref contains it is the declared `in_ref`, never a git lookup, so generated
+    files do not depend on which tags a checkout has fetched; tests/test_colab_ref.py checks
+    the declaration against git wherever repo.ref resolves."""
+    return entry["in_ref"] and (ROOT / entry["path"]).exists()
 
 
 def notebook_by_id(v: dict) -> dict[str, dict]:

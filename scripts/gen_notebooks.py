@@ -6,7 +6,8 @@ For each notebook in _variables.yml `modules.*.notebooks` whose source exists:
   labs/src/NN-slug.R   ->  labs/r/NN-slug.ipynb        (kernel ir)
 
 The generator writes five cells around the source's own cells (CONTRIBUTING.md):
-header (title, Colab badge at repo.ref, day, minutes, goals, stack), install (runtime
+header (title, Colab badge at repo.ref, or, for a notebook declared `in_ref: false`, a note
+that it runs on Colab after the next release; day, minutes, goals, stack), install (runtime
 detection and pinned installs), harness (WORKED_EXAMPLE, QUICK and the `workshop` object,
 with the notebook's content_sha and deps_sha), record (summary and run record) and footer.
 It marks solution cells as folded (`cellView: form`, `jupyter.source_hidden`), sets the
@@ -134,6 +135,21 @@ def colab_url(v: dict, path: str) -> str:
     return f"{v['repo']['colab_base']}/{v['repo']['ref']}/{path}"
 
 
+def opens_on_colab(v: dict, entry: dict) -> str:
+    """The header's Colab badge, or, for a notebook repo.ref does not contain (`in_ref:
+    false`), why it does not run on Colab yet and where to run it instead."""
+    if entry["in_ref"]:
+        return f"[![Open in Colab]({BADGE})]({colab_url(v, entry['path'])})"
+    site = v["repo"]["site"].rstrip("/")
+    local = common.LOCAL_SETUP.replace(".qmd", ".html")
+    return (
+        f"**{common.NOT_IN_REF}.** The workshop's Colab links, package install and data"
+        f" downloads use `{v['repo']['ref']}`, which does not contain this notebook yet, so it"
+        f" does not run on Colab. Until the next release, run it locally"
+        f" ([setup]({site}/{local}))."
+    )
+
+
 def stack(v: dict, entry: dict) -> str:
     lang = LANGUAGE_NAMES[entry["language"]]
     version = v["environment"]["python" if entry["language"] == "python" else "r"]
@@ -154,7 +170,7 @@ def header_source(v: dict, entry: dict) -> str:
         NOTICE,
         f"# Module {entry['n']} · {m['title']}",
         "",
-        f"[![Open in Colab]({BADGE})]({colab_url(v, entry['path'])})",
+        opens_on_colab(v, entry),
         "",
         f"**{v['workshop']['title']}** · {when} · {LANGUAGE_NAMES[entry['language']]}"
         f" · {lab}-minute lab{optional}",
@@ -461,8 +477,11 @@ def footer_source(v: dict, entry: dict) -> str:
         title = f"Module {nxt['n']} · {v['modules'][nxt['module']]['title']}"
         lang = LANGUAGE_NAMES[nxt["language"]]
         label = "Next" if core else "Next extension"
-        if (ROOT / nxt["path"]).exists():
+        if common.colab_ready(nxt):
             lines.append(f"**{label}:** [{title}]({colab_url(v, nxt['path'])}) ({lang})")
+        elif (ROOT / nxt["path"]).exists():  # written, but not in repo.ref: its module page
+            page = f"{site}/modules/{v['modules'][nxt['module']]['slug']}.html"
+            lines.append(f"**{label}:** [{title}]({page}) ({lang}; {common.NOT_IN_REF})")
         else:
             lines.append(f"**{label}:** {title} ({lang}, in preparation)")
     lines += [

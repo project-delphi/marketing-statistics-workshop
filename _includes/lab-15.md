@@ -2,7 +2,7 @@
 
 ### Python lab · `15-double-ml`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/15-double-ml.ipynb){.btn-colab}
+[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip}
 
 ::: {.lab-steps}
 | Step | Time |
