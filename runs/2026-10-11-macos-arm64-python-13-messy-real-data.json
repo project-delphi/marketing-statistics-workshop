@@ -1,34 +1,34 @@
 {
   "schema": 1,
-  "date": "2026-10-10",
+  "date": "2026-10-11",
   "source": "test_notebooks",
   "env": "macos-arm64",
   "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
   "kernel": "python3",
   "settings": {},
-  "commit": "caa6c82",
+  "commit": "9091448",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
   "content_sha": "e36cbdf087451a63",
-  "deps_sha": "3718bae0a0e3d068",
+  "deps_sha": "5e55f87fcb90748f",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/13-messy-real-data",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 12.1,
+      "seconds": 11.0,
       "phases": {
-        "generated": 0.07,
-        "other": 9.64,
+        "generated": 0.1,
+        "other": 9.07,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.36,
-        "verify": 0.04
+        "checkpoint": 0.31,
+        "verify": 0.03
       },
       "slowest_cell": {
         "id": "cell-024",
-        "seconds": 2.9
+        "seconds": 2.78
       },
       "verified": 5,
       "python": "3.13.2",
@@ -102,26 +102,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "Laptop shared with other build agents during the run."
+      "note": "re-recorded at 9091448 after the PR #4 review fixes (helper module changed; lab code unchanged)"
     },
     {
       "mode": "learner",
       "notebook": "python/13-messy-real-data",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 2.2,
+      "seconds": 2.0,
       "phases": {
-        "generated": 0.06,
-        "other": 1.06,
+        "generated": 0.07,
+        "other": 0.93,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 1.06
+        "seconds": 0.93
       },
-      "note": "Laptop shared with other build agents during the run."
+      "note": "re-recorded at 9091448 after the PR #4 review fixes (helper module changed; lab code unchanged)"
     }
   ]
 }

@@ -1,34 +1,34 @@
 {
   "schema": 1,
-  "date": "2026-10-10",
+  "date": "2026-10-11",
   "source": "test_notebooks",
   "env": "docker-arm64",
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "2a98f2a",
+  "commit": "9091448",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
   "content_sha": "495cf51b2e28612f",
-  "deps_sha": "d36add16277e80bd",
+  "deps_sha": "948d4c573680cf5c",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/14-survival-churn",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 13.3,
+      "seconds": 11.7,
       "phases": {
-        "generated": 0.3,
-        "other": 3.86,
+        "generated": 0.17,
+        "other": 3.6,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 7.61,
+        "checkpoint": 6.6,
         "verify": 0.07
       },
       "slowest_cell": {
         "id": "cell-055",
-        "seconds": 6.85
+        "seconds": 5.89
       },
       "verified": 5,
       "python": "3.13.14",
@@ -82,26 +82,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "docker run --cpus 2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop); `cpus` is the core count the container sees, not the quota. No BLAS thread limits were set: the slowest cell (cell-055, the bootstrap) took 1.28 times the native run's, the import cell 2.3 times. TZ was set to the laptop's time zone so that `date` is the local date. `commit` passed in as MKTSTATS_COMMIT: git cannot reach the worktree's repository from the container. Laptop shared with other build agents during the run."
+      "note": "docker run --cpus 2 (cpus below is the host's core count), OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2, TZ=America/Bogota, MKTSTATS_COMMIT=9091448; re-recorded after the PR #4 review fixes"
     },
     {
       "mode": "learner",
       "notebook": "python/14-survival-churn",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 4.4,
+      "seconds": 3.5,
       "phases": {
-        "generated": 0.28,
-        "other": 2.79,
+        "generated": 0.15,
+        "other": 2.26,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.02
+        "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.76
+        "seconds": 2.24
       },
-      "note": "docker run --cpus 2 (a CFS quota of 2 CPUs on a 10-core Apple Silicon laptop); `cpus` is the core count the container sees, not the quota. No BLAS thread limits were set: the slowest cell (cell-055, the bootstrap) took 1.28 times the native run's, the import cell 2.3 times. TZ was set to the laptop's time zone so that `date` is the local date. `commit` passed in as MKTSTATS_COMMIT: git cannot reach the worktree's repository from the container. Laptop shared with other build agents during the run."
+      "note": "docker run --cpus 2 (cpus below is the host's core count), OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2, TZ=America/Bogota, MKTSTATS_COMMIT=9091448; re-recorded after the PR #4 review fixes"
     }
   ]
 }

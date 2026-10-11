@@ -13,7 +13,7 @@ title: "{{< var modules.m14.title >}}"
 {{< include /_includes/lab-14.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 9.3 s on an Apple Silicon laptop (native Python) and 13.3 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 9.2 s on an Apple Silicon laptop (native Python) and 11.7 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. How long do subscribers stay?

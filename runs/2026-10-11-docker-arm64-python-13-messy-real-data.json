@@ -1,43 +1,42 @@
 {
   "schema": 1,
-  "date": "2026-10-10",
+  "date": "2026-10-11",
   "source": "test_notebooks",
-  "env": "macos-arm64",
-  "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
+  "env": "docker-arm64",
+  "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "ad89986",
+  "commit": "9091448",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "f8359ab317f562f5",
-  "deps_sha": "e2d4c13fe06d6f7c",
+  "content_sha": "e36cbdf087451a63",
+  "deps_sha": "5e55f87fcb90748f",
   "runs": [
     {
       "mode": "worked",
-      "notebook": "python/17-mmm-time-varying",
+      "notebook": "python/13-messy-real-data",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 140.2,
+      "seconds": 21.7,
       "phases": {
-        "generated": 0.08,
-        "other": 100.55,
+        "generated": 0.21,
+        "other": 19.22,
         "exercise": 0.0,
-        "solution": 37.24,
-        "checkpoint": 0.3,
-        "verify": 0.04
+        "solution": 0.0,
+        "checkpoint": 0.39,
+        "verify": 0.05
       },
       "slowest_cell": {
-        "id": "cell-047",
-        "seconds": 52.61
+        "id": "cell-024",
+        "seconds": 10.53
       },
       "verified": 5,
-      "python": "3.13.2",
+      "python": "3.13.14",
       "runtime": "local",
-      "platform": "Darwin arm64",
+      "platform": "Linux aarch64",
       "cpus": 10,
-      "memory_gb": 17.2,
+      "memory_gb": 6.2,
       "packages": {
-        "mktstats": "0.1.0",
         "pymc-marketing": "1.2.0",
         "pymc": "6.3.2",
         "pytensor": "3.3.3",
@@ -52,7 +51,8 @@
         "econml": "0.17.0",
         "lightgbm": "4.6.0",
         "duckdb": "1.3.2",
-        "matplotlib": "3.10.0"
+        "matplotlib": "3.10.0",
+        "mktstats": "0.1.0"
       },
       "install_seconds": 0.0,
       "checkpoints": {
@@ -60,27 +60,39 @@
           "passed": true,
           "whose": "the REFERENCE solution"
         },
-        "static model": {
-          "passed": true,
-          "whose": null
-        },
         "2": {
           "passed": true,
           "whose": "the REFERENCE solution"
+        },
+        "Part A: the clean answer": {
+          "passed": true,
+          "whose": null
+        },
+        "helper = PyMC-Marketing": {
+          "passed": true,
+          "whose": null
         },
         "3": {
           "passed": true,
           "whose": "the REFERENCE solution"
         },
+        "sweep: the reference row": {
+          "passed": true,
+          "whose": null
+        },
         "4": {
           "passed": true,
           "whose": "the REFERENCE solution"
         },
-        "drifting model": {
+        "Online Retail II counts": {
           "passed": true,
           "whose": null
         },
-        "prophet": {
+        "Online Retail II fits": {
+          "passed": true,
+          "whose": null
+        },
+        "Online Retail II holdout": {
           "passed": true,
           "whose": null
         },
@@ -90,26 +102,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.40 when the run started); nutpie 2 chains on 2 cores"
+      "note": "docker run --cpus 2 (cpus below is the host's core count), OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2, TZ=America/Bogota, MKTSTATS_COMMIT=9091448; re-recorded after the PR #4 review fixes"
     },
     {
       "mode": "learner",
-      "notebook": "python/17-mmm-time-varying",
+      "notebook": "python/13-messy-real-data",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 2.5,
+      "seconds": 5.0,
       "phases": {
-        "generated": 0.08,
-        "other": 1.17,
+        "generated": 0.14,
+        "other": 3.46,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 0.97
+        "seconds": 3.46
       },
-      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.40 when the run started); nutpie 2 chains on 2 cores"
+      "note": "docker run --cpus 2 (cpus below is the host's core count), OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2, TZ=America/Bogota, MKTSTATS_COMMIT=9091448; re-recorded after the PR #4 review fixes"
     }
   ]
 }

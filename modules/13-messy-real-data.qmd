@@ -13,7 +13,7 @@ title: "{{< var modules.m13.title >}}"
 {{< include /_includes/lab-13.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings, Run all took 12.1 s on an Apple Silicon laptop (native Python) and 24.8 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-10). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet: the Colab button opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it. Until then, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings, Run all took 11.0 s on an Apple Silicon laptop (native Python) and 21.7 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-11). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet: the Colab button opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it. Until then, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. A log is not a list of purchases

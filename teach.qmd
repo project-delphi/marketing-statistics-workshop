@@ -242,7 +242,7 @@ Each keeps the core module format, so it needs a core module's slot: a briefing 
 [Module page](modules/13-messy-real-data.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/13-messy-real-data.md) · [knowledge checks](knowledge-checks.md#q13-1)
 
 - **Timing** (minutes from the start of the lab): open 0–5; Exercises 1 to 5 end at 13, 23, 30, 37 and 45; Decision 45–50; slack 50–55. **Switch at 25:** anyone still on Exercise 2 runs `workshop.use_reference(2)`. Still behind: everyone runs `use_reference(3)` and reads Exercise 3's tables.
-- **Slowest cell:** the PyMC-Marketing cross-check that opens Part B (2.9 s laptop, 12.5 s Docker; the notebook guesses a minute on Colab); learners write Exercise 3's guesses meanwhile. D1 downloads Online Retail II on first use.
+- **Slowest cell:** the PyMC-Marketing cross-check that opens Part B (2.8 s laptop, 10.5 s Docker; the notebook guesses a minute on Colab); learners write Exercise 3's guesses meanwhile. D1 downloads Online Retail II on first use.
 - **Expected stalls.** Exercise 1's pattern sits in an f-string, so its braces are doubled, `'^[0-9]{{5}}'`. Exercise 2's ASOF join is new SQL to most: point at the worked example above it. Part D's counts check can fail after Checkpoints 1 and 2 passed; its message says what to rerun. Exercise 3's change of tens of millions of percent is not a bug (the notebook says why). Exercise 4: steer anyone who picks "no cap" to the P99 row against the oracle on p, q and v.
 - **Solutions:** folded under each exercise; none for the stretch.
 - **Debrief.**
@@ -257,7 +257,7 @@ Each keeps the core module format, so it needs a core module's slot: a briefing 
 [Module page](modules/14-survival-churn.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/14-survival-churn.md) · [knowledge checks](knowledge-checks.md#q14-1)
 
 - **Timing:** open 0–5; Exercises 1 to 5 end at 15, 22, 29, 37 and 45; Decision 45–50; slack 50–55. **Room check at 15:** if fewer than half have passed Checkpoint 1, show the at-risk line (a reversed cumulative sum) or have everyone run `use_reference(1)`. **Behind at 22:** write the Exercise 2 guess, run `use_reference(2)`, rerun Checkpoint 2 and read the years 8–12 table together. Keep Exercise 4 hands-on.
-- **Slowest cell:** Checkpoint 5's bootstrap (5.4 s laptop, 6.9 s Docker); learners read the Explain meanwhile.
+- **Slowest cell:** Checkpoint 5's bootstrap (5.0 s laptop, 5.9 s Docker); learners read the Explain meanwhile.
 - **Expected stalls.** Exercise 1: the number at risk, and ties (two cancellations at one time make one factor, 1 − 2/3); Checkpoint 1 names each mistake. Exercise 3: passing all of `subs` fails inside lifelines (`TypeError: Cannot cast DatetimeArray to dtype float64`) before any checkpoint message; the Task's hint covers it. Listen for "33% less likely to churn": a hazard ratio of 0.67 means "cancels at 67% of the rate". Exercise 4: changing `subs` in place; the checkpoint says how to rebuild it.
 - **Solutions:** folded under each exercise; none for the stretch.
 - **Debrief.**
@@ -302,7 +302,7 @@ Each keeps the core module format, so it needs a core module's slot: a briefing 
 [Module page](modules/17-mmm-time-varying.qmd) · [lab brief]({{< var repo.url >}}/blob/{{< var repo.branch >}}/briefs/17-mmm-time-varying.md) · [knowledge checks](knowledge-checks.md#q17-1)
 
 - **Timing:** open 0–5; Exercises 1 to 5 end at 12, 20, 26, 35 and 45; Decision 45–50; slack 50–55. During each of the three fits, learners read the next Predict and start its function, as the notebook says; after each fit, run the cells below it in order. If the room runs long, everyone runs `use_reference(3)` after its Predict. QUICK (300 draws per chain instead of 1,000) must be on before the data cell, which sets the draws; switching it on later means rerunning from there, the static fit included.
-- **Slowest cells:** the drifting fit (52.6 s on the laptop) and the static fit, the first of three (36.6 s in Docker); each record names only its slowest cell. The notebook guesses about three minutes on Colab for the drifting fit. In worked mode, Run all also runs the two stretch fits.
+- **Slowest cells:** the drifting fit (49.1 s on the laptop) and the static fit, the first of three (37.1 s in Docker); each record names only its slowest cell. The notebook guesses about three minutes on Colab for the drifting fit. In worked mode, Run all also runs the two stretch fits.
 - **Expected stalls.** Exercise 1 (7 minutes) is tight for anyone new to xarray: select and sum by name, `.sel(date=slice(start, end))` and `.sum("date")`; Checkpoint 1 names the usual mistakes. The static model's very wide intervals for search and display are expected (the note after Exercise 4 says why). Exercise 5 is the longest function. With QUICK the verdict can come out "lift test first": use it in the debrief.
 - **Solutions:** folded under each exercise and under stretches A and B.
 - **Debrief.**
