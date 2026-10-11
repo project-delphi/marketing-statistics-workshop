@@ -27,10 +27,12 @@
 # # Part A · Censoring and the Kaplan-Meier curve
 #
 # In January 2024 the retailer launched a monthly replenishment subscription in three plans
-# (basic, standard, premium). Each subscriber starts with a 14-day free trial; the **first
-# billing date** ends the trial, and a subscriber's **tenure** is counted in months from that
-# date. Sign-ups ran to the end of 2025 and grew over time. The data stop on 2026-06-30, when
-# most subscribers are still active.
+# (basic, standard, premium). Each subscriber starts with a 14-day free trial, during which they
+# complete onboarding or not (`onboarded` = 1 or 0); the **first billing date** ends the trial,
+# and a subscriber's **tenure** is counted in months from that date. Some subscribers joined
+# through an introductory offer that discounts their first three paid months
+# (`intro_offer` = 1). Sign-ups ran to the end of 2025 and grew over time. The data stop on
+# 2026-06-30, when almost half of the subscribers are still active.
 #
 # A tenure is **right-censored** when the subscriber was still active when the data stopped: we
 # know the subscriber stayed at least this long, not when they will leave. The **survival
@@ -40,12 +42,14 @@
 # The data are synthetic: 8,000 subscribers made by a generator whose churn process is known
 # (`mktstats.synth.subscriptions`, seed 2034), so every estimate can be checked against the
 # truth. The file has two truth columns that real data never has, `true_tenure_months` and
-# `true_rmst24_gain`; they stay in `raw`, and only the stretch reads a truth column.
+# `true_rmst24_gain`; the next cell leaves them out of `subs` (they stay in `raw`), and only the
+# stretch reads a truth column.
 #
 # **QUICK.** The data are the same with QUICK on or off. QUICK changes only the number of
 # bootstrap resamples in Exercise 5 (100 instead of 200), so every number is the same in both
-# modes except Exercise 5's interval and the Decision built on it, which can differ in the
-# second decimal.
+# modes except Exercise 5's interval and the Decision built on it. Interval ends can move by a
+# few hundredths, and the share of resamples in which a call pays by several points, so a
+# decision near its break-even can flip. That is a lesson about resampling, not a bug.
 
 # %%
 import json
@@ -137,6 +141,10 @@ subs.head()
 # Ŝ(t) just after each. `duration` and `event` are array-likes of the same length (lists, NumPy
 # arrays or Series); `event` is 1 for a cancellation and 0 for censored. Tenures are whole days,
 # so several subscribers share a time: group them.
+#
+# The checkpoint runs your function on the toy data below, on a second toy with two
+# cancellations at the same time, and on `subs`, where it must match lifelines'
+# `KaplanMeierFitter` (lifelines is the survival-analysis library this lab uses).
 #
 # A worked start on the checkpoint's toy data (durations 2, 3, 3, 5, 6, 6, 8, 9; events 1, 1, 0,
 # 1, 0, 1, 1, 0): at t = 2, 8 are at risk and 1 cancels, so Ŝ = 7/8 = 0.875; at t = 3, 7 are at
@@ -237,9 +245,9 @@ print(f"Your curve: {len(km_mine):,} cancellation times among"
 # %% [markdown]
 # ### Run · Your curve against the truth and the dashboards
 #
-# Your curve equals lifelines' `kmf_subs`, so the next cell uses `kmf_subs` and its **95%
-# pointwise interval**: an interval for S(t) at one t at a time, not a band that covers the whole
-# curve with 95% probability. The check compares the data with the truth, not your code. The
+# Your curve equals `kmf_subs`, the curve lifelines fitted in the checkpoint, so the next cell
+# uses `kmf_subs` and its **95% pointwise interval**: an interval for S(t) at one t at a time, not
+# a band that covers the whole curve with 95% probability. The check compares the data with the truth, not your code. The
 # cell also prints how many subscribers were censored before month 12, and when the earliest of
 # them started.
 
@@ -290,7 +298,8 @@ print(f"{len(censored_early):,} subscribers were censored before month 12; the e
       f" started on {censored_early['start_date'].min():%Y-%m-%d}.")
 
 # %% [markdown]
-# Look at where A and B sit against the band at 12 months.
+# Look at where A and B sit against the curve at 12 months. The band is too narrow to see at
+# this scale; the table above gives its ends.
 
 # %%
 grid = np.linspace(0, 30, 301)
@@ -336,9 +345,10 @@ plt.show()
 # For an annual subscription paid at each renewal, the **expected paid years in the first H
 # years** are S(0) + S(1) + … + S(H − 1): how many of the first H years an average customer
 # pays for, the area under the survival curve. Times the annual margin, it is the undiscounted
-# contractual CLV. `sbg_survival` is Module 4's sBG curve, S(t) = B(α, β + t) / B(α, β), with
-# Fader and Hardie's estimates for Regular, α = 0.704 and β = 1.182 (Module 4 reproduced them).
-# The cell builds four NumPy arrays for Exercise 2.
+# customer lifetime value (CLV) of a contract like this. `sbg_survival` is the survival curve of
+# Module 4's shifted beta-geometric (sBG) model, S(t) = B(α, β + t) / B(α, β), where B is the
+# beta function, with Fader and Hardie's estimates for Regular, α = 0.704 and β = 1.182 (Module 4
+# reproduced them). The cell builds four NumPy arrays for Exercise 2.
 
 # %%
 retention = data.load_sbg_retention()  # year, regular, highend: survivors of 1,000
@@ -600,12 +610,13 @@ print("Still subscribed at 12 months: onboarded"
 # exp(γ<sub>k</sub>) is the factor by which covariate k multiplies the hazard: 0.67 means
 # "cancels at 67% of the rate", not "67% as likely to cancel". A **confounder** is a variable
 # that affects both who onboards and who churns, here plan; **adjusting** for it compares
-# subscribers on the same plan. **Proportional hazards** is the assumption, in the model's name,
-# that each hazard ratio is the same at every tenure.
+# subscribers on the same plan.
 #
-# **Predict.** Premium subscribers onboard far more often than basic ones (the table above) and
-# also churn less. Once plan is in the model, will onboarding's hazard ratio be closer to 1 than
-# without plan, further from 1, or the same? Write your guess in the cell below.
+# **Predict.** Premium subscribers onboard far more often than basic ones (the table at the
+# start of Part B) and also churn less. In a model with onboarding alone, its hazard ratio is
+# about 0.57: onboarded subscribers cancel at 57% of the rate of the rest (the checkpoint prints
+# it). Once plan is in the model, will onboarding's hazard ratio be closer to 1, further from 1,
+# or the same? Write your guess, as a number, in the cell below.
 #
 # **Task.** Write `cox_hazard_ratios(subs, covariates, alpha=0.05)` returning a DataFrame with
 # one row per covariate, in the order given, and the columns `hr`, `lower` and `upper`: the
@@ -613,10 +624,12 @@ print("Still subscribed at 12 months: onboarded"
 # `duration_col="tenure_months"` and `event_col="churned"`.
 #
 # Hints. `CoxPHFitter` treats every column of the frame it is given as a covariate, so pass only
-# `subs[covariates + ["tenure_months", "churned"]]` (all of `subs` fails on the date and plan
-# text columns). `cph.hazard_ratios_` holds the hazard ratios. `np.exp(cph.confidence_intervals_)`
-# gives the interval as two columns, lower then upper, whose names change with `alpha` (`"95%
-# lower-bound"`), so take them by position.
+# `subs[covariates + ["tenure_months", "churned"]]`. All of `subs` stops inside lifelines with
+# `TypeError: Cannot cast DatetimeArray to dtype float64` (the date columns) or
+# `ValueError: could not convert string to float: 'basic'` (the plan column).
+# `cph.hazard_ratios_` holds the hazard ratios. `np.exp(cph.confidence_intervals_)` gives the
+# interval as two columns, lower then upper, whose names change with `alpha`
+# (`"95% lower-bound"`), so take them by position.
 
 # %% [markdown]
 # *Your guess (Exercise 3):*
@@ -722,9 +735,12 @@ hr_table[["model", "covariate", "hr", "lower", "upper", "truth"]].round(3)
 # %% [markdown]
 # ### Run · The proportional-hazards test
 #
-# The **PH test** asks, covariate by covariate, whether its hazard ratio changes with tenure; a
-# small p-value says it does. The next cell refits your Exercise 3 model as `cph` (your function
-# returns a table, not the model) and runs lifelines' `proportional_hazard_test`.
+# The Cox model assumes **proportional hazards**, as its name says: each hazard ratio is the same
+# at every tenure. The **PH test** asks, covariate by covariate, whether its hazard ratio changes
+# with tenure; a small p-value says it does. The next cell refits your Exercise 3 model as `cph`
+# (your function returns a table, not the model) and runs lifelines' `proportional_hazard_test`.
+# It flags p < 0.01 rather than 0.05 because it runs four tests at once. With 8,000 subscribers
+# the test can also flag a change too small to matter, so Exercise 4 measures how large it is.
 
 # %%
 ph_frame = subs[COVARIATES + ["tenure_months", "churned"]]
@@ -754,8 +770,10 @@ ph_test.assign(p=ph_test["p"].map("{:.2g}".format)).round(2)
 # - **after**: the subscribers still active after the landmark (tenure > landmark), with the
 #   clock restarted: tenure − landmark.
 #
-# Leave `subs` unchanged. The checkpoint then fits your Exercise 3 function on each part and
-# prints the table.
+# Leave `subs` unchanged: build new frames with `subs.assign(...)`. Assigning into `subs`, or
+# into a frame that is `subs` under another name, changes the data every later cell uses. The
+# checkpoint then runs your Exercise 3 function on each part and prints the offer's and
+# onboarding's hazard ratios in each period.
 
 # %% [markdown]
 # *Your guesses (Exercise 4), months 0-3 and after month 3:*
@@ -919,7 +937,8 @@ print(f"Target population: {len(target):,} subscribers who did not onboard. Plan
 #
 # **Task.** Write `rmst_gain(subs, horizon, weights)` returning a float: for each plan p in
 # `weights`, RMST(horizon) of its onboarded subscribers minus that of its not-onboarded ones,
-# each from its own `KaplanMeierFitter` and `restricted_mean_survival_time`; return
+# each from its own Kaplan-Meier fit (`fit_km(frame)`, defined at the start of Part B, fits one)
+# and `restricted_mean_survival_time(kmf, t=horizon)`; return
 # Σ<sub>p</sub> weights[p] × difference. `weights` is a dict or Series over plans; assert that
 # it sums to 1.
 
@@ -1037,16 +1056,20 @@ by_plan.loc["sum"] = [np.nan, np.nan, np.nan, by_plan["weight"].sum(),
 by_plan.round(3)
 
 # %% [markdown]
-# **Explain.** Compare with your guess. Which plan's subscribers dominate the target group, and
-# why does standardizing to their plan mix change the answer? Point to the weights and the
-# per-plan RMSTs.
+# **Explain.** Compare with your guess. In every plan, onboarding adds less than the unadjusted
+# 4.06 months (the `difference` column). Where does the rest of the 4.06 come from? Point to the
+# RMSTs of basic and premium subscribers in the table, and to the share of each plan that
+# onboards (the table at the start of Part B).
 #
 # <details><summary>Why this solution works</summary>
 #
 # The unadjusted difference compares onboarded subscribers (about a third of them premium) with
 # the rest (two thirds basic); much of its 4.1 months is plan, not onboarding. Comparing within
 # plan and weighting by the plan mix of the people a call would reach answers the decision's
-# question. Stratifying fully adjusts here because onboarding depends on plan alone. lifelines'
+# question. Here the three plans' differences are close (2.5 to 3.0 months), so the plan mix
+# moves the answer little; comparing within plan is what moves it. If the plans' differences
+# were far apart, the target population's mix would matter as well. Stratifying fully adjusts
+# here because onboarding depends on plan alone. lifelines'
 # `restricted_mean_survival_time(..., return_variance=True)` returns the variance of min(T, 24)
 # across subscribers, not the uncertainty of the estimate; that is why the interval comes from
 # the bootstrap.
@@ -1135,15 +1158,22 @@ print(f"True break-even q: {truth['decision']['true_break_even_q']:.3f}.")
 # %% [markdown]
 # ## Stretch (optional) · A confounder that is not in the data
 #
-# Regenerate the subscribers with hidden motivation: `hidden_confounding=0.5` makes motivated
-# subscribers both more likely to onboard and less likely to churn, and motivation is not a
-# column. Rerun your `cox_hazard_ratios` and `rmst_gain` on the new data and compare them with
-# the truth: the onboarding hazard ratio is still 0.670 for subscribers of the same motivation,
-# and the true gain is the mean of `true_rmst24_gain` among the subscribers who did not onboard.
+# The next cell regenerates the subscribers with hidden motivation: `hidden_confounding=0.5`
+# makes motivated subscribers both more likely to onboard and less likely to churn, and
+# motivation is not a column. It then reruns your `cox_hazard_ratios` and `rmst_gain` on the new
+# data and prints them beside the truth: the onboarding hazard ratio is still 0.670 for
+# subscribers of the same motivation, and the true gain is the mean of `true_rmst24_gain` among
+# the subscribers who did not onboard.
+#
+# **Predict.** With motivation hidden, will the plan-adjusted onboarding hazard ratio's 95%
+# interval still cover 0.670? Will the standardized gain be above or below the true gain? Write
+# your guesses before you run the cell.
 #
 # Two shorter options: run `rmst_gain` for one plan at a time (a weight of 1.0) with
 # `survival.bootstrap_interval`, to see whether the data can tell the plans' gains apart; or
-# redo the Decision with Module 4's 0.8% monthly discount.
+# redo the Decision with Module 4's 0.8% monthly discount, counting a month subscribed at time t
+# as worth 1.008<sup>−t</sup> of a month now (the truth file's convention; the Decision's "What
+# would change it" line gives the truth's answer, about 10% less).
 
 # %%
 hidden = subscriptions(seed=2034, hidden_confounding=0.5).subscribers
@@ -1160,3 +1190,19 @@ print(f"Onboarding hazard ratio, adjusted for plan: {o['hr']:.3f} [{o['lower']:.
       f" {truth['model']['hazard_ratios']['onboarded']:.3f}.")
 print(f"Months onboarding adds within {HORIZON}, standardized by plan: {gain_hidden:.2f};"
       f" true {true_gain_hidden:.2f}.")
+
+# %% [markdown]
+# **Explain.** Compare with your guesses. Why does adjusting for plan no longer remove the bias,
+# and what in this output would have warned you if you did not know the truth? Point to the
+# hazard ratio's interval and the two gains.
+#
+# <details><summary>Why this happens</summary>
+#
+# Motivated subscribers onboard more and churn less, so part of the onboarded group's lower churn
+# is motivation, not onboarding. Plan does not measure motivation, so comparing within plan
+# leaves that part in: the hazard ratio is further from 1 than the truth and the gain is too
+# large. Nothing in the output flags it; the interval is about as narrow as before. Only a design
+# that breaks the link between motivation and onboarding removes it, such as a randomized pilot
+# of the calls (Module 6). Methods for observational data (Module 15) still need the confounders
+# to be measured.
+# </details>
