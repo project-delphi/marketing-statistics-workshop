@@ -1,0 +1,2 @@
+channel,x,delta_x,delta_y,sigma,date,test_start,test_weeks,true_delta_y
+social,15200.0,4600.0,9504.0,732.0,2025-11-17,2025-09-29,8,9148.0

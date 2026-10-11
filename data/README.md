@@ -161,3 +161,49 @@ customers (checked 2026-10-09).
 Duplicate lines inside a sheet (6,865 and 5,268) and cancellations are kept as published. Parsing
 the xlsx with openpyxl took about 40 s on an Apple Silicon laptop; the result is cached as parquet.
 `load_online_retail_ii(sample=...)` keeps a random subset of customers for QUICK runs.
+
+## Extension datasets
+
+The optional extension modules (13-17) keep their truth out of `truth.json`: each writes
+`data/synthetic/truth_<name>.json` through `EXTENSIONS` in `scripts/make_synthetic.py`, and the
+labs read the files with `mktstats.data.repo_file("synthetic/<file>")`.
+
+### MMM with a fading channel (Module 17): `mmm_drift_*`
+
+- Generator `mktstats.synth.mmm_drift.mmm_drift(seed=2037)` (not exported from
+  `mktstats.synth`). Files: `mmm_drift_weekly.csv` (156 weeks from 2023-01-02: `date_week`,
+  spend on `tv`, `search`, `social`, `display`, `price_index`, `holiday`, `t`, sales `y`; Module 8's
+  columns), `mmm_drift_latent.csv` (truth only, never a model input: the noiseless baseline,
+  its trend and seasonality, and per channel the effectiveness multiplier `multiplier_<c>`, its
+  relative path `multiplier_rel_<c>` = multiplier / its mean over the weeks, and the
+  contribution `contribution_<c>` in dollars), `mmm_drift_lift_tests.csv` (one randomized
+  social test, +30% weekly spend for 8 weeks ending 2025-11-17, Module 9's columns), and
+  `truth_mmm_drift.json`.
+- Process: Module 8's functional form (normalized geometric adstock, L = 8; logistic
+  saturation on adstocked spend / its maximum; Module 8's decay and saturation per channel) times
+  a multiplier on the week the effect lands, as pymc-marketing 1.2.0's `time_varying_media`
+  applies it. Only social wears out: m(t) = 1 - 0.65 / (1 + exp(-(t - 104) / 20)), from 0.996 in
+  the first week to 0.397 in the last. Effect sizes are solved so that ROAS over all weeks is
+  tv 1.6, search 3.0, social 4.0, display 0.6. Search spend follows demand (trend and
+  seasonality); social has a four-week push (x 2.5) every 13 weeks, so every quarter has one:
+  the pushes are what let a model see the effect at different times. Baseline 250,000 + 500 t
+  + Module 8's Fourier seasonality, price and holiday effects; Normal(0, 8,000) noise. The draw
+  order is in the module docstring.
+- Truth (seed 2037): social's ROAS (window definition: contribution in the window over spend in
+  the window) is 4.00 over all weeks, 5.00 in the first year (52 weeks) and 2.11 in the last
+  quarter (13 weeks, 2025-09-29 to 2025-12-22), against a break-even of 3.33 at a 30% gross
+  margin; 2.04 in the last quarter by pymc-marketing's counterfactual definition
+  (`contribution_over_spend`). Social's drift ratio (last-quarter mean of the multiplier over its
+  first-year mean) is 0.42; it spent $192,407 in the last quarter. Media are 39% of sales.
+- Measured with the reference solutions on the committed data (`mktstats.drift.reference_results`,
+  pymc-marketing 1.2.0, nutpie 0.16.11, prophet 1.4.0, 2 chains on 2 cores, `random_seed=2037`,
+  `target_accept=0.98`, Apple Silicon laptop, 2026-10-10; FULL = 1,000 draws, QUICK = 300):
+  static MMM, social last quarter 3.88 (94% HDI 3.48 to 4.28) FULL, 3.88 (3.42 to 4.31) QUICK;
+  drifting MMM (`SoftPlusHSGP.parameterize_from_data`, one multiplier per channel, lengthscale
+  20 to 104 weeks, `eta_upper=2.0`, Matern 5/2; m = 56, L = 426.4), social last quarter 2.53
+  (1.94 to 3.15), P(below break-even) 0.99, FULL; 2.67 (1.97 to 3.29), 0.96, QUICK; its 94% band
+  covers social's true relative path in 69% of weeks (FULL; 65% QUICK) and the constant
+  channels' in 100%; Prophet baseline as an informed prior, social all-period 2.90 (2.25 to
+  3.58) against 3.90 (3.52 to 4.32) with the model's own baseline (truth 4.00). No divergences
+  in any of these fits. These are in `truth_mmm_drift.json` `tolerances`; the seed sweep is in
+  `tests/test_synth_mmm_drift.py` (slow).

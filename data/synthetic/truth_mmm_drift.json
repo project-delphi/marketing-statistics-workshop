@@ -1,0 +1,393 @@
+{
+  "about": "True parameters of the mmm_drift extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "mmm_drift_latent.csv",
+    "mmm_drift_lift_tests.csv",
+    "mmm_drift_weekly.csv"
+  ],
+  "description": "Weekly sales = intercept + trend + yearly seasonality + price and holiday effects + sum of channel contributions + Normal noise; channel contribution = B_c * m_c(t) * logistic(lam_c * normalized_geometric_adstock(spend_c) / max(spend_c)). Only social wears out: m_social(t) falls smoothly from about 1 to about 0.4 (logistic in t); the other channels have m_c(t) = 1.",
+  "seed": 2037,
+  "n_weeks": 156,
+  "start_date": "2023-01-02",
+  "end_date": "2025-12-22",
+  "l_max": 8,
+  "adstock": "GeometricAdstock(l_max=8, normalize=True), zero spend before the first week",
+  "saturation": "LogisticSaturation: beta * (1 - exp(-lam x)) / (1 + exp(-lam x))",
+  "units": "adstock_alpha and saturation_lam are scale-free (lam applies to adstocked spend / channel_scale, the channel's maximum weekly spend); saturation_beta_sales_units is B_c in dollars per week at m_c(t) = 1; spend, contribution and sales are dollars.",
+  "roas_definition": "Window definition: ROAS_c(W) = sum over the weeks in W of the channel's noiseless contribution (multiplier included) / its spend in those weeks; carry-in from earlier spend counts, carry-out after the window does not. Computed from the contributions as written to mmm_drift_latent.csv (rounded to cents). roas_last_quarter_counterfactual is pymc-marketing's contribution_over_spend definition: spend zeroed in the window, carry-in kept, the change in contribution summed from the window's first week to the end of the data, over the window's spend.",
+  "windows": {
+    "all": {
+      "start": "2023-01-02",
+      "end": "2025-12-22",
+      "weeks": 156
+    },
+    "first_year": {
+      "start": "2023-01-02",
+      "end": "2023-12-25",
+      "weeks": 52
+    },
+    "last_quarter": {
+      "start": "2025-09-29",
+      "end": "2025-12-22",
+      "weeks": 13
+    }
+  },
+  "channels": {
+    "tv": {
+      "adstock_alpha": 0.6,
+      "saturation_lam": 1.5,
+      "saturation_beta_sales_units": 180476.0,
+      "channel_scale": 77968.0,
+      "roas": 1.599999998,
+      "roas_first_year": 1.55608202324,
+      "roas_last_quarter": 1.59322513827,
+      "roas_last_quarter_counterfactual": 1.28478,
+      "roas_target": 1.6,
+      "spend": {
+        "all": 5007802.0,
+        "first_year": 1800636.0,
+        "last_quarter": 412773.0
+      },
+      "contribution": {
+        "all": 8012483.19,
+        "first_year": 2801937.31,
+        "last_quarter": 657640.32
+      },
+      "multiplier_mean": 1.0,
+      "drift_ratio": 1.0
+    },
+    "search": {
+      "adstock_alpha": 0.2,
+      "saturation_lam": 2.5,
+      "saturation_beta_sales_units": 101652.0,
+      "channel_scale": 34270.0,
+      "roas": 3.0,
+      "roas_first_year": 3.09994196723,
+      "roas_last_quarter": 2.85390370433,
+      "roas_last_quarter_counterfactual": 2.78924,
+      "roas_target": 3.0,
+      "spend": {
+        "all": 3601136.0,
+        "first_year": 1086972.0,
+        "last_quarter": 344273.0
+      },
+      "contribution": {
+        "all": 10803408.0,
+        "first_year": 3369550.12,
+        "last_quarter": 982521.99
+      },
+      "multiplier_mean": 1.0,
+      "drift_ratio": 1.0
+    },
+    "social": {
+      "adstock_alpha": 0.4,
+      "saturation_lam": 2.0,
+      "saturation_beta_sales_units": 256750.0,
+      "channel_scale": 47393.0,
+      "roas": 3.99999998762,
+      "roas_first_year": 4.99814299859,
+      "roas_last_quarter": 2.10795366073,
+      "roas_last_quarter_counterfactual": 2.03855,
+      "roas_target": 4.0,
+      "spend": {
+        "all": 2423142.0,
+        "first_year": 809994.0,
+        "last_quarter": 192407.0
+      },
+      "contribution": {
+        "all": 9692567.97,
+        "first_year": 4048465.84,
+        "last_quarter": 405585.04
+      },
+      "multiplier_mean": 0.779748,
+      "drift_ratio": 0.419543
+    },
+    "display": {
+      "adstock_alpha": 0.3,
+      "saturation_lam": 3.0,
+      "saturation_beta_sales_units": 5563.55,
+      "channel_scale": 10931.0,
+      "roas": 0.600000019978,
+      "roas_first_year": 0.587822638976,
+      "roas_last_quarter": 0.582061245299,
+      "roas_last_quarter_counterfactual": 0.560128,
+      "roas_target": 0.6,
+      "spend": {
+        "all": 1001119.0,
+        "first_year": 345634.0,
+        "last_quarter": 91207.0
+      },
+      "contribution": {
+        "all": 600671.42,
+        "first_year": 203171.49,
+        "last_quarter": 53088.06
+      },
+      "multiplier_mean": 1.0,
+      "drift_ratio": 1.0
+    }
+  },
+  "multiplier": {
+    "acts_on": "the week the effect lands (after adstock and saturation), as pymc-marketing's time_varying_media multiplier",
+    "relative_path": "multiplier_rel_<c> = m_c(t) / mean over all weeks of m_c(t): the quantity pymc-marketing's SoftPlusHSGP multiplier estimates (it is normalized to mean 1 over the fitted weeks)",
+    "drift_ratio": "mean of m_c over the last quarter / mean over the first year (the same for m_c and its relative path)"
+  },
+  "fatigue": {
+    "channel": "social",
+    "form": "m(t) = 1 - (1 - end) / (1 + exp(-(t - mid) / width)), t = 0 .. n_weeks - 1",
+    "end": 0.35,
+    "mid": 104.0,
+    "width": 20.0,
+    "first_week": 0.996434,
+    "last_week": 0.397077
+  },
+  "spend_process": {
+    "tv": "flights on 4-8 weeks, off 3-8; 60000 x Uniform(0.7, 1.3) when on",
+    "search": "20000 x d_t x LogNormal(0, 0.12); d_t = (intercept + trend_t + seasonality_t) / intercept (follows demand)",
+    "social": "10000 x LogNormal(0, 0.3), x 2.5 in a four-week push starting every 13 weeks (jitter -2..+2)",
+    "display": "6000 x LogNormal(0, 0.3)",
+    "social_push_start_weeks": [
+      7,
+      17,
+      32,
+      46,
+      59,
+      68,
+      81,
+      97,
+      108,
+      124,
+      134,
+      149
+    ]
+  },
+  "baseline": {
+    "intercept": 250000.0,
+    "trend_per_week": 500.0,
+    "fourier_sin1_cos1_sin2_cos2": [
+      15000.0,
+      25000.0,
+      5000.0,
+      -8000.0
+    ],
+    "fourier_phase": "2 pi x day of year / 365.25",
+    "price_coef_per_unit_index": -400000.0,
+    "price_effect_form": "price_coef * (price_index - 1)",
+    "price_process": "AR(1) around 1 with coefficient 0.7 and sd 0.012; ten promotion weeks 4 to 10% lower; rounded to 4 decimals",
+    "holiday_effect": 40000.0,
+    "holiday_rule": "weeks containing Black Friday, December 18 or December 24",
+    "noise_sd": 8000.0
+  },
+  "y_max": 583204.0,
+  "mean_weekly_spend": {
+    "tv": 32101.3,
+    "search": 23084.2,
+    "social": 15533.0,
+    "display": 6417.43
+  },
+  "mean_weekly_sales": 478188.0,
+  "media_share_of_sales": 0.390217,
+  "economics": {
+    "gross_margin": 0.3,
+    "break_even_roas": 3.33333,
+    "rule": "cut a channel's budget next quarter if P(current-quarter ROAS < break-even) >= 0.9; keep if P(> break-even) >= 0.9; otherwise run a lift test first",
+    "social": {
+      "pays_back_all_period": true,
+      "pays_back_first_year": true,
+      "pays_back_last_quarter": false,
+      "spend_last_quarter": 192407.0,
+      "net_return_last_quarter": -70731.5,
+      "net_return_definition": "spend x (gross_margin x ROAS - 1): the margin on the sales the spend produced, net of the spend"
+    }
+  },
+  "lift_tests": {
+    "definition": "One randomized geo test on social, scaled to the national level (the weekly spend series is unchanged): weekly spend raised from x (mean social spend over the 26 weeks before the test, rounded to $100) to x + delta_x (delta_x = 0.3 x, rounded to $100) for test_weeks weeks ending in the week `date`. true_delta_y = B_social x mean of m_social over the test weeks x [s((x + delta_x) / S) - s(x / S)] (steady state: the saturation curve only, as add_lift_test_measurements models it, times the multiplier as pymc-marketing's time-varying lift test does at `date`); delta_y = true_delta_y + Normal(0, sigma), sigma = 8% of the true lift (Module 9's relative error).",
+    "rel_sigma": 0.08,
+    "test_weeks": 8,
+    "multiplier_mean_over_test": 0.419669,
+    "rows": [
+      {
+        "channel": "social",
+        "x": 15200.0,
+        "delta_x": 4600.0,
+        "delta_y": 9504.0,
+        "sigma": 732.0,
+        "date": "2025-11-17",
+        "test_start": "2025-09-29",
+        "test_weeks": 8,
+        "true_delta_y": 9148.0
+      }
+    ]
+  },
+  "tolerances": {
+    "sampler": "nutpie, 2 chains on 2 cores, draws = tune = 300 (QUICK) and 1000 (FULL), target_accept 0.98, random_seed 2037, Module 8's spend-share priors",
+    "interval": "94% HDI (mktstats.checks.interval), mean and [low, high]",
+    "checks": {
+      "checkpoint_1": "window_roas on the latent contributions equals roas, roas_first_year and roas_last_quarter to a relative 1e-9",
+      "static_model": "window ROAS over all weeks equals contribution_over_spend to 1e-8; social's last-quarter HDI lies above roas_last_quarter",
+      "checkpoint_2": "social's residual-spend correlation falls most from the first year to the last and ends below -0.3",
+      "checkpoint_4": "coverage of the true relative path: social >= 0.5, others >= 0.9",
+      "drifting_model": "social's drift-ratio HDI lies below 1; the others' contain 1",
+      "prophet": "trend + season + holiday = yhat to 1e-6",
+      "checkpoint_5": "social: Prophet-baseline mean below own-baseline mean, its HDI excludes roas, the own-baseline HDI covers it",
+      "decision": "cut if P(last-quarter ROAS < break-even) >= 0.9 under the drifting model"
+    },
+    "measured_2026_10_10": {
+      "static_social_roas_all": {
+        "300": [
+          3.892,
+          3.439,
+          4.313
+        ],
+        "1000": [
+          3.895,
+          3.522,
+          4.317
+        ]
+      },
+      "static_social_roas_last_quarter": {
+        "300": [
+          3.875,
+          3.417,
+          4.309
+        ],
+        "1000": [
+          3.879,
+          3.477,
+          4.282
+        ]
+      },
+      "static_vs_contribution_over_spend_max_gap": {
+        "300": 4.3e-14,
+        "1000": 3.2e-14
+      },
+      "residual_corr_social_2023_2024_2025": {
+        "300": [
+          0.405,
+          0.196,
+          -0.569
+        ],
+        "1000": [
+          0.404,
+          0.195,
+          -0.574
+        ]
+      },
+      "prior_social_drift_ratio": {
+        "p_le_0.5": 0.088,
+        "p_le_truth": 0.074,
+        "eti94": [
+          0.217,
+          5.119
+        ],
+        "draws": 1000
+      },
+      "hsgp_m_L": [
+        56,
+        426.4
+      ],
+      "coverage": {
+        "300": {
+          "tv": 1.0,
+          "search": 1.0,
+          "social": 0.647,
+          "display": 1.0
+        },
+        "1000": {
+          "tv": 1.0,
+          "search": 1.0,
+          "social": 0.686,
+          "display": 1.0
+        }
+      },
+      "drift_ratio_social": {
+        "300": [
+          0.599,
+          0.455,
+          0.752
+        ],
+        "1000": [
+          0.57,
+          0.429,
+          0.706
+        ]
+      },
+      "drift_ratio_hdi_others_1000": {
+        "tv": [
+          0.904,
+          1.13
+        ],
+        "search": [
+          0.488,
+          1.438
+        ],
+        "display": [
+          0.505,
+          1.763
+        ]
+      },
+      "drifting_social_roas_last_quarter": {
+        "300": [
+          2.669,
+          1.975,
+          3.285
+        ],
+        "1000": [
+          2.533,
+          1.942,
+          3.151
+        ]
+      },
+      "drifting_social_p_below_break_even": {
+        "300": 0.963,
+        "1000": 0.992
+      },
+      "drifting_social_counterfactual_last_quarter_1000": [
+        2.449,
+        1.889,
+        3.061
+      ],
+      "counterfactual_definition_max_gap_on_draws": 1.8e-15,
+      "prophet": {
+        "trend_per_week": 148.5,
+        "holiday_effect": 53641,
+        "trend_gap_corr_social": 0.563,
+        "sum_gap": 1.2e-10
+      },
+      "prophet_baseline_social_roas_all": {
+        "300": [
+          2.889,
+          2.303,
+          3.654
+        ],
+        "1000": [
+          2.901,
+          2.245,
+          3.577
+        ]
+      },
+      "prophet_baseline_tv_roas_all_1000": [
+        1.443,
+        1.249,
+        1.629
+      ],
+      "stretch_a_social_last_quarter_1000": [
+        2.219,
+        1.916,
+        2.504
+      ],
+      "stretch_b_roas_all_1000": {
+        "tv": [
+          1.511,
+          1.401,
+          1.628
+        ],
+        "social": [
+          3.153,
+          2.667,
+          3.717
+        ]
+      },
+      "divergences": "0 in every fit, QUICK and FULL, stretch fits included"
+    }
+  }
+}
