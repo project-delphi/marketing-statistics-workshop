@@ -83,7 +83,7 @@ Find and model a channel whose effect per dollar fades (ad fatigue): show that a
 [Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Python lab in preparation]{.chip}
+[Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::
