@@ -429,10 +429,13 @@ with workshop.checkpoint(label="Markov credit"):
 #
 # where N is the set of all n players and the sum runs over the coalitions T that leave c out
 # (the weight is the share of join orders in which exactly the players of T come before c).
-# Shapley (1953) derived it from three properties:
+# Shapley (1953) showed that it is the only sharing rule with three properties: symmetry,
+# efficiency and additivity. A fourth, the null-player property, follows from them.
 #
-# - **efficiency**: the players' values add up to v(N) − v(∅);
 # - **symmetry**: two players that add the same to every coalition get the same value;
+# - **efficiency**: the players' values add up to v(N) − v(∅);
+# - **additivity**: in a game whose value function is the sum of two games' value functions,
+#   each player gets the sum of its values in the two games;
 # - **null player**: a player that adds nothing to any coalition gets 0.
 #
 # For journeys, the players are the channels on a journey, and v(S) is the **conversion rate of
