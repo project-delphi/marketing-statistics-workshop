@@ -6,29 +6,29 @@
   "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
   "kernel": "python3",
   "settings": {},
-  "commit": "0eb9f35",
+  "commit": "ad89986",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "00939a85ba62754a",
-  "deps_sha": "0896fe9a676aa157",
+  "content_sha": "f8359ab317f562f5",
+  "deps_sha": "e2d4c13fe06d6f7c",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/17-mmm-time-varying",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 140.8,
+      "seconds": 140.2,
       "phases": {
-        "generated": 0.06,
-        "other": 98.85,
+        "generated": 0.08,
+        "other": 100.55,
         "exercise": 0.0,
-        "solution": 39.7,
-        "checkpoint": 0.26,
-        "verify": 0.02
+        "solution": 37.24,
+        "checkpoint": 0.3,
+        "verify": 0.04
       },
       "slowest_cell": {
         "id": "cell-047",
-        "seconds": 52.73
+        "seconds": 52.61
       },
       "verified": 5,
       "python": "3.13.2",
@@ -90,26 +90,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.01 when the run started); nutpie 2 chains on 2 cores"
+      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.40 when the run started); nutpie 2 chains on 2 cores"
     },
     {
       "mode": "learner",
       "notebook": "python/17-mmm-time-varying",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 2.3,
+      "seconds": 2.5,
       "phases": {
-        "generated": 0.04,
-        "other": 1.1,
+        "generated": 0.08,
+        "other": 1.17,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 0.88
+        "seconds": 0.97
       },
-      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.01 when the run started); nutpie 2 chains on 2 cores"
+      "note": "Apple Silicon laptop shared with other build jobs (1-minute load average 6.40 when the run started); nutpie 2 chains on 2 cores"
     }
   ]
 }

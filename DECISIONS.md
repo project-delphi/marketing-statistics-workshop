@@ -374,6 +374,18 @@ new tag makes all 18 stale, so these wait until the next sweep instead of going 
   a visible `TODO(mktstats data loaders)` comment; `R/mktstats.R` has no CDNOW loader. Python's
   `mktstats.data` reads the same file from pymc-marketing's `1.2.0` tag first and `main` second.
   Move the loader into the R helpers with both sources in that order, and drop the comment.
+- Harness (`src/mktstats/harness.py`, hashed by every Python notebook), found by the Extensions
+  notebook reviews (2026-10-10): a failed checkpoint says "Read the message above", but in Jupyter
+  and Colab the checkpoint's message is the last line of the error below it (the R helpers already
+  say "below"); `use_reference(n)` says "Rerun the cells below it", but several labs' checkpoints
+  create values later cells use, so it should say "rerun this exercise's checkpoint, then the cells
+  below it"; a labeled check's recovery line says `use_reference(N)` without the number; the record
+  printed inside a notebook carries the UTC date while `scripts/test_notebooks.py` uses the local
+  date. `teach.qmd` tells instructors about the first two until then.
+- Runner: Docker records report `cpus` from `os.cpu_count()` (the host's cores), not the
+  `--cpus` quota; the time zone and the commit are passed by hand (`-e TZ`, `-e MKTSTATS_COMMIT`)
+  and noted with `--note`. Reading the quota from the cgroup and documenting the Docker command in
+  `runs/README.md` would remove the hand steps.
 
 ## Spikes
 

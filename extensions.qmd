@@ -19,7 +19,7 @@ These modules go beyond the {{< var workshop.length >}}. They are optional and h
 ## How to use them {#use}
 
 - **On your own, after the week.** Pick the extension closest to a problem you have. Review the modules it builds on, read its briefing, then open its lab.
-- **In a custom schedule.** A facilitator can swap an extension in place of a core module: it fits a module's slot. Teach it after the modules it builds on, and check its line on the [readiness](readiness.qmd#extensions) page first, since an extension without a current Colab run is not ready to teach.
+- **In a custom schedule.** A facilitator can swap an extension in place of a core module: it fits a module's slot. Teach it after the modules it builds on, and check its line on the [readiness](readiness.qmd#extensions) page first, since an extension without a current Colab run is not ready to teach. The [instructor guide](teach.qmd#extensions) gives each lab's timing plan, expected stall points and debrief prompts.
 
 The labs are being built: a card says "in preparation" until its notebook exists.
 

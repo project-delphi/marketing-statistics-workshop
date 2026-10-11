@@ -495,8 +495,9 @@ def drift_ratio(mult, early, late):
 # %% [markdown]
 # The checkpoint uses (1) a multiplier of 1 in every week, which gives 1; (2) the linear path
 # $m(t) = 2 - t/155$ over the 156 weeks, with `WINDOWS["first_year"]` (52 weeks) and
-# `WINDOWS["last_quarter"]` (13 weeks), which gives 0.56591; (3) the prior draws: the result has
-# dims `(chain, draw, channel)` and is positive and finite.
+# `WINDOWS["last_quarter"]` (13 weeks), which gives 0.56591; (3) a multiplier of 1 in every week
+# except 14 in the last week, which gives 2.0 (a last-quarter mean of 2); (4) the prior draws: the
+# result has dims `(chain, draw, channel)` and is positive and finite.
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(3):
@@ -593,11 +594,12 @@ def path_coverage(mult_draws, true_path, prob=0.94):
 # The checkpoint runs four toys with 2 chains × 500 draws × 156 weeks first: (a) draws tightly
 # around a known path (sd 0.01) cover it in every week, 1.0; (b) the same draws shifted by +5
 # cover it in none, 0.0; (c) skewed draws (the same 1,000 exact quantiles of an Exponential every
-# week) with true values 0.01 and 2.5 in alternate weeks give 1.0 with the 94% HDI
-# [0.0005, 2.805] and 0.5 with an equal-tailed or an 89% interval; (d) toy (a)'s draws against the
-# path reversed in time are covered only where the two cross. Then, on the fit, your coverage of
-# each channel must equal the reference's; social's must be at least 0.5 and the other channels'
-# at least 0.9 (the truth is `latent["multiplier_rel_<channel>"]`).
+# week, all above 0) with true values 0.01, 2.5 and −0.5 in turn: the 94% HDI [0.0005, 2.805]
+# contains the first two, a coverage of 2/3, while an equal-tailed or an 89% interval misses one
+# of them and mean ± 1.88 sd reaches below 0; (d) toy (a)'s draws against the path reversed in time
+# are covered only where the two cross. Then, on the fit, your coverage of each channel must equal
+# the reference's; social's must be at least 0.5 and the other channels' at least 0.9 (the truth
+# is `latent["multiplier_rel_<channel>"]`).
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(4):
@@ -668,8 +670,8 @@ print(f"The band misses {missed.sum()} of {len(missed)} weeks (counting from wee
 # them.
 
 # %%
-ratio_post = drift_ratio(mult, WINDOWS["first_year"], WINDOWS["last_quarter"])
 with workshop.checkpoint(label="drifting model"):
+    ratio_post = drift_ratio(mult, WINDOWS["first_year"], WINDOWS["last_quarter"])
     ratio_table = drift.check_drifting_model(ratio_post, truth)
 fading = [c for c in CHANNELS if ratio_table.loc[c, "hdi_high"] < 1]
 print("Drift ratio (last quarter / first year), 94% HDI, against the truth:")
@@ -743,7 +745,7 @@ def prophet_components(weekly, holidays):
 components = prophet_components(weekly, holidays)
 with workshop.checkpoint(label="prophet"):
     drift.check_prophet(components, weekly)
-components.head()
+components.head().round().astype(int)  # dollars
 
 # %% [markdown]
 # Look at the trend's growth: the true baseline grows by \$500 a week.
@@ -1064,8 +1066,11 @@ mmm_b = MMM(
 idata_b = mmm_b.fit(X_b, y, progressbar=False, **FIT)
 roas_draws_b = window_roas(idata_b.posterior["channel_contribution"] * target_scale(idata_b),
                            spend, *WINDOWS["all"])
-pd.concat({"Prophet": comparison.xs("prophet", level="baseline"),
-           "Prophet with spend": baseline_comparison(roas_draws_static["all"], roas_draws_b,
-                                                     true_roas).xs("prophet", level="baseline")},
-          names=["baseline"]).swaplevel().sort_index(level="channel", sort_remaining=False)[
+with_spend = pd.concat(
+    {"Prophet": comparison.xs("prophet", level="baseline"),
+     "Prophet with spend": baseline_comparison(roas_draws_static["all"], roas_draws_b,
+                                               true_roas).xs("prophet", level="baseline")},
+    names=["baseline"]).swaplevel()
+with_spend.reindex(pd.MultiIndex.from_product([CHANNELS, ["Prophet", "Prophet with spend"]],
+                                              names=["channel", "baseline"]))[
     ["mean", "hdi_low", "hdi_high", "true_roas", "covered"]].round(2)

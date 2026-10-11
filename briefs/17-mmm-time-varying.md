@@ -401,7 +401,9 @@ provided cell computes `resid` and `year` before the Predict.
   $m(t) = 2 - t/155$, $t = 0, \dots, 155$, on `weekly`'s dates, with the windows `WINDOWS["first_year"]`
   (52 weeks) and `WINDOWS["last_quarter"]` (13 weeks), gives 0.56591 (computed by the Pedagogy Expert,
   2026-10-10). (3) On the prior draws (`idata["prior"]["media_temporal_latent_multiplier"]`, `prior_mult`)
-  the result has dims `(chain, draw, channel)` and is positive and finite.
+  the result has dims `(chain, draw, channel)` and is positive and finite. *Build (checkpoint fixes,
+  2026-10-10):* (4) a spike toy (1 every week, 14 in the last week: mean ratio 2.0, median ratio 1.0)
+  catches a ratio of medians.
 - **Failure messages** (four parts, each ending with `workshop.use_reference(3)`):
   - Toy (2) gives 1.767: "early and late are swapped: divide the late mean by the early mean."
   - Toy (1) gives 0.25 (and toy (2) 0.141): "you used sums. The windows have 52 and 13 weeks, so their
@@ -452,7 +454,11 @@ the learner reads this Predict and writes the function.
   (c) skewed draws: every week the same 1,000 exact quantiles of an Exponential(1), and a true value of
   0.01 and 2.5 in alternate weeks, give 1.0 with the 94% HDI ([0.0005, 2.805]) and 0.5 with any other
   interval (94% equal-tailed [0.031, 3.491], 89% HDI [0.0005, 2.203], 89% equal-tailed, ArviZ's default,
-  [0.057, 2.892]); deterministic, so it cannot pass or fail by chance;
+  [0.057, 2.892]); deterministic, so it cannot pass or fail by chance. *Build (checkpoint fixes,
+  2026-10-10):* the true values now cycle 0.01, 2.5 and −0.5 (`TOY_C_TRUE`), so the correct coverage is
+  2/3, an equal-tailed or 89% interval gives 1/3, and a Normal approximation (mean ± 1.88 sd), which
+  contains −0.5 although every draw is above 0, gives 1.0 with its own message; a copy with identical
+  chains tells a one-chain answer apart from a wrong interval;
   (d) toy (a)'s draws with the true path reversed in time give about 0.03 per week (4 of 156 weeks with
   seed 2037), but 0.94 with one interval pooled over all weeks.
   Then on the fit: (e) for each channel, equals the reference function's coverage exactly; (f) social

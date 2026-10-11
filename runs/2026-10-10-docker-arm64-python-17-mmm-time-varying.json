@@ -6,29 +6,29 @@
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "5caf02e",
+  "commit": "ad89986",
   "ref": "v2026.10.1",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "00939a85ba62754a",
-  "deps_sha": "0896fe9a676aa157",
+  "content_sha": "f8359ab317f562f5",
+  "deps_sha": "e2d4c13fe06d6f7c",
   "runs": [
     {
       "mode": "worked",
       "notebook": "python/17-mmm-time-varying",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 169.9,
+      "seconds": 169.7,
       "phases": {
-        "generated": 0.22,
-        "other": 108.65,
+        "generated": 0.23,
+        "other": 105.59,
         "exercise": 0.0,
-        "solution": 57.09,
-        "checkpoint": 0.3,
-        "verify": 0.04
+        "solution": 59.22,
+        "checkpoint": 0.29,
+        "verify": 0.05
       },
       "slowest_cell": {
         "id": "cell-016",
-        "seconds": 38.44
+        "seconds": 36.64
       },
       "verified": 5,
       "python": "3.13.14",
@@ -90,26 +90,26 @@
         }
       },
       "cell_errors": 0,
-      "note": "docker run --cpus 2 (a CPU quota on the 10-core laptop; cpus reports the host's count) with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (Colab has 2 cores) and TZ=America/Bogota (the laptop's zone, so the record carries the local date); laptop shared with other build jobs; nutpie 2 chains on 2 cores"
+      "note": "docker run --cpus 2 (a CPU quota on the 10-core laptop; cpus reports the host's count) with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (Colab has 2 cores) and TZ=America/Bogota (the laptop's zone, so the record carries the local date); commit passed in as MKTSTATS_COMMIT: git cannot reach the worktree's repository from the container; laptop shared with other build jobs (1-minute load average 3.74 when the run started); nutpie 2 chains on 2 cores"
     },
     {
       "mode": "learner",
       "notebook": "python/17-mmm-time-varying",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 3.9,
+      "seconds": 4.1,
       "phases": {
-        "generated": 0.13,
-        "other": 2.59,
+        "generated": 0.16,
+        "other": 2.5,
         "exercise": 0.0,
         "solution": 0.0,
         "checkpoint": 0.01
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.34
+        "seconds": 2.28
       },
-      "note": "docker run --cpus 2 (a CPU quota on the 10-core laptop; cpus reports the host's count) with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (Colab has 2 cores) and TZ=America/Bogota (the laptop's zone, so the record carries the local date); laptop shared with other build jobs; nutpie 2 chains on 2 cores"
+      "note": "docker run --cpus 2 (a CPU quota on the 10-core laptop; cpus reports the host's count) with OMP_NUM_THREADS=2 and OPENBLAS_NUM_THREADS=2 (Colab has 2 cores) and TZ=America/Bogota (the laptop's zone, so the record carries the local date); commit passed in as MKTSTATS_COMMIT: git cannot reach the worktree's repository from the container; laptop shared with other build jobs (1-minute load average 3.74 when the run started); nutpie 2 chains on 2 cores"
     }
   ]
 }
