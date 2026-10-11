@@ -82,7 +82,8 @@ rng_show = np.random.default_rng(SEED)  # five converting and five other journey
 examples = np.sort(np.concatenate([
     rng_show.choice(np.flatnonzero(journeys["converted"] == y), size=5, replace=False)
     for y in (1, 0)]))
-journeys.iloc[examples][["user_id", "path", "converted"]]
+with pd.option_context("display.max_colwidth", None):  # show every path in full
+    display(journeys.iloc[examples][["user_id", "path", "converted"]])
 
 # %% [markdown]
 # The next table shows, for each channel, the share of journeys it appears in and, among the
@@ -586,7 +587,8 @@ for i, (a, b) in enumerate(100 * rates.to_numpy()):
 ax.set_xticks(x, CHANNELS)
 ax.set_ylim(0, 1.3 * 100 * rates.to_numpy().max())
 ax.set_ylabel("Conversion rate in the month (%)")
-ax.set_title(f"Who each channel reaches (all {truth['n_users']:,} users)")
+ax.set_title("Conversion rate of the users each channel reached and did not reach\n"
+             f"(all {truth['n_users']:,} users)")
 ax.legend(loc="upper left", ncol=2)
 show(fig)
 
@@ -802,9 +804,7 @@ if test_first:
     print(f"  Test {channel} first: its holdout's MDE scaled to all users reached, about"
           f" {mde * n_reached:.0f} conversions a month, is below its break-even of"
           f" {break_even:.0f}, so the test can tell a channel that pays back from one that does"
-          f" not. (Comparing the MDE with the {credit.loc[channel, 'markov']:.0f} credited"
-          " conversions would be a weaker bar: a test with an MDE of 600 would pass it too, though"
-          " it could not tell a break-even channel from a useless one.)")
+          " not.")
 else:
     print(f"  Make the holdout larger or longer before running it: its MDE scaled to all users"
           f" reached, about {mde * n_reached:.0f} conversions a month, is not below the"
