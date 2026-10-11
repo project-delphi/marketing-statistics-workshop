@@ -6,16 +6,16 @@
 :::
 
 ::: {.module-summary}
-Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS.
+Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, recover the true decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS.
 :::
 
 ::: {.module-actions}
-[Python lab in preparation]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
 ::: {.module-decision}
-**The decision.** Decide whether to cut the fatigued channel's budget next quarter, based on its current ROAS interval rather than its all-period average.
+**The decision.** Decide whether to cut the fading channel's budget next quarter (social, in the lab): cut if its current-quarter ROAS is below break-even (1 ÷ gross margin) with posterior probability ≥ 0.9, keep if above with probability ≥ 0.9, otherwise run a lift test first; and say how this differs from the answer the all-period average gives.
 :::
 
 ::: {.module-details}
@@ -26,34 +26,38 @@ Time
 :   110 minutes (45 briefing, 55 lab, 10 debrief) · optional
 
 Languages
-:   Python. PyMC-Marketing 1.2.0 has time-varying intercept and media effects, and Prophet, which Colab preinstalls, produces the trend-and-holiday baseline that Robyn also uses.
+:   Python. PyMC-Marketing 1.2.0 fits the MMM with a separate time-varying effectiveness multiplier for each channel (a Hilbert-space Gaussian process); Prophet 1.4.0, preinstalled on Colab, builds the trend, seasonality and holiday baseline that Robyn also builds from it.
 
 Labs
-:   Python: `labs/python/17-mmm-time-varying.ipynb` (in preparation)
+:   Python: `labs/python/17-mmm-time-varying.ipynb`
 
 Data
-:   *To be written.*
+:   [Synthetic weekly MMM with a fading channel: 156 weeks of sales and spend on four channels, social's effect per dollar falling to about 0.4 of its first-year level (mmm_drift_weekly.csv from mktstats.synth.mmm_drift, seed 2037; noiseless paths in mmm_drift_latent.csv, truth in truth_mmm_drift.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic), [Synthetic dated lift test on the fading channel (mmm_drift_lift_tests.csv, one +30% social test ending 2025-11-17; stretch A)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_drift_lift_tests.csv)
 :::
 
 ::: {.module-outcomes}
 ## What you will be able to do
 
-- Show how a static MMM averages a channel's declining effectiveness and misstates its current ROAS.
-- Fit an MMM whose channel effect varies over time and check that the true path lies inside its 94% HDI for most weeks.
-- Fit Prophet to sales, feed its trend and seasonality into the MMM as controls, and measure the effect on ROAS against the truth.
-- Report current-quarter ROAS with an interval and say how it differs from the all-period average.
+- Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel the same ROAS for the last quarter as for the whole history.
+- Detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend.
+- Fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and check that the true path lies inside the 94% HDI in at least half of the weeks.
+- Feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves.
+- Decide on next quarter's budget for the fading channel from its current-quarter ROAS interval against break-even, and say how that differs from the all-period answer.
 
 **You leave with:**
 
-- A plot of the estimated and true time-varying channel effect
-- ROAS with and without a Prophet baseline, next to the truth
+- A window-ROAS function that works on the truth and on posterior draws
+- A residual check that flags a drifting channel when no truth is available
+- A plot of the estimated effectiveness path with its 94% HDI band next to the true path
+- A table of ROAS with the MMM's own baseline and with Prophet's, next to the truth
+- A cut-or-keep recommendation for the fading channel with the probability that it is right
 :::
 
 ::: {.prerequisites}
 ## Before you start
 
-- [Module 8](/modules/08-bayesian-mmm.qmd): the Bayesian MMM
-- [Module 9](/modules/09-mmm-calibration.qmd): calibration and what an MMM cannot identify
+- [Module 8](/modules/08-bayesian-mmm.qmd): the Bayesian MMM, adstock, saturation, ROAS and the sampler diagnostics
+- [Module 9](/modules/09-mmm-calibration.qmd): what an MMM cannot identify, and lift tests in the model's units
 - A Google account for Colab. The default Python runtime (CPU) is enough.
 - Or the workshop's Docker image, which has every package installed.
 :::

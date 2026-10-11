@@ -161,3 +161,90 @@ customers (checked 2026-10-09).
 Duplicate lines inside a sheet (6,865 and 5,268) and cancellations are kept as published. Parsing
 the xlsx with openpyxl took about 40 s on an Apple Silicon laptop; the result is cached as parquet.
 `load_online_retail_ii(sample=...)` keeps a random subset of customers for QUICK runs.
+
+## Extension datasets
+
+The optional extension modules (13–17) write their own files through `EXTENSIONS` in
+`scripts/make_synthetic.py`: CSVs whose names start with the dataset's name, and their truth in
+`truth_<name>.json` (never in `truth.json`, which the core modules' run records hash). Same
+rules as above: seeded generators, never edited by hand, `make_synthetic.py --check` in CI.
+
+### App install (Module 15)
+
+| File | Rows | Size | Generator (seed) | Contents |
+|---|---:|---:|---|---|
+| `app_install_customers.csv` | 20,000 | 1.4 MB | `mktstats.synth.app_install` (2035) | customer_id, acquisition_channel, tenure_months, orders_12m, days_since_last_order, avg_order_value, email_open_rate, mobile_share, loyalty_member (12 months before the app launch), app_installed (T), spend_next_26w (Y, dollars), true_propensity e(x), true_effect tau(x), true_baseline mu0(x) |
+| `truth_app_install.json` | | 11 KB | the same | parameters and formulas, the confounding structure, the estimands (ATE, ATT, ATC, the overlap-weighted effect, the naive expected difference), the install-credit scenario and decision, and the measured tolerances |
+
+Customers chose whether to install the retailer's app in its four launch weeks. Recent,
+frequent, mobile and e-mail-engaged customers installed more often, and the same customers
+spend more, so the naive comparison and a regression with linear controls are biased upward.
+The effect is tau(x) = 8 + 0.12 mu0(x) dollars over 26 weeks. Every common cause of install
+and spend is among the nine covariates, so double machine learning can recover the truth; a
+lab that drops `mobile_share` (which drives both) shows the bias of a hidden confounder.
+
+- The three `true_*` columns are for checkpoints only; `mktstats.dml.features` selects the nine
+  covariates by name. They are saved rounded (6, 4 and 4 decimals), and every estimand in the
+  truth file is computed from the saved values, so a lab can recompute any of them on the rows
+  it uses (QUICK keeps 10,000 customers).
+- Partialling-out DML estimates the overlap-weighted effect sum(e(1 − e) tau) / sum(e(1 − e))
+  ($14.28 on all 20,000 customers), not the ATE ($13.58); the checkpoints compare with it.
+- `tolerances` records coverage over 30 generator seeds (2035–2064) in both modes, measured
+  2026-10-10 with scikit-learn 1.6.1 and econml 0.17.0: the 95% intervals of the hand-written
+  estimate and of LinearDML covered the overlap-weighted effect for 27 of 30 seeds with all
+  customers and 29 of 30 with 10,000; the lab's two demonstration checks (in-sample standard
+  error at least twice the cross-fitted one; leaving out `mobile_share` raises the estimate by
+  more than $3) held on all 30 in both modes. Slow tests in `tests/test_synth_app_install.py`
+  rerun the sweeps.
+- The lab also uses the real Hillstrom experiment (downloaded, above) as a randomized benchmark:
+  Womens E-Mail against No E-Mail, outcome `visit`, spoiled with a known selection rule
+  (`mktstats.dml.confound`).
+
+### MMM with a fading channel (Module 17): `mmm_drift_*`
+
+- Generator `mktstats.synth.mmm_drift.mmm_drift(seed=2037)` (not exported from
+  `mktstats.synth`). Files: `mmm_drift_weekly.csv` (156 weeks from 2023-01-02: `date_week`,
+  spend on `tv`, `search`, `social`, `display`, `price_index`, `holiday`, `t`, sales `y`; Module 8's
+  columns), `mmm_drift_latent.csv` (truth only, never a model input: the noiseless baseline,
+  its trend and seasonality, and per channel the effectiveness multiplier `multiplier_<c>`, its
+  relative path `multiplier_rel_<c>` = multiplier / its mean over the weeks, and the
+  contribution `contribution_<c>` in dollars), `mmm_drift_lift_tests.csv` (one randomized
+  social test, +30% weekly spend for 8 weeks ending 2025-11-17, Module 9's columns), and
+  `truth_mmm_drift.json`.
+- Process: Module 8's functional form (normalized geometric adstock, L = 8; logistic
+  saturation on adstocked spend / its maximum; Module 8's decay and saturation per channel) times
+  a multiplier on the week the effect lands, as pymc-marketing 1.2.0's `time_varying_media`
+  applies it. Only social wears out: m(t) = 1 - 0.65 / (1 + exp(-(t - 104) / 20)), from 0.996 in
+  the first week to 0.397 in the last. Effect sizes are solved so that ROAS over all weeks is
+  tv 1.6, search 3.0, social 4.0, display 0.6. Search spend follows demand (trend and
+  seasonality); social has a four-week push (x 2.5) every 13 weeks, so every quarter has one:
+  the pushes are what let a model see the effect at different times. Baseline 250,000 + 500 t
+  + Module 8's Fourier seasonality, price and holiday effects; Normal(0, 8,000) noise. The draw
+  order is in the module docstring.
+- Truth (seed 2037): social's ROAS (window definition: contribution in the window over spend in
+  the window) is 4.00 over all weeks, 5.00 in the first year (52 weeks) and 2.11 in the last
+  quarter (13 weeks, 2025-09-29 to 2025-12-22), against a break-even of 3.33 at a 30% gross
+  margin; 2.04 in the last quarter by pymc-marketing's counterfactual definition
+  (`contribution_over_spend`). Social's drift ratio (last-quarter mean of the multiplier over its
+  first-year mean) is 0.42; it spent $192,407 in the last quarter. Media are 39% of sales.
+- Measured with the reference solutions on the committed data (`mktstats.drift.reference_results`,
+  pymc-marketing 1.2.0, nutpie 0.16.11, prophet 1.4.0, 2 chains on 2 cores, `random_seed=2037`,
+  `target_accept=0.98`, Apple Silicon laptop, 2026-10-10; FULL = 1,000 draws, QUICK = 300):
+  static MMM, social last quarter 3.88 (94% HDI 3.48 to 4.28) FULL, 3.88 (3.42 to 4.31) QUICK;
+  drifting MMM (`SoftPlusHSGP.parameterize_from_data`, one multiplier per channel, lengthscale
+  20 to 104 weeks, `eta_upper=2.0`, Matern 5/2; m = 56, L = 426.4), social last quarter 2.53
+  (1.94 to 3.15), P(below break-even) 0.99, FULL; 2.67 (1.97 to 3.29), 0.96, QUICK; its 94% band
+  covers social's true relative path in 69% of weeks (FULL; 65% QUICK) and the constant
+  channels' in 100%; Prophet baseline as an informed prior, social all-period 2.90 (2.25 to
+  3.58) against 3.90 (3.52 to 4.32) with the model's own baseline (truth 4.00). No divergences
+  in any of these fits. These are in `truth_mmm_drift.json` `tolerances`.
+- Over 15 generator seeds (2037-2051, QUICK settings, `random_seed` = the data's seed;
+  `tests/test_synth_mmm_drift.py`, slow): the static model's last-quarter HDI for social lay above
+  the truth, social's residual correlation fell most and ended below -0.3, the band covered
+  social's path in at least half of the weeks (0.65 to 1.00) and the constant channels' in at
+  least 90%, and social's drift-ratio HDI lay below 1, in 15 of 15 seeds; the Prophet baseline
+  lowered social's all-period ROAS in 15 of 15 (by 0.58 to 2.39), but Checkpoint 5's full claim
+  (Prophet's HDI excludes the truth and the model's own baseline covers it) held in 12 of 15; the
+  drifting model said "cut" in 14 of 15 (seed 2040: P(below) 0.81, "lift test first") and its
+  current-quarter ROAS lay above the truth in 14 of 15; one fit of 45 had a divergence (seed 2050,
+  drifting model). The prior's share of social drift ratios at or below 0.5 was 8% to 12%.

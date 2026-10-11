@@ -32,7 +32,7 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 ::: {.path-body}
 [Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd){.path-title} [Optional]{.chip}
 
-Estimate the effect of a customer action nobody randomized (installing the app) on spend, when loyal customers are the ones who install: compare naive and regression estimates with double machine learning written by hand and with EconML, check overlap, and benchmark the method against a randomized experiment.
+Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, find out whose effect the estimate describes, then reproduce it with EconML's LinearDML and check the method against a randomized benchmark built from the Hillstrom experiment.
 
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.path-builds-on}
 :::
@@ -54,7 +54,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 ::: {.path-body}
 [MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd){.path-title} [Optional]{.chip}
 
-Let a channel's effectiveness drift over time in a Bayesian MMM and recover a known decline from ad fatigue, and test against the truth whether a Prophet baseline (trend, seasonality, holidays) fed into the MMM improves or biases channel ROAS.
+Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, recover the true decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS.
 
 [Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.path-builds-on}
 :::

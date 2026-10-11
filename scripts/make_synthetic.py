@@ -324,10 +324,88 @@ def _messy() -> tuple[dict[str, pd.DataFrame], dict]:
     return {"messy_lines.csv": res.lines}, res.truth
 
 
+def _mmm_drift() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 17: weekly MMM data in which social wears out (seed 2037), with its noiseless
+    latent paths and one dated social lift test. The truth carries the measured reference
+    results of the lab's checkpoints (MMM_DRIFT_TOLERANCES)."""
+    from mktstats.synth import mmm_drift
+
+    res = mmm_drift.mmm_drift()
+    frames = {"mmm_drift_weekly.csv": res.weekly, "mmm_drift_latent.csv": res.latent,
+              "mmm_drift_lift_tests.csv": res.lift_tests}
+    return frames, {**res.truth, "tolerances": MMM_DRIFT_TOLERANCES}
+
+
+# Module 17: measured with the reference solutions on the committed data (mktstats.drift.
+# reference_results, pymc-marketing 1.2.0, nutpie 0.16.11, prophet 1.4.0, 2 chains on 2 cores,
+# random_seed 2037, draws = tune = 300 (QUICK) and 1000 (FULL), target_accept 0.98), on an
+# Apple Silicon laptop, 2026-10-10. Over more seeds: tests/test_synth_mmm_drift.py (slow).
+MMM_DRIFT_TOLERANCES: dict = {
+    "sampler": "nutpie, 2 chains on 2 cores, draws = tune = 300 (QUICK) and 1000 (FULL), "
+               "target_accept 0.98, random_seed 2037, Module 8's spend-share priors",
+    "interval": "94% HDI (mktstats.checks.interval), mean and [low, high]",
+    "checks": {
+        "checkpoint_1": "window_roas on the latent contributions equals roas, "
+                        "roas_first_year and roas_last_quarter to a relative 1e-9",
+        "static_model": "window ROAS over all weeks equals contribution_over_spend to 1e-8; "
+                        "social's last-quarter HDI lies above roas_last_quarter",
+        "checkpoint_2": "social's residual-spend correlation falls most from the first year to "
+                        "the last and ends below -0.3",
+        "checkpoint_4": "coverage of the true relative path: social >= 0.5, others >= 0.9",
+        "drifting_model": "social's drift-ratio HDI lies below 1; the others' contain 1",
+        "prophet": "trend + season + holiday = yhat to 1e-6",
+        "checkpoint_5": "social: Prophet-baseline mean below own-baseline mean, its HDI "
+                        "excludes roas, the own-baseline HDI covers it",
+        "decision": "cut if P(last-quarter ROAS < break-even) >= 0.9 under the drifting model",
+    },
+    "measured_2026_10_10": {
+        "static_social_roas_all": {"300": [3.892, 3.439, 4.313], "1000": [3.895, 3.522, 4.317]},
+        "static_social_roas_last_quarter": {"300": [3.875, 3.417, 4.309],
+                                            "1000": [3.879, 3.477, 4.282]},
+        "static_vs_contribution_over_spend_max_gap": {"300": 4.3e-14, "1000": 3.2e-14},
+        "residual_corr_social_2023_2024_2025": {"300": [0.405, 0.196, -0.569],
+                                                "1000": [0.404, 0.195, -0.574]},
+        "prior_social_drift_ratio": {"p_le_0.5": 0.088, "p_le_truth": 0.074,
+                                     "eti94": [0.217, 5.119], "draws": 1000},
+        "hsgp_m_L": [56, 426.4],
+        "coverage": {"300": {"tv": 1.0, "search": 1.0, "social": 0.647, "display": 1.0},
+                     "1000": {"tv": 1.0, "search": 1.0, "social": 0.686, "display": 1.0}},
+        "drift_ratio_social": {"300": [0.599, 0.455, 0.752], "1000": [0.570, 0.429, 0.706]},
+        "drift_ratio_hdi_others_1000": {"tv": [0.904, 1.130], "search": [0.488, 1.438],
+                                        "display": [0.505, 1.763]},
+        "drifting_social_roas_last_quarter": {"300": [2.669, 1.975, 3.285],
+                                              "1000": [2.533, 1.942, 3.151]},
+        "drifting_social_p_below_break_even": {"300": 0.963, "1000": 0.992},
+        "drifting_social_counterfactual_last_quarter_1000": [2.449, 1.889, 3.061],
+        "counterfactual_definition_max_gap_on_draws": 1.8e-15,
+        "prophet": {"trend_per_week": 148.5, "holiday_effect": 53641,
+                    "trend_gap_corr_social": 0.563, "sum_gap": 1.2e-10},
+        "prophet_baseline_social_roas_all": {"300": [2.889, 2.303, 3.654],
+                                             "1000": [2.901, 2.245, 3.577]},
+        "prophet_baseline_tv_roas_all_1000": [1.443, 1.249, 1.629],
+        "stretch_a_social_last_quarter_1000": [2.219, 1.916, 2.504],
+        "stretch_b_roas_all_1000": {"tv": [1.511, 1.401, 1.628],
+                                    "social": [3.153, 2.667, 3.717]},
+        "divergences": "0 in every fit, QUICK and FULL, stretch fits included",
+    },
+}
+
+
+def _app_install() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 15: customers who chose to install the app, with known propensities and
+    effects (seed 2035, 20,000 customers)."""
+    from mktstats.synth import app_install
+
+    res = app_install.app_install()
+    return {"app_install_customers.csv": res.customers}, res.truth
+
+
 EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
     "messy": _messy,
     "subscriptions": _subscriptions,
     "mta": _mta,
+    "app_install": _app_install,
+    "mmm_drift": _mmm_drift,
 }
 
 
