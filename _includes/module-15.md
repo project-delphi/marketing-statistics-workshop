@@ -10,7 +10,7 @@ Estimate how much installing the app, which customers chose for themselves, chan
 :::
 
 ::: {.module-actions}
-[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/15-double-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

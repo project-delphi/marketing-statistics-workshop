@@ -10,7 +10,7 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 :::
 
 ::: {.module-actions}
-[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

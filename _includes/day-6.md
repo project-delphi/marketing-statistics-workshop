@@ -15,7 +15,7 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 [Builds on [Module 1](/modules/01-customer-base.qmd), [Module 2](/modules/02-btyd.qmd) and [Module 4](/modules/04-monetary-clv.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the briefing](/modules/13-messy-real-data.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -32,7 +32,7 @@ Estimate subscriber retention from right-censored data with Kaplan-Meier, see wh
 [Builds on [Module 4](/modules/04-monetary-clv.qmd) and [Module 6](/modules/06-experiments.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the briefing](/modules/14-survival-churn.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/14-survival-churn.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -49,7 +49,7 @@ Estimate how much installing the app, which customers chose for themselves, chan
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/15-double-ml.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the briefing](/modules/15-double-ml.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/15-double-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -66,7 +66,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 [Builds on [Module 6](/modules/06-experiments.qmd) and [Module 8](/modules/08-bayesian-mmm.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the briefing](/modules/16-multi-touch-attribution.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 ::: {.module-card}
@@ -83,7 +83,7 @@ Find and model a channel whose effect per dollar fades (ad fatigue): show that a
 [Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.module-builds-on}
 
 ::: {.module-actions}
-[Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 :::

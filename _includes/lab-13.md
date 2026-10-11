@@ -2,7 +2,7 @@
 
 ### Python lab · `13-messy-real-data`
 
-[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/13-messy-real-data.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

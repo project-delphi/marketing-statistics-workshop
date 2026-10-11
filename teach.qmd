@@ -231,7 +231,7 @@ Each keeps the core module format, so it needs a core module's slot: a briefing 
 
 ### Before you teach one {#extensions-before}
 
-- **Not run on Colab.** The Colab buttons point at the release the workshop is pinned to, `{{< var repo.ref >}}`, cut before the extensions existed, so they cannot open these notebooks until a new release contains them (and that release needs a full Colab sweep). Until then, run them from a checkout or the Docker image ([Setup](setup.qmd#local)); the [readiness page](readiness.qmd#extensions) marks each one not ready to teach.
+- **Colab.** The Colab buttons open these notebooks at the release the workshop is pinned to, `{{< var repo.ref >}}`. The [readiness page](readiness.qmd#extensions) says whether each has a current Colab run.
 - **Times are laptop and Docker only.** The slowest cells below come from the run records of 2026-10-10 (worked, FULL; an Apple Silicon laptop, natively and in the Docker image limited to 2 CPUs). They are not Colab times, and the Colab times the notebooks mention are estimates.
 - **No pilot yet.** The minute marks are the lab briefs' estimates; the stall points are what the reviews of the briefs and notebooks expect, not what a class has shown. Pilot with two or three people first.
 - **Solutions** are folded under each exercise, as in the core. After `use_reference(n)`, rerun that exercise's **checkpoint cell**, then the cells below it: several checkpoints compute values that later cells use (`flat_12` and `boot` in Module 14, `mine` in Module 15, `P` and `removal` in Module 16), so skipping one ends in a `NameError`. The notebook's message says the same.

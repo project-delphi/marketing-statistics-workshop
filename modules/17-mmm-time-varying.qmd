@@ -13,7 +13,7 @@ title: "{{< var modules.m17.title >}}"
 {{< include /_includes/lab-17.md >}}
 
 ::: {.callout-note appearance="simple"}
-**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 136.2 s on an Apple Silicon laptop (native Python) and 161.6 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 136.2 s on an Apple Silicon laptop (native Python) and 161.6 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet. The [Readiness](/readiness.qmd#extensions) page shows its current status.
 :::
 
 ## 1. An effect per dollar that changes

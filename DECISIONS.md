@@ -31,7 +31,8 @@ Newest first within each section.
   change; they are re-run in the next Colab sweep.
 - The extension notebooks cannot run on Colab until a release tag contains them: Colab
   badges, the mktstats install and the data all point at `repo.ref`. A new tag changes every
-  notebook's `deps_sha`, so it needs a full Colab sweep of the core as well.
+  notebook's `deps_sha`, so it needs a full Colab sweep of the core as well. `v2026.10.2`
+  (2026-10-11) is that tag.
 
 ### A notebook not in `repo.ref` gets no Colab link (2026-10-11)
 - `repo.ref` (`v2026.10.1`) predates the extension notebooks, so every generated Colab link for
@@ -306,7 +307,7 @@ Newest first within each section.
   Colab and in CI, passed on the laptop by chance. With `ftol=0.01` (one cent) and a feasible start,
   0 of 40 failed and plans agreed within $1. The lab passes these options explicitly and explains why.
 
-### Notebooks pinned to a release tag, now `v2026.10.1` (2026-10-10)
+### Notebooks pinned to a release tag, now `v2026.10.2` (2026-10-10, 2026-10-11)
 - `repo.ref` is a release tag, so every Colab badge, the mktstats install, the constraints file,
   the R helpers and the committed data read that tag. A push to main no longer changes what learners get. The alternative,
   freezing main for the class, would have blocked fixes and run records.
@@ -316,6 +317,11 @@ Newest first within each section.
   Python variable without exporting it, so `mktstats.data` fetched `data/synthetic` and
   `truth.json` from main. `v2026.10.1` exports it (R already passed it as `mktstats.ref`). The data
   had not changed between the two, so the `v2026.10.0` runs used the same files.
+- `v2026.10.2` (2026-10-11, the user's go-ahead) is the first release that contains the
+  Extensions notebooks (Modules 13-17). It also takes the queue of lab changes that waited for a
+  sweep (below, "Taken into `v2026.10.2`"). The commit that moves `repo.ref` removes the five
+  `in_ref: false` flags and is the commit the tag is cut on. All 23 notebooks' records are stale
+  at the tag, so the sweep covers the core and the extensions.
 - Run records are added on main after the tag (`repo.branch`), so links to `runs/` point at main.
   Readiness hashes main's files, not the tag's: if main's labs or deps move past the tag, the
   readiness page reports stale even though learners still get the tag. That errs on the safe side.
