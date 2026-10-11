@@ -10,7 +10,7 @@ Credit conversions to channels along user journeys with last-click, first-click,
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.1/labs/python/16-multi-touch-attribution.ipynb){.btn-colab} [Python]{.chip}
+[Colab after the next release](/setup.qmd#local "Not in v2026.10.1, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
 :::
 :::
 

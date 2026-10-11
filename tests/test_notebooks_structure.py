@@ -1,6 +1,7 @@
 """Every generated lab notebook follows the notebook contract (CONTRIBUTING.md): the five
 generated cells, stub -> solution -> checkpoint for every exercise, parseable headings, the
-first checkpoint before any model fit, the badge and install at repo.ref, and no drift
+first checkpoint before any model fit, the badge (unless the notebook is declared `in_ref:
+false`) and install at repo.ref, and no drift
 between the sources and the committed notebooks and includes."""
 
 import json
@@ -79,7 +80,11 @@ def test_kernelspec_and_no_outputs(entry):
 def test_badge_and_install_point_at_the_ref(entry):
     cells = {c["id"]: text(c) for c in load(entry)["cells"]}
     badge = f"{V['repo']['colab_base']}/{REF}/{entry['path']}"
-    assert badge in cells[common.HEADER_ID]
+    if entry["in_ref"]:
+        assert badge in cells[common.HEADER_ID]
+    else:  # repo.ref does not contain it: no badge that cannot open (tests/test_colab_ref.py)
+        assert badge not in cells[common.HEADER_ID]
+        assert f"**{common.NOT_IN_REF}.**" in cells[common.HEADER_ID]
     install = cells[common.INSTALL_ID]
     if entry["kernel"] == "python3":
         assert f'MKTSTATS_REF = "{REF}"' in install

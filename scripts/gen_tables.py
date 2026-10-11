@@ -20,8 +20,11 @@ the run records. Never edit the outputs by hand: change the inputs and rerun.
   README.md                       the region between <!-- BEGIN status --> and <!-- END status -->
 
 Missing content keys (an empty summary, objectives or decision) render as "to be written",
-never as an empty element. The readiness outputs judge age against the newest record's
-date, never today's, so they change only when the repository does.
+never as an empty element. A written notebook declared `in_ref: false` (repo.ref does not
+contain it yet) gets a "Colab after the next release" chip linking to the local setup
+instead of a Colab link; an unwritten one, "in preparation". The readiness outputs judge
+age against the newest record's date, never today's, so they change only when the
+repository does.
 
 The core workshop (pre-work and Days 1-5) and the optional extensions (modules on a day
 with `track: extensions`) are counted apart everywhere: the landing-page counts, the
@@ -226,6 +229,14 @@ def colab_url(v: dict, entry: dict) -> str:
     return f"{v['repo']['colab_base']}/{v['repo']['ref']}/{entry['path']}"
 
 
+def not_in_ref(v: dict) -> str:
+    """What a written notebook that repo.ref does not contain (`in_ref: false`) shows instead
+    of a Colab link: a chip that sends the reader to running the lab locally."""
+    ref = v["repo"]["ref"]
+    tip = f"Not in {ref}, the version Colab opens. Run it locally until the next release."
+    return f'[{common.NOT_IN_REF}](/{common.LOCAL_SETUP} "{tip}"){{.chip}}'
+
+
 def module_link(key: str, m: dict) -> str:
     return f"/modules/{m['slug']}.qmd"
 
@@ -325,10 +336,12 @@ def colab_buttons(v: dict, key: str) -> str:
     out = []
     for e in notebooks_of(v, key):
         lang = LANG[e["language"]]
-        if exists(e):
+        if common.colab_ready(e):
             out.append(
                 f"[Open the {lang} lab in Colab]({colab_url(v, e)}){{.btn-colab}} [{lang}]{{.chip}}"
             )
+        elif exists(e):
+            out.append(f"{not_in_ref(v)} [{lang}]{{.chip}}")
         else:
             out.append(f"[{lang} lab in preparation]{{.chip}}")
     return " ".join(out)
@@ -592,11 +605,12 @@ def run_sheet(v: dict, dkey: str) -> str:
             labs = []
             for e in notebooks_of(v, s["module"]):
                 lang = LANG[e["language"]]
-                labs.append(
-                    f"[{lang} lab]({colab_url(v, e)})"
-                    if exists(e)
-                    else f"{lang} lab (in preparation)"
-                )
+                if common.colab_ready(e):
+                    labs.append(f"[{lang} lab]({colab_url(v, e)})")
+                elif exists(e):
+                    labs.append(f"{lang} lab ([{common.NOT_IN_REF}](/{common.LOCAL_SETUP}))")
+                else:
+                    labs.append(f"{lang} lab (in preparation)")
             what = (
                 f"{module}: {', '.join(labs)}. Stuck on exercise N: open its folded solution,"
                 " then `workshop.use_reference(N)` (R: `use_reference(N)`), and go on."
@@ -735,7 +749,10 @@ def lab_block(v: dict, key: str) -> str:
         if not found:
             out += [title, "", f"[{lang} lab in preparation]{{.chip}}", ""]
             continue
-        link = f"[Open in Colab]({colab_url(v, e)}){{.btn-colab}}" if exists(e) else ""
+        if common.colab_ready(e):
+            link = f"[Open in Colab]({colab_url(v, e)}){{.btn-colab}}"
+        else:
+            link = not_in_ref(v) if exists(e) else ""
         rows = ["| Step | Time |", "|---|---|"]
         for r in found:
             if r["kind"] == "stretch":
@@ -810,8 +827,11 @@ def notebooks_table(v: dict, records: list[dict], core: bool = True) -> str:
         m = v["modules"][e["module"]]
         env = readiness.teaching_env(v, e["kernel"])
         runtime = envs[env]["label"] if env else "—"
-        if exists(e):
+        if common.colab_ready(e):
             badge = f"[![Open in Colab]({BADGE})]({colab_url(v, e)})"
+            time = teaching_time(v, e, records)
+        elif exists(e):
+            badge = not_in_ref(v)
             time = teaching_time(v, e, records)
         else:
             badge, time = "in preparation", "—"
