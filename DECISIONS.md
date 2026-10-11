@@ -411,6 +411,17 @@ Newest first within each section.
 Changes to `labs/src`, `src/mktstats`, `R/` or the pins make the Colab records stale on main, and a
 new tag makes every notebook's record stale, so such changes wait for the next sweep instead of
 going to main one by one. `v2026.10.2` took the previous queue (below).
+- Module 17 with QUICK on: Checkpoint 4 fails on the reference solution on x86. Social's 94%
+  band covered 0.48 of weeks on Colab and 0.49 on the CI runner (2026-10-11, at `v2026.10.2`,
+  QUICK, 300 draws; CI run 38146702374, twice), against the bar of 0.5 in
+  `mktstats.drift.check_path_coverage`. The brief measured 0.65 to 1.00 with QUICK in the
+  prototype, and QUICK passed on the laptop (arm64) and in CI at 988d6f7 the same morning, with the
+  same lab, `drift.py`, data and pins, so the result depends on the machine (not verified
+  further: the failing CI record carries no package list). FULL passes everywhere it ran
+  (Colab, Docker arm64, macOS arm64). It is the only blocker of `release_check.py --extensions`;
+  the core is unaffected. Fix: a QUICK bar for the fading channel set from measured x86 and arm64
+  QUICK runs (or no coverage bar with QUICK), then re-measure. `teach.qmd` tells instructors not
+  to use QUICK in Module 17 until then.
 - Modules 13 and 17: the notebooks' Colab estimates predate a Colab record. Measured at
   `v2026.10.2` (`runs/2026-10-11-colab-py-python-1{3,7}-*.json`): Module 13's model cell took 25 s
   (the notebook says about a minute); Module 17's static fit 136 s (about a minute and a half),
