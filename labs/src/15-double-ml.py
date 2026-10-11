@@ -172,9 +172,8 @@ with workshop.checkpoint(label="data"):
 # %% tags=["exercise"]
 def baseline_estimates(y, t, W):
     # TODO 1: naive = mean of y where t == 1 minus mean where t == 0, se from np.var(..., ddof=1);
-    # regression: fit = sm.OLS(y, sm.add_constant(np.column_stack([t, W]))).fit(cov_type="HC1")
-    # (statsmodels draws no progress bar, so there is no progressbar=False to pass); the
-    # coefficient on t is fit.params[1], its standard error fit.bse[1]; intervals: +- 1.96 se
+    # regression: fit = sm.OLS(y, sm.add_constant(np.column_stack([t, W]))).fit(cov_type="HC1");
+    # the coefficient on t is fit.params[1], its standard error fit.bse[1]; intervals: +- 1.96 se
     raise NotImplementedError("TODO 1")
 
 
@@ -279,9 +278,9 @@ show(fig)
 # %% tags=["exercise"]
 def cross_fit(model, X, target, folds):
     # TODO 2: out = np.full(len(target), np.nan); for train, test in folds:
-    # fitted = clone(model).fit(X[train], target[train]) (scikit-learn draws no progress bar, so
-    # there is no progressbar=False to pass); out[test] = fitted.predict_proba(X[test])[:, 1] if
-    # hasattr(fitted, "predict_proba") else fitted.predict(X[test]); return out
+    # fitted = clone(model).fit(X[train], target[train]); out[test] =
+    # fitted.predict_proba(X[test])[:, 1] if hasattr(fitted, "predict_proba") else
+    # fitted.predict(X[test]); return out
     raise NotImplementedError("TODO 2")
 
 
