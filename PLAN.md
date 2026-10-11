@@ -190,10 +190,10 @@ Day `d6`, no timed blocks. Each module: brief [AD] → review [PE] → build + r
 Nothing here may change a file the 18 core notebooks' run records hash.
 - [x] [Lead] scaffold: `d6` and `m13`–`m17` in `_variables.yml`, per-file synth deps for m01/m03/m04/m05 (deps_sha unchanged), `EXTENSIONS` + `truth_<name>.json` in `make_synthetic.py`, lifelines and prophet pins
 - [x] [TE] site machinery: core vs extensions readiness verdict and release check (`--extensions`), counts, `extensions.qmd` and Days menu, module page stubs, notebook footers (merged afdec69)
-- [ ] M13 messy real data (dirtied synthetic retailer → Online Retail II; BG/NBD, Gamma-Gamma, capping)
-- [ ] M14 survival analysis (Kaplan–Meier, Cox, proportional-hazards check, RMST; KM vs sBG)
+- [ ] M13 messy real data (dirtied synthetic retailer → Online Retail II; BG/NBD, Gamma-Gamma, capping) — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 1429146); module page [AD] and notebook review [PE] in progress; Colab needs a tag
+- [ ] M14 survival analysis (Kaplan–Meier, Cox, proportional-hazards check, RMST; KM vs sBG) — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 1a9e9bb), notebook review ✓, module page ✓; checkpoint-message fixes [TE] in progress; Colab needs a tag
 - [ ] M15 double machine learning (partialling out by hand, EconML LinearDML, overlap; Hillstrom benchmark)
-- [ ] M16 multi-touch attribution (heuristics, Markov removal effect, Shapley) scored against true incrementality — brief [AD] ✓, review [PE] ✓, build + macOS and Docker FULL runs [TE] ✓ (merged 5e49461); module page [AD] and notebook review [PE] in progress; Colab needs a tag
+- [ ] M16 multi-touch attribution (heuristics, Markov removal effect, Shapley) scored against true incrementality — brief [AD] ✓, review [PE] ✓, build + macOS and Docker FULL runs [TE] ✓ (merged 5e49461), notebook review ✓, module page ✓; checkpoint-message fixes [TE] in progress; Colab needs a tag
 - [ ] M17 time-varying MMM and a Prophet baseline, scored against truth
 - [ ] [PE] review of briefs and notebooks; teach.qmd and knowledge checks for the track
 - [ ] [AD] module pages from the recorded runs; references.qmd entries

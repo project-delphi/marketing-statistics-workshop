@@ -76,6 +76,60 @@ Newest first within each section.
   scaled to all users reached (about 250 conversions a month), with the break-even (278), not
   with the credited conversions, which would be a weaker bar.
 
+### Module 13: a dirtied synthetic log, a maximum-likelihood helper, and Online Retail II (2026-10-10)
+- The messy log (`mktstats.synth.messy`, seed 2033) is the retailer's customers 1–2,500 plus
+  13 wholesale buyers, with the schema `load_online_retail_ii()` returns and error rates
+  measured on Online Retail II (lines without a customer ID 22.4% against 22.5%, postage
+  invoices 4.83% against 4.88%, duplicate lines 1.45% against 1.44%, cancellation lines 2.28%
+  in both). Labels go only to `truth_messy.json`. Fewer customers than the prototype keep the
+  plain CSV at 2.4 MB; it is not gzipped, because compressed bytes can differ between zlib
+  builds and the drift gate compares bytes.
+- The lesson the data support is aggregate versus individual: Module 1's cleaning rules move
+  the 52-week forecast by +2.8% but move 449 of 2,513 customers' scores by more than 10%. On
+  Online Retail II, customer 12346 is worth £18,026.64 over 26 weeks under Module 1's rules and
+  £113.12 after cancellation matching (an order of 74,215 units cancelled the same day).
+- The sweep of cleaning variants needs about 20 fits, so `mktstats.mle` maximizes
+  pymc-marketing 1.2.0's closed-form BG/NBD and Gamma-Gamma likelihoods with SciPy (each fit
+  under 0.3 s). It reproduces Fader and Hardie's notes 004 and 025 at their published
+  precision and agrees with PyMC-Marketing's flat-prior MAP to 1.6e-5 relative or better on
+  the lab's data; PyMC-Marketing is fitted once in the lab as the cross-check (Pedagogy
+  review: approved because Modules 2 and 4 already show flat-prior MAP is maximum likelihood).
+- Tolerances come from 30 independent generator seeds: the holdout forecast within 20% (the
+  largest error was 17.8%; the BG/NBD over-predicts this Pareto/NBD holdout by 8% on average)
+  and the capped population mean within 8%.
+- Olist is not used: Kaggle's API metadata gives CC BY-NC-SA 4.0, Kaggle's docs say an account
+  is needed, and only 2.2% of its customers bought on more than one day (measured on the files).
+- Library traps found in the build: PyTensor turns Python floats that float32 holds exactly
+  (2.0, 2.5) into float32 constants, so `pm.logp(BetaGeoNBD.dist(b=2.0, …))` computes
+  `gammaln(b)` in single precision (pass `np.float64`; pymc 6.3.2, pytensor 3.3.3);
+  `fit_summary()` after a MAP fit rounds its values (ArviZ `round_to="auto"`, arviz 1.3.0;
+  read `model.fit_result`); DuckDB 1.3.2's ASOF join breaks exact ties differently from run to
+  run with more than one thread, so the lab checks only counts that do not depend on the tie.
+  The join matches 123 purchases twice on Online Retail II; the lab states the approximation
+  (one-to-one pairing would change 17 customers' calibration data and one contact).
+
+### Module 14: time zero, a fading covariate, interval checks and coverage (2026-10-10)
+- `mktstats.synth.subscriptions` (seed 2034): 8,000 subscribers signing up from 2024-01-01 to
+  2025-12-31, observed to 2026-06-30; Weibull proportional hazards (shape 0.8, scale 14
+  months) in plan and onboarding; onboarding confounded by plan; an intro offer with hazard
+  ratio 2.01 before month 3 and 1 after. The truth is analytic (restricted mean survival time
+  in closed form). Time zero is the first billing date after a 14-day trial, so onboarding is
+  known when the clock starts (no immortal-time bias); the fading covariate is the offer,
+  known at sign-up, not early support tickets.
+- Checks on library confidence intervals and a stratified bootstrap live in the new
+  `mktstats/survival.py`; `checks.py`, which the core hashes, is unchanged.
+- Coverage of the checkpoint rules with the reference solutions over 80 seeds: 78–80 for every
+  rule except the two that rest on one 95% interval each, Cox onboarding (73 of 80) and the
+  RMST bootstrap (72–73 of 80). The prototype's 38–40 of 40 came from one seed set. On the
+  committed seed every rule holds and a correct solution reproduces the reference exactly.
+- The build found that 50/50 weights in Checkpoint 5 let a plain average pass; they are now
+  75/25.
+- lifelines 0.30.3 traps: `predict` carries the last value flat past the data without a
+  warning; `restricted_mean_survival_time(return_variance=True)` is the variance of min(T, t),
+  not a standard error; `confidence_intervals_` is on the log scale and its column names carry
+  the level; `CoxPHFitter.fit` uses every other column as a covariate, so passing the whole
+  table raises `TypeError: Cannot cast DatetimeArray to dtype float64`.
+
 ### BLAS and OpenMP oversubscribe under a Docker CPU quota (2026-10-10, Module 16 build)
 - In the workshop image with `--cpus 2` on a 10-core Mac, OpenBLAS 0.3.27 starts 10 threads:
   200 matrix-vector products (8,441 × 64) took 5.0 s, against 0.02 s with 1 or 2 threads. Module
