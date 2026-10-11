@@ -166,6 +166,9 @@ with workshop.checkpoint(label="data"):
 # - both intervals are **95% normal-approximation confidence intervals**: the estimate ± 1.96
 #   standard errors.
 
+# %% [markdown]
+# *Your guess (Exercise 1)* (double-click to edit):
+
 # %% tags=["exercise"]
 def baseline_estimates(y, t, W):
     # TODO 1: naive = mean of y where t == 1 minus mean where t == 0, se from np.var(..., ddof=1);
@@ -270,6 +273,9 @@ show(fig)
 # `X[test]` at the positions `test`: the probability of class 1, `predict_proba(X[test])[:, 1]`,
 # if the model has `predict_proba` (a classifier), else `predict(X[test])`.
 
+# %% [markdown]
+# *Your guess (Exercise 2), in sample and out of fold* (double-click to edit):
+
 # %% tags=["exercise"]
 def cross_fit(model, X, target, folds):
     # TODO 2: out = np.full(len(target), np.nan); for train, test in folds:
@@ -362,7 +368,8 @@ if QUICK:
 # \widehat{\mathrm{se}}(\hat\theta) = \frac{\sqrt{\sum_i \tilde T_i^2 (\tilde Y_i - \hat\theta \tilde T_i)^2}}{\sum_i \tilde T_i^2},
 # \qquad \text{95\% CI: } \hat\theta \pm 1.96\,\widehat{\mathrm{se}}.$$
 #
-# The standard error is the heteroskedasticity-robust one called HC0. The idea is the one behind
+# The standard error is robust in the same sense as Exercise 1's: it does not assume every
+# customer's spend is equally noisy. This version is called HC0. The idea is the one behind
 # controls in linear regression (the coefficient on $T$ equals the slope of the $Y$ residual on
 # the $T$ residual after both are regressed on the controls), with the linear regressions
 # replaced by cross-fitted machine learning. $\tilde T$ is the part of installing the covariates
@@ -375,6 +382,9 @@ if QUICK:
 #
 # **Task.** Write `dml_estimate(y, t, y_hat, t_hat)` returning a dict with `theta`, `se`,
 # `ci_low` and `ci_high` from the formulas above.
+
+# %% [markdown]
+# *Your guess (Exercise 3), the estimate and the half-width* (double-click to edit):
 
 # %% tags=["exercise"]
 def dml_estimate(y, t, y_hat, t_hat):
@@ -500,14 +510,19 @@ print(f"{outside.mean():.1%} of customers have a predicted probability outside [
 # rule of thumb for the average effect; the lab starts gentler, at $[0.05, 0.95]$.
 #
 # **Predict.** The cell above printed the share of customers with $\hat e$ outside
-# $[0.05, 0.95]$. What share of the total weight $\hat e(1 - \hat e)$ do they carry: about the
-# same, much less (around 1%), or much more? Write your guess in the cell below.
+# $[0.05, 0.95]$. Their share of the total weight $\hat e(1 - \hat e)$: will it be about the
+# same as their share of customers, under half of it, or more than it? Write your guess in the
+# cell below.
 #
 # **Task.** Write `trimmed_estimate(y, t, y_hat, t_hat, low, high)`: keep the rows with
 # `low <= t_hat <= high`, call your `dml_estimate` on them, and add to its dict `share_kept`
 # (the share of customers kept) and `weight_share_dropped` (the dropped customers' share of the
-# total weight $\hat e(1 - \hat e)$, from `t_hat`). The predictions come from Exercise 2;
-# nothing is refitted.
+# total weight $\hat e(1 - \hat e)$, from `t_hat`). Use the arguments `low` and `high`, not the
+# constants `LOW` and `HIGH` below: a later cell calls your function with stricter limits. The
+# predictions come from Exercise 2; nothing is refitted.
+
+# %% [markdown]
+# *Your guess (Exercise 4)* (double-click to edit):
 
 # %%
 LOW, HIGH = 0.05, 0.95  # drops only customers nearly sure either way: their weight is under 0.0475, a fifth of the largest
@@ -608,8 +623,8 @@ for low, high in [(LOW, HIGH), (0.1, 0.9), (0.2, 0.8)]:
 #
 # Then fit it with `X=None` and `W=W`. **`W`** holds the covariates to adjust for (controls);
 # **`X`** holds covariates the effect may vary with: none here, so one effect. You use it twice:
-# on the app data, where it must reproduce your Exercise 3 numbers, and on a real experiment
-# that we spoil on purpose.
+# on the app data, next to your Exercise 3 numbers, and on a real experiment that we spoil on
+# purpose.
 #
 # **Predict (1 of 2).** With the same folds, the same two models and the same seed, will
 # EconML's estimate equal yours to the cent, differ by a few cents, or differ by dollars? Write
@@ -617,6 +632,9 @@ for low, high in [(LOW, HIGH), (0.1, 0.9), (0.2, 0.8)]:
 #
 # **Task.** Write `fit_linear_dml(y, t, W, folds, model_y, model_t, seed)` returning the fitted
 # `LinearDML` with the four settings above.
+
+# %% [markdown]
+# *Your guess (Exercise 5, 1 of 2)* (double-click to edit):
 
 # %% tags=["exercise"]
 def fit_linear_dml(y, t, W, folds, model_y, model_t, seed):
@@ -638,7 +656,8 @@ def fit_linear_dml(y, t, W, folds, model_y, model_t, seed):
 # %% [markdown]
 # The checkpoint fits your `LinearDML` on the app data (10 models, as in Exercise 2) and
 # compares it with your Exercise 3 result: the estimate to a millionth, the 95% interval to a
-# ten-thousandth. Then the true overlap-weighted effect must lie inside EconML's interval.
+# ten-thousandth. Then the true overlap-weighted effect must lie inside EconML's interval. In
+# EconML's table, `cate_intercept` is the one effect (with `X=None`, the effect is a constant).
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(5):
@@ -662,8 +681,7 @@ with workshop.checkpoint(5):
 # The rule, applied by the provided `confound(df, seed)`: keep every No E-Mail customer; keep a
 # Womens E-Mail customer with probability 0.9 if `recency <= 3` (months since the last purchase)
 # or `history >= 250` (dollars spent last year), and with probability 0.2 otherwise. The
-# e-mailed customers left in the sample are then mostly recent or big spenders, who visit more
-# anyway.
+# e-mailed customers left in the sample are then mostly recent or big spenders.
 #
 # The next cell downloads Hillstrom on first use (about 4 MB, checked with SHA-256, then
 # cached), prints the benchmark and spoils the experiment.
@@ -696,11 +714,14 @@ print(f"Kept: {kept['control']:.2f} of controls, {kept['favored']:.2f} of e-mail
 print(f"The spoiled sample: {len(spoiled):,} customers, {spoiled['treatment'].mean():.1%} e-mailed.")
 
 # %% [markdown]
+# The next code cell runs *your* `baseline_estimates` and `fit_linear_dml` on the spoiled
+# sample, with the same boosted models and five stratified folds built on the sample.
+#
 # **Predict (2 of 2).** On the spoiled sample, will the naive difference in visit rates be above,
 # below or about the benchmark printed above? Write your guess in the cell below.
-#
-# The next cell runs *your* `baseline_estimates` and `fit_linear_dml` on the spoiled sample, with
-# the same boosted models and five stratified folds built on the sample.
+
+# %% [markdown]
+# *Your guess (Exercise 5, 2 of 2)* (double-click to edit):
 
 # %%
 y_s = spoiled["visit"].to_numpy(dtype=float)
