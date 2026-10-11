@@ -192,9 +192,26 @@ with workshop.checkpoint(1):
         " duplicate. A duplicate must match in all eight columns: partition by every original"
         " column, not by invoice and stock code." + move_on
     )
+    assert not (f["non_product"][0] and not f["non_product"][3]), (
+        "Checkpoint 1: you flag stock code 15056 (toy line 0) as non-product and keep POST"
+        " (line 3): your test is the wrong way round. non_product is true when the code does"
+        " not start with five digits: put NOT before regexp_matches(...)." + move_on
+    )
+    assert not (f["non_product"][7] and not f["non_product"][0] and not f["non_product"][6]), (
+        "Checkpoint 1: you flag stock code 22000 (toy line 7) as non-product but keep 15056 and"
+        " 15056BL: the pattern lost its braces. Python fills {5} in an f-string with the number"
+        " 5, so DuckDB gets '^[0-9]5' (a digit, then a 5). Inside an f-string write {{5}}:"
+        " '^[0-9]{{5}}'." + move_on
+    )
     assert not f["non_product"][6], (
         "Checkpoint 1: you flag stock code 15056BL as non-product. A product code can end in a"
         " letter: test only that the code starts with five digits, '^[0-9]{5}'." + move_on
+    )
+    assert f["duplicate"][1], (
+        "Checkpoint 1: toy line 1 is an exact copy of line 0, and you do not flag it as a"
+        " duplicate. Flag every copy after the first, ROW_NUMBER() OVER (PARTITION BY <the eight"
+        " original columns> ORDER BY line_id) > 1, and leave line_id out of the PARTITION BY:"
+        " it differs on every line, so with it no line has a copy." + move_on
     )
     assert f["duplicate"][8], (
         "Checkpoint 1: toy line 8 is an exact copy of line 7, including its missing customer"
@@ -337,8 +354,8 @@ con.sql("""
 # complete.
 #
 # Write every part of the rule: four equalities and one inequality. On the messy log a few
-# missing conditions change nothing, so the checkpoint cannot catch them all; Part D's counts on
-# the real log will. Stuck after about ten minutes? Run `workshop.use_reference(2)`, go on, and
+# missing conditions change nothing, so the checkpoint first tests each one on a toy table built
+# to tell them apart. Stuck after about ten minutes? Run `workshop.use_reference(2)`, go on, and
 # come back to this after the Decision.
 
 # %% tags=["exercise"]
@@ -378,20 +395,30 @@ def match_cancellations(con, table="kept"):
 # %% tags=["checkpoint"]
 with workshop.checkpoint(2):
     toy = pd.DataFrame({
-        "line_id": range(9),
+        "line_id": range(20),
         "invoice": ["500000", "C500001", "500002", "C500003", "C500004", "500005", "500006",
-                    "500007", "C500008"],
+                    "500007", "C500008", "500009", "500010", "C500011", "500012", "500013",
+                    "C500014", "500015", "500016", "C500017", "500018", "C500019"],
         "stock_code": ["10001", "10001", "10002", "10002", "10003", "10003", "10004", "10004",
-                       "10004"],
-        "quantity": [2, -2, 3, -1, -4, 4, 1, 1, -1],
+                       "10004", "10005", "10005", "10005", "10006", "10007", "10006", "10008",
+                       "10008", "10008", "10009", "10009"],
+        "quantity": [2, -2, 3, -1, -4, 4, 1, 1, -1, 1, 1, -1, 2, 2, -2, 3, 3, -3, 1, -1],
         "invoice_date": pd.to_datetime([
             "2024-01-05 09:00", "2024-01-05 11:30",  # same-day full cancellation: matched
             "2024-01-06 10:00", "2024-01-08 10:00",  # returns 1 of the 3 units: not matched
             "2024-01-09 10:00", "2024-01-10 10:00",  # cancellation before the purchase: no
             "2024-01-11 10:00", "2024-01-12 10:00", "2024-01-13 10:00",  # the later of two
+            "2024-01-14 09:00", "2024-01-14 10:00",  # then the same item, by customer 2
+            "2024-01-14 12:00",
+            "2024-01-15 09:00", "2024-01-15 10:00",  # then another code, same price and units
+            "2024-01-15 12:00",
+            "2024-01-16 09:00", "2024-01-16 10:00",  # then the same code at another price
+            "2024-01-16 12:00",
+            "2024-01-17 09:00", "2024-01-17 09:00",  # cancelled in the same minute
         ]),
-        "price": [2.5, 2.5, 1.0, 1.0, 3.0, 3.0, 4.0, 4.0, 4.0],
-        "customer_id": pd.array([1] * 9, dtype="Int64"),
+        "price": [2.5, 2.5, 1.0, 1.0, 3.0, 3.0, 4.0, 4.0, 4.0, 5.0, 5.0, 5.0, 6.0, 6.0, 6.0,
+                  7.0, 6.5, 7.0, 8.0, 8.0],
+        "customer_id": pd.array([1] * 10 + [2] + [1] * 9, dtype="Int64"),
     })
     con.register("toy_kept", toy)
     got = match_cancellations(con, "toy_kept")
@@ -399,17 +426,25 @@ with workshop.checkpoint(2):
     move_on = " To move on now, run workshop.use_reference(2)."
     pairs = [(int(c), None if pd.isna(o) else int(o))
              for c, o in zip(got["cancel_id"], got["original_id"], strict=True)]
-    assert len(pairs) >= 4, (
-        f"Checkpoint 2: you return {len(pairs)} rows for the 4 cancellation lines of the toy"
+    assert len(pairs) >= 8, (
+        f"Checkpoint 2: you return {len(pairs)} rows for the 8 cancellation lines of the toy"
         " table: use ASOF LEFT JOIN, so a cancellation with no match stays, with original_id"
         " missing." + move_on
     )
-    assert len(pairs) == 4 and len({c for c, _ in pairs}) == 4 and (8, 6) not in pairs, (
+    assert len(pairs) == 8 and len({c for c, _ in pairs}) == 8 and (8, 6) not in pairs, (
         f"Checkpoint 2: toy cancellation 8 gets {[o for c, o in pairs if c == 8]}; it should get"
         " only line 7, the later of two identical purchases. An ordinary join returns every"
         " earlier match (and MIN the earliest); ASOF returns only the latest earlier one." + move_on
     )
     pairs = dict(pairs)
+    assert any(o is not None for o in pairs.values()), (
+        "Checkpoint 2: none of the 8 toy cancellations matches a purchase, not even"
+        " cancellation 1, which cancels all of purchase 0 two hours later (same customer, stock"
+        " code and price, 2 units). Two likely causes: the sign of the quantity (a cancellation's"
+        " quantity is negative: -c.quantity = p.quantity, not c.quantity = p.quantity), or a"
+        " condition on the invoice (a cancellation is on its own C invoice, never on the"
+        " purchase's invoice: do not join on invoice)." + move_on
+    )
     assert pairs[3] is None, (
         "Checkpoint 2: toy cancellation 3 returns 1 of the 3 units bought on line 2, and you"
         " match it. A cancellation matches only a line with the opposite quantity:"
@@ -420,9 +455,29 @@ with workshop.checkpoint(2):
         " cancellation can only cancel an earlier purchase: c.invoice_date >= p.invoice_date."
         + move_on
     )
-    assert pairs == {1: 0, 3: None, 4: None, 8: 7}, (
-        f"Checkpoint 2: on the toy table you return {pairs}; it should be {{1: 0, 3: None,"
-        " 4: None, 8: 7}. Check each condition of the join against the Task text." + move_on
+    assert pairs[11] != 10, (
+        "Checkpoint 2: toy cancellation 11 (customer 1) gets line 10, a later purchase of the"
+        " same item by customer 2. A customer can only cancel their own purchase:"
+        " c.customer_id = p.customer_id." + move_on
+    )
+    assert pairs[14] != 13, (
+        "Checkpoint 2: toy cancellation 14 (stock code 10006) gets line 13, a later purchase of"
+        " stock code 10007 at the same price and quantity. A cancellation cancels the same"
+        " product: c.stock_code = p.stock_code." + move_on
+    )
+    assert pairs[17] != 16, (
+        "Checkpoint 2: toy cancellation 17 (price 7.00) gets line 16, a later purchase of the"
+        " same stock code at 6.50. The price must match too: c.price = p.price." + move_on
+    )
+    assert pairs[19] is not None, (
+        "Checkpoint 2: toy cancellation 19 has the same timestamp as purchase 18 (the log"
+        " records minutes), and you do not match them. \"At or before\" includes the same"
+        " minute: c.invoice_date >= p.invoice_date, not >." + move_on
+    )
+    expected = {1: 0, 3: None, 4: None, 8: 7, 11: 9, 14: 12, 17: 15, 19: 18}
+    assert pairs == expected, (
+        f"Checkpoint 2: on the toy table you return {pairs}; it should be {expected}. Check"
+        " each condition of the join against the Task text." + move_on
     )
     matches = match_cancellations(con)
     ref = truth["rules"]["cancellation"]
@@ -789,8 +844,9 @@ def variant_effects(scores, reference="reference", threshold=0.10):
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(3):
-    toy = pd.DataFrame({"reference": [10.0, 20.0, 70.0], "up": [11.5, 19.0, 70.0],
-                        "down": [10.0, 16.0, 70.0]}, index=pd.Index([1, 2, 3], name="customer_id"))
+    toy = pd.DataFrame({"reference": [10.0, 20.0, 50.0, 20.0], "up": [11.5, 19.0, 50.0, 20.0],
+                        "down": [10.0, 16.0, 50.0, 18.1]},
+                       index=pd.Index([1, 2, 3, 4], name="customer_id"))
     got = variant_effects(toy)
     checks.columns(got, ["total_change_pct", "customers_moved"], name="variant_effects(toy)")
     move_on = " To move on now, run workshop.use_reference(3)."
@@ -807,20 +863,25 @@ with workshop.checkpoint(3):
         "Checkpoint 3: total_change_pct is in percent: multiply by 100 (the toy's 'up' column"
         " changes the total from 100 to 100.5, which is +0.5%)." + move_on
     )
-    assert abs(total["up"] - 0.5) < 1e-9 and abs(total["down"] + 4.0) < 1e-9, (
+    assert abs(total["up"] - 0.5) < 1e-9 and abs(total["down"] + 5.9) < 1e-9, (
         f"Checkpoint 3: on the toy, total_change_pct is {total['up']:.4g} and"
-        f" {total['down']:.4g}; it should be 0.5 and -4. total_change_pct compares totals,"
+        f" {total['down']:.4g}; it should be 0.5 and -5.9. total_change_pct compares totals,"
         " 100 x (sum of the variant / sum of the reference - 1), not the average of each"
         " customer's change." + move_on
+    )
+    assert not (moved["down"] == 2 and moved["up"] <= 1), (
+        "Checkpoint 3: in the toy's 'down' column customer 4 goes from 20 to 18.1, a change of"
+        " 9.5% (18.1 / 20 = 0.905), and you count them as moved. Divide the variant by the"
+        " reference, not the reference by the variant (20 / 18.1 = 1.105 would count)." + move_on
+    )
+    assert moved["up"] == 1, (
+        f"Checkpoint 3: in the toy's 'up' column only customer 1 moves by more than 10% (+15%);"
+        f" you count {moved['up']}. Compare each customer's ratio with 1 + threshold." + move_on
     )
     assert moved["down"] == 1, (
         "Checkpoint 3: in the toy's 'down' column customer 2 falls by 20% and you do not count"
         " them. Count customers whose score moved by more than 10% in either direction: use the"
         " absolute change." + move_on
-    )
-    assert moved["up"] == 1, (
-        f"Checkpoint 3: in the toy's 'up' column only customer 1 moves by more than 10% (+15%);"
-        f" you count {moved['up']}. Compare each customer's ratio with 1 + threshold." + move_on
     )
     effects = variant_effects(scores)
     ref = scores["reference"]
@@ -829,8 +890,17 @@ with workshop.checkpoint(3):
                                   for c in scores])
     checks.close(effects.loc[list(scores), "total_change_pct"].to_numpy(dtype=float),
                  independent_total, abs=1e-9, name="total_change_pct on the sweep")
-    checks.close(effects.loc[list(scores), "customers_moved"].to_numpy(dtype=float),
-                 independent_moved, abs=1e-9, name="customers_moved on the sweep")
+    try:
+        checks.close(effects.loc[list(scores), "customers_moved"].to_numpy(dtype=float),
+                     independent_moved, abs=1e-9, name="customers_moved on the sweep")
+    except AssertionError as err:
+        raise AssertionError(
+            f"Checkpoint 3: {err} Your function passed the toy, so it agrees with the rule on"
+            " clear cases but not near 10%, where the sweep has many customers. The likely cause"
+            " is a different measure of change: use exactly |variant / reference - 1| >"
+            " threshold, with the reference as the denominator (not the variant, and not the"
+            " average of the two), no logarithm and no rounding." + move_on
+        ) from None
 
 # %% [markdown]
 # A check of the provided sweep: its reference row is the fit on the clean log (the same table),
@@ -955,12 +1025,22 @@ with workshop.checkpoint(4):
                 " pct is in percent, so use quantile(pct / 100)." + move_on
             ) from None
         raise
+    except mle.MLEError:
+        raise AssertionError(
+            "Checkpoint 4: the spend fit in your function found no maximum (mle.MLEError): the"
+            " amounts it fitted are not spread like spend. The usual cause is the clip:"
+            " Series.clip(cap) sets a floor, so every amount becomes at least the cap. Cap with"
+            " clip(upper=cap)." + move_on
+        ) from None
     checks.columns(pd.DataFrame([got]), ["cap", "p", "q", "v"], name="capped_spend_fit(...)")
     cap99 = cal_amounts.quantile(0.99)
     first = tx.groupby("customer_id")["date"].transform("min")
     wrong_caps = {
         "your cap uses purchase days after the calibration end: compute it from"
         " date <= cal_end only": tx["amount"].quantile(0.99),
+        "your cap leaves out the purchase days on the calibration end itself: include the"
+        " calibration end (<=), date <= cal_end": tx.loc[
+            tx["date"] < pd.Timestamp(CAL_END), "amount"].quantile(0.99),
         "cap each purchase day's amount, first purchases included, before building the RFM"
         " table; your cap leaves out first purchases": cal_amounts[
             (tx["date"] > first)[cal_amounts.index]].quantile(0.99),
@@ -971,6 +1051,8 @@ with workshop.checkpoint(4):
             rfm["frequency"] > 0, "monetary_value"].quantile(0.99),
     }
     for message, value in wrong_caps.items():
+        if np.isclose(value, cap99, rtol=1e-9):
+            continue  # this mistake would give the right cap on these data
         assert not np.isclose(got["cap"], value, rtol=1e-9), (
             f"Checkpoint 4: your cap is {got['cap']:.2f}: {message}." + move_on)
     checks.close(got["cap"], cap99, rel=1e-9,
@@ -1107,19 +1189,22 @@ with workshop.checkpoint(label="Online Retail II counts"):
     mine = {"no customer": retail_shares["no_customer"].sum(),
             "non-product": retail_shares["non_product"].sum(),
             "duplicate": retail_shares["duplicate"].sum()}
+    rerun = (" then rerun D1 (the cell under \"Run · D1\", which computes the counts) and then"
+             " this cell. Rerunning this cell alone checks the old counts again.")
     for name, value in reference.items():
         assert mine[name] == value, (
             f"Your flag_lines flags {mine[name]:,} {name} lines of Online Retail II; the"
-            f" reference is {value:,}. Run workshop.use_reference(1) and rerun this cell."
+            f" reference is {value:,}. Run workshop.use_reference(1),{rerun}"
         )
     assert len(retail_matches) == 17_586 and matched.sum() == 6_107, (
         f"Your match_cancellations returns {len(retail_matches):,} cancellation lines with"
         f" {matched.sum():,} matched; the reference is 17,586 with 6,107 matched. Run"
-        " workshop.use_reference(2) and rerun this cell."
+        f" workshop.use_reference(2),{rerun}"
     )
     assert len(retail_tx) == 32_721 and retail_tx["customer_id"].nunique() == 5_839, (
         f"{len(retail_tx):,} purchase days of {retail_tx['customer_id'].nunique():,} customers;"
-        " the reference is 32,721 of 5,839. This is provided code: rerun the cells of Part A."
+        " the reference is 32,721 of 5,839. This is provided code: rerun the cell under"
+        f" \"Run · The pipeline\" in Part A,{rerun}"
     )
 
 # %% [markdown]
@@ -1153,9 +1238,17 @@ with workshop.checkpoint(label="Online Retail II fits"):
     reference = {"r": 0.6720, "alpha": 9.4444, "a": 0.15034, "b": 3.0511,
                  "p": 2.4017, "q": 3.5534, "v": 418.79}
     estimate = {**retail_bg, **retail_gg}
-    for param, value in reference.items():
-        checks.close(estimate[param], value, rel=0.005,
-                     name=f"{param} on Online Retail II (reference {value})")
+    try:
+        for param, value in reference.items():
+            checks.close(estimate[param], value, rel=0.005,
+                         name=f"{param} on Online Retail II (reference {value})")
+    except AssertionError as err:
+        raise AssertionError(
+            str(err).removesuffix(" Check the formula and the units.") + " The fits are"
+            " provided code, so the cleaned data differ from the reference, and the counts check"
+            " after D1 (\"Online Retail II counts\") tests those: rerun D1 and that check, do"
+            " what its message says if it fails, then rerun D2 and this cell."
+        ) from None
 
 # %% [markdown]
 # Look at whether the predicted and actual bars agree for customers with few and with many
@@ -1322,7 +1415,10 @@ with workshop.checkpoint(5):
     )
     assert n_list == 2_212, (  # measured 2026-10-10 on the sha256-checked table
         f"Checkpoint 5: {n_list:,} customers clear the bar at £10, 30% and 10%; the reference is"
-        " 2,212. Check the rule against the Task text." + move_on
+        " 2,212. Your function passed the hand cases, so check the data first: if the counts"
+        " check after D1 (\"Online Retail II counts\") failed, fix that first (its message says"
+        " how), then rerun the cells from D1 down to this one. If it passed, check the rule"
+        " against the Task text." + move_on
     )
 
 # %% [markdown]
