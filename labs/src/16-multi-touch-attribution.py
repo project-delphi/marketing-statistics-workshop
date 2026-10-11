@@ -383,6 +383,7 @@ with workshop.checkpoint(3):
 # %%
 def markov_credit(removal, conversions):
     """credit_c = Y * RE_c / sum_k RE_k (the lab's normalization)."""
+    removal = pd.Series(removal, dtype=float)  # a dict {channel: RE_c} works too
     return conversions * removal / removal.sum()
 
 
