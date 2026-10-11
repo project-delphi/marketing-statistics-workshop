@@ -503,7 +503,15 @@ def check_window_roas(fn: Callable, true_contrib: xr.DataArray, spend: xr.DataAr
             " Keep the arrays as DataArrays: select with .sel(date=slice(start, end)), sum with"
             " .sum(\"date\") and divide; xarray keeps the channel names." + _recover(1))
     vals = np.asarray(got, dtype=float)
-    if vals.shape != (spend.sizes["channel"],) or not np.allclose(vals, 2.0, rtol=1e-12):
+    n_ch = spend.sizes["channel"]
+    if vals.size == 1 and n_ch > 1:
+        raise AssertionError(
+            "Checkpoint 1: with a contribution of exactly twice the spend in every week, ROAS"
+            f" over the first year must be 2 for each of the {n_ch} channels, one value per"
+            f" channel; your function returned one number ({float(vals.ravel()[0]):.4g})"
+            " instead of one per channel. .sum() with no argument sums over every dim, channel"
+            " included; sum over \"date\" only: .sum(\"date\")." + _recover(1))
+    if vals.shape != (n_ch,) or not np.allclose(vals, 2.0, rtol=1e-12):
         hint = (" You divided spend by contribution; divide the contribution by the spend."
                 if vals.size and np.allclose(vals, 0.5) else
                 " Divide the window's total contribution by the window's total spend, per"
@@ -513,16 +521,29 @@ def check_window_roas(fn: Callable, true_contrib: xr.DataArray, spend: xr.DataAr
             f" over the first year must be 2 for every channel; your function gives"
             f" {np.round(vals, 4).tolist()}." + hint + _recover(1))
     # (3) leading dims survive
-    lead = xr.DataArray(np.ones((2, 3, len(dates), spend.sizes["channel"])),
+    lead = xr.DataArray(np.ones((2, 3, len(dates), n_ch)),
                         dims=("chain", "draw", "date", "channel"),
                         coords={"date": dates, "channel": spend.coords["channel"].values})
-    got = fn(lead * spend, spend, *first)
+    try:
+        got = fn(lead * spend, spend, *first)
+    except (TypeError, KeyError, ValueError, IndexError) as e:
+        if "cannot be interpreted as an integer" in str(e):
+            cause = (" .loc[start:end] selects along the first dim, which here is chain, not"
+                     " date; on the toys the first dim happened to be date. Select by name:"
+                     " .sel(date=slice(start, end)).")
+        else:
+            cause = (" Select and sum by name, .sel(date=slice(start, end)) and .sum(\"date\"),"
+                     " so that leading dims such as chain and draw do not matter.")
+        raise AssertionError(
+            "Checkpoint 1: your function passes the toys with dims (date, channel), but on draws"
+            " with dims (chain, draw, date, channel) it raised"
+            f" {type(e).__name__}: {e}." + cause + _recover(1)) from None
     shape = getattr(got, "shape", ())
-    if not isinstance(got, xr.DataArray) or tuple(shape) != (2, 3, spend.sizes["channel"]):
+    if not isinstance(got, xr.DataArray) or tuple(shape) != (2, 3, n_ch):
         raise AssertionError(
             "Checkpoint 1: on draws with dims (chain, draw, date, channel) of sizes (2, 3, "
-            f"{len(dates)}, {spend.sizes['channel']}), window_roas must return dims (chain, draw,"
-            f" channel), shape (2, 3, {spend.sizes['channel']}); yours has shape {tuple(shape)}."
+            f"{len(dates)}, {n_ch}), window_roas must return dims (chain, draw,"
+            f" channel), shape (2, 3, {n_ch}); yours has shape {tuple(shape)}."
             " Sum over \"date\" by name (.sum(\"date\")), not over an axis number, so that"
             " chain and draw stay." + _recover(1))
     # (4) the truth
@@ -657,9 +678,19 @@ def linear_toy(dates) -> xr.DataArray:
                         coords={"date": np.asarray(dates), "channel": ["toy"]})
 
 
+def spike_toy(dates, late: tuple[str, str]) -> xr.DataArray:
+    """1 in every week except 14 in the last week of ``late``, one channel: its late mean is 2,
+    its late median 1, so it tells a mean from a median."""
+    dates = pd.DatetimeIndex(np.asarray(dates))
+    vals = np.where(dates == pd.Timestamp(late[1]), 14.0, 1.0)
+    return xr.DataArray(vals[:, None], dims=("date", "channel"),
+                        coords={"date": np.asarray(dates), "channel": ["toy"]})
+
+
 def check_drift_ratio(fn: Callable, dates, windows: Mapping, prior_mult: xr.DataArray
                       ) -> xr.DataArray:
-    """Checkpoint 3: a constant multiplier, a linear toy, then the prior draws' dims."""
+    """Checkpoint 3: a constant multiplier, a linear toy, a one-week spike (mean, not median),
+    then the prior draws' dims."""
     early, late = windows["first_year"], windows["last_quarter"]
     ones = xr.DataArray(np.ones((len(dates), 2)), dims=("date", "channel"),
                         coords={"date": np.asarray(dates), "channel": ["a", "b"]})
@@ -690,6 +721,15 @@ def check_drift_ratio(fn: Callable, dates, windows: Mapping, prior_mult: xr.Data
             "Checkpoint 3: the linear path m(t) = 2 - t/155 has a first-year mean of 1.8355 and a"
             f" last-quarter mean of 1.0387, a drift ratio of {want:.5f}; yours gives {g2:.5f}: "
             + cause + _recover(3))
+    g3 = float(np.asarray(fn(spike_toy(dates, late), early, late), dtype=float).ravel()[0])
+    if abs(g3 - 2.0) > 1e-9:
+        cause = ("that is a ratio of medians (the late weeks' median is 1); use means:"
+                 " .mean(\"date\")." if abs(g3 - 1.0) < 1e-9 else
+                 "divide the mean over the late weeks by the mean over the early weeks.")
+        raise AssertionError(
+            "Checkpoint 3: a multiplier of 1 in every week except 14 in the last week has a"
+            " last-quarter mean of (12 + 14) / 13 = 2 and a first-year mean of 1, a drift ratio"
+            f" of 2.0; yours gives {g3:.5f}: " + cause + _recover(3))
     got = fn(prior_mult, early, late)
     dims = tuple(getattr(got, "dims", ()))
     if set(dims) != {"chain", "draw", "channel"}:
@@ -705,23 +745,48 @@ def check_drift_ratio(fn: Callable, dates, windows: Mapping, prior_mult: xr.Data
     return got
 
 
+TOY_C_TRUE = (0.01, 2.5, -0.5)  # toy (c)'s true values, in turn week by week
+
+
+def _exp_quantiles(k: int) -> np.ndarray:
+    """The k exact quantiles of Exponential(1) at (i + 0.5) / k, ascending."""
+    return -np.log(1 - (np.arange(k) + 0.5) / k)
+
+
 def coverage_toys(dates, seed: int = 2037) -> dict:
-    """The four toys of Checkpoint 4 (2 chains x 500 draws x the weeks): see the lab."""
+    """The four toys of Checkpoint 4 (2 chains x 500 draws x the weeks): see the lab. Toy (c)'s
+    chains hold the lower and the upper half of the draws; "c_same" is toy (c) with both chains
+    holding the same 500 quantiles, which tells a function that reads one chain from a wrong
+    interval."""
     n = len(dates)
     coords = {"date": np.asarray(dates)}
     dims = ("chain", "draw", "date")
     line = np.linspace(1.0, 0.4, n)
     rng = np.random.default_rng(seed)
     tight = line + rng.normal(0, 0.01, (2, 500, n))
-    q = -np.log(1 - (np.arange(1000) + 0.5) / 1000)  # 1,000 exact quantiles of Exponential(1)
+    q = _exp_quantiles(1000)
     skew = np.broadcast_to(q.reshape(2, 500)[:, :, None], (2, 500, n)).copy()
-    alt = np.where(np.arange(n) % 2 == 0, 0.01, 2.5)
+    same = np.broadcast_to(_exp_quantiles(500)[None, :, None], (2, 500, n)).copy()
+    alt = np.asarray(TOY_C_TRUE)[np.arange(n) % len(TOY_C_TRUE)]
     return {
         "a": (xr.DataArray(tight, dims=dims, coords=coords), line),
         "b": (xr.DataArray(tight + 5, dims=dims, coords=coords), line),
         "c": (xr.DataArray(skew, dims=dims, coords=coords), alt),
+        "c_same": (xr.DataArray(same, dims=dims, coords=coords), alt),
         "d": (xr.DataArray(tight, dims=dims, coords=coords), line[::-1].copy()),
     }
+
+
+def _coverage_share(got, toy: str) -> float:
+    """``got`` as a float, or a checkpoint message if it is one value per week."""
+    try:
+        return float(got)
+    except (TypeError, ValueError):
+        size = f" of {len(got)} values" if hasattr(got, "__len__") else ""
+        raise AssertionError(
+            f"Checkpoint 4, toy ({toy}): path_coverage returned a {type(got).__name__}{size},"
+            " one per week, not their share. Return the share of weeks whose true value lies"
+            " inside, a float between 0 and 1: float(np.mean(inside))." + _recover(4)) from None
 
 
 def check_path_coverage(fn: Callable, mult: xr.DataArray, latent: pd.DataFrame,
@@ -730,40 +795,64 @@ def check_path_coverage(fn: Callable, mult: xr.DataArray, latent: pd.DataFrame,
     dates = mult.coords["date"].values
     toys = coverage_toys(dates, seed)
     n = len(dates)
-    ga = float(fn(*toys["a"]))
+    ga = _coverage_share(fn(*toys["a"]), "a")
     if abs(ga - 1.0) > 1e-12:
         if abs(ga) < 1e-12:
             cause = "you returned the share of weeks outside the band; return the share inside."
         elif abs(ga - n) < 1e-9:
             cause = "you returned a count of weeks; divide by the number of weeks."
+        elif abs(ga - 100) < 1e-9:
+            cause = ("you returned a percentage. A share lies between 0 and 1: return the share"
+                     " of weeks inside, without multiplying by 100.")
         elif 0.8 < ga < 1:
             cause = ("you used one interval for all weeks together. Compute an interval for each"
                      " week from that week's draws only.")
+        elif ga > 1:
+            cause = ("a share lies between 0 and 1. For each week, compute the 94% HDI of that"
+                     " week's draws and check whether the true value lies inside; return the"
+                     " share of weeks where it does.")
         else:
             cause = ("for each week, compute the 94% HDI of that week's draws and check whether"
                      " the true value lies inside; return the share of weeks where it does.")
         raise AssertionError(
             "Checkpoint 4, toy (a): draws tightly around a known path (sd 0.01) must cover it in"
             f" every week (1.0); yours gives {ga:.4g}: " + cause + _recover(4))
-    gb = float(fn(*toys["b"]))
+    gb = _coverage_share(fn(*toys["b"]), "b")
     if abs(gb) > 1e-12:
         raise AssertionError(
             "Checkpoint 4, toy (b): the same draws shifted by +5 cover the path in no week (0.0);"
             f" yours gives {gb:.4g}. Compare each week's true value with that week's interval."
             + _recover(4))
-    gc = float(fn(*toys["c"]))
-    if abs(gc - 1.0) > 1e-12:
-        cause = ("the interval is not the 94% HDI. An equal-tailed interval (3rd to 97th"
-                 " percentile), or 89% (ArviZ's default), misses one of the two true values in"
-                 " this skewed toy. Use checks.interval(draws, prob, \"hdi\") and pass prob."
-                 if abs(gc - 0.5) < 1e-12 else
-                 "use checks.interval(draws, prob, \"hdi\") for each week's draws.")
+    want_c = path_coverage(*toys["c"])
+    gc = _coverage_share(fn(*toys["c"]), "c")
+    if abs(gc - want_c) > 1e-12:
+        same_ok = abs(_coverage_share(fn(*toys["c_same"]), "c") - want_c) <= 1e-12
+        if same_ok:
+            cause = ("your function does not use every draw of both chains (it reads one chain,"
+                     " or averages the chains). In this toy chain 0 holds the lower half of the"
+                     " draws and chain 1 the upper half; when both chains hold the same draws"
+                     " your function is right. mult_draws.isel(date=k).values holds week k's"
+                     " draws from both chains; pass them all to checks.interval, which pools"
+                     " every axis.")
+        elif abs(gc - 1.0) < 1e-12:
+            cause = ("your interval contains -0.5, though every draw is above 0. Mean ± 1.88 sd"
+                     " (a Normal approximation) is symmetric, so in skewed draws it reaches below"
+                     " 0. Use checks.interval(draws, prob, \"hdi\"), built from the draws"
+                     " themselves.")
+        elif abs(gc - 1 / 3) < 1e-12:
+            cause = ("the interval is not the 94% HDI. An equal-tailed interval (3rd to 97th"
+                     " percentile, as np.percentile or np.quantile give) misses 0.01, and an"
+                     " interval at a different probability, such as 89% (ArviZ's default),"
+                     " misses 2.5. Use checks.interval(draws, prob, \"hdi\") and pass prob.")
+        else:
+            cause = "use checks.interval(draws, prob, \"hdi\") for each week's draws."
         raise AssertionError(
-            "Checkpoint 4, toy (c): skewed draws (exact quantiles of an Exponential) with true"
-            " values 0.01 and 2.5 in alternate weeks lie inside the 94% HDI [0.0005, 2.805] in"
-            f" every week (1.0); yours gives {gc:.4g}: " + cause + _recover(4))
+            "Checkpoint 4, toy (c): skewed draws (the same 1,000 exact quantiles of an"
+            " Exponential in every week, all above 0) against true values 0.01, 2.5 and -0.5 in"
+            " turn: the 94% HDI [0.0005, 2.805] contains 0.01 and 2.5 but not -0.5, a coverage"
+            f" of 2/3 ({want_c:.4f}); yours gives {gc:.4g}: " + cause + _recover(4))
     want_d = path_coverage(*toys["d"])
-    gd = float(fn(*toys["d"]))
+    gd = _coverage_share(fn(*toys["d"]), "d")
     if abs(gd - want_d) > 1e-12:
         cause = ("you used one interval for all weeks together. Compute an interval for each"
                  " week from that week's draws only." if gd > 0.5 else
@@ -871,7 +960,7 @@ def check_baseline_comparison(fn: Callable, roas_own: xr.DataArray, roas_prophet
     got = fn(own, pro, t)
     cols = ["mean", "hdi_low", "hdi_high", "true_roas", "abs_error", "covered"]
     ok_shape = (isinstance(got, pd.DataFrame) and list(got.index.names) == ["channel", "baseline"]
-                and set(cols) <= set(got.columns) and set(got.index) == set(want.index))
+                and set(cols) <= set(got.columns))
     if not ok_shape:
         idx = list(getattr(getattr(got, "index", None), "names", []) or [])
         have = list(getattr(got, "columns", []))
@@ -880,6 +969,21 @@ def check_baseline_comparison(fn: Callable, roas_own: xr.DataArray, roas_prophet
             " one row per channel and baseline, index (channel, baseline), with the six columns"
             f" {cols}. Build a list of dicts and finish with .set_index([\"channel\","
             " \"baseline\"])." + _recover(5))
+    if set(got.index) != set(want.index):
+        bases = sorted({str(b) for b in got.index.get_level_values("baseline")})
+        chans = sorted({str(c) for c in got.index.get_level_values("channel")})
+        if bases != ["own", "prophet"]:
+            what = (f"the baseline labels in your index are {bases}; they must be exactly"
+                    " \"own\" and \"prophet\", in lowercase: the lab looks rows up by these"
+                    " labels.")
+        elif chans != ["a", "b"]:
+            what = (f"the channels in your index are {chans}; the toy's are ['a', 'b']: take each"
+                    " row's channel from draws.coords[\"channel\"].values, as a string.")
+        else:
+            what = "it needs one row for each channel and baseline, each exactly once."
+        raise AssertionError(
+            "Checkpoint 5: your table has the right index names and columns, but on the toy "
+            + what + _recover(5))
     g = got.loc[want.index]
     if abs(float(g.loc[("a", "own"), "mean"]) - 3.1379) < 1e-3:
         raise AssertionError(
@@ -890,28 +994,60 @@ def check_baseline_comparison(fn: Callable, roas_own: xr.DataArray, roas_prophet
             "Checkpoint 5: on the toy own a's abs_error is -0.408: that is a signed error (mean"
             " minus truth); take its absolute value." + _recover(5))
     lo_b, hi_b = float(g.loc[("b", "own"), "hdi_low"]), float(g.loc[("b", "own"), "hdi_high"])
-    if abs(lo_b - 1.1399) < 1e-3 or not bool(g.loc[("b", "own"), "covered"]):
+    w_lo, w_hi = float(want.loc[("b", "own"), "hdi_low"]), float(want.loc[("b", "own"), "hdi_high"])
+    tol = 0.02 * (w_hi - w_lo)
+    if abs(lo_b - w_lo) > tol or abs(hi_b - w_hi) > tol:
+        eti = checks.interval(own.sel(channel="b").values, PROB, "eti")
+        if abs(lo_b - eti[0]) < 1e-3 and abs(hi_b - eti[1]) < 1e-3:
+            what = (" That is the equal-tailed interval (3rd to 97th percentile): in these skewed"
+                    " draws it starts at 1.14 and misses 1.10, while the HDI reaches down to"
+                    " 1.02. Use checks.interval(d, prob, \"hdi\").")
+        else:
+            what = (" That is the equal-tailed interval, or an interval at a different probability"
+                    " (89% is ArviZ's default). Use checks.interval(d, prob, \"hdi\") and pass"
+                    " prob=0.94, the function's default.")
         raise AssertionError(
-            f"Checkpoint 5: on the toy own b's interval is [{lo_b:.4f}, {hi_b:.4f}] (covered:"
-            f" {bool(g.loc[('b', 'own'), 'covered'])}); the 94% HDI is [1.0209, 3.2904] and"
-            " covers the true 1.10. That is probably the equal-tailed interval. Use"
-            " checks.interval(draws, prob, \"hdi\"): in these skewed draws the HDI reaches down"
-            " to 1.02 and covers 1.10; the equal-tailed interval does not." + _recover(5))
+            f"Checkpoint 5: on the toy own b's interval is [{lo_b:.4f}, {hi_b:.4f}]; the 94% HDI"
+            f" is [{w_lo:.4f}, {w_hi:.4f}] and covers the true 1.10." + what + _recover(5))
+    if not bool(g.loc[("b", "own"), "covered"]):
+        raise AssertionError(
+            f"Checkpoint 5: on the toy your interval for own b is right, [{lo_b:.4f},"
+            f" {hi_b:.4f}], but covered is False although the true 1.10 lies inside it. covered"
+            " is hdi_low <= true_roas <= hdi_high, the same comparison in every row." + _recover(5))
+    hints = {
+        "mean": "the mean of the row's draws, d.mean()",
+        "hdi_low": "the lower end of the 94% HDI from checks.interval(d, prob, \"hdi\")",
+        "hdi_high": "the upper end of the 94% HDI from checks.interval(d, prob, \"hdi\")",
+        "true_roas": "true_roas[channel] for the row's channel",
+        "abs_error": "the absolute error of the mean, abs(mean - true_roas)",
+        "covered": "hdi_low <= true_roas <= hdi_high",
+    }
+
+    def show(c, v):
+        return str(bool(v)) if c == "covered" else f"{float(v):.4f}"
+
     for key in want.index:
         w, h = want.loc[key], g.loc[key]
         width = w["hdi_high"] - w["hdi_low"]
-        bad = (abs(float(h["mean"]) - w["mean"]) > 1e-9
-               or abs(float(h["hdi_low"]) - w["hdi_low"]) > 0.02 * width
-               or abs(float(h["hdi_high"]) - w["hdi_high"]) > 0.02 * width
-               or abs(float(h["true_roas"]) - w["true_roas"]) > 1e-12
-               or abs(float(h["abs_error"]) - w["abs_error"]) > 1e-9
-               or bool(h["covered"]) != bool(w["covered"]))
-        if bad:
+        tols = {"mean": 1e-9, "hdi_low": 0.02 * width, "hdi_high": 0.02 * width,
+                "true_roas": 1e-12, "abs_error": 1e-9}
+        diff = [c for c in cols if (bool(h[c]) != bool(w[c]) if c == "covered"
+                                    else not abs(float(h[c]) - w[c]) <= tols[c])]
+        if diff:
+            shown = "; ".join(f"{c} {show(c, h[c])}, the reference {show(c, w[c])}"
+                              for c in diff)
+            first = diff[0]
+            extra = ""
+            draws = (own if key[1] == "own" else pro).sel(channel=key[0]).values.ravel()
+            if first == "mean" and abs(float(h["mean"]) - float(np.median(draws))) < 1e-9:
+                extra = " Yours is the median of the draws."
+            elif first == "abs_error" and abs(
+                    float(h["abs_error"]) - w["abs_error"] / w["true_roas"]) < 1e-9:
+                extra = " Yours is divided by the truth (a relative error)."
             raise AssertionError(
-                f"Checkpoint 5: on the toy, row {key} is {h[cols].to_dict()}; the reference gives"
-                f" {w[cols].round(4).to_dict()}. Check each column: the mean of the draws, the"
-                " 94% HDI from checks.interval(draws, prob, \"hdi\"), the true ROAS, the absolute"
-                " error of the mean and whether the HDI covers the truth." + _recover(5))
+                f"Checkpoint 5: on the toy, row ({key[0]}, {key[1]}) differs from the reference"
+                f" in {', '.join(diff)}: {shown}. {first} is {hints[first]}." + extra
+                + _recover(5))
     table = fn(roas_own, roas_prophet, true_roas)
     own_r, pro_r = table.loc[(channel, "own")], table.loc[(channel, "prophet")]
     t_c = float(true_roas[channel])
@@ -934,12 +1070,12 @@ def check_baseline_comparison(fn: Callable, roas_own: xr.DataArray, roas_prophet
 
 __all__ = [
     "BREAK_EVEN", "CHANNELS", "FIT_SETTINGS", "GROSS_MARGIN", "HSGP_SETTINGS",
-    "PROPHET_CONTROLS", "baseline_comparison", "beta_sigma", "check_baseline_comparison",
-    "check_drift_ratio", "check_drifting_model", "check_path_coverage", "check_prophet",
-    "check_residual_spend_corr", "check_static_model", "check_window_roas", "comparison_toys",
-    "contribution_dollars", "counterfactual_window_roas", "coverage_toys", "divergences",
-    "drift_ratio", "fit", "holidays_table", "linear_toy", "multiplier_prior", "path_coverage",
-    "prophet_components", "prophet_inputs", "prophet_mmm", "quiet_prophet", "reference_results",
-    "residual_spend_corr", "spend_array", "static_mmm", "target_scale", "true_contrib_array",
-    "window_roas", "windows_of",
+    "PROPHET_CONTROLS", "TOY_C_TRUE", "baseline_comparison", "beta_sigma",
+    "check_baseline_comparison", "check_drift_ratio", "check_drifting_model",
+    "check_path_coverage", "check_prophet", "check_residual_spend_corr", "check_static_model",
+    "check_window_roas", "comparison_toys", "contribution_dollars", "counterfactual_window_roas",
+    "coverage_toys", "divergences", "drift_ratio", "fit", "holidays_table", "linear_toy",
+    "multiplier_prior", "path_coverage", "prophet_components", "prophet_inputs", "prophet_mmm",
+    "quiet_prophet", "reference_results", "residual_spend_corr", "spend_array", "spike_toy",
+    "static_mmm", "target_scale", "true_contrib_array", "window_roas", "windows_of",
 ]
