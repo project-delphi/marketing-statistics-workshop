@@ -264,9 +264,25 @@ def test_seed_sweep(sweep):
         assert held[claim] >= share - 1e-9, (claim, held[claim], share)
 
 
-# Shares of seeds in which each claim held, measured over seeds 2037-2051 at QUICK settings
-# (filled in from the sweep; the test fails if a later run does worse).
-MEASURED_SHARES: dict[str, float] = {}
+# Seeds (of 15: 2037-2051, QUICK, 300 draws, laptop, 2026-10-10) in which each claim held. The
+# test allows one seed fewer, since MCMC draws can differ across platforms; it fails if a later
+# run does worse than that.
+MEASURED_HELD_OF_15 = {
+    "static: social last-quarter HDI above the truth": 15,
+    "Exercise 2: social falls most and ends below -0.3": 15,
+    "Exercise 2: social's first-year correlation above +0.1": 15,
+    "Exercise 4: coverage social >= 0.5, others >= 0.9": 15,
+    "drifting model: social ratio HDI below 1, others contain 1": 15,
+    # 2038, 2040: the static model's own all-period HDI lies above 4.0; 2044: the
+    # Prophet-baseline HDI still covers 4.0
+    "Exercise 5: Prophet lowers social, excludes the truth; own covers it": 12,
+    "Exercise 5: Prophet lowers social": 15,
+    "decision: drifting model says cut": 14,  # 2040: P(below) 0.81, "lift test first"
+    "decision: static model says keep": 15,
+    "drifting model's current ROAS above the truth": 14,  # 2050: 1.91 against 2.08
+    "no divergences in the three fits": 14,  # 2050: one in the drifting fit
+}
+MEASURED_SHARES = {k: (v - 1) / 15 for k, v in MEASURED_HELD_OF_15.items()}
 
 
 @pytest.mark.slow

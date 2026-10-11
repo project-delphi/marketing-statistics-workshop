@@ -205,5 +205,14 @@ labs read the files with `mktstats.data.repo_file("synthetic/<file>")`.
   covers social's true relative path in 69% of weeks (FULL; 65% QUICK) and the constant
   channels' in 100%; Prophet baseline as an informed prior, social all-period 2.90 (2.25 to
   3.58) against 3.90 (3.52 to 4.32) with the model's own baseline (truth 4.00). No divergences
-  in any of these fits. These are in `truth_mmm_drift.json` `tolerances`; the seed sweep is in
-  `tests/test_synth_mmm_drift.py` (slow).
+  in any of these fits. These are in `truth_mmm_drift.json` `tolerances`.
+- Over 15 generator seeds (2037-2051, QUICK settings, `random_seed` = the data's seed;
+  `tests/test_synth_mmm_drift.py`, slow): the static model's last-quarter HDI for social lay above
+  the truth, social's residual correlation fell most and ended below -0.3, the band covered
+  social's path in at least half of the weeks (0.65 to 1.00) and the constant channels' in at
+  least 90%, and social's drift-ratio HDI lay below 1, in 15 of 15 seeds; the Prophet baseline
+  lowered social's all-period ROAS in 15 of 15 (by 0.58 to 2.39), but Checkpoint 5's full claim
+  (Prophet's HDI excludes the truth and the model's own baseline covers it) held in 12 of 15; the
+  drifting model said "cut" in 14 of 15 (seed 2040: P(below) 0.81, "lift test first") and its
+  current-quarter ROAS lay above the truth in 14 of 15; one fit of 45 had a divergence (seed 2050,
+  drifting model). The prior's share of social drift ratios at or below 0.5 was 8% to 12%.

@@ -227,8 +227,9 @@ with workshop.checkpoint(1):
 # same in every week. Same specification as Module 8 (geometric adstock with up to 8 weeks of
 # carryover, logistic saturation, spend-share priors on the effect sizes; controls price index,
 # holiday flag and trend; two orders of yearly seasonality), sampled with nutpie, two chains.
-# `target_accept=0.98` makes the sampler take small steps: at 0.95 a test fit of this model had a
-# divergence.
+# `target_accept=0.98` makes the sampler take small steps (a divergence, Module 8, is a step where
+# the sampler's path broke down); with it, none of the workshop's test fits of the three models
+# in this lab diverged.
 #
 # It takes about a minute and a half on Colab (an estimate until a Colab record exists). While it
 # runs, read Exercise 2's Predict, write your two signs, and start writing `residual_spend_corr`:
