@@ -41,7 +41,7 @@ Data
 - Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls.
 - Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval.
 - Check overlap with propensity scores, trim, and state which customers the estimate describes.
-- Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models.
+- Fit the same estimator with EconML's LinearDML, using the same folds and gradient-boosting models, and compare it with yours.
 - Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate.
 
 **You leave with:**

@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab was built: no notebook exists and nothing here has run as a lab. Numbers marked **prototype** come from a throwaway script on the Academic Director's laptop (Apple Silicon, scikit-learn limited to 2 threads with `OMP_NUM_THREADS=2`), not from the lab, Docker or Colab. They show that the data support the lesson; the lab prints its own numbers. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the changes and their reasons are under "Pedagogy review" at the end. Numbers marked **review re-implementation** come from the Pedagogy Expert's own re-implementation of the spec below (same laptop type, 2 threads; scratchpad, not the repo), used only to compute likely wrong answers for the failure messages. |
+| Status | Brief for the Technical Expert, 2026-10-10, Academic Director. Written before the lab was built. Numbers marked **prototype** come from a throwaway script on the Academic Director's laptop (Apple Silicon, scikit-learn limited to 2 threads with `OMP_NUM_THREADS=2`), not from the lab, Docker or Colab. Reviewed by the Pedagogy Expert on 2026-10-10 against `briefs/_lab-standard.md`; the changes and their reasons are under "Pedagogy review" at the end. Numbers marked **review re-implementation** come from the Pedagogy Expert's own re-implementation of the spec below (same laptop type, 2 threads; scratchpad, not the repo), used only to compute likely wrong answers for the failure messages. **Built and run** (2026-10-10): worked, FULL runs of the whole notebook are recorded on the laptop and in Docker (`runs/2026-10-10-*-python-15-double-ml.json`); not yet on Colab. Numbers marked **lab, FULL** are the notebook's printed output at full settings on the committed data; **30 seeds** are the Technical Expert's sweeps in `data/synthetic/truth_app_install.json` `tolerances`. Where the build re-measured a prototype number, the lab's number replaces it; see "Build reconciliation" at the end. |
 | Notebook | `labs/src/15-double-ml.py` → `labs/python/15-double-ml.ipynb` |
 | Lab slot | 55 min (`modules.m15.minutes.lab`). Budget (`briefs/_lab-standard.md`): open 5 + exercises 40 (8 + 8 + 9 + 7 + 8; limit 40) + decision 5 + slack 5 = 55. Each exercise's minutes include reading the provided cells inside it. Minutes are estimates until a pilot. |
-| Day | Extensions (`d6`), optional. Comes after Modules 6 and 11, which it builds on (not after Module 14, whatever the generated "Before you start" list says; see open items). |
+| Day | Extensions (`d6`), optional. Comes after Modules 6 and 11, which it builds on. The generated "Before you start" list now renders `modules.m15.prerequisites` (Modules 6 and 11), not Module 14. |
 
 ## Question and decision
 
@@ -91,7 +91,7 @@ recent customers are also the ones who spend most in the next 26 weeks. That is 
   `pd.read_csv(repo_file("synthetic/app_install_customers.csv"))` and
   `json.loads(repo_file("synthetic/truth_app_install.json").read_text())` (`mktstats.data.repo_file`; no change
   to `data.py`).
-- Size: 20,000 rows, 14 columns, about 1.4 MB as CSV (prototype).
+- Size: 20,000 rows, 14 columns, 1.44 MB as CSV (committed file, 1,439,191 bytes).
 
 **Columns** (`customers`):
 
@@ -116,7 +116,8 @@ The three `true_*` columns are for checkpoints only and must never enter a model
 helper selects columns by name).
 
 **Data-generating process** (numpy `Generator(PCG64(seed))`; `expit` is the logistic function; the
-order of draws is the Technical Expert's choice, so committed values will differ from the prototype's):
+order of draws was the Technical Expert's choice; the build kept the prototype's, so the committed values
+equal the prototype's, see Build reconciliation):
 
 1. Latent activity $a_i \sim N(0, 1)$. It only makes the covariates correlated; it never enters $T$ or $Y$.
    It is not saved.
@@ -170,7 +171,8 @@ logistic install model, not a general law; the module page should say so.
 - `install_rate` (realized), `tolerances` (coverage measured by the Technical Expert over at least 30
   seeds, as for `truth.json`).
 
-**Prototype values** (seed 2035, n = 20,000; the committed values will differ with the draw order):
+**Prototype values** (seed 2035, n = 20,000). The build kept the prototype's order of draws, so the
+committed data and `truth_app_install.json` reproduce every value below (lab, FULL; truth file):
 
 | Quantity | Prototype |
 |---|---|
@@ -178,7 +180,7 @@ logistic install model, not a general law; the module page should say so.
 | mean spend, installers / non-installers | $97.54 / $31.90 (61% of customers spend $0) |
 | `ate` / `att` / `atc` | $13.58 / $17.64 / $11.87 |
 | `effect_overlap` | $14.28 |
-| `effect_persuaded`, odds × 1.25, 2, 10 | $14.07, $13.66, $12.58 (shares persuaded 3.7%, 12.2%, 42.5%) |
+| `effect_persuaded`, odds × 1.25, 2, 10 | $14.07, $13.66, $12.58 (shares persuaded 3.7%, 12.2%, 42.5%); the truth file stores 13.655 for odds × 2, which the lab prints as $13.65 |
 | `naive_expected` | $65.73 |
 | true propensity: 1st / 50th / 99th percentile | 0.036 / 0.232 / 0.895 (3.3% below 0.05; 0.09% above 0.95) |
 
@@ -327,7 +329,7 @@ then this cell; if it still fails, tell the instructor."
 - **Predict.** Installers spent far more than non-installers in the next 26 weeks (printed above), and the
   true averages in the truth table lie between about $12 and $18. A regression of spend on install *and*
   all nine covariates: will its estimate for install be above $50, between $25 and $50, or below $25?
-  (Prototype: naive $65.64; regression $32.11 FULL, $32.49 QUICK. The three options are three beliefs:
+  (Lab, FULL: naive $65.64; regression $32.11, as in the prototype; prototype QUICK $32.49. The three options are three beliefs:
   controls fix nothing, half, or nearly all of the bias. If the committed data put the regression within $3
   of a boundary, move the boundaries.)
 - **Function.** `baseline_estimates(y, t, W) -> pd.DataFrame` with index `["naive", "regression"]` and
@@ -343,11 +345,11 @@ then this cell; if it still fails, tell the instructor."
   2. App data: both rows equal a reference computed inside the checkpoint (the naive formulas in numpy, the
      regression with the same statsmodels call) to rel 1e-9. This is where the standard errors are checked.
   3. App data: both 95% intervals lie entirely above the true ATT, the largest of the three true averages
-     ("too high under every definition of the effect"). Prototype FULL: naive $65.64 [$61.15, $70.14],
-     regression $32.11 [$28.76, $35.47], ATT $17.64; QUICK: $67.32 [$60.60, $74.04] and $32.49 [$27.62,
-     $37.36]. Across 40 seeds of the same data-generating process (LightGBM prototype), both intervals
-     excluded the overlap-weighted truth (about $14.3, below the ATT) every time, at n = 20,000 and
-     n = 10,000.
+     ("too high under every definition of the effect"). Lab, FULL: naive $65.64 [$61.14, $70.14],
+     regression $32.11 [$28.76, $35.47], ATT $17.64; prototype QUICK: $67.32 [$60.60, $74.04] and $32.49
+     [$27.62, $37.36]. 30 seeds (histogram boosting): both intervals lay above the true ATT in 30 of 30 at
+     FULL and at QUICK; the regression estimate ranged from $28.18 to $37.03 at FULL. (The draft quoted 40
+     LightGBM prototype seeds here; see Build reconciliation.)
 - **Failure messages** (each ends with `workshop.use_reference(1)`):
   - Regression 2 on the toy: "you took the constant; `sm.add_constant` puts it first, so the coefficient on
     `t` is `params[1]`." Regression 5: "you took the coefficient on `w`; `t` is the first column after the
@@ -431,7 +433,7 @@ then this cell; if it still fails, tell the instructor."
   `t_hat = cross_fit(model_t, W, t, folds)` with the boosted models above; print the out-of-fold R² for
   spend and the AUC for install, and the QUICK sentence (Model fits). The sentence before the cell: "This
   cell fits 10 models, two per fold. While it runs, read Exercise 3's Predict." Prototype FULL: R² 0.47,
-  AUC 0.78; 3.0 s on the laptop.
+  AUC 0.78; 3.0 s on the laptop. Lab, FULL: R² 0.47, AUC 0.78.
 
 ### Exercise 3 · Residual on residual, with a standard error (9 minutes)
 
@@ -442,8 +444,8 @@ then this cell; if it still fails, tell the instructor."
   "as good as random" variation the effect is learned from.
 - **Predict.** Exercise 1's regression gave about $32 (printed above), and the true averages lie between
   about $12 and $18. Where will the DML estimate land: near the regression, about halfway, or among the
-  true averages? And the half-width of its 95% interval: about $1, $3 or $10? (Prototype FULL
-  $13.51 ± $2.99, QUICK $14.22 ± $4.43.)
+  true averages? And the half-width of its 95% interval: about $1, $3 or $10? (Lab, FULL
+  $13.51 ± $3.00; prototype QUICK $14.22 ± $4.43.)
 - **Function.** `dml_estimate(y, t, y_hat, t_hat) -> dict` with `theta, se, ci_low, ci_high` from the
   formulas above (HC0 standard error, ±1.96). The reference is about five lines.
 - **Before the checkpoint (markdown; the only place before Part C that names the estimand).** "The
@@ -457,12 +459,12 @@ then this cell; if it still fails, tell the instructor."
      `y_hat = [1, 2, 1, 3]`, so $\tilde T$ = (0.5, −0.5, 0.75, −0.25) and $\tilde Y$ = (−1, −2, 2, −1):
      $\hat\theta = 2.25 / 1.125 = 2$, standard error √10 / 3 ≈ 1.054, 95% CI [−0.066, 4.066]. $\tilde T$
      has a nonzero mean on purpose, so a regression with an intercept gives a different answer.
-  2. App data: `overlap_truth(all rows in use)` lies inside the 95% CI. Prototype FULL: $13.51 [$10.51,
-     $16.50] against $14.28; QUICK: $14.22 [$9.79, $18.65] against $14.34. Coverage measured on the
-     prototype data: 29 of 30 seeds with histogram boosting at n = 20,000; with LightGBM 38 of 40 at
-     n = 20,000 and 39 of 40 at n = 10,000 (mean error +$0.51 and +$0.23, error SD close to the mean
-     standard error, $1.59 vs $1.55 and $2.22 vs $2.21). The Technical Expert must confirm that the
-     committed seed passes in both modes.
+  2. App data: `overlap_truth(all rows in use)` lies inside the 95% CI. Lab, FULL: $13.51 [$10.51,
+     $16.50] against $14.28; prototype QUICK: $14.22 [$9.79, $18.65] against $14.34. 30 seeds (histogram
+     boosting, `tolerances.checkpoint_3`): covered 27 of 30 at FULL and 29 of 30 at QUICK (mean error
+     −$0.20 and −$0.02; error SD close to the mean standard error, $1.66 vs $1.56 and $2.28 vs $2.22). The
+     committed seed passes in both modes (run records). The draft's LightGBM figures (38 of 40 and 39 of
+     40) are prototype results, not the build's.
 - **Failure messages** (each ends with `workshop.use_reference(3)`; toy values):
   - θ̂ 0.5: "you used `t`, not the install residual `t - t_hat`." θ̂ 1.556: "you used `y`, not the spend
     residual `y - y_hat`." θ̂ 2.353: "the formula has no intercept: θ̂ = Σ T̃Ỹ / Σ T̃². `np.polyfit` or a
@@ -492,10 +494,11 @@ then this cell; if it still fails, tell the instructor."
   cross-fitted one and their ratio, and the mean of $|T - \hat e|$ in sample and out of fold, with a
   computed sentence ("the standard error is 4.5 times the cross-fitted one; the point estimate changes from
   seed to seed"), never a number fixed in Markdown. The sentence before the cell: "Look at the standard
-  error, and at how close the in-sample predictions of install come to the actual 0s and 1s." Prototype
-  FULL (histogram boosting): $12.13 ± $6.95 (standard error 4.5 times the cross-fitted one), mean
-  $|T - \hat e|$ = 0.003; QUICK: $291 ± $96. With LightGBM over 8 seeds at FULL the in-sample estimates
-  ranged from $14.60 to $45.10 with standard errors 3.7 to 5.7 times the cross-fitted ones. Review
+  error, and at how close the in-sample predictions of install come to the actual 0s and 1s." Lab,
+  FULL (as the prototype): $12.13 ± $6.95 (standard error 4.5 times the cross-fitted one), mean
+  $|T - \hat e|$ = 0.003 in sample against 0.319 out of fold; prototype QUICK: $291 ± $96. 30 seeds
+  (`tolerances.no_cross_fitting`): the ratio was 4.0 to 6.5 at FULL and 34 to 50 at QUICK, never below
+  2. (The draft's LightGBM range over 8 seeds, ratios 3.7 to 5.7, is a prototype result.) Review
   re-implementation, FULL: $29.83 ± $7.03, ratio 4.7, mean $|T - \hat e|$ 0.003 in sample against 0.327
   out of fold. No check on the point estimate. A labeled check, `with workshop.checkpoint(label="no
   cross-fitting"):`, asserts that the in-sample standard error is at least twice the cross-fitted one,
@@ -521,7 +524,7 @@ then this cell; if it still fails, tell the instructor."
   axis (shape or hatching, not color alone; x-axis "predicted probability of installing"), with the
   sentence before it: "Look at the left edge: customers almost sure not to install have no installers like
   them to compare with." The cell prints the share of customers with $\hat e$ outside $[0.05, 0.95]$
-  (prototype 5.5%).
+  (prototype and lab, FULL: 5.5%).
 - **Predict.** The cell above printed the share of customers with $\hat e$ outside $[0.05, 0.95]$. What
   share of the total weight $\hat e(1 - \hat e)$ do they carry: about the same, much less (around 1%), or
   much more?
@@ -537,9 +540,11 @@ then this cell; if it still fails, tell the instructor."
      `dml_estimate` on the kept rows).
   2. App data (with `LOW, HIGH`): `share_kept` equals the mask's mean; `theta` equals `dml_estimate` on
      the masked rows (rel 1e-12); `weight_share_dropped < 1 - share_kept`; and `overlap_truth(kept rows)`
-     lies inside the 95% CI. Prototype FULL: kept 94.5%, weight dropped 1.2%, $13.85 [$10.85, $16.86]
-     against $14.36; QUICK: 92.8%, 1.4%, $14.41 [$9.87, $18.95] against $14.46. Review re-implementation,
-     FULL: kept 96.3%, weight dropped 0.8%.
+     lies inside the 95% CI. Lab, FULL (as the prototype): kept 94.5%, weight dropped 1.2%, $13.85 [$10.85,
+     $16.86] against $14.36; prototype QUICK: 92.8%, 1.4%, $14.41 [$9.87, $18.95] against $14.46. Review
+     re-implementation, FULL: kept 96.3%, weight dropped 0.8%. 30 seeds (`tolerances.checkpoint_4`): the
+     kept customers' truth inside the interval in 27 at FULL and 29 at QUICK; less weight than customers
+     dropped in 30 and 30.
 - **Failure messages** (each ends with `workshop.use_reference(4)`; toy values):
   - `theta` 2.496: "that is the estimate on all six rows; subset `y`, `t`, `y_hat` and `t_hat` with the
     same mask before calling `dml_estimate`."
@@ -583,7 +588,7 @@ then this cell; if it still fails, tell the instructor."
   random_state=seed).fit(y, t, X=None, W=W)`. The task lists the four settings and what each means; the
   learner writes the call.
 - **Checkpoint 5.** `float(est.ate())` equals `mine["theta"]` within rel 1e-6 (prototype: 2e-15 in both
-  modes); the bounds of `est.ate_interval(alpha=0.05)` equal yours within rel 1e-4 (EconML's default
+  modes; lab data, FULL, recomputed by the Academic Director: 2.0e-15; 30 seeds: at most 2.3e-15); the bounds of `est.ate_interval(alpha=0.05)` equal yours within rel 1e-4 (EconML's default
   inference for `LinearDML` is `StatsModelsInference(cov_type="HC1")`, whose variance is HC0 times
   $n/(n-1)$: prototype bounds differed by $0.00007); the overlap truth lies inside EconML's interval. Then
   print `est.intercept__inference().summary_frame(alpha=0.05)` and the per-fold `est.nuisance_scores_y`
@@ -629,9 +634,12 @@ then this cell; if it still fails, tell the instructor."
   that the `LinearDML` 95% CI contains it. Prototype FULL: benchmark 4.52 pp (se 0.32), sample of 33,526
   customers (36.4% e-mailed), naive 6.18 pp [5.39, 6.96], regression 4.76 pp, `LinearDML` 4.65 pp
   [3.83, 5.46] (benchmark, sample size, share e-mailed and naive estimate reproduced in review with seed
-  2035); QUICK: benchmark 4.60, naive 6.02 [4.92, 7.12], `LinearDML` 4.69 [3.54, 5.84]. Over 20 spoiling
-  seeds the `LinearDML` interval contained the benchmark 20 times and the naive interval excluded it 20
-  times, on all of Hillstrom and on a random half. 4.3 s on the laptop (FULL). Message, since both
+  2035); QUICK: benchmark 4.60, naive 6.02 [4.92, 7.12], `LinearDML` 4.69 [3.54, 5.84]. Lab, FULL: the
+  same values (regression 95% CI [3.96, 5.56]). 30 spoiling seeds (`tolerances.hillstrom`): on all of
+  Hillstrom the naive interval excluded the benchmark 30 times and `LinearDML`'s contained it 30 times;
+  on half of Hillstrom `LinearDML` still contained it 30 times, while the naive interval excluded it 29
+  times with the lab's half and 27 times over random halves. (The draft's "20 of 20 on all of Hillstrom
+  and on a random half" was the prototype's.) 4.3 s on the laptop (FULL). Message, since both
   functions already passed their checkpoints: "Your functions passed Checkpoints 1 and 5, so this compares
   the provided spoiled sample with the experiment: {which part failed, with the numbers}. Tell the
   instructor."
@@ -667,8 +675,10 @@ Provided cells, in the standard order:
   its shift from yours. Prototype FULL: without `mobile_share` $19.90 [$16.80, $23.00], +$6.39, now
   excluding the truth; without `email_open_rate` +$0.13 (review re-implementation: +$5.88 and +$0.25). One
   sentence before the output: "`mobile_share` drives both install and spend; `email_open_rate` drives only
-  install." Across seeds the shift without `mobile_share` was at least +$5.06 at FULL and +$4.62 at QUICK
-  (40 LightGBM seeds each) and +$5.34 with histogram boosting (30 seeds). A labeled check,
+  install." Lab, FULL: the same values ($13.64 [$10.64, $16.65] without
+  `email_open_rate`). 30 seeds (`tolerances.hidden_confounder`): the shift without `mobile_share` ranged
+  from +$4.33 to +$7.20 at FULL and +$4.67 to +$8.20 at QUICK. (The draft's minima, +$5.06 and +$4.62 over
+  40 LightGBM seeds and +$5.34 over 30 histogram-boosting seeds, were prototype results.) A labeled check,
   `with workshop.checkpoint(label="hidden confounder"):`, asserts a shift above +$3 (Pedagogy review, item
   3), with the message: "This compares two provided fits, not your code: leaving out `mobile_share`, which
   drives both install and spend, should raise the estimate by several dollars, and it moved it by {shift}.
@@ -678,7 +688,7 @@ Provided cells, in the standard order:
   - **Number:** incremental margin per persuaded install over 26 weeks, $m\,\hat\theta$, with its 95% CI;
     the effect behind it; the break-even effect, credit ÷ margin = $8.33 of spend, and how far the estimate
     is above it; and the scale, per 1,000 persuaded installs. Prototype FULL: 0.30 × $13.51 = $4.05
-    ($3.15 to $4.95); QUICK $4.27 ($2.94 to $5.59).
+    ($3.15 to $4.95), and the lab's FULL output is the same; prototype QUICK $4.27 ($2.94 to $5.59).
   - **Rule** (stated before the result is read): offer the $2.50 credit only if the lower end of the 95% CI
     of incremental margin per persuaded install is above $2.50 (the same as: the effect's CI lies above
     $8.33). The largest credit the rule allows is that lower end.
@@ -698,14 +708,15 @@ Provided cells, in the standard order:
     the $8.33 break-even. Prototype QUICK: the shifted interval $4.29 to $13.15 flips the rule as well,
     while the shifted point estimate ($14.22 − $5.50 = $8.72) stays above the break-even. The cell must
     not hard-code either sentence (a decision near its threshold, `briefs/_lab-standard.md`).
-  - The printed layout, in the order of `_lab-standard.md` §7 (prototype FULL values; the cell fills every
-    number):
+  - The printed layout, in the order of `_lab-standard.md` §7 (lab FULL values, which differ from the
+    prototype's only in rounding: $5.17 above the break-even, not $5.18, and $4,052 per 1,000; the cell
+    fills every number):
 
     ```text
     Number            : each persuaded install adds $4.05 of margin over 26 weeks (95% CI $3.15 to $4.95):
                         an effect of $13.51 of spend (95% CI $10.51 to $16.50) at a 30% margin.
-                        Break-even: $2.50 credit / 30% = $8.33 of extra spend; the estimate is $5.18 above it.
-                        Per 1,000 persuaded installs: about $4,050 of margin ($3,150 to $4,950)
+                        Break-even: $2.50 credit / 30% = $8.33 of extra spend; the estimate is $5.17 above it.
+                        Per 1,000 persuaded installs: about $4,052 of margin ($3,153 to $4,951)
                         for $2,500 of credits.
     Rule              : offer the $2.50 credit only if the lower end of the 95% CI of margin per persuaded
                         install is above $2.50 (the same as: the effect's CI lies above $8.33).
@@ -733,14 +744,15 @@ Provided cells, in the standard order:
     the app to do it; or phone use, if the extract lacks it).
 - **Then the truth** (separate cell, after the sentence): the true effect on the customers a credit that
   doubles the odds of installing would persuade (in words: a customer with a 20% chance would have a 33%
-  chance), $13.66 prototype, so a true margin of $4.10 per persuaded install, next to the true non-installer
+  chance), $13.66 prototype ($13.65 as the lab prints the truth file's 13.655), so a true margin of $4.10 per persuaded install, next to the true non-installer
   average ($11.87) and the effect on persuaded customers for larger incentives ($12.58 at ten times the
   odds). The credit really pays in this synthetic world; the lesson is how close one hidden variable comes
   to overturning it, and that bigger incentives reach customers who gain less.
 
 ## Stretch (optional)
 
-Nothing later depends on these. Prototype times with histogram boosting, FULL, on the laptop.
+Nothing later depends on these. Prototype times with histogram boosting, FULL, on the laptop. The lab's
+FULL output reproduces every number below.
 
 1. **Who gains most?** `CausalForestDML(model_y=..., model_t=..., discrete_treatment=True, cv=folds,
    n_estimators=200, min_samples_leaf=20, random_state=SEED)` with `X` = `orders_12m,
@@ -754,15 +766,20 @@ Nothing later depends on these. Prototype times with histogram boosting, FULL, o
    other `min_propensity` values and watch the interval: this estimator divides by $\hat e$.
 3. **How strong would a hidden confounder have to be?** EconML 0.17's `LinearDML.robustness_value(
    null_hypothesis=8.33)` and `sensitivity_interval(alpha=0.05, c_y=..., c_t=...)`, which its docs say are
-   based on Chernozhukov, Cinelli, Newey, Sharma & Syrgkanis. Prototype: robustness value 0.011 against the
+   "Based on [Chernozhukov2022]" (see Build reconciliation: that key is ambiguous in the installed source;
+   cite "Long story short" by title, not by EconML's key). Prototype: robustness value 0.011 against the
    break-even $8.33 and 0.050 against 0. The docs describe `c_y` and `c_t` only as "the level of
    confounding" from 0 to 1; read the paper's definitions before quoting a number, and compare with the
    `mobile_share` experiment above.
 
 ## Expected run time (estimates)
 
-Laptop prototype, FULL, scikit-learn limited to 2 threads (Colab has 2 CPUs). **No Colab or Docker time
-exists.** Colab may well be slower per thread; the Technical Expert measures it.
+Laptop prototype, FULL, scikit-learn limited to 2 threads (Colab has 2 CPUs). **No Colab time exists.**
+Colab may well be slower per thread. Measured since (run records, worked mode, FULL, whole notebook,
+2026-10-10, both on an Apple Silicon laptop shared with other build jobs): 48.3 s on macOS with two
+threads, slowest cell 12.7 s; 52.8 s in the Docker image with `--cpus 2` and two threads, slowest cell
+14.7 s (`runs/2026-10-10-macos-arm64-python-15-double-ml.json`,
+`runs/2026-10-10-docker-arm64-python-15-double-ml.json`). Neither is a Colab time.
 
 | Step | Prototype laptop (s) |
 |---|---|
@@ -799,8 +816,13 @@ fit, in line with the prototype.
   re-implementation). Checkpoint 5 turns both errors into messages.
 - Never put post-install variables (app sessions, spend in the launch weeks) in `W`: the app changes them.
   Never let the `true_*` columns into `W`.
-- Compare $\hat\theta$ with the overlap-weighted truth, not the ATE: on the prototype data the 95% CI
-  contained the ATE in only 34 of 40 seeds at n = 20,000 (37 of 40 at n = 10,000).
+- Compare $\hat\theta$ with the overlap-weighted truth, not the ATE, because the overlap-weighted
+  average is what residual on residual estimates when effects vary (the derivation under "What $\theta$
+  is when effects vary"). Coverage does not make this case on these data: over 30 seeds with histogram
+  boosting the 95% CI contained the overlap-weighted truth in 27 at FULL and 29 at QUICK, and the ATE in
+  27 and 28, because the two averages here ($14.28 and $13.58) differ by less than half a standard error.
+  (The draft's "the ATE in only 34 of 40 seeds" came from the LightGBM prototype and is not a result of
+  this build; see Build reconciliation.)
 - `HistGradientBoosting*(early_stopping='auto')` turns on above 10,000 rows; set it to `False`.
 - Spend is heavy-tailed (61% zeros, maximum above $3,000 in the prototype); intervals are wide; use
   `visit` for Hillstrom.
@@ -979,7 +1001,8 @@ lead asked come first (items 1 to 3), then the other changes and why.
    explains"), and Exercise 3's Predict asked whether the interval would contain "the true effect this
    estimator targets", which the learner had not been told. An analyst who has just seen the ATE, ATT and
    ATC in a table will compare with the ATE, and on the prototype data the 95% CI missed the ATE in 6 of 40
-   seeds. The derivation and a plot of e(1 − e) against e go in the briefing and on the module page. The
+   seeds (LightGBM prototype; the build's 30 seeds missed the ATE and the overlap-weighted truth equally
+   often, so the case for naming the target rests on the derivation, see Build reconciliation). The derivation and a plot of e(1 − e) against e go in the briefing and on the module page. The
    notebook states the result in plain words in one sentence immediately before Checkpoint 3, and repeats
    the weight at the start of Part C, where Exercise 4's Predict and function use it. Exercise 3's Predict
    now asks where the estimate lands relative to Exercise 1's regression and the printed true averages.
@@ -994,7 +1017,8 @@ lead asked come first (items 1 to 3), then the other changes and why.
      to 5.7 over 8 seeds; about 42 from the prototype's QUICK numbers; review re-implementation 4.7). Never
      the point estimate, which changes from seed to seed. The printed sentence is computed.
    - Hidden-confounder run: a shift above +$3 (minimum +$4.62 QUICK and +$5.06 FULL over 40 LightGBM
-     seeds; +$5.34 over 30 histogram-boosting seeds). The Decision's sensitivity line is built on this
+     seeds; +$5.34 over 30 histogram-boosting seeds; prototype figures. The build's 30 seeds: minimum
+     +$4.33 FULL and +$4.67 QUICK, so the check held on every seed). The Decision's sensitivity line is built on this
      shift, so its sign matters.
    - Overlap plot: no check. Checkpoint 4's `weight_share_dropped < 1 - share_kept` checks the claim it
      illustrates.
@@ -1064,3 +1088,61 @@ general law).
   against the module page.
 - The new order (overlap before the library) and the provided `confound` change the lab's shape, not its
   content. Objective 5 still holds, because the learner's own functions recover the benchmark.
+
+## Build reconciliation (2026-10-10, Academic Director)
+
+Checked against the build: `labs/src/15-double-ml.py`, `src/mktstats/dml.py`,
+`src/mktstats/synth/app_install.py`, `data/synthetic/truth_app_install.json` (its 30-seed `tolerances`)
+and the two run records. Numbers come from a worked, FULL run of the whole notebook by the Academic
+Director on 2026-10-10 (`scripts/test_notebooks.py --full --mode worked`, laptop, two threads; it passed,
+with the 5 checkpoints verified on their stubs; not a run record, and its 255 s wall time on a heavily
+loaded laptop is not a timing).
+
+- **The data reproduce the prototype.** The generator kept the prototype's order of draws, so the
+  committed CSV and truth file give the prototype's install rate, spends, true averages, incentive table
+  and propensity quantiles exactly, and the lab's FULL output reproduces the prototype's FULL numbers:
+  naive $65.64 [$61.14, $70.14] (the draft had $61.15), regression $32.11, R² 0.47, AUC 0.78, DML $13.51
+  [$10.51, $16.50], the overfit run, the trims, the profile, Hillstrom, the hidden-confounder shifts, the
+  decision and the stretch. Rounding differences only: the estimate is $5.17 above the break-even (draft
+  $5.18), per 1,000 persuaded installs $4,052 ($3,153 to $4,951) (draft $4,050, $3,150 to $4,950), the
+  half-width ± $3.00 (draft ± $2.99), and the persuaded effect prints as $13.65 (truth file 13.655; draft
+  $13.66). QUICK numbers above remain the prototype's; this reconciliation did not re-run QUICK.
+- **Seed sweeps replaced.** Every coverage and range claim above now quotes the build's 30 seeds with
+  histogram boosting (`tolerances`): Checkpoint 1 30/30 in both modes; Checkpoint 3 27/30 FULL, 29/30
+  QUICK; Checkpoint 4 27/30 and 29/30; Checkpoint 5 equality at most 2.3e-15; the overfit ratio 4.0 to 6.5
+  FULL and 34 to 50 QUICK; the hidden-confounder shift +$4.33 to +$7.20 FULL and +$4.67 to +$8.20 QUICK;
+  Hillstrom naive excluded 30/30 at FULL (29/30 with the lab's half, 27/30 over random halves at QUICK)
+  and `LinearDML` covered 30/30 in every case. The draft's LightGBM seed counts (40 seeds, 8 seeds) are
+  prototype results and are labeled as such where they remain.
+- **The ATE-coverage claim is withdrawn.** "The 95% CI contained the ATE in only 34 of 40 seeds" was a
+  LightGBM prototype figure. With histogram boosting the interval covered the ATE as often as the
+  overlap-weighted truth (27/30 FULL, 28/30 QUICK against 27 and 29), because the two averages ($13.58
+  and $14.28) differ by less than half a standard error. The case for comparing with the overlap-weighted
+  average is the derivation in "What $\theta$ is when effects vary", which the module page carries; no
+  coverage figure should be quoted for it.
+- **Nuisance models.** Built as specified: histogram gradient boosting, `early_stopping=False`, no
+  LightGBM (it needs Homebrew's libomp to import on macOS, and warned inside EconML in the prototype).
+- **EconML's interval.** `LinearDML`'s bounds equal the hand HC0 interval widened by √(n/(n − 1)) (HC1)
+  and by 1.959964/1.96 (EconML's exact normal quantile against the lab's 1.96): a factor of 1.0000066 at
+  n = 20,000, measured on the lab's data. The checkpoint compares with this widened interval at rel 1e-4.
+  On the lab's data the estimates differ by 2.0e-15, relative.
+- **Measured run times** (run records, worked, FULL): 48.3 s on macOS with two threads, 52.8 s in Docker
+  with `--cpus 2`; the slowest cell is the overfit demonstration (12.7 s and 14.7 s). No Colab run: the lab
+  needs a release tag that contains it.
+- **Sensitivity references.** EconML's docstrings attribute `sensitivity_interval` and `robustness_value`
+  to "[Chernozhukov2022]". In the installed econml 0.17.0 source that key is defined only in
+  `econml/validate/drtester.py`, for a different paper (lead's note during the references consolidation,
+  2026-10-10; not re-checked here). Cite "Long story short" by its title and link, as in the References
+  above, never by EconML's key. The lab's stretch text (`labs/src`) still says the documentation bases them
+  on Chernozhukov, Cinelli, Newey, Sharma & Syrgkanis; a change there is the Technical Expert's, at the
+  next lab edit.
+- **Open items for the Technical Expert, as found in the build:** generator, `EXTENSIONS` entry, truth and
+  tolerances done; both labeled demonstration checks kept (each held on all 30 seeds in both modes);
+  `tests/test_dml.py` and `tests/test_synth_app_install.py` exist; install list and deps as specified;
+  "Before you start" renders the declared prerequisites. Equality of the hand and EconML estimates holds
+  on the laptop and in Docker (Checkpoint 5 passed in both records); Colab is not yet checked.
+- **For the Academic Director to reconsider (Pedagogy review):** the sensitivity line applies the rule to
+  the shifted interval and also reports the shifted point estimate; the lab does both and the module page
+  reports both (FULL: the interval flips to "do not offer", the point estimate $7.12 falls below $8.33).
+  Assumption (3) is worded on the module page as in the lab, with the derivation that makes it hold
+  approximately for a small credit in this simulation and the statement that it is not a general law.

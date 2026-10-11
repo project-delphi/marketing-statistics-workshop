@@ -658,7 +658,7 @@ modules:
       - "Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls."
       - "Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval."
       - "Check overlap with propensity scores, trim, and state which customers the estimate describes."
-      - "Reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models."
+      - "Fit the same estimator with EconML's LinearDML, using the same folds and gradient-boosting models, and compare it with yours."
       - "Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate."
     outcomes:
       - "Your own cross_fit() and dml_estimate() functions, checked against the true effect and against EconML"
@@ -718,7 +718,7 @@ modules:
     language_why: "PyMC-Marketing 1.2.0 fits the MMM with a separate time-varying effectiveness multiplier for each channel (a Hilbert-space Gaussian process); Prophet 1.4.0, preinstalled on Colab, builds the trend, seasonality and holiday baseline that Robyn also builds from it."
     summary: "Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, estimate the decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS."
     objectives:
-      - "Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel the same ROAS for the last quarter as for the whole history."
+      - "Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel about the same ROAS for the last quarter as for the whole history."
       - "Detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend."
       - "Fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and measure in what share of weeks the true path lies inside the 94% HDI."
       - "Feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves."
