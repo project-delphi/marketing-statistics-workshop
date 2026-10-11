@@ -140,14 +140,21 @@ def _naive(y, t, ddof=1, pooled=False):
 
 
 def _baseline(param=1, constant=True, covariates=True, ddof=1, pooled=False, cov="HC1", z=1.96,
-              index=("naive", "regression")):
+              index=("naive", "regression"), naive_cov=None, scale=(1.0, 1.0)):
+    """A baseline_estimates with one mistake. ``naive_cov``: the naive standard error from a
+    regression of y on t alone with that covariance type. ``scale``: multiply the (naive,
+    regression) standard errors on the app data only, a near miss the toy cannot see."""
     def fn(y, t, W):
         n_est, n_se = _naive(y, t, ddof, pooled)
+        if naive_cov:
+            n_se = sm.OLS(y, sm.add_constant(t.astype(float))).fit(cov_type=naive_cov).bse[1]
         cols = np.column_stack([t, W]) if covariates else t
         X = sm.add_constant(cols) if constant else cols
         fit = sm.OLS(y, X).fit(cov_type=cov)
         r_est = np.ravel(fit.params)[param - (0 if constant else 1)]
         r_se = np.ravel(fit.bse)[param - (0 if constant else 1)]
+        if len(y) > len(dml.TOY1_Y):
+            n_se, r_se = n_se * scale[0], r_se * scale[1]
         est, se = np.array([n_est, r_est]), np.array([n_se, r_se])
         return pd.DataFrame({"estimate": est, "se": se, "ci_low": est - z * se,
                              "ci_high": est + z * se}, index=list(index))
@@ -186,6 +193,33 @@ def test_checkpoint_1_checks_the_standard_errors_on_the_app_data(app, wrong, mes
     assert "on the app data" in msg and "workshop.use_reference(1)" in msg
 
 
+@pytest.mark.parametrize("wrong, message", [
+    # Other robust covariance types are within 0.06% of HC1 on the app data; the message used to
+    # say that the default assumes equal noise, which is not what these did.
+    (dict(cov="HC0"), r"regression standard error is 1\.7115.*`cov_type=\"HC0\"`, another robust"
+                      r".*asks for `cov_type=\"HC1\"`"),
+    (dict(cov="HC2"), r"regression standard error.*`cov_type=\"HC2\"`.*asks for"
+                      r" `cov_type=\"HC1\"`"),
+    (dict(cov="HC3"), r"regression standard error is 1\.7130.*`cov_type=\"HC3\"`.*asks for"
+                      r" `cov_type=\"HC1\"`"),
+    # A regression of y on t alone with HC1 equals the formula on the balanced toy and is 0.003%
+    # off on the app data; it used to be told "not a pooled variance".
+    (dict(naive_cov="HC1"), r"naive standard error is 2\.2949.*regression of y on t alone with"
+                            r" `cov_type=\"HC1\"`.*unpooled formula.*ddof=1"),
+    (dict(scale=(1.0005, 1.0)), r"naive standard error.*within 0\.1% of the reference \(0\.05%"
+                                r" away\).*unpooled formula"),
+    (dict(scale=(1.0, 1.0005)), r"regression standard error.*within 0\.1% of the reference"
+                                r" \(0\.05% away\).*`cov_type=\"HC1\"`"),
+])
+def test_checkpoint_1_names_a_near_miss_in_the_standard_error(app, wrong, message):
+    """On the committed data, so the numbers are those a learner sees (1.7115 and 1.7130 against
+    1.7120; 2.2949 against 2.2950)."""
+    msg = fails(dml.check_baseline_estimates, _baseline(**wrong), app["y"], app["t"], app["W"],
+                0.0, match=message)
+    assert "equally noisy" not in msg and "not a pooled variance" not in msg
+    assert msg.endswith("and come back to this later.") and "workshop.use_reference(1)" in msg
+
+
 def test_checkpoint_1_says_when_the_data_not_the_code_disagree(app):
     fails(dml.check_baseline_estimates, dml.baseline_estimates, app["y"], app["t"], app["W"],
           att=1000.0, match=r"matches the reference.*tell the instructor")
@@ -202,6 +236,9 @@ def _cross_fit(kind):
         parts, out = [], np.full(len(target), np.nan)
         for train, test in folds:
             fitted = clone(model).fit(X[train], target[train])
+            if kind == "two columns" and hasattr(fitted, "predict_proba"):
+                out[test] = fitted.predict_proba(X[test])  # both columns into one: ValueError
+                continue
             if kind == "labels":
                 p = fitted.predict(X[test])
             elif kind == "column 0" and hasattr(fitted, "predict_proba"):
@@ -230,6 +267,9 @@ def test_checkpoint_2_passes_on_the_reference_and_counts_the_toy():
     ("labels", r"`predict_proba\(X\[test\]\)\[:, 1\]`.*not `predict`'s 0/1 labels"),
     ("column 0", r"column 1 is the probability of installing; column 0"),
     ("short", r"return 40 numbers.*one prediction per row of `X`"),
+    # `predict_proba(X[test])` without `[:, 1]` used to end in a raw ValueError.
+    ("two columns", r"raised `ValueError: shape mismatch: value array of shape \(8,2\).*two"
+                    r" columns.*column 1 is P\(install\).*`predict_proba\(X\[test\]\)\[:, 1\]`"),
 ])
 def test_checkpoint_2_names_each_wrong_answer(kind, message):
     msg = fails(dml.check_cross_fit, _cross_fit(kind), SEED, match=message)
@@ -260,6 +300,7 @@ def _dml(kind):
             "squared": se**2,
             "sqrt denominator": np.sqrt(np.sum(v**2 * r**2)) / np.sqrt(np.sum(v * v)),
             "residual": np.sqrt(np.sum(v**2 * u**2)) / np.sum(v * v),
+            "means": np.sqrt(np.mean(v**2 * r**2)) / np.mean(v * v),
         }.get(kind, se)
         z = 1.645 if kind == "1.645" else 1.96
         return {"theta": theta, "se": se, "ci_low": theta - z * se, "ci_high": theta + z * se}
@@ -283,12 +324,35 @@ def test_checkpoint_3_passes_on_the_reference(app):
     ("squared", r"standard error is 1\.111.*squared standard error"),
     ("sqrt denominator", r"standard error is 1\.118.*not by its square root"),
     ("residual", r"standard error is 1\.678.*Ỹ − θ̂T̃, not Ỹ"),
+    ("means", r"standard error is 2\.108.*means where the formula has sums.*√n"),
     ("1.645", r"\[0\.266, 3\.734\].*uses 1\.96, not 1\.645"),
 ])
 def test_checkpoint_3_names_each_wrong_answer(app, kind, message):
     msg = fails(dml.check_dml_estimate, _dml(kind), app["y"], app["t"], app["y_hat"],
                 app["t_hat"], 0.0, 0.0, match=message)
     assert "workshop.use_reference(3)" in msg
+
+
+def test_checkpoint_3_says_use_the_arguments(app):
+    """A function that reads the notebook's 20,000-customer arrays: mixed with its arguments it
+    used to end in a raw broadcast ValueError on the 4-customer toy; reading only the notebook's
+    arrays, it was told to check the formula."""
+    def mixed(y, t, y_hat_, t_hat_):  # residuals from the notebook's predictions
+        return dml.dml_estimate(y, t, app["y_hat"], app["t_hat"])
+
+    def only_globals(y_, t_, y_hat_, t_hat_):
+        return dml.dml_estimate(app["y"], app["t"], app["y_hat"], app["t_hat"])
+
+    for fn, match in [
+        (mixed, r"raised `ValueError: operands could not be broadcast together with shapes"
+                r" \(4,\) \(20000,\)`: it mixes its 4-customer arguments with the notebook's"
+                r" 20,000-customer arrays\. Use the arguments"),
+        (only_globals, r"θ̂ is [\d.]+, the estimate on the notebook's 20,000 customers; by hand"
+                       r" it is 2: your function reads the notebook's arrays\. Use the arguments"),
+    ]:
+        msg = fails(dml.check_dml_estimate, fn, app["y"], app["t"], app["y_hat"], app["t_hat"],
+                    0.0, 0.0, match=match)
+        assert "workshop.use_reference(3)" in msg
 
 
 def test_checkpoint_3_names_the_target_and_the_ate_when_the_truth_is_outside(app):
@@ -299,11 +363,19 @@ def test_checkpoint_3_names_the_target_and_the_ate_when_the_truth_is_outside(app
 
 
 # ------------------------------------------------------------------------- Checkpoint 4
+LOW, HIGH = 0.05, 0.95  # the notebook's constants, which the checkpoint passes as low and high
+
+
 def _trim(kind):
     def fn(y, t, y_hat, t_hat, low, high):
         keep = (t_hat >= low) & (t_hat <= high)
+        if kind == "constants":  # reads the notebook's LOW and HIGH, not its arguments
+            keep = (t_hat >= LOW) & (t_hat <= HIGH)
         rows = slice(None) if kind == "all rows" else keep
-        out = dict(dml.dml_estimate(y[rows], t[rows], y_hat[rows], t_hat[rows]))
+        if kind == "y and t only":
+            out = dict(dml.dml_estimate(y[keep], t[keep], y_hat, t_hat))
+        else:
+            out = dict(dml.dml_estimate(y[rows], t[rows], y_hat[rows], t_hat[rows]))
         w = (t * (1 - t)) if kind == "weights from t" else t_hat * (1 - t_hat)
         with np.errstate(invalid="ignore", divide="ignore"):
             out["weight_share_dropped"] = {
@@ -311,6 +383,8 @@ def _trim(kind):
                 "weight kept": float(w[keep].sum() / w.sum()),
             }.get(kind, float(w[~keep].sum() / w.sum()))
         out["share_kept"] = float(keep.sum()) if kind == "count" else float(keep.mean())
+        if kind == "share from constants":  # the estimate uses the arguments, the share does not
+            out["share_kept"] = float(np.mean((t_hat >= LOW) & (t_hat <= HIGH)))
         return out
     return fn
 
@@ -328,6 +402,15 @@ def test_checkpoint_4_passes_on_the_reference(app):
     ("weight kept", r"weight_share_dropped is 0\.9398.*share of weight kept"),
     ("weights from t", r"weights come from `t_hat`, not `t`"),
     ("count", r"share_kept is 4\b.*not a count"),
+    # Passed silently: the toy and the app data are both called with 0.05 and 0.95.
+    ("constants", r"`low, high = 0\.25, 0\.75` \(3 of 6 rows kept, share_kept 0\.5\) you get the"
+                  r" same result as with 0\.05, 0\.95 \(share_kept 0\.6667\): your function"
+                  r" ignores `low` and `high`: use the arguments, not `LOW` and `HIGH`\."),
+    ("share from constants", r"`low, high = 0\.25, 0\.75` your result is .*share_kept: 0\.6667.*by"
+                             r" hand it is .*share_kept: 0\.5\b.*using the arguments"),
+    # Used to end in a raw ValueError.
+    ("y and t only", r"raised `ValueError: operands could not be broadcast together with shapes"
+                     r" \(4,\) \(6,\)`.*Subset all four arrays with the same mask"),
 ])
 def test_checkpoint_4_names_each_wrong_answer(app, kind, message):
     msg = fails(dml.check_trimmed_estimate, _trim(kind), dml.dml_estimate, app["y"], app["t"],
@@ -369,6 +452,8 @@ def _linear(kind):
         if kind != "default cv":
             kw["cv"] = folds
         est = LinearDML(**kw)
+        if kind == "unfitted":
+            return est
         if kind == "as X":
             return est.fit(y, t, X=W, W=None)
         est.fit(y, t, X=None, W=W)
@@ -398,6 +483,9 @@ def test_checkpoint_5_passes_on_the_reference(small):
     ("default cv", r"Pass `cv=folds`.*default is `cv=2`"),
     ("none", r"returned NoneType.*return the fitted estimator"),
     ("alpha", r"`est.ate_interval\(alpha=0.05\)`"),
+    # Used to end in a raw AttributeError from est.ate().
+    ("unfitted", r"raised `AttributeError: 'LinearDML' object has no attribute '_d_t_in'`.*never"
+                 r" fitted.*fit it, `\.fit\(y, t, X=None, W=W\)`, and return the result\."),
 ])
 def test_checkpoint_5_turns_each_mistake_into_a_message(small, kind, message):
     s = small

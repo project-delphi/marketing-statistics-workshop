@@ -219,6 +219,11 @@ def _recover(n: int) -> str:
 INSTRUCTOR = " Tell the instructor."
 
 
+def _err(exc: Exception) -> str:
+    """An exception as a message quotes it: `ValueError: operands could not be broadcast ...`."""
+    return f"`{type(exc).__name__}: {str(exc).strip()}`"
+
+
 def _close(a, b, rel=0.0, abs=1e-9) -> bool:
     return bool(np.all(np.abs(np.asarray(a, dtype=float) - np.asarray(b, dtype=float))
                        <= abs + rel * np.abs(np.asarray(b, dtype=float))))
@@ -284,6 +289,54 @@ def _table(got, what: str, n: int) -> pd.DataFrame:
     return got.astype(float)
 
 
+NEAR_MISS = 1e-3  # standard errors within 0.1% of the reference: a near miss, not a wrong formula
+UNPOOLED = ("the lab asks for the unpooled formula √(s₁²/n₁ + s₀²/n₀) with sample variances,"
+            " `np.var(x, ddof=1)`.")
+
+
+def _se_cause(row: str, got: float, ref: float, y, t, W) -> str:
+    """Why a standard error on the app data differs from the reference (Checkpoint 1): a likely
+    alternative recomputed and named, else a near miss (under 0.1% apart), else the formula.
+    On 20,000 customers HC0, HC2 and HC3 lie within 0.06% of HC1, and a regression of y on t
+    alone with HC0, HC1 or HC3 within 0.01% of the unpooled formula (HC2 equals it, and its
+    classical standard error is the pooled one)."""
+    import statsmodels.api as sm
+
+    y, t = np.asarray(y, dtype=float), np.asarray(t, dtype=float)
+    gap = f"{100 * abs(got - ref) / abs(ref):.2g}%"
+    if row == "naive":
+        X = sm.add_constant(t)
+        alternatives = {"nonrobust": "use the unpooled formula √(s₁²/n₁ + s₀²/n₀), not a pooled"
+                                     " variance."}
+        for cov in ("HC0", "HC1", "HC3"):
+            alternatives[cov] = (
+                f"that is the standard error of a regression of y on t alone with `cov_type="
+                f"\"{cov}\"`, {gap} away; " + UNPOOLED)
+        near = ("close, but computed another way (a regression's robust standard error or"
+                " population variances give a number this close); " + UNPOOLED)
+        other = ("use the unpooled formula √(s₁²/n₁ + s₀²/n₀), with the sample variance of each"
+                 " group.")
+    else:
+        X = sm.add_constant(np.column_stack([t, W]))
+        alternatives = {"nonrobust": "fit with `cov_type=\"HC1\"`; the default assumes every"
+                                     " customer's spend is equally noisy."}
+        for cov in ("HC0", "HC2", "HC3"):
+            alternatives[cov] = (
+                f"you used `cov_type=\"{cov}\"`, another robust standard error, {gap} away from"
+                " HC1 here; the lab asks for `cov_type=\"HC1\"`.")
+        near = ("close, but another covariance type: the lab asks for `cov_type=\"HC1\"` and"
+                " `fit.bse[1]`.")
+        other = ("fit with `cov_type=\"HC1\"` and take `fit.bse[1]` from the same fit as the"
+                 " estimate.")
+    # For the naive row, the regression's classical ("nonrobust") standard error is the pooled one.
+    for cov, cause in alternatives.items():
+        if _close(got, sm.OLS(y, X).fit(cov_type=cov).bse[1], rel=1e-6):
+            return cause
+    if abs(got - ref) < NEAR_MISS * abs(ref):
+        return f"your standard error is within 0.1% of the reference ({gap} away): " + near
+    return other
+
+
 def check_baseline_estimates(fn: Callable, y, t, W, att: float) -> pd.DataFrame:
     """Checkpoint 1: the toy worked by hand, the app data against the reference, then both
     intervals against the true ATT. Returns the app-data table."""
@@ -347,12 +400,10 @@ def check_baseline_estimates(fn: Callable, y, t, W, att: float) -> pd.DataFrame:
                 f"Checkpoint 1: on the app data your {row} estimate is {g['estimate']:.4f}; the"
                 f" reference gives {r['estimate']:.4f}. Check: " + hint + _recover(1))
         if not _close(g["se"], r["se"], rel=1e-9):
-            hint = ("use the unpooled formula √(s₁²/n₁ + s₀²/n₀), not a pooled variance." if
-                    row == "naive" else "fit with `cov_type=\"HC1\"`; the default assumes every"
-                    " customer's spend is equally noisy.")
             raise AssertionError(
                 f"Checkpoint 1: on the app data your {row} standard error is {g['se']:.4f}; the"
-                f" reference gives {r['se']:.4f}. Likely cause: " + hint + _recover(1))
+                f" reference gives {r['se']:.4f}. Likely cause: "
+                + _se_cause(row, g["se"], r["se"], y, t, W) + _recover(1))
         if not _close([g["ci_low"], g["ci_high"]], [r["ci_low"], r["ci_high"]], rel=1e-9):
             raise AssertionError(
                 f"Checkpoint 1: on the app data your {row} interval is [{g['ci_low']:.2f},"
@@ -430,7 +481,18 @@ def check_cross_fit(fn: Callable, seed: int) -> dict[str, int]:
             " after fold puts them in the wrong order. Fit a fresh `clone(model)` on each fold's"
             " training rows." + _recover(2))
     knn = KNeighborsClassifier(n_neighbors=5)
-    probs = _predictions(fn(knn, X, labels, sfolds), n)
+    try:
+        probs = fn(knn, X, labels, sfolds)
+    except ValueError as exc:
+        # `out[test] = fitted.predict_proba(X[test])`: an (8, 2) array into 8 positions.
+        if "shape mismatch" not in str(exc) and "could not be broadcast" not in str(exc):
+            raise
+        raise AssertionError(
+            "Checkpoint 2: with KNeighborsClassifier(n_neighbors=5) your function raised"
+            f" {_err(exc)}. `predict_proba` returns two columns, one per class: column 0"
+            " is P(no install) and column 1 is P(install). Store column 1,"
+            " `predict_proba(X[test])[:, 1]`." + _recover(2)) from None
+    probs = _predictions(probs, n)
     want = cross_val_predict(knn, X, labels, cv=sfolds, method="predict_proba")[:, 1]
     if not np.allclose(probs, want, rtol=0, atol=1e-10):
         if np.all(np.isin(probs, [0.0, 1.0])):
@@ -503,6 +565,9 @@ def _toy3_wrong() -> tuple[dict, dict]:
             "divide by Σ T̃², not by its square root.",
         float(np.sqrt(np.sum(v**2 * u**2)) / np.sum(v * v)):
             "inside the standard error the residual is Ỹ − θ̂T̃, not Ỹ.",
+        float(np.sqrt(np.mean(v**2 * r**2)) / np.mean(v * v)):
+            "you used means where the formula has sums, which multiplies the standard error by"
+            " √n (√4 = 2 on the toy). Use sums: √(Σ T̃² (Ỹ − θ̂T̃)²) / Σ T̃².",
     }
     return thetas, ses
 
@@ -510,10 +575,28 @@ def _toy3_wrong() -> tuple[dict, dict]:
 def check_dml_estimate(fn: Callable, y, t, y_hat, t_hat, target: float, ate: float) -> dict:
     """Checkpoint 3: the toy exactly, the app data against the reference, then the provided
     predictions against the true overlap-weighted effect. Returns the app-data result."""
-    got = _dml_dict(fn(**TOY3), "dml_estimate on the toy", 3)
+    globals_hint = (" Use the arguments `y`, `t`, `y_hat` and `t_hat` inside the function, not the"
+                    " arrays of earlier cells, so it works on any customers it is given.")
+    try:
+        got = fn(TOY3["y"], TOY3["t"], TOY3["y_hat"], TOY3["t_hat"])
+    except ValueError as exc:
+        if "could not be broadcast" not in str(exc):
+            raise
+        raise AssertionError(
+            f"Checkpoint 3: on the toy (4 customers) your function raised {_err(exc)}:"
+            f" it mixes its 4-customer arguments with the notebook's {len(y):,}-customer"
+            " arrays." + globals_hint + _recover(3)) from None
+    got = _dml_dict(got, "dml_estimate on the toy", 3)
     want = dml_estimate(**TOY3)
     thetas, ses = _toy3_wrong()
     toy = "t = [1, 0, 1, 0], t_hat = [0.5, 0.5, 0.25, 0.25], y = [0, 0, 3, 2], y_hat = [1, 2, 1, 3]"
+    ref = dml_estimate(y, t, y_hat, t_hat)
+    if _close(got["theta"], ref["theta"], rel=1e-9) and not _close(
+            got["theta"], want["theta"], abs=1e-9):
+        raise AssertionError(
+            f"Checkpoint 3: on the toy (4 customers) your θ̂ is {got['theta']:.4g}, the estimate on"
+            f" the notebook's {len(y):,} customers; by hand it is 2: your function reads the"
+            " notebook's arrays." + globals_hint + _recover(3))
     if not _close(got["theta"], want["theta"], abs=1e-12):
         cause = next((m for v, m in thetas.items() if _close(got["theta"], v, abs=1e-3)),
                      "θ̂ = Σ T̃Ỹ / Σ T̃² with T̃ = t − t_hat and Ỹ = y − y_hat.")
@@ -536,7 +619,6 @@ def check_dml_estimate(fn: Callable, y, t, y_hat, t_hat, target: float, ate: flo
             f" {got['ci_high']:.3f}];"
             f" by hand it is [{want['ci_low']:.3f}, {want['ci_high']:.3f}]: " + cause + _recover(3))
     got = _dml_dict(fn(y, t, y_hat, t_hat), "dml_estimate(y, t, y_hat, t_hat)", 3)
-    ref = dml_estimate(y, t, y_hat, t_hat)
     if not _close([got[k] for k in DML_KEYS], [ref[k] for k in DML_KEYS], rel=1e-9):
         raise AssertionError(
             f"Checkpoint 3: on the app data your result {_fmt(got)} differs from the reference"
@@ -572,7 +654,33 @@ def check_no_cross_fitting(se_in_sample: float, se_cross_fitted: float,
 TOY4 = {"y": np.array([0.0, 1.0, 4.0, 2.0, 5.0, 9.0]), "t": np.array([0, 0, 1, 0, 1, 1]),
         "y_hat": np.array([0.5, 1.0, 2.0, 2.0, 3.0, 6.0]),
         "t_hat": np.array([0.02, 0.10, 0.30, 0.50, 0.70, 0.97]), "low": 0.05, "high": 0.95}
+TOY4_STRICT = {"low": 0.25, "high": 0.75}  # the same toy keeps rows 3 to 5 (of 6)
 TRIM_KEYS = DML_KEYS + ["share_kept", "weight_share_dropped"]
+
+
+def _call_trim(fn: Callable, toy: dict):
+    """The learner's trimmed_estimate on a toy; a mask applied to some arrays but not others
+    becomes a message."""
+    try:
+        return fn(*(toy[k] for k in ("y", "t", "y_hat", "t_hat", "low", "high")))
+    except ValueError as exc:
+        # dml_estimate(y[keep], t[keep], y_hat, t_hat): shapes (4,) and (6,) in `y - y_hat`.
+        if "could not be broadcast" not in str(exc):
+            raise
+        raise AssertionError(
+            f"Checkpoint 4: on the toy your function raised {_err(exc)}: some arrays"
+            " were cut to the kept rows and others were not. Subset all four arrays with the same"
+            " mask, `y[keep], t[keep], y_hat[keep], t_hat[keep]`, before calling `dml_estimate`."
+            + _recover(4)) from None
+
+
+def _trim_dict(got) -> dict[str, float]:
+    if not isinstance(got, dict) or not set(TRIM_KEYS) <= set(got):
+        have = sorted(got) if isinstance(got, dict) else type(got).__name__
+        raise AssertionError(
+            f"Checkpoint 4: trimmed_estimate returned {have}; it must return dml_estimate's dict"
+            " plus `share_kept` and `weight_share_dropped`." + _recover(4))
+    return {k: float(np.ravel(got[k])[0]) for k in TRIM_KEYS}
 
 
 def check_trimmed_estimate(fn: Callable, dml_fn: Callable, y, t, y_hat, t_hat, low: float,
@@ -581,13 +689,7 @@ def check_trimmed_estimate(fn: Callable, dml_fn: Callable, y, t, y_hat, t_hat, l
     kept rows, less weight than customers dropped, and the truth on the kept rows inside the
     95% interval. ``target_fn(mask)`` is the true overlap-weighted effect on the kept rows."""
     toy = {k: v for k, v in TOY4.items()}
-    got = fn(**toy)
-    if not isinstance(got, dict) or not set(TRIM_KEYS) <= set(got):
-        have = sorted(got) if isinstance(got, dict) else type(got).__name__
-        raise AssertionError(
-            f"Checkpoint 4: trimmed_estimate returned {have}; it must return dml_estimate's dict"
-            " plus `share_kept` and `weight_share_dropped`." + _recover(4))
-    got = {k: float(np.ravel(got[k])[0]) for k in TRIM_KEYS}
+    got = _trim_dict(_call_trim(fn, toy))
     keep = (TOY4["t_hat"] >= TOY4["low"]) & (TOY4["t_hat"] <= TOY4["high"])
     want = trimmed_estimate(**toy)
     all_rows = dml_estimate(TOY4["y"], TOY4["t"], TOY4["y_hat"], TOY4["t_hat"])
@@ -631,8 +733,27 @@ def check_trimmed_estimate(fn: Callable, dml_fn: Callable, y, t, y_hat, t_hat, l
             f"Checkpoint 4: on the toy your weight_share_dropped is {wsd:.4f}; by hand it is"
             f" 0.0487 / 0.8087 ≈ {want['weight_share_dropped']:.4f}. Likely cause: " + cause
             + _recover(4))
-    got = fn(y, t, y_hat, t_hat, low, high)
-    got = {k: float(np.ravel(got[k])[0]) for k in TRIM_KEYS}
+    # The same toy with stricter limits: a function that reads LOW and HIGH (0.05 and 0.95 in the
+    # notebook, as in the call below) passes everything else, then the profile cell prints three
+    # identical trims.
+    strict = dict(TOY4, **TOY4_STRICT)
+    got_strict = _trim_dict(_call_trim(fn, strict))
+    want_strict = trimmed_estimate(**strict)
+    if not _close([got_strict[k] for k in TRIM_KEYS], [want_strict[k] for k in TRIM_KEYS],
+                  abs=1e-12):
+        if _close([got_strict[k] for k in TRIM_KEYS], [got[k] for k in TRIM_KEYS], abs=1e-12):
+            raise AssertionError(
+                f"Checkpoint 4: on the toy with `low, high = {strict['low']}, {strict['high']}`"
+                " (3 of 6 rows kept, share_kept 0.5) you get the same result as with"
+                f" {TOY4['low']}, {TOY4['high']} (share_kept {got_strict['share_kept']:.4f}): your"
+                " function ignores `low` and `high`: use the arguments, not `LOW` and `HIGH`."
+                + _recover(4))
+        raise AssertionError(
+            f"Checkpoint 4: on the toy with `low, high = {strict['low']}, {strict['high']}` your"
+            f" result is {_fmt(got_strict)}; by hand it is {_fmt(want_strict)} (rows 3 to 5"
+            " kept). Keep the rows with `low <= t_hat <= high`, using the arguments `low` and"
+            " `high`." + _recover(4))
+    got = _trim_dict(fn(y, t, y_hat, t_hat, low, high))
     t_hat = np.asarray(t_hat, dtype=float)
     mask = (t_hat >= low) & (t_hat <= high)
     on_kept = dml_fn(np.asarray(y)[mask], np.asarray(t)[mask], np.asarray(y_hat)[mask],
@@ -689,6 +810,13 @@ def check_linear_dml(fn: Callable, y, t, W, folds, model_y, model_t, seed: int, 
                 " controls, `W=W`, with `X=None`. `X` is for covariates the effect varies with,"
                 " and then EconML wants one effect per customer." + _recover(5)) from None
         raise
+    except AttributeError as exc:
+        # An estimator that was never fitted: "'LinearDML' object has no attribute '_d_t_in'".
+        raise AssertionError(
+            f"Checkpoint 5: EconML raised {_err(exc)} when asked for the estimate:"
+            f" the {type(est).__name__} that fit_linear_dml returned was never fitted. After"
+            " `LinearDML(...)`, fit it, `.fit(y, t, X=None, W=W)`, and return the result."
+            + _recover(5)) from None
     if not _close(ate, mine["theta"], rel=1e-6):
         raise AssertionError(
             f"Checkpoint 5: EconML's estimate is ${ate:.4f}; yours is ${mine['theta']:.4f}. Pass"
