@@ -19,18 +19,18 @@
       "notebook": "python/17-mmm-time-varying",
       "scope": "notebook",
       "status": "fail",
-      "seconds": 114.1,
+      "seconds": 108.0,
       "phases": {
-        "generated": 0.21,
-        "other": 109.51,
+        "generated": 0.2,
+        "other": 104.07,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.44,
+        "checkpoint": 0.4,
         "verify": 0.03
       },
       "slowest_cell": {
         "id": "cell-016",
-        "seconds": 43.07
+        "seconds": 40.65
       },
       "verified": 5,
       "note": "stopped with an error"
