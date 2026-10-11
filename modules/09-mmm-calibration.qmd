@@ -66,7 +66,7 @@ Display's spend now predicts the shock negatively ($\hat\delta < 0$) while the s
 | $W$ | length of a lift test in weeks |
 | $x$, $\Delta x$, $\Delta y$, $\sigma$ | a lift-test row: weekly spend before the test, change in weekly spend, incremental weekly sales, and its standard error |
 | $\text{ROAS}_c$ | sales caused by channel $c$'s spend over all 156 weeks, divided by that spend (Module 8) |
-| $n_0$, $h$, $f$ | training weeks of the first cross-validation fold (124), weeks forecast per fold (8), fold index |
+| $n_0$, $h$, $f$ | training weeks of the first cross-validation fold (132), weeks forecast per fold (8), fold index |
 | $\hat y_t$, $[\ell_t, u_t]$ | posterior mean forecast of week $t$'s sales and its 94% HDI |
 | $m$ | gross margin rate (30%); break-even ROAS $1/m = 3.33$ |
 
@@ -138,7 +138,7 @@ Experiments can enter a Bayesian MMM in two ways: as extra likelihood terms, as 
 
 **Objective for this section:** run time-slice cross-validation and judge out-of-sample error and parameter stability across folds.
 
-A model can fit the weeks it was trained on and still forecast badly. **Time-slice cross-validation** refits the model on the first weeks only, forecasts the next ones, then moves the cut forward and repeats (also known as evaluation on a rolling forecasting origin; Hyndman and Athanasopoulos 2021). Fold $f = 0, 1, 2, 3$ trains on the weeks $t < n_0 + f h$ and forecasts the $h$ weeks after them, with $n_0 = 124$ and $h = 8$, so the last fold forecasts the last 8 weeks of the data. A lift test may be used in a fold only if it ended before the fold's cut, or the fold would learn from the future; both search tests end by week 101, so every fold has both. Each fold is scored on its held-out weeks:
+A model can fit the weeks it was trained on and still forecast badly. **Time-slice cross-validation** refits the model on the first weeks only, forecasts the next ones, then moves the cut forward and repeats (also known as evaluation on a rolling forecasting origin; Hyndman and Athanasopoulos 2021). Fold $f = 0, 1, 2$ trains on the weeks $t < n_0 + f h$ and forecasts the $h$ weeks after them, with $n_0 = 132$ and $h = 8$, so the last fold forecasts the last 8 weeks of the data. A lift test may be used in a fold only if it ended before the fold's cut, or the fold would learn from the future; both search tests end by week 101, so every fold has both. Each fold is scored on its held-out weeks:
 
 $$
 \text{MAPE}_f = \frac{1}{h} \sum_{t \in \text{test}_f} \frac{|\hat y_t - y_t|}{y_t},
@@ -148,19 +148,19 @@ $$ {#eq-cv}
 
 MAPE (mean absolute percentage error) says how far the forecast is from sales; coverage says whether the 94% intervals are honest, about 94% if they are. FULL run, the calibrated model, 2 chains of 500 draws per fold, 0 divergences in every fold:
 
-| Fold | 1 | 2 | 3 | 4 | All 32 weeks |
-|---|---|---|---|---|---|
-| MAPE | 3.9% | 3.6% | 2.4% | 1.4% | 2.8% |
-| 94% coverage | 7 of 8 | 5 of 8 | 7 of 8 | 8 of 8 | 27 of 32 (0.84) |
+| Fold | 1 | 2 | 3 | All 24 weeks |
+|---|---|---|---|---|
+| MAPE | 3.7% | 2.4% | 1.4% | 2.5% |
+| 94% coverage | 5 of 8 | 7 of 8 | 8 of 8 | 20 of 24 (0.83) |
 
-PyMC-Marketing samples each fold's forecast without a fixed seed, so the per-fold coverage changes a little between runs (a second FULL run gave 6, 6, 7 and 8 of 8, again 0.84 overall). With 32 held-out weeks, one week is 3 percentage points of coverage, and neighboring weeks are not independent: 0.84 against a nominal 0.94 says the intervals are somewhat too narrow, not much more.
+PyMC-Marketing samples each fold's forecast without a fixed seed, so the per-fold coverage changes a little between runs (a second FULL run gave 6, 6 and 8 of 8, again 0.83 overall). With 24 held-out weeks, one week is 4 percentage points of coverage, and neighboring weeks are not independent: 0.83 against a nominal 0.94 says the intervals are somewhat too narrow, not much more.
 
 **Parameter stability** asks whether a fold that sees fewer weeks tells the same story. The channels' effect ceilings $\beta_c$ move between folds (TV's from 0.37 to 0.54 in scaled units), but Module 8 showed that $\beta$ and $\lambda$ trade off along a ridge, so the lab compares each fold's ROAS over its own training weeks instead. The range of the fold means as a share of the calibrated ROAS:
 
 $$
 \begin{aligned}
 \text{spread}_c &= \frac{\max_f \overline{\text{ROAS}}_{c,f} - \min_f \overline{\text{ROAS}}_{c,f}}{\overline{\text{ROAS}}_c} \\[4pt]
-&= \text{TV } 3\%, \quad \text{search } 1\%, \quad \text{social } 25\%, \quad \text{display } 72\%.
+&= \text{TV } 3\%, \quad \text{search } 0.5\%, \quad \text{social } 25\%, \quad \text{display } 46\%.
 \end{aligned}
 $$ {#eq-stability}
 
@@ -168,12 +168,12 @@ Search, pinned by two experiments, barely moves; TV, which switches on and off, 
 
 ### What cross-validation cannot tell you
 
-The lab's stretch runs the same cross-validation on the **uncalibrated** model. We ran the stretch code at FULL settings on a laptop while writing this page (not a workshop run record), with the calibrated model cross-validated again in the same run so the two rows compare like with like (this is the second run mentioned above):
+The lab's stretch runs the same cross-validation on the **uncalibrated** model. We ran the stretch code at FULL settings on a laptop on 2026-10-11, with the 3 folds of `v2026.10.2` (not a workshop run record), with the calibrated model cross-validated again in the same run so the two rows compare like with like (this is the second run mentioned above):
 
 | Model | MAPE, all folds | 94% coverage | Search ROAS by fold (truth 3.0) |
 |---|---|---|---|
-| calibrated | 2.9% | 0.84 | 3.02 to 3.05 |
-| uncalibrated | **2.3%** | **0.94** | **5.20 to 5.46** |
+| calibrated | 2.5% | 0.83 | 3.04 to 3.05 |
+| uncalibrated | **2.1%** | **0.88** | **5.20 to 5.35** |
 
 The model that is wrong about search forecasts held-out weeks *better*. In the held-out weeks search spend still rises with hidden demand, so a model that reads search spend as a demand signal predicts sales well, for the wrong reason. Cross-validation checks **prediction**, not **cause**. It catches a model that overfits or drifts; it cannot catch a confounded one. Only an experiment can.
 
@@ -181,7 +181,7 @@ The model that is wrong about search forecasts held-out weeks *better*. In the h
 **Check yourself.** A vendor shows you their MMM: held-out MAPE of 2%, 94% interval coverage of 95%, and a search ROAS twice what your last geo test measured. They say the cross-validation proves their model right. What do you answer?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-That the cross-validation shows the model forecasts sales well, which is not the same as attributing them correctly. If search spend follows demand, a model that credits demand to search forecasts just as well, or better, as the uncalibrated model did here (2.3% MAPE, 0.94 coverage, search ROAS 5.2 to 5.5 against a truth of 3.0). The geo test is the evidence about cause; ask them to add it to the model as a lift test and show what happens to search's ROAS and interval.
+That the cross-validation shows the model forecasts sales well, which is not the same as attributing them correctly. If search spend follows demand, a model that credits demand to search forecasts just as well, or better, as the uncalibrated model did here (2.1% MAPE, 0.88 coverage, search ROAS 5.2 to 5.4 against a truth of 3.0). The geo test is the evidence about cause; ask them to add it to the model as a lift test and show what happens to search's ROAS and interval.
 :::
 :::
 
@@ -192,7 +192,7 @@ That the cross-validation shows the model forecasts sales well, which is not the
 Spend and sales alone cannot identify:
 
 - **The effect of a channel whose spend follows something unobserved.** No amount of data or sampling fixes @eq-ovb; a measurement of the confounder (here, demand) or an experiment does.
-- **Channels whose spend barely moves on its own.** Social comes in a few pushes; display is small and slowly growing. After calibration their intervals are wide and their fold-by-fold ROAS moves by 25% and 72%.
+- **Channels whose spend barely moves on its own.** Social comes in a few pushes; display is small and slowly growing. After calibration their intervals are wide and their fold-by-fold ROAS moves by 25% and 46%.
 - **The shape of a curve away from the spend levels observed or tested.** The switch-off fixes search's level at current spend and the +30% test its slope just above it; nothing in these data says how search behaves at twice today's spend. Module 10 and the capstone lean on exactly that shape.
 - **Untested channels after calibration.** The sales a lift test takes away from one channel go somewhere (section 3).
 
@@ -249,9 +249,9 @@ and the next lift test goes to the channel to test first with the most spend at 
 | Channel | ROAS (94% HDI) | $P(\text{ROAS} > 3.33)$ | Calibrated verdict | Uncalibrated verdict | Fold spread | Spend at stake (52 weeks) | Act now? |
 |---|---|---|---|---|---|---|---|
 | TV | 1.62 (1.51 to 1.74) | 0.000 | does not pay back | does not pay back | 3% | $1,634,464 | act |
-| search | 3.07 (2.76 to 3.37) | 0.058 | **does not pay back** | **pays back** | 1% | $1,068,379 | act |
+| search | 3.07 (2.76 to 3.37) | 0.058 | **does not pay back** | **pays back** | 0.5% | $1,068,379 | act |
 | social | 2.89 (0.97 to 5.38) | 0.276 | undecided | does not pay back | 25% | $632,927 | test first |
-| display | 1.43 (0.00 to 4.71) | 0.136 | undecided | does not pay back | 72% | $394,804 | test first |
+| display | 1.43 (0.00 to 4.71) | 0.136 | undecided | does not pay back | 46% | $394,804 | test first |
 
 - **Act now on TV and search**: neither pays back on short-run sales, and both estimates are stable. For search the lift tests reversed the verdict: without them the model said search pays back with near certainty, and a planner would have moved money into a channel that returns $3.00 of sales per dollar against a break-even of $3.33.
 - **Test social first**, then display. Social is undecided with $632,927 a year at stake; a social lift test would settle it.
@@ -265,7 +265,7 @@ The truth confirms the calibrated verdicts it could reach: no true ROAS reaches 
 - A channel whose spend follows unobserved demand is overcredited by an amount the omitted-variable formula gives (@eq-confounded, @eq-ovb). Here search's ROAS was 5.38 against a truth of 3.0, with the truth outside the 94% HDI and every diagnostic passed.
 - A lift test enters the model as one more observation of the response curve (@eq-lift-row, @eq-lift-likelihood), in weekly units, and should run long relative to the channel's carryover. A switch-off pins the curve's level; a spend increase pins its slope near current spend.
 - Calibration on two search tests brought search to 3.07 (2.76 to 3.37), within 3% of the truth, with an interval a quarter as wide. Untested channels moved and widened: calibration fixes what was tested, not everything.
-- Time-slice cross-validation (@eq-cv) gave 2.8% MAPE and 0.84 coverage of 94% intervals. The uncalibrated model forecast held-out weeks better (2.3%, 0.94) while its search ROAS stayed wrong: cross-validation checks prediction, not cause.
+- Time-slice cross-validation (@eq-cv) gave 2.5% MAPE and 0.83 coverage of 94% intervals. The uncalibrated model forecast held-out weeks better (2.1%, 0.88) while its search ROAS stayed wrong: cross-validation checks prediction, not cause.
 - Fold-by-fold ROAS (@eq-stability) was stable for TV and search and not for social and display.
 - Robyn's five best models (@eq-rssd, @eq-mroas) disagreed on the best next dollar; its uncertainty is the spread across a Pareto front, not a posterior.
 - Act now on TV and search (neither pays back on short-run sales); run the next lift test on social.

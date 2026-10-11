@@ -36,10 +36,11 @@ Python (each once; QUICK draws=tune=300, FULL 1000; chains=2; nutpie; `progressb
 3. Time-slice cross-validation: `cv = TimeSliceCrossValidator(n_init=..., forecast_horizon=8,
    date_column="date_week", step_size=...)` and `cv.run(X, y, mmm=<unfitted MMM with the calibrated spec>,
    df_lift_test=df_lift_test, lift_test_date_column=<date column of the lift tests>)`, which fits one model per fold. QUICK: 3 folds,
-   draws=tune=200; FULL: 4 folds, draws=tune=500. This is the longest cell; the rule was to reduce folds before
-   draws if it exceeds 4 minutes on Colab. Measured on Colab (2026-10-10, worked, FULL,
-   `runs/2026-10-10-colab-py-python-09-mmm-calibration.json`): 215 s at `main`, 241 s at `v2026.10.0`, 252 s
-   at `v2026.10.1`, so it sits at the limit and went over it once, by 12 s. Not changed in `v2026.10.1`,
+   draws=tune=200; FULL: 3 folds (`n_init=132`), draws=tune=500. This is the longest cell; the rule was to reduce
+   folds before draws if it exceeds 4 minutes on Colab. With 4 FULL folds (`n_init=124`) it measured on Colab
+   (2026-10-10, worked, FULL, `runs/2026-10-10-colab-py-python-09-mmm-calibration.json`): 215 s at `main`,
+   241 s at `v2026.10.0`, 252 s at `v2026.10.1`, so it sat at the limit and went over it once, by 12 s; the
+   next release (`v2026.10.2`) cut the fourth fold. Not changed in `v2026.10.1`,
    because any change to the lab stales every Colab record; queued for the next release (DECISIONS.md).
 
 R (provided cells, the spike's settings): `robyn_inputs(dt_input = dt_simulated_weekly, dt_holidays =

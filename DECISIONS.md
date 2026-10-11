@@ -208,7 +208,8 @@ Newest first within each section.
   (1.4 s). Docker `--cpus N` times of BLAS- or OpenMP-heavy cells can therefore overstate what a
   machine with N real cores (Colab: 2) takes. Later extension builds run their Docker records
   with `OMP_NUM_THREADS` and `OPENBLAS_NUM_THREADS` set to the quota and say so in the record.
-  Run records report `os.cpu_count()` (the host's cores), not the quota.
+  Run records reported `os.cpu_count()` (the host's cores), not the quota, until `v2026.10.2`
+  (below, "Taken into `v2026.10.2`").
 
 ## Environment
 
@@ -266,8 +267,8 @@ Newest first within each section.
 - In Docker with `--cpus 2` on a 10-core host, OpenBLAS starts 10 threads and SciPy's SLSQP slowed ~75×.
   Module 7's Python lab now calls `threadpool_limits(1, "blas")` (threadpoolctl 3.7.0, pinned).
 - Colab and the GitHub runner expose only their own cores to the process, so they are not expected to be
-  affected (unverified on Colab). Run records also report the host's core count (`os.cpu_count()`)
-  under `--cpus 2`; their notes say so.
+  affected (unverified on Colab). Run records before `v2026.10.2` report the host's core count
+  (`os.cpu_count()`) under `--cpus 2`; their notes say so. Since then they report the quota.
 
 ### Colab allows only a few concurrent sessions (2026-10-09)
 - Opening a fourth notebook while three runtimes were alive showed "Too many sessions" on this account.
@@ -380,27 +381,43 @@ Newest first within each section.
 - Not fixed in `v2026.10.1`: the overrun is 12 s, and changing the lab stales its Colab record
   (and a new tag stales all 18). The brief's rule is to cut folds before draws, so the next release
   should run 3 folds FULL (as QUICK does) or start the first fold later; then re-measure on Colab.
+- Fixed in `v2026.10.2`: FULL runs 3 folds (`n_init=132`), with the same 500 draws. On the
+  laptop (macOS arm64, 10 cores, worked, FULL, 2026-10-11) the cell took 22.0 s with 0
+  divergences in every fold, and all four checkpoints passed; the decision did not change (act on
+  TV and search, test social next). The Module 9 page's cross-validation numbers were rewritten
+  from that run (2.5% MAPE and 0.83 coverage over 24 weeks; fold spreads TV 3%, search 0.5%,
+  social 25%, display 46%), and its stretch comparison from the same run (uncalibrated: 2.1%
+  MAPE, 0.88 coverage, search ROAS 5.20 to 5.35 by fold). Laptop times are not Colab times: the
+  Colab time comes from the `v2026.10.2` sweep.
 
 ### Queued for the next release (lab changes that need a Colab re-sweep)
 Changes to `labs/src`, `src/mktstats`, `R/` or the pins make the Colab records stale on main, and a
-new tag makes all 18 stale, so these wait until the next sweep instead of going to main one by one.
-- Module 9: the cross-validation cell (above).
-- R Module 0: the lab carries its own CDNOW loader with one URL (pymc-marketing's `main` branch) and
-  a visible `TODO(mktstats data loaders)` comment; `R/mktstats.R` has no CDNOW loader. Python's
-  `mktstats.data` reads the same file from pymc-marketing's `1.2.0` tag first and `main` second.
-  Move the loader into the R helpers with both sources in that order, and drop the comment.
-- Harness (`src/mktstats/harness.py`, hashed by every Python notebook), found by the Extensions
-  notebook reviews (2026-10-10): a failed checkpoint says "Read the message above", but in Jupyter
-  and Colab the checkpoint's message is the last line of the error below it (the R helpers already
-  say "below"); `use_reference(n)` says "Rerun the cells below it", but several labs' checkpoints
-  create values later cells use, so it should say "rerun this exercise's checkpoint, then the cells
-  below it"; a labeled check's recovery line says `use_reference(N)` without the number; the record
-  printed inside a notebook carries the UTC date while `scripts/test_notebooks.py` uses the local
-  date. `teach.qmd` tells instructors about the first two until then.
-- Runner: Docker records report `cpus` from `os.cpu_count()` (the host's cores), not the
-  `--cpus` quota; the time zone and the commit are passed by hand (`-e TZ`, `-e MKTSTATS_COMMIT`)
-  and noted with `--note`. Reading the quota from the cgroup and documenting the Docker command in
-  `runs/README.md` would remove the hand steps.
+new tag makes every notebook's record stale, so such changes wait for the next sweep instead of
+going to main one by one. Nothing is queued: `v2026.10.2` took the previous queue (below).
+
+### Taken into `v2026.10.2` from the queue (2026-10-11)
+- Module 9: FULL cross-validation runs 3 folds (`n_init=132`, as QUICK did), not 4 (above).
+- R Module 0: the CDNOW loader moved into the R helpers as `load_cdnow()`, with Python's sources
+  in Python's order (pymc-marketing's `1.2.0` tag, then `main`) and the same SHA-256; the lab's
+  copy with one URL and its `TODO(mktstats data loaders)` comment are gone. A test in
+  `tests/r/test_mktstats.R` checks the fallback to the second source and the hash refusal on
+  local `file://` URLs.
+- Harness (Python and R): a failed checkpoint says "Read the last line of the error below"
+  (Python; R already said "below"); `use_reference(n)` says "Rerun its checkpoint cell, then the
+  cells below it"; a labeled check whose code calls an unwritten exercise names it ("uses TODO 3,
+  which is not written yet ... `use_reference(3)`"), read from the stub's `"TODO n"` message, and
+  keeps the `use_reference(N)` wording only when the message has no number.
+- Dates: `scripts/test_notebooks.py` dates records in UTC, as the notebooks' own records already
+  did, so the container's time zone no longer matters (`-e TZ` is gone).
+- CPUs: `mktstats.runtime.cpus()` and the R helpers' `.ws_cpus()` report the core count capped by
+  the CPU affinity mask (Python) and by the cgroup quota, rounded up (`cpu.max` on cgroup v2,
+  `cpu.cfs_quota_us` on v1). In the workshop image with `--cpus 2` on the 10-core laptop,
+  `/sys/fs/cgroup/cpu.max` reads `200000 100000` while `os.cpu_count()` and
+  `os.sched_getaffinity` both say 10 (checked 2026-10-11).
+- The Docker recording command is in `runs/README.md`. git works inside the container from the
+  main checkout (it printed the commit, 2026-10-11), so `-e MKTSTATS_COMMIT` is needed only from a
+  git worktree, whose `.git` file points outside the mount.
+- `teach.qmd` no longer tells instructors about the old wording.
 
 ## Spikes
 

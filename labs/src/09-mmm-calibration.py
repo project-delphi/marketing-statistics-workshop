@@ -521,8 +521,8 @@ effect.round(3)
 # tests end by week 101, so every fold here has both.
 #
 # **Run.** Cross-validate the calibrated model. This is the longest cell: one fit per fold. To
-# keep it short each fold draws 500 values per chain instead of 2,000 (QUICK: 3 folds of 200),
-# enough for predictive intervals but not for Module 8's ESS bar on every parameter. The
+# keep it short there are 3 folds, and each draws 500 values per chain instead of 2,000 (QUICK:
+# 200), enough for predictive intervals but not for Module 8's ESS bar on every parameter. The
 # library samples each fold's forecast without a fixed seed, so the scorecard can change a
 # little between runs. Read Exercise 4's Predict prompt while it runs.
 
@@ -531,7 +531,9 @@ from pymc_marketing.mmm.time_slice_cross_validation import TimeSliceCrossValidat
 
 HORIZON = 8  # weeks forecast in each fold
 STEP = 8  # weeks the cut moves between folds
-N_INIT = 132 if QUICK else 124  # training weeks of the first fold: 3 or 4 folds ending at week 156
+# Training weeks of the first fold: 3 folds ending at week 156. A fourth fold (124) took the
+# cell past 4 minutes on Colab; the rule is fewer folds before fewer draws.
+N_INIT = 132
 CV_DRAWS = 200 if QUICK else 500
 # 0.95, not 0.98: the folds showed no divergences at 0.95 in the workshop's test runs, and
 # smaller steps would lengthen the longest cell.
