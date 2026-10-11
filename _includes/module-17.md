@@ -38,7 +38,7 @@ Data
 ::: {.module-outcomes}
 ## What you will be able to do
 
-- Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel the same ROAS for the last quarter as for the whole history.
+- Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel about the same ROAS for the last quarter as for the whole history.
 - Detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend.
 - Fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and measure in what share of weeks the true path lies inside the 94% HDI.
 - Feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves.
