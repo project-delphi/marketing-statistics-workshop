@@ -37,10 +37,11 @@
 #
 # **How this lab runs.** Three MMM fits, each once, all provided: a static model (Part B), a
 # model whose channel effects may drift (Part C, the longest cell) and a model with a Prophet
-# baseline (Part D). Each fit cell says how long it takes and what to do while it runs. `QUICK`
-# (in the harness cell) draws 300 instead of 1,000 values per chain: intervals are wider and may
-# not match the module page, and a decision near its threshold can flip. That is a lesson about
-# sample size, not a bug.
+# baseline (Part D). Each fit cell says how long it takes and what to do while it runs: you can
+# read ahead and type in other cells while a fit runs, and a cell you run meanwhile waits its turn.
+# `QUICK` (in the harness cell) draws 300 instead of 1,000 values per chain: intervals are wider
+# and may not match the module page, and a decision near its threshold can flip. That is a lesson
+# about sample size, not a bug.
 #
 # The data are simulated: three years of a retailer's weekly sales and spend on four channels.
 # Because the simulation knows each channel's true effect in every week, you can check every
@@ -143,17 +144,17 @@ ax.legend(loc="lower left")
 show(fig)
 
 # %% [markdown]
-# Two ideas from Module 8, and one new one:
+# Three terms the exercises use:
 #
-# - **Adstock carryover**: part of a week's effect lands in later weeks.
-# - **ROAS over a window**: the sales a channel produced in those weeks per dollar it spent in
-#   those weeks; carryover from earlier spend counts, carryover after the window does not. For
+# - **Adstock carryover** (recall, Module 8): part of a week's effect lands in later weeks.
+# - **ROAS over a window** (new): the sales a channel produced in those weeks per dollar it spent
+#   in those weeks; carryover from earlier spend counts, carryover after the window does not. For
 #   channel $c$ and a set of weeks $W$,
 #   $$\text{ROAS}_c(W) = \frac{\sum_{t \in W} \text{contrib}_{c,t}}{\sum_{t \in W} x_{c,t}},$$
 #   with $\text{contrib}_{c,t}$ the sales channel $c$ produced in week $t$ and $x_{c,t}$ its
 #   spend. Over all weeks it is Module 8's ROAS.
-# - **Break-even ROAS**: the ROAS at which the gross margin on the sales a channel produced pays
-#   for its spend: 1 ÷ 0.30 ≈ 3.33 at the retailer's 30% margin.
+# - **Break-even ROAS** (recall, Modules 8 and 9): the ROAS at which the gross margin on the
+#   sales a channel produced pays for its spend: 1 ÷ 0.30 ≈ 3.33 at the retailer's 30% margin.
 #
 # `WINDOWS` names three windows: `"all"` (all 156 weeks), `"first_year"` (the first 52 weeks) and
 # `"last_quarter"` (the last 13 weeks), each a pair of date strings `(start, end)`.
@@ -162,8 +163,8 @@ show(fig)
 # ## Exercise 1 · ROAS over a window (7 minutes)
 #
 # **Predict.** Social's true ROAS over all three years is 4.0, above the break-even ROAS of 3.3.
-# Will its ROAS in the last quarter be above break-even, between 2.5 and 3.3, or below 2.5? Write
-# your guess in the cell below.
+# Using the plot of the true relative paths, will its ROAS in the last quarter be above
+# break-even, between 2.5 and 3.3, or below 2.5? Write your guess in the cell below.
 
 # %% [markdown]
 # *Your guess* (double-click to edit):
@@ -232,8 +233,8 @@ with workshop.checkpoint(1):
 # in this lab diverged.
 #
 # It takes about a minute and a half on Colab (an estimate until a Colab record exists). While it
-# runs, read Exercise 2's Predict, write your two signs, and start writing `residual_spend_corr`:
-# its toy check needs no fit.
+# runs, scroll to Exercise 2: read its Predict, write your two signs, and start writing
+# `residual_spend_corr`. When the fit has finished, run the cells below it in order.
 #
 # With QUICK on, intervals are wider and may not match the module page; a decision near its
 # threshold can flip. That is a lesson about sample size, not a bug.
@@ -298,6 +299,8 @@ with workshop.checkpoint(label="static model"):
 
 # %% [markdown]
 # Look at social's two rows: the static model gives about the same number for both windows.
+# Search's and display's rows have very wide intervals and means far from the truth; the note
+# after Exercise 4 says why. This lab's question is about social.
 
 # %%
 roas_table(roas_draws_static, ["all", "last_quarter"]).round(2)
@@ -462,7 +465,9 @@ show(fig)
 #
 # **Predict.** Over all 1,000 prior draws, in what share will social keep half or less of its
 # first-year effect in the last quarter (a drift ratio of 0.5 or less): under 3%, 3 to 20%, or
-# over 20%? Use the plot of 20 curves to estimate it. Write your guess in the cell below.
+# over 20%? Estimate it from the plot of 20 curves: count the curves whose right end sits at half
+# or less of their level in 2023 (on the log scale, half is the distance from 1 down to 0.5).
+# Each curve is 5% of the draws. Write your guess in the cell below.
 
 # %% [markdown]
 # *Your guess* (double-click to edit):
@@ -530,9 +535,9 @@ print(f"Prior 94% equal-tailed interval of the drift ratio: {lo:.2f} to {hi:.2f}
 
 # %% [markdown]
 # **Run: the drifting fit**, the longest cell of the lab: about three minutes on Colab (an
-# estimate until a Colab record exists). While it runs, read Exercise 4's Predict, write your
-# guess, and write `path_coverage`: its toy checks need no fit. Run its cells when the fit has
-# finished.
+# estimate until a Colab record exists). While it runs, scroll to Exercise 4: read its Predict,
+# write your guess, and write `path_coverage`. When the fit has finished, run the cells below it
+# in order: the next cell summarizes the fit, then come your function and its checkpoint.
 
 # %%
 t_fit = time.time()
@@ -647,13 +652,13 @@ print(f"The band misses {missed.sum()} of {len(missed)} weeks (counting from wee
 # <details><summary>Why this solution works</summary>
 #
 # The prior pulls the path toward its average, so the band sits below the truth in the first
-# months and above it for most of the last year (FULL run: weeks 5 to 23 and 122 to 152; at week
-# 144 the model's mean is 0.68 against a true 0.55). The model sees the decline (the drift
-# ratio's HDI lies below 1, in the next cell) but understates it (0.57 against a true 0.42),
-# which makes its current ROAS too high, not too low. The effect is identified by the quarterly pushes: the sales jump after
-# each push shrinks over time. Without the pushes a fading effect would look like a falling
-# baseline, and the model could not tell them apart. What would change it: more pushes, a longer
-# history after the decline, or a lift test now (stretch A).
+# months and above it for most of the last year (FULL run: weeks 5 and 7 to 23, and 122 to 152;
+# at week 144 the model's mean is 0.68 against a true 0.55). The model sees the decline (the
+# drift ratio's HDI lies below 1, in the next cell) but understates it (0.57 against a true
+# 0.42), which makes its current ROAS too high, not too low. The effect is identified by the
+# quarterly pushes: the sales jump after each push shrinks over time. Without the pushes a fading
+# effect would look like a falling baseline, and the model could not tell them apart. What would
+# change it: more pushes, a longer history after the decline, or a lift test now (stretch A).
 # </details>
 
 # %% [markdown]
@@ -779,8 +784,9 @@ print(f"Correlation between the gap and social's true contribution:"
 # leaves controls as they are, so a coefficient of 1 means "use Prophet's component as it is"),
 # plus the price index; no trend `t`, holiday flag or Fourier terms of its own.
 #
-# It takes about a minute on Colab (an estimate until a Colab record exists). While it runs, read
-# Exercise 5's Predict, write your guess, and write `baseline_comparison`.
+# It takes about a minute on Colab (an estimate until a Colab record exists). While it runs,
+# scroll to Exercise 5: read its Predict, write your guess, and write `baseline_comparison`. When
+# the fit has finished, run the cells below it in order.
 
 # %%
 y_max = float(y.max())
@@ -812,7 +818,7 @@ print(f"Prophet-baseline fit: {prophet_seconds:.0f} s, {drift.divergences(idata_
 # ## Exercise 5 · Did the Prophet baseline help? (10 minutes)
 #
 # **Predict.** With Prophet's components as an informed prior on the baseline, will social's
-# all-period ROAS rise, stay within 0.3 of the static model's value (the table after the static
+# all-period ROAS rise, stay within 0.3 of the static model's 3.9 (the table after the static
 # fit), or fall by more than 0.3? The truth is 4.0. Write your guess in the cell below.
 
 # %% [markdown]
@@ -857,10 +863,10 @@ def baseline_comparison(roas_own, roas_prophet, true_roas, prob=0.94):
 # quantiles of a lognormal with median 2 and log-sd 0.3, the Prophet draws the same with median 3;
 # the true ROAS is 2.5 for a and 1.10 for b. Reference: own mean 2.0919, 94% HDI
 # [1.0209, 3.2904]; Prophet mean 3.1379, [1.5314, 4.9357]; b is covered under "own" (1.10 lies
-# just inside the HDI) and not under "prophet". Means must match to 1e-9 and interval bounds to
-# within 2% of the interval's width. Then on the fits: for social, the Prophet-baseline mean is
-# below the own-baseline mean, its 94% HDI excludes the true all-period ROAS, and the own-baseline
-# HDI covers it.
+# inside the HDI, near its lower end) and not under "prophet". Means must match to 1e-9 and
+# interval bounds to within 2% of the interval's width. Then on the fits: for social, the
+# Prophet-baseline mean is below the own-baseline mean, its 94% HDI excludes the true all-period
+# ROAS, and the own-baseline HDI covers it.
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(5):
@@ -880,8 +886,8 @@ pd.DataFrame({
 }).loc[CHANNELS]
 
 # %% [markdown]
-# **Explain.** Compare with your prediction. Which channel lost credit, and where did that credit
-# go? Point to the trend-gap plot in Part D.
+# **Explain.** Compare with your prediction. Which channels lost credit with the Prophet baseline,
+# and where did social's credit go? Point to the table above and to the trend-gap plot in Part D.
 #
 # <details><summary>Why this solution works</summary>
 #
@@ -892,9 +898,10 @@ pd.DataFrame({
 # know that the fall came from social. Two more problems follow from fitting Prophet to the same
 # sales the MMM explains: the MMM treats Prophet's components as known data, so the uncertainty in
 # Prophet's own fit never reaches the ROAS intervals; and the intervals look reasonable while
-# excluding the truth: they did not become narrower, they moved. What would change it: a baseline
-# the MMM estimates jointly with the media (Module 8's trend and Fourier terms), or Prophet told
-# about spend (stretch B).
+# excluding the truth: they did not become narrower, they moved. Search's and display's intervals
+# stay wide with either baseline, for the reasons given after Exercise 4. What would change it: a
+# baseline the MMM estimates jointly with the media (Module 8's trend and Fourier terms), or
+# Prophet told about spend (stretch B).
 # </details>
 
 # %% [markdown]
@@ -906,11 +913,13 @@ pd.DataFrame({
 #
 # **The rule.** A dollar of sales earns the 30% gross margin, so break-even ROAS is 1 ÷ 0.30 ≈
 # 3.33. Cut a channel's budget next quarter if P(current-quarter ROAS < 3.33) ≥ 0.9; keep it if
-# P(> 3.33) ≥ 0.9; otherwise run a lift test first (Module 9). We assume next quarter's effect per
-# dollar equals last quarter's: beyond the last week the model's multiplier drifts back toward its
-# average of 1, so we do not extrapolate it. Under saturation the last dollar returns less than
-# the average dollar, so an average below break-even means the marginal dollar is below it too.
-# The 0.9 is a business choice: how sure we want to be before moving money.
+# P(> 3.33) ≥ 0.9; otherwise run a lift test first. A **lift test** (Module 9) is a randomized
+# test that changes a channel's spend for some weeks or regions and measures the sales that change
+# with it. We assume next quarter's effect per dollar equals last quarter's: beyond the last week
+# the model's multiplier drifts back toward its average of 1, so we do not extrapolate it. Under
+# saturation the last dollar returns less than the average dollar, so an average below break-even
+# means the marginal dollar is below it too. The 0.9 is a business choice: how sure we want to be
+# before moving money.
 #
 # The next cell applies the rule in code to the channels in `fading` (from the labeled check
 # after Exercise 4), not to a channel typed by hand; the other channels' ROAS are in the table
@@ -964,17 +973,21 @@ for c in fading:
 print(mode)
 
 # %% [markdown]
-# **Decide.** Write one sentence: what to do with social's budget next quarter (its last-quarter
-# spend is printed above), how sure you are, how your answer differs from the static model's, and
-# what would change it.
+# **Decide.** Write your sentence in the cell below: what to do with social's budget next quarter
+# (its last-quarter spend is printed above), how sure you are, how your answer differs from the
+# static model's, and what would change it. For "how sure": in Exercise 4 the drifting model
+# understated the fall (its current-quarter ROAS sits above the truth, not below it), so a "cut"
+# from it is not the model exaggerating the fade. When you have written it, run the code cell
+# after it: it shows the truth the data were generated from.
+
+# %% [markdown]
+# *Your sentence* (double-click to edit; fill the blanks from the printout above):
 #
 # ```text
-# Your sentence: ________________________________________________
+# Next quarter, ____ social's budget (it spent $____ last quarter). The drifting model puts its
+# current ROAS at ____ (94% HDI ____ to ____), below break-even with probability ____; the
+# static model's all-period ROAS of ____ would have said ____. This would change if ____.
 # ```
-#
-# In Exercise 4 the drifting model understated the fall: its current-quarter ROAS sits above the
-# truth, not below it. So a "cut" from it is not the model exaggerating the fade. Then run the
-# next cell, which shows the truth the data were generated from.
 
 # %%
 for c in fading:
