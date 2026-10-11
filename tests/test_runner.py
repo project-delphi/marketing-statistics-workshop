@@ -97,3 +97,23 @@ def test_list_matrix_gives_ids_and_artifact_safe_slugs(capsys):
 def test_learner_and_verify_flags_are_separate_runs():
     with pytest.raises(SystemExit):
         tn.main(["--learner", "--verify-checkpoints", "--notebooks", "python/00-setup-warmup"])
+
+
+def _result(ok=True):
+    entry = next(e for e in common.existing_notebooks(V) if e["kernel"] == "python3")
+    return {"record": {}, "mode": "worked", "kernel": "python3", "settings": {}, "ok": ok,
+            "verdict": "ran to the end" if ok else "stopped in cell 3", "content_sha": "0" * 16,
+            "deps_sha": "0" * 16, "entry": entry, "seconds": 1.0, "phases": {},
+            "slowest_cell": None, "verified": 0}
+
+
+def test_record_note_goes_on_every_entry_and_keeps_a_failure_verdict():
+    """--note (e.g. a docker run's CPU and thread settings) is written by the runner, so no
+    record needs editing by hand."""
+    assert "note" not in tn.entry_of(_result(), "docker-arm64", V)
+    assert tn.entry_of(_result(), "docker-arm64", V, "OMP_NUM_THREADS=2")["note"] == (
+        "OMP_NUM_THREADS=2")
+    failed = tn.entry_of(_result(ok=False), "docker-arm64", V, "OMP_NUM_THREADS=2")
+    assert failed["note"] == "stopped in cell 3; OMP_NUM_THREADS=2"
+    with pytest.raises(SystemExit):
+        tn.main(["--notebooks", "python/00-setup-warmup", "--note", "x"])
