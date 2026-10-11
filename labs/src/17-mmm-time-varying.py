@@ -495,8 +495,9 @@ def drift_ratio(mult, early, late):
 # %% [markdown]
 # The checkpoint uses (1) a multiplier of 1 in every week, which gives 1; (2) the linear path
 # $m(t) = 2 - t/155$ over the 156 weeks, with `WINDOWS["first_year"]` (52 weeks) and
-# `WINDOWS["last_quarter"]` (13 weeks), which gives 0.56591; (3) the prior draws: the result has
-# dims `(chain, draw, channel)` and is positive and finite.
+# `WINDOWS["last_quarter"]` (13 weeks), which gives 0.56591; (3) a multiplier of 1 in every week
+# except 14 in the last week, which gives 2.0 (a last-quarter mean of 2); (4) the prior draws: the
+# result has dims `(chain, draw, channel)` and is positive and finite.
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(3):
@@ -593,11 +594,12 @@ def path_coverage(mult_draws, true_path, prob=0.94):
 # The checkpoint runs four toys with 2 chains × 500 draws × 156 weeks first: (a) draws tightly
 # around a known path (sd 0.01) cover it in every week, 1.0; (b) the same draws shifted by +5
 # cover it in none, 0.0; (c) skewed draws (the same 1,000 exact quantiles of an Exponential every
-# week) with true values 0.01 and 2.5 in alternate weeks give 1.0 with the 94% HDI
-# [0.0005, 2.805] and 0.5 with an equal-tailed or an 89% interval; (d) toy (a)'s draws against the
-# path reversed in time are covered only where the two cross. Then, on the fit, your coverage of
-# each channel must equal the reference's; social's must be at least 0.5 and the other channels'
-# at least 0.9 (the truth is `latent["multiplier_rel_<channel>"]`).
+# week, all above 0) with true values 0.01, 2.5 and −0.5 in turn: the 94% HDI [0.0005, 2.805]
+# contains the first two, a coverage of 2/3, while an equal-tailed or an 89% interval misses one
+# of them and mean ± 1.88 sd reaches below 0; (d) toy (a)'s draws against the path reversed in time
+# are covered only where the two cross. Then, on the fit, your coverage of each channel must equal
+# the reference's; social's must be at least 0.5 and the other channels' at least 0.9 (the truth
+# is `latent["multiplier_rel_<channel>"]`).
 
 # %% tags=["checkpoint"]
 with workshop.checkpoint(4):

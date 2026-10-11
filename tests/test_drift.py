@@ -77,6 +77,15 @@ WRONG_WINDOW = {
                      .values, "not an xarray DataArray"),
     "inverted": (lambda c, s, a, b: _sel(s, a, b).sum("date") / _sel(c, a, b).sum("date"),
                  "divided spend by contribution"),
+    # passes toy 1 (one channel); before the fix toy 2 said "must be 2 for every channel; your
+    # function gives 2.0"
+    "sum over every dim": (lambda c, s, a, b: c.sel(date=slice(a, b)).sum()
+                           / s.sel(date=slice(a, b)).sum(), r"returned one number \(2\) instead"
+                           r" of one per channel.*sum over \"date\" only"),
+    # passes toys 1 and 2 (date is the first dim); raised a bare TypeError on toy 3
+    ".loc": (lambda c, s, a, b: c.loc[a:b].sum("date") / s.loc[a:b].sum("date"),
+             r"raised TypeError.*\.loc\[start:end\] selects along the first dim, which here is"
+             " chain"),
 }
 
 
@@ -215,7 +224,19 @@ WRONG_RATIO = {
                  / _all_but_channel(m.sel(date=slice(*e))), "every prior draw keeps"),
     "empty window": (lambda m, e, z: m.sel(date=slice(z[1], z[0])).mean("date")
                      / m.sel(date=slice(*e)).mean("date"), "selected no weeks"),
+    # equal to the mean on the constant and the linear toy; passed every check before the fix
+    "median": (lambda m, e, z: m.sel(date=slice(*z)).median("date")
+               / m.sel(date=slice(*e)).median("date"), "ratio of medians"),
 }
+
+
+def test_spike_toy_tells_mean_from_median(res):
+    W = dr.windows_of(res.truth)
+    toy = dr.spike_toy(res.weekly["date_week"], W["last_quarter"])
+    late = toy.sel(date=slice(*W["last_quarter"]))
+    assert late.sizes["date"] == 13 and float(late.max()) == 14.0
+    assert float(dr.drift_ratio(toy, W["first_year"], W["last_quarter"]).squeeze()) == 2.0
+    assert float(late.median("date").squeeze()) == 1.0
 
 
 @pytest.mark.parametrize("name", list(WRONG_RATIO))
@@ -239,34 +260,58 @@ def test_coverage_toys(res):
     toys = dr.coverage_toys(res.weekly["date_week"])
     assert dr.path_coverage(*toys["a"]) == 1.0
     assert dr.path_coverage(*toys["b"]) == 0.0
-    assert dr.path_coverage(*toys["c"]) == 1.0
+    alt = toys["c"][1]
+    assert [float(np.mean(alt == v)) for v in dr.TOY_C_TRUE] == [pytest.approx(1 / 3)] * 3
+    assert dr.path_coverage(*toys["c"]) == pytest.approx(2 / 3, abs=1e-12)
     draws_c = toys["c"][0].isel(date=0).values
     assert checks.interval(draws_c, 0.94, "hdi") == pytest.approx((0.0005, 2.8051), abs=1e-4)
+    # each wrong interval misses one of 0.01 and 2.5, and -0.5 as well
     for prob, kind, want in [(0.94, "eti", (0.031, 3.491)), (0.89, "hdi", (0.0005, 2.203)),
                              (0.89, "eti", (0.057, 2.892))]:
         assert checks.interval(draws_c, prob, kind) == pytest.approx(want, abs=1e-3)
         lo, hi = checks.interval(draws_c, prob, kind)
-        alt = toys["c"][1]
-        assert np.mean((alt >= lo) & (alt <= hi)) == 0.5
+        assert np.mean((alt >= lo) & (alt <= hi)) == pytest.approx(1 / 3)
+    # mean +/- 1.88 sd reaches below 0, so it covers all three
+    m, s = draws_c.mean(), draws_c.std()
+    assert m - 1.88 * s < -0.5 < 0 < draws_c.min()
+    # one chain gives 1/3 on toy (c) and the right answer when both chains hold the same draws
+    one = toys["c"][0].isel(chain=[0])
+    assert dr.path_coverage(one, alt) == pytest.approx(1 / 3)
+    assert dr.path_coverage(toys["c_same"][0].isel(chain=[0]), alt) == (
+        dr.path_coverage(*toys["c_same"]))
+    assert dr.path_coverage(*toys["c_same"]) == pytest.approx(2 / 3, abs=1e-12)
     d = dr.path_coverage(*toys["d"])
     assert 0 < d < 0.1
     pooled = checks.interval(toys["d"][0].values, 0.94, "hdi")
     assert np.mean((toys["d"][1] >= pooled[0]) & (toys["d"][1] <= pooled[1])) > 0.85
 
 
-def _cov_fn(kind="hdi", prob=None, outside=False, count=False, pooled=False):
+def _cov_fn(kind="hdi", prob=None, outside=False, count=False, pooled=False, normal=False,
+            chain=None, mean_chains=False, percent=False, per_week=False):
     def fn(mult_draws, true_path, p=0.94):
         p = prob or p
         t = np.asarray(true_path, dtype=float)
+        if chain is not None:
+            mult_draws = mult_draws.isel(chain=chain)
+        if mean_chains:
+            mult_draws = mult_draws.mean("chain")
         if pooled:
             lo, hi = checks.interval(mult_draws.values, p, kind)
             inside = (t >= lo) & (t <= hi)
         else:
+            def bounds(d):
+                if normal:  # 94% of a Normal lies within 1.88 sd of its mean
+                    return d.mean() - 1.88 * d.std(), d.mean() + 1.88 * d.std()
+                return checks.interval(d, p, kind)
             inside = np.array([lo <= t[k] <= hi for k, (lo, hi) in enumerate(
-                checks.interval(mult_draws.isel(date=k).values, p, kind)
+                bounds(mult_draws.isel(date=k).values)
                 for k in range(mult_draws.sizes["date"]))])
         if outside:
             inside = ~inside
+        if per_week:
+            return pd.Series(inside)
+        if percent:
+            return 100 * float(inside.mean())
         return float(inside.sum()) if count else float(inside.mean())
     return fn
 
@@ -285,6 +330,19 @@ WRONG_COVERAGE = {
     "equal-tailed": (_cov_fn(kind="eti"), "not the 94% HDI"),
     "89% HDI": (_cov_fn(prob=0.89), "not the 94% HDI"),
     "pooled": (_cov_fn(pooled=True), "one interval for all weeks"),
+    # passed all four toys before the fix and failed on the fit with a message about prob and
+    # chains
+    "Normal approximation": (_cov_fn(normal=True), r"contains -0\.5.*Normal approximation"),
+    # raised a bare TypeError ("cannot convert the series to <class 'float'>")
+    "per-week values": (_cov_fn(per_week=True), "returned a Series of 156 values, one per week,"
+                        " not their share"),
+    # got the generic message
+    "percentage": (_cov_fn(percent=True), "you returned a percentage. A share lies between 0"
+                   " and 1"),
+    # got the equal-tailed / 89% message
+    "chain 0 only": (_cov_fn(chain=[0]), "does not use every draw of both chains"),
+    "chain 1 only": (_cov_fn(chain=[1]), "does not use every draw of both chains"),
+    "chains averaged": (_cov_fn(mean_chains=True), "does not use every draw of both chains"),
 }
 
 
@@ -350,20 +408,25 @@ def test_comparison_toy_by_hand():
     assert eti == pytest.approx((1.1399, 3.5090), abs=1e-4)
 
 
-def _comparison(kind="hdi", signed=False, swapped=False, flat=False):
-    def fn(roas_own, roas_prophet, true_roas, prob=0.94):
-        pairs = {"own": roas_prophet, "prophet": roas_own} if swapped else {
-            "own": roas_own, "prophet": roas_prophet}
+def _comparison(kind="hdi", signed=False, swapped=False, flat=False, labels=("own", "prophet"),
+                prob=None, stat=np.mean, relative=False, covered_by_mean=False):
+    def fn(roas_own, roas_prophet, true_roas, p=0.94):
+        p = prob or p
+        draws_in_order = (roas_prophet, roas_own) if swapped else (roas_own, roas_prophet)
+        pairs = dict(zip(labels, draws_in_order, strict=True))
         rows = []
         for b, draws in pairs.items():
             for c in draws.coords["channel"].values:
                 d = draws.sel(channel=c).values.ravel()
-                lo, hi = checks.interval(d, prob, kind)
+                lo, hi = checks.interval(d, p, kind)
                 t = true_roas[str(c)]
-                err = d.mean() - t
-                rows.append({"channel": str(c), "baseline": b, "mean": d.mean(), "hdi_low": lo,
-                             "hdi_high": hi, "true_roas": t,
-                             "abs_error": err if signed else abs(err), "covered": lo <= t <= hi})
+                m = stat(d)
+                err = m - t
+                err = err if signed else abs(err) / t if relative else abs(err)
+                covered = abs(m - t) < 0.5 if covered_by_mean else lo <= t <= hi
+                rows.append({"channel": str(c), "baseline": b, "mean": m, "hdi_low": lo,
+                             "hdi_high": hi, "true_roas": t, "abs_error": err,
+                             "covered": covered})
         df = pd.DataFrame(rows)
         return df if flat else df.set_index(["channel", "baseline"])
     return fn
@@ -371,9 +434,24 @@ def _comparison(kind="hdi", signed=False, swapped=False, flat=False):
 
 WRONG_COMPARISON = {
     "signed error": (_comparison(signed=True), "signed error"),
-    "equal-tailed": (_comparison(kind="eti"), "equal-tailed"),
+    "equal-tailed": (_comparison(kind="eti"), "That is the equal-tailed interval"),
     "swapped": (_comparison(swapped=True), "swapped"),
     "no index": (_comparison(flat=True), "index"),
+    # before the fix: the index-and-columns message, which printed the required names
+    "capitalized labels": (_comparison(labels=("Own", "Prophet")),
+                           r"baseline labels in your index are \['Own', 'Prophet'\]; they must be"
+                           ' exactly "own" and "prophet"'),
+    # before the fix: "probably the equal-tailed interval"
+    "89% HDI": (_comparison(prob=0.89), "or an interval at a different probability.*pass"
+                " prob=0.94"),
+    # before the fix: the equal-tailed message, which contradicted the right interval it printed
+    "covered from the mean": (_comparison(covered_by_mean=True), "your interval for own b is"
+                              " right.*covered is hdi_low <= true_roas <= hdi_high"),
+    # before the fix: two dicts of unrounded floats
+    "median": (_comparison(stat=np.median), r"row \(a, own\) differs from the reference in mean,"
+               r" abs_error: mean 2\.0000, the reference 2\.0919.*the median of the draws"),
+    "relative error": (_comparison(relative=True), r"in abs_error: abs_error 0\.1632, the"
+                       r" reference 0\.4081.*relative error"),
 }
 
 
@@ -424,3 +502,4 @@ def test_lognormal_toy_has_median_2():
     own, _, _ = dr.comparison_toys()
     q = np.sort(own.sel(channel="a").values.ravel())
     assert q[499] < 2 < q[500]
+
