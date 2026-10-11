@@ -42,3 +42,15 @@ website:
         text: 11 · Uplift and heterogeneous treatment effects
       - href: modules/12-capstone.qmd
         text: '12 · Capstone: one decision pipeline for the retailer'
+    - section: Extensions · Beyond the core week
+      contents:
+      - href: modules/13-messy-real-data.qmd
+        text: '13 · Messy real data: cleaning a real log for BTYD and spend models'
+      - href: modules/14-survival-churn.qmd
+        text: 14 · Survival analysis for subscription churn
+      - href: modules/15-double-ml.qmd
+        text: '15 · Causal effects without an experiment: double machine learning'
+      - href: modules/16-multi-touch-attribution.qmd
+        text: '16 · Multi-touch attribution: Markov chains, Shapley values and incrementality'
+      - href: modules/17-mmm-time-varying.qmd
+        text: 17 · MMM with drifting effects and a Prophet baseline

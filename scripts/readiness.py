@@ -15,6 +15,12 @@ Rules (runs/README.md):
   or SABOTAGE, not a backfill. It counts when it passed, is not stale, and is at most
   `readiness.max_run_age_days` old. A newer failure replaces an older pass.
 - Envs with `documented_only: true` are always "documented, not run".
+
+The verdict ("ready to teach") is about the core workshop: the notebooks of the days without
+a `track` (pre-work and Days 1-5). Notebooks of modules on a day with `track: extensions`
+are judged by the same rules but summarized apart (summary["extensions"]), so an unwritten
+or unrun optional extension never makes the core week look unready, and is never counted
+as part of it.
 """
 
 from __future__ import annotations
@@ -140,6 +146,8 @@ def evidence(
     return {
         "id": entry["id"],
         "module": entry["module"],
+        "track": entry["track"],
+        "in_ref": entry["in_ref"],
         "kernel": entry["kernel"],
         "written": written,
         "lanes": lanes,
@@ -154,11 +162,8 @@ def passed(r: dict | None) -> bool:
     return r is not None and r["status"] == "pass" and not r.get("stale")
 
 
-def build(v: dict, records: list[dict], as_of: dt.date | None) -> dict:
-    """Everything the readiness pages and the release check need, computed once."""
-    current = run_records.current_hashes(v)
-    entries = common.notebooks(v)
-    ev = [evidence(v, e, records, current.get(e["id"]), as_of) for e in entries]
+def summarize(v: dict, ev: list[dict], as_of: dt.date | None) -> dict:
+    """Counts over some notebooks' evidence: written, ready, passed on CI and elsewhere."""
     ci_envs = [k for k, e in v["readiness"]["envs"].items() if e.get("ci")]
     other_envs = [
         k
@@ -187,6 +192,19 @@ def build(v: dict, records: list[dict], as_of: dt.date | None) -> dict:
         "max_age": v["readiness"]["max_run_age_days"],
     }
     summary["all_ready"] = summary["ready"] == summary["notebooks"] and summary["notebooks"] > 0
+    return summary
+
+
+def build(v: dict, records: list[dict], as_of: dt.date | None) -> dict:
+    """Everything the readiness pages and the release check need, computed once.
+
+    `summary` covers the core workshop only (the verdict); `summary["extensions"]` has the
+    same counts for the optional extension track (zero notebooks when there is none)."""
+    current = run_records.current_hashes(v)
+    entries = common.notebooks(v)
+    ev = [evidence(v, e, records, current.get(e["id"]), as_of) for e in entries]
+    summary = summarize(v, [e for e in ev if e["track"] == common.CORE], as_of)
+    summary["extensions"] = summarize(v, [e for e in ev if e["track"] != common.CORE], as_of)
     return {"notebooks": ev, "summary": summary}
 
 

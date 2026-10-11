@@ -6,7 +6,8 @@ For each notebook in _variables.yml `modules.*.notebooks` whose source exists:
   labs/src/NN-slug.R   ->  labs/r/NN-slug.ipynb        (kernel ir)
 
 The generator writes five cells around the source's own cells (CONTRIBUTING.md):
-header (title, Colab badge at repo.ref, day, minutes, goals, stack), install (runtime
+header (title, Colab badge at repo.ref, or, for a notebook declared `in_ref: false`, a note
+that it runs on Colab after the next release; day, minutes, goals, stack), install (runtime
 detection and pinned installs), harness (WORKED_EXAMPLE, QUICK and the `workshop` object,
 with the notebook's content_sha and deps_sha), record (summary and run record) and footer.
 It marks solution cells as folded (`cellView: form`, `jupyter.source_hidden`), sets the
@@ -134,6 +135,21 @@ def colab_url(v: dict, path: str) -> str:
     return f"{v['repo']['colab_base']}/{v['repo']['ref']}/{path}"
 
 
+def opens_on_colab(v: dict, entry: dict) -> str:
+    """The header's Colab badge, or, for a notebook repo.ref does not contain (`in_ref:
+    false`), why it does not run on Colab yet and where to run it instead."""
+    if entry["in_ref"]:
+        return f"[![Open in Colab]({BADGE})]({colab_url(v, entry['path'])})"
+    site = v["repo"]["site"].rstrip("/")
+    local = common.LOCAL_SETUP.replace(".qmd", ".html")
+    return (
+        f"**{common.NOT_IN_REF}.** The workshop's Colab links, package install and data"
+        f" downloads use `{v['repo']['ref']}`, which does not contain this notebook yet, so it"
+        f" does not run on Colab. Until the next release, run it locally"
+        f" ([setup]({site}/{local}))."
+    )
+
+
 def stack(v: dict, entry: dict) -> str:
     lang = LANGUAGE_NAMES[entry["language"]]
     version = v["environment"]["python" if entry["language"] == "python" else "r"]
@@ -146,12 +162,15 @@ def header_source(v: dict, entry: dict) -> str:
     day = v["days"][m["day"]]
     lab = m["minutes"]["lab"]
     when = day["label"]
-    optional = " (optional pre-work)" if m.get("optional") else ""
+    if entry["track"] != common.CORE:
+        optional = " (optional, beyond the core week)"
+    else:
+        optional = " (optional pre-work)" if m.get("optional") else ""
     lines = [
         NOTICE,
         f"# Module {entry['n']} · {m['title']}",
         "",
-        f"[![Open in Colab]({BADGE})]({colab_url(v, entry['path'])})",
+        opens_on_colab(v, entry),
         "",
         f"**{v['workshop']['title']}** · {when} · {LANGUAGE_NAMES[entry['language']]}"
         f" · {lab}-minute lab{optional}",
@@ -426,8 +445,10 @@ def record_source(entry: dict) -> str:
 
 
 def next_notebook(v: dict, entry: dict) -> dict | None:
-    """The next notebook in the same language, else the next one at all."""
-    order = common.notebooks(v)
+    """The next notebook of the same track (the core week, or the extensions) in the same
+    language, else the next one of that track at all. The core never leads into the
+    optional extensions."""
+    order = [e for e in common.notebooks(v) if e["track"] == entry["track"]]
     later = [e for e in order if (e["n"], e["index"]) > (entry["n"], entry["index"])]
     same = [e for e in later if e["language"] == entry["language"]]
     return (same or later or [None])[0]
@@ -436,16 +457,33 @@ def next_notebook(v: dict, entry: dict) -> dict | None:
 def footer_source(v: dict, entry: dict) -> str:
     site = v["repo"]["site"].rstrip("/")
     nxt = next_notebook(v, entry)
+    core = entry["track"] == common.CORE
     lines = [NOTICE, "---"]
-    if nxt is None:
-        lines.append("**This is the last notebook.**")
+    if nxt is None and core:
+        lines.append("**This is the last notebook of the core workshop.**")
+        for dkey in common.extension_days(v):
+            d = v["days"][dkey]
+            page = f"{site}/{common.track_page(v, dkey)}.html"
+            lines += [
+                "",
+                f"**Optional, after the week:** [{d['label']} · {d['title']}]({page})"
+                f" ({common.module_range(common.day_module_numbers(v, dkey))}), self-paced"
+                " modules beyond the core week.",
+            ]
+    elif nxt is None:
+        page = f"{site}/{common.track_page(v, v['modules'][entry['module']]['day'])}.html"
+        lines.append(f"**This is the last extension notebook.** [All extensions]({page})")
     else:
         title = f"Module {nxt['n']} · {v['modules'][nxt['module']]['title']}"
         lang = LANGUAGE_NAMES[nxt["language"]]
-        if (ROOT / nxt["path"]).exists():
-            lines.append(f"**Next:** [{title}]({colab_url(v, nxt['path'])}) ({lang})")
+        label = "Next" if core else "Next extension"
+        if common.colab_ready(nxt):
+            lines.append(f"**{label}:** [{title}]({colab_url(v, nxt['path'])}) ({lang})")
+        elif (ROOT / nxt["path"]).exists():  # written, but not in repo.ref: its module page
+            page = f"{site}/modules/{v['modules'][nxt['module']]['slug']}.html"
+            lines.append(f"**{label}:** [{title}]({page}) ({lang}; {common.NOT_IN_REF})")
         else:
-            lines.append(f"**Next:** {title} ({lang}, in preparation)")
+            lines.append(f"**{label}:** {title} ({lang}, in preparation)")
     lines += [
         "",
         f"[Workshop site]({site}/) · [All notebooks]({site}/notebooks.html) ·"

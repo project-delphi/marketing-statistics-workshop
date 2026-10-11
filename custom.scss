@@ -45,6 +45,10 @@ $ms-navbar-bg: #0e3a44 !default;
 $ms-navbar-fg: #ffffff !default;
 $ms-shadow: 0 1px 2px rgba(15, 37, 44, 0.06), 0 4px 14px rgba(15, 37, 44, 0.05) !default;
 $ms-on-ink-rule: rgba(255, 255, 255, 0.2) !default; // hairlines on the hero band
+// What the browser draws itself (scrollbars of wide equations, tables and the sidebar,
+// form controls) follows this. Quarto leaves it unset, so the dark theme had light
+// scrollbars wherever scrollbars take space (Windows, Linux, macOS set to always show them).
+$ms-color-scheme: light !default;
 
 $primary: $ms-ink !default;
 $body-bg: $ms-bg !default;
@@ -93,6 +97,10 @@ $font-size-root: 17px;
 // ---------------------------------------------------------------------------
 // Reading experience
 // ---------------------------------------------------------------------------
+
+:root {
+  color-scheme: $ms-color-scheme;
+}
 
 body {
   text-rendering: optimizeLegibility;
@@ -200,6 +208,20 @@ summary:focus-visible,
   font-weight: 500;
   line-height: 1.5;
   white-space: nowrap;
+}
+
+// A chip that links (e.g. "Colab after the next release" → Setup) keeps the chip's look;
+// the link shows on hover and keyboard focus.
+main.content a.chip {
+  color: $ms-muted;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $ms-border-strong;
+    color: $ms-heading;
+    text-decoration: underline;
+  }
 }
 
 // Buttons. `.btn-colab` opens a lab (it leaves the site); `.btn-quiet` is every
@@ -424,6 +446,13 @@ main.content .quarto-figure {
 main.content img {
   max-width: 100%;
   height: auto;
+}
+
+// In a table cell, max-width: 100% let the column shrink below the image: the notebooks
+// page drew its "Open in Colab" badges (117 x 20) at 63 x 11 px on a laptop and 37 x 6 px
+// at phone width. The table scrolls in its own box instead.
+main.content td img {
+  max-width: none;
 }
 
 // Tab sets (Python / R tabs).
@@ -1353,6 +1382,12 @@ main.content .lab-steps {
     line-height: 1.5;
   }
 
+  // An optional extension's card: the core modules it builds on (generated).
+  .module-builds-on {
+    color: $ms-muted;
+    font-size: 0.86rem;
+  }
+
   > .module-actions p {
     display: flex;
     flex-wrap: wrap;
@@ -1848,6 +1883,16 @@ body.landing {
     display: none; // the hero carries the title
   }
 
+  // The hero and, at phone width, the integration figure are sized from 100vw, which
+  // counts a classic scrollbar: with one (Windows, Linux, macOS set to always show
+  // scrollbars) they stuck out 8 px past the page. body's overflow-x: clip passes to the
+  // viewport, where it acts as hidden: a reader could not scroll sideways, but the document
+  // was still 8 px wider and a script or an anchor jump could shift it. Clipping here, on
+  // the full-width container below the viewport, keeps the page exactly as wide as it.
+  #quarto-content {
+    overflow-x: clip;
+  }
+
   // The id selector outranks Quarto's `#quarto-content > *` top padding, so the hero
   // meets the navbar.
   #quarto-content > main.content {
@@ -2203,12 +2248,17 @@ body.landing {
     }
   }
 
-  .path-body > p:last-child {
+  // The summary, and for an optional extension the line after it (.path-builds-on).
+  .path-body > p:not(:first-child) {
     margin-top: 0.1rem;
     max-width: 40rem;
     color: $ms-muted;
     font-size: 0.93rem;
     line-height: 1.5;
+  }
+
+  .path-builds-on {
+    font-size: 0.86rem;
   }
 }
 

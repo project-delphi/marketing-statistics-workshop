@@ -1,0 +1,468 @@
+---
+title: "{{< var modules.m17.title >}}"
+---
+
+{{< include /_includes/module-17.md >}}
+
+::: {.recap}
+**Where we are.** Modules 8 to 10 gave each channel one effect size for the whole history: the same return per dollar in the first week of the data as in the last. Module 8 recovered the true returns that way, Module 9 calibrated them with lift tests, and Module 10 divided a budget with them. Ads do not always work that way. When the same creative has run for months, or a channel has reached most of the people it can reach, each dollar can buy less than it used to. A model with one effect size per channel then reports a channel that has worn out at the average of its good years and its bad recent weeks, and a budget set from that average pays for the past. This module asks whether a channel's effect per dollar has changed, and what it is worth now.
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-17.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 136.2 s on an Apple Silicon laptop (native Python) and 161.6 s in the workshop's Docker image limited to two CPUs (linux/arm64, also on an Apple Silicon laptop), both including the two stretch fits ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
+
+## 1. An effect per dollar that changes
+
+**Ad fatigue**, or wear-out, is a fall in a channel's effect per dollar over time: the same creative shown too often, an audience used up, a change in how a platform delivers ads. The spend can stay the same while the sales it produces shrink.
+
+The lab's data are simulated: three years of the retailer's weekly sales (156 weeks, 2023-01-02 to 2025-12-22) and spend on four channels, a price index and a holiday flag, with Module 8's adstock and saturation. Because the simulation knows each channel's contribution in every week, every model in the lab is scored against the truth. The channels are bought much as in Module 8 (TV in bursts with weeks off air, display small), with two differences that matter here:
+
+- **Search spend follows demand**: it rises and falls with the trend and the season, which also move sales.
+- **Social runs a four-week push every quarter**, at 2.5 times its usual weekly spend, twelve pushes in all. The pushes let a model compare social's effect at different times.
+
+Only social wears out. Its effectiveness holds for about a year, then falls smoothly: from 1.00 in the first week to 0.40 in the last, on the simulation's scale where 1 is its starting level. Relative to its own three-year average, the scale the lab uses, that is from 1.28 to 0.51; it falls below its average in week 92. The other three channels work equally well in every week. Over all weeks, the true returns are 1.6 dollars of sales per dollar for TV, 3.0 for search, 4.0 for social and 0.6 for display.
+
+At the retailer's 30% gross margin, a channel pays back on short-run sales when it returns at least $1/0.30 \approx 3.33$ dollars of sales per dollar (Module 8). Social's 4.0 over three years says it pays back. Social spent \$192,407 in the last quarter, and the question for next quarter is whether that money still pays back.
+
+The lab fits three models, each once: Module 8's static MMM, an MMM whose channel effects may drift from week to week, and an MMM whose baseline comes from Prophet, a forecasting model fitted to the sales.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $y_t$, $x_{c,t}$ | sales in week $t$, and spend on channel $c$ in week $t$; $t = 1, \dots, T$ with $T = 156$ |
+| $a_{c,t}$, $\alpha_c$ | adstocked spend and its decay (Module 8) |
+| $s(\cdot\,; \lambda_c)$, $s_{c,t}$ | logistic saturation with parameter $\lambda_c$ (Module 8); $s_{c,t}$ is short for $s(a_{c,t}; \lambda_c)$ |
+| $\beta_c$ | channel $c$'s effect size at its average effectiveness |
+| $\gamma_0$, $\boldsymbol\gamma$, $\mathbf z_t$ | intercept, control coefficients and controls (trend, seasonality, price, holiday; Module 8) |
+| $m_c(t)$ | the **effectiveness multiplier**: how strongly channel $c$ works in week $t$ compared with its own average, which is 1 |
+| $\tilde m_c(t)$ | the true relative path: the simulation's multiplier divided by its mean over the $T$ weeks |
+| $W$; FY, LQ | a window (a set of weeks); the first year (weeks 1 to 52) and the last quarter (weeks 144 to 156) |
+| $\text{ROAS}_c(W)$ | the sales channel $c$ produced in the weeks of $W$, per dollar it spent in them |
+| $e_t$, $\rho_{c,y}$ | the static model's residual in week $t$, and its correlation with channel $c$'s spend within year $y$ |
+| $r_c$ | the drift ratio: the multiplier's mean in LQ over its mean in FY |
+| $f_c(t)$, $\ell$, $\eta$ | the latent curve behind $m_c(t)$, its lengthscale (weeks) and its amplitude |
+| $M$, $B$ | the number of basis functions and the boundary of the HSGP approximation (PyMC-Marketing's `m` and `L`) |
+| $g(t)$, $q(t)$, $h(t)$ | Prophet's trend, yearly seasonality and holiday components |
+| $\theta_g$, $\theta_q$, $\theta_h$ | the MMM's coefficients on Prophet's three components |
+
+Modules 8 to 10 wrote the gross margin as $m$. Here $m$ is the multiplier, so the page writes the margin as its value, 0.30.
+
+## 2. ROAS depends on the window
+
+**Objective for this section:** compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel about the same ROAS for the last quarter as for the whole history.
+
+### ROAS over a window
+
+A model that lets effectiveness change needs it in the equation. The **drifting MMM** is Module 8's model with each channel's contribution multiplied by its own multiplier in every week:
+
+$$
+\begin{gathered}
+y_t = \gamma_0 + \boldsymbol\gamma^{\top}\mathbf z_t + \sum_{c} \beta_c\, m_c(t)\, s(a_{c,t};\, \lambda_c) + \varepsilon_t, \qquad \varepsilon_t \sim \text{Normal}(0, \sigma^2), \\[4pt]
+\frac{1}{T}\sum_{t=1}^{T} m_c(t) = 1 .
+\end{gathered}
+$$ {#eq-drift-mmm}
+
+The multiplier acts on the week the effect lands, after adstock and saturation. Its mean is fixed at 1, so $\beta_c$ keeps Module 8's meaning at the channel's average effectiveness, and $m_c(t) = 0.5$ means the channel works half as well as its average in week $t$. Module 8's static model is the special case $m_c(t) = 1$ in every week. Section 4 gives the multiplier a prior; this section needs only its truth.
+
+A decision about next quarter needs the return of recent weeks, not of the whole history. The **ROAS over a window** $W$ is the sales the channel produced in those weeks per dollar it spent in them:
+
+$$
+\text{ROAS}_c(W) = \frac{\sum_{t \in W} \beta_c\, m_c(t)\, s_{c,t}}{\sum_{t \in W} x_{c,t}} .
+$$ {#eq-window-roas}
+
+The numerator counts carryover from spend before the window (adstock carries it in) and leaves out carryover after the window. Over all weeks it is Module 8's ROAS. The **current-quarter ROAS** is the ROAS over the last 13 weeks of the data, 2025-09-29 to 2025-12-22: the most recent return the data can show. The lab's first exercise writes @eq-window-roas once and uses it on the true contributions and, later, on every posterior draw.
+
+The truth, by window:
+
+| Channel | All weeks | First year | Last quarter |
+|---|---|---|---|
+| TV | 1.60 | 1.56 | 1.59 |
+| search | 3.00 | 3.10 | 2.85 |
+| social | 4.00 | 5.00 | 2.11 |
+| display | 0.60 | 0.59 | 0.58 |
+
+The three constant channels change a little between windows, because saturation and the spend mix differ from window to window. Social's ROAS falls from 5.00 in the first year to 2.11 in the last quarter, below the break-even of 3.33, while its all-period ROAS stays at 4.00, above it.
+
+Why the average stays high follows from @eq-window-roas. Split the weeks into windows $W_1, \dots, W_K$ that do not overlap. The all-period ROAS is then the spend-weighted average of the windows' ROAS:
+
+$$
+\begin{aligned}
+\text{ROAS}_c(\text{all}) &= \sum_{k=1}^{K} \frac{X_{c,k}}{X_c}\; \text{ROAS}_c(W_k), \\[4pt]
+X_{c,k} &= \sum_{t \in W_k} x_{c,t}, \\[4pt]
+X_c &= \sum_{k} X_{c,k} .
+\end{aligned}
+$$ {#eq-weighted}
+
+Social's last quarter carried 7.9% of its three-year spend. The weeks before it returned 4.16, so the average is $0.079 \times 2.11 + 0.921 \times 4.16 = 4.00$. A bad quarter barely moves a three-year average.
+
+### What a static model reports for a window
+
+A static MMM has no $m_c(t)$, so it fits one effect size $\bar\beta_c$ to weeks in which the true effect size was $\beta_c\, m_c(t)$. If the rest of the model were held fixed, least squares would set
+
+$$
+\begin{aligned}
+\bar\beta_c &\approx \beta_c\, \bar m_c,
+\qquad \bar m_c = \frac{\sum_t m_c(t)\, s_{c,t}^2}{\sum_t s_{c,t}^2}, \\[4pt]
+\widehat{\text{ROAS}}{}^{\text{static}}_c(W) &= \bar\beta_c\, \frac{\sum_{t \in W} s_{c,t}}{\sum_{t \in W} x_{c,t}} ,
+\end{aligned}
+$$ {#eq-static}
+
+where $\bar m_c$ is an average of the multiplier over all weeks, weighted toward the weeks of high spend. The multiplier no longer appears in the static model's window ROAS: a window changes its answer only through saturation and the spend mix, as for a channel that never changed. This is an approximation for intuition (the Bayesian fit moves the other parameters too); the fit confirms it. FULL run, posterior mean and 94% HDI (the narrowest interval that holds 94% of the posterior draws, Module 8):
+
+| Channel | Window | Static model | Truth |
+|---|---|---|---|
+| TV | all weeks | 1.73 (1.60 to 1.86) | 1.60 |
+| | last quarter | 1.71 (1.59 to 1.84) | 1.59 |
+| search | all weeks | 5.43 (1.01 to 12.98) | 3.00 |
+| | last quarter | 5.00 (0.99 to 11.56) | 2.85 |
+| social | all weeks | 3.90 (3.52 to 4.32) | 4.00 |
+| | last quarter | **3.88 (3.48 to 4.28)** | **2.11** |
+| display | all weeks | 3.99 (0.19 to 9.00) | 0.60 |
+| | last quarter | 3.82 (0.25 to 8.56) | 0.58 |
+
+The static model gets social's all-period ROAS right: the truth, 4.00, lies inside its interval. For the last quarter it reports about the same number, 3.88, and its whole interval lies above the true 2.11. The fit had 0 divergences, like every fit in the lab (all use `target_accept=0.98`). Nothing in the diagnostics says the last quarter is wrong; the model has no way to represent a change.
+
+Search's and display's intervals are wide in every fit of this lab. Search's spend follows demand, so the data separate its effect from the trend and the season poorly (Module 9's problem, in a milder form), and display is small. Display's posterior mean is far above its truth, but its interval covers the truth. The decision concerns social.
+
+### Two definitions of ROAS over a window
+
+Module 8 defined ROAS by a counterfactual: the sales lost if the channel had spent nothing, divided by its spend. PyMC-Marketing's `contribution_over_spend(start_date=, end_date=)` applies that definition to a window: it sets the channel's spend to zero in the window, keeps the carryover from earlier weeks, and adds up the sales lost from the window's first week to the end of the data. Over all weeks the two definitions agree, which the lab checks on every draw of the static fit. For one quarter they differ: social's true last-quarter ROAS is 2.11 by @eq-window-roas and 2.04 by the counterfactual. The window definition counts the sales from carry-in; the counterfactual does not, and it counts the window's own dollars on top of the carry-in, where the saturation curve is flatter. The lab uses the window definition throughout, because one function computes it for the truth and for posterior draws alike. Say which definition you report.
+
+::: {.self-check}
+**Check yourself.** A colleague says social returned \$4.00 per dollar over three years and should keep its budget. Over those three years social spent \$2,423,142 and produced \$9,692,568 of sales; in the last quarter it spent \$192,407 and produced \$405,585. If every coming quarter were like the last one, how many more quarters would it take for the all-period ROAS to fall below 3.33?
+
+::: {.callout-tip collapse="true" title="Answer"}
+After $n$ more such quarters, by @eq-weighted, the all-period ROAS is $(9{,}692{,}568 + 405{,}585\,n) / (2{,}423{,}142 + 192{,}407\,n)$. It falls below 3.33 only when $n > 6.85$: seven more quarters, almost two years of spending at a loss before the average says so. Ask for the recent window, not the average.
+:::
+:::
+
+## 3. A warning from the residuals
+
+**Objective for this section:** detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend.
+
+Real data have no truth to compare with. The static model's errors carry a trace of the drift, and finding it needs nothing but the static fit. The **residual** in week $t$ is actual sales minus the model's fitted sales, $e_t = y_t - \hat y_t$, with $\hat y_t$ the posterior mean. Using @eq-static, with everything else in the model about right,
+
+$$
+\begin{aligned}
+e_t &\approx \beta_c\, \big(m_c(t) - \bar m_c\big)\, s_{c,t} + \text{noise}, \\[4pt]
+\rho_{c,y} &= \operatorname{corr}_{\,t \in \text{year } y}\big(e_t,\; x_{c,t}\big).
+\end{aligned}
+$$ {#eq-residual}
+
+In a year when the channel works better than the average the static model settled on ($m_c(t) > \bar m_c$), the residual grows with the channel's spend: sales jump more than the model predicts in the weeks the channel spends a lot, so $\rho_{c,y} > 0$. In a year when it works worse, the jump is smaller than predicted and $\rho_{c,y} < 0$. A correlation that changes sign across years is the warning. The lab computes $\rho_{c,y}$ for every channel and year, with each year's weeks only (52, 53 and 51 weeks; the data end on 2025-12-22).
+
+FULL run, correlation of the static model's residuals with weekly spend:
+
+| Year | TV | search | social | display |
+|---|---|---|---|---|
+| 2023 | −0.08 | 0.02 | **0.40** | −0.16 |
+| 2024 | −0.07 | −0.05 | 0.19 | −0.03 |
+| 2025 | 0.20 | 0.02 | **−0.57** | 0.10 |
+
+Social's correlation falls from +0.40 to −0.57, a change of 0.97. The largest change for another channel is TV's, +0.28, from −0.08 to +0.20, and TV's effect is constant in the truth: on these data, changes of that size are what the check shows when nothing drifts. The residuals' standard deviation is \$9,334 a week, against the simulation's noise of \$8,000.
+
+The check flags; it does not measure. It says social's effect has probably changed and in which direction, not by how much or what it is worth now. It needs spend that varies within a year: a channel that spends the same every week leaves nothing to correlate. It also reads any change in a channel's residual pattern as drift, including a change in the baseline that happens to line up with the channel's spend. A flagged channel is a reason to fit a model that lets the effect move (section 4), or to run a lift test (Module 9), before trusting its all-period ROAS.
+
+::: {.self-check}
+**Check yourself.** On your own MMM, TV's yearly correlations are +0.05, +0.10 and +0.25, and no other channel changes by more than 0.1. Is TV's effect rising?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Not on this evidence. A change of 0.2 without a sign change is within what the lab's constant channels showed (TV moved by 0.28 in the lab, and its effect was constant). The warning that matters is a large change that crosses zero, from clearly positive to clearly negative or the reverse, and stands out from the other channels. If TV's spend also changed pattern between years (say, from bursts to steady spend), the correlation can move for that reason alone. Fit a drifting model or test TV before acting.
+:::
+:::
+
+## 4. A multiplier for every channel and week
+
+**Objective for this section:** fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and check that the true path lies inside the 94% HDI in at least half of the weeks.
+
+### One curve per channel
+
+@eq-drift-mmm has a multiplier for every channel and week: $4 \times 156 = 624$ values, more than the 156 weeks of sales. The model can estimate them only because the prior says how they behave: each channel's curve changes slowly and stays near 1 unless the data insist.
+
+PyMC-Marketing 1.2.0 offers `time_varying_media=True`, which builds **one** multiplier shared by all channels. Its documentation example says so: it assumes that "all channels share the same time-dependent fluctuations". A shared curve cannot represent social wearing out while TV holds. The same argument also accepts a Gaussian-process object with its own dimensions, and with `dims=("date", "channel")` each channel gets its own curve (checked in the installed source). The lab uses that. The cost is that the model must find that three of the four curves stay near 1.
+
+### A Gaussian process prior
+
+A **Gaussian process** (GP) is a prior over curves: a draw from it is a whole curve, and its values at any set of weeks are jointly normal, with a covariance $k(t, t')$ that says how closely week $t$ and week $t'$ move together. The lab draws a latent curve $f_c$ for each channel and turns it into a positive multiplier with mean 1:
+
+$$
+\begin{aligned}
+f_c &\sim \mathcal{GP}(0,\ k), \\[4pt]
+k(t, t') &= \eta^2 \Big(1 + \frac{\sqrt5\, r}{\ell} + \frac{5\, r^2}{3\,\ell^2}\Big)\, e^{-\sqrt5\, r / \ell}, \qquad r = |t - t'|, \\[4pt]
+m_c(t) &= \frac{\operatorname{softplus}\big(f_c(t)\big)}{\frac1T \sum_{t'=1}^{T} \operatorname{softplus}\big(f_c(t')\big)}, \qquad \operatorname{softplus}(u) = \ln\big(1 + e^{u}\big).
+\end{aligned}
+$$ {#eq-gp}
+
+The covariance $k$ is the **Matérn 5/2** kernel. Its two parameters are the ones to understand:
+
+- The **lengthscale** $\ell$ is roughly how many weeks it takes the curve to change appreciably. Two weeks $\ell$ apart still have a correlation of about 0.52; weeks $3\ell$ apart, about 0.03. A short lengthscale gives a curve that wiggles from week to week; a long one gives a slow drift.
+- The **amplitude** $\eta$ is how far the curve moves from its average. A small amplitude keeps every multiplier near 1, so a small amplitude is a prior belief that the channel's effect did not change much.
+
+Picture 20 draws from the prior: smooth curves around 1, some rising, some falling, a few wandering far. The lab plots exactly that for social, next to the true path, before the fit. The softplus keeps the multiplier positive, and dividing by its mean over the 156 weeks makes the multiplier's mean 1, as in @eq-drift-mmm, so the model's curve and the true relative path $\tilde m_c(t)$ are on the same scale.
+
+The lab sets the priors with PyMC-Marketing's `SoftPlusHSGP.parameterize_from_data`: the lengthscale is InverseGamma with 90% of its mass between 20 and 104 weeks (a change over months, not weeks), and the amplitude is Exponential with a 5% chance of exceeding 2 (its rate is $-\ln 0.05 / 2 \approx 1.50$). One lengthscale and one amplitude are shared by the four channels; each channel has its own curve. The kernel is set explicitly to Matérn 5/2, the kernel PyMC-Marketing uses for its own `time_varying_media=True`, because `parameterize_from_data` defaults to the squared-exponential kernel (`ExpQuad`), which gives even smoother curves. The library's default configuration for time-varying media is much wigglier (200 basis functions, a lengthscale prior with mean 5 weeks), better suited to short fluctuations than to a slow wear-out.
+
+### The HSGP approximation
+
+A GP over $T$ weeks needs a $T \times T$ covariance matrix in every step of the sampler. The **Hilbert-space GP** (HSGP) of Riutort-Mayol et al. (2023) replaces it with a fixed set of sine waves whose weights carry the prior:
+
+$$
+\begin{aligned}
+f_c(t) &\approx \sum_{j=2}^{M} \sqrt{\mathcal S(\omega_j)}\;\phi_j(t)\; z_{c,j}, \qquad z_{c,j} \sim \text{Normal}(0, 1), \\[4pt]
+\phi_j(t) &= \frac{1}{\sqrt B}\,\sin\!\big(\omega_j\,(t - \bar t + B)\big), \qquad \omega_j = \frac{\pi j}{2B},
+\end{aligned}
+$$ {#eq-hsgp}
+
+where $\mathcal S$ is the kernel's spectral density, which depends on $\ell$ and $\eta$ and decides how much weight each frequency gets, $\bar t$ is the middle of the data and $B$ is a boundary well beyond it. The sampler works with the $z_{c,j}$, ordinary normal coefficients. PyMC-Marketing chooses $M$ and $B$ from the lengthscale range with the heuristics of Riutort-Mayol et al.: the boundary must be wide enough for the longest lengthscale and the basis large enough for the shortest. For 20 to 104 weeks and Matérn 5/2 that gives $M = 56$ basis functions and $B = 426.4$ weeks (with $\bar t = 77.5$, the middle of weeks 0 to 155 on the model's time index). PyMC-Marketing drops the first, almost flat, basis function (`drop_first=True`), so each channel has 55 coefficients: 220 for four channels, instead of 624 weekly values.
+
+### Why not a Gaussian random walk?
+
+A **Gaussian random walk** on the log multiplier is an alternative prior for a path:
+
+$$
+\ln m_c(t) = \ln m_c(t-1) + \varepsilon_{c,t}, \qquad \varepsilon_{c,t} \sim \text{Normal}(0, \sigma_c^2),
+$$ {#eq-grw}
+
+so that $\operatorname{Var}\big(\ln m_c(t) - \ln m_c(1)\big) = (t - 1)\,\sigma_c^2$. It is simple and needs no approximation. The lab uses the HSGP instead, for three reasons:
+
+- **One parameter sets both how fast and how far.** In a random walk, the step size $\sigma_c$ sets both the week-to-week wiggle and how far the curve can wander over three years. The GP separates the two: the lengthscale says how fast, the amplitude how far, and each gets its own prior.
+- **It is rough, and its spread grows with time.** Each week's step is independent, so a random walk's path is as rough as its steps, and its prior spread around the first week grows with every week. The GP's latent curve has the same prior spread in every week.
+- **The library takes it as is.** PyMC-Marketing 1.2.0's `MMM` accepts only `True`, `False` or an HSGP object for `time_varying_media` (installed source). With the HSGP the lab keeps the library's model, its counterfactual ROAS and its lift-test likelihood, which multiplies the saturation curve by the multiplier at the test's date (stretch A). A random walk would need a custom PyMC model.
+
+The two also differ beyond the data. A random walk's best guess for next week is this week's value, with growing uncertainty. A GP's latent curve reverts to its prior mean outside the data, as PyMC-Marketing's documentation of time-varying parameters notes. Neither is a forecast of fatigue; section 6 does not extrapolate either.
+
+::: {.self-check}
+**Check yourself.** A random walk on $\ln m$ with $\sigma = 0.05$ a week looks gentle. Using @eq-grw, how far can the multiplier be from its first-week value after two years (week 104), at one prior standard deviation?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$\operatorname{sd}\big(\ln m(104) - \ln m(1)\big) = 0.05\sqrt{103} \approx 0.51$, so one standard deviation spans a multiplier of $e^{-0.51} \approx 0.60$ to $e^{0.51} \approx 1.66$ times the first week's. The same $\sigma$ also lets every single week move by about 5%. To allow less wandering you must also allow less wiggle; the GP sets the two separately.
+:::
+:::
+
+### What the prior allows
+
+Before the longest fit of the lab, check that the prior can produce the kind of change the decision is about, as Module 8's prior predictive check did for sales. The question is put in the decision's units, the **drift ratio**, the share of its first-year effect a channel keeps in the last quarter. The **coverage** of a band, used next, is the share of weeks in which the true value lies inside that week's 94% HDI:
+
+$$
+\begin{aligned}
+r_c &= \frac{\frac{1}{13}\sum_{t \in \text{LQ}} m_c(t)}{\frac{1}{52}\sum_{t \in \text{FY}} m_c(t)}, \\[4pt]
+\text{coverage}_c &= \frac{1}{T} \sum_{t=1}^{T} \mathbb 1\Big[\tilde m_c(t) \in \text{HDI}_{94\%}\big(m_c(t) \mid y\big)\Big].
+\end{aligned}
+$$ {#eq-ratio}
+
+Social's true drift ratio is 0.42. Over 1,000 draws from the prior, 8.8% of social's drift ratios are at or below 0.5 and 7.4% at or below 0.42; the prior's 94% equal-tailed interval of the ratio runs from 0.22 to 5.12. So the prior allows a fall as large as the true one but treats it as unusual: the data have to show it. A prior that almost never allowed it could not find it, and a prior that allowed anything would follow noise. The check takes seconds.
+
+### What the fit recovered
+
+FULL run (2 chains of 1,000 draws, nutpie, 0 divergences). Social's true relative path lies inside the 94% band in 69% of the 156 weeks; the constant channels' paths lie inside theirs in 100%. The band misses 49 weeks, in two stretches: the truth lies above the band in weeks 5 and 7 to 23, and below it in weeks 122 to 152. The prior pulls the curve toward its average, so the model sees a smaller decline than the true one, flatter at both ends. The drift ratios, with the drift-ratio rule the lab checks (social's 94% HDI entirely below 1, the others' containing 1):
+
+| Channel | Drift ratio, mean (94% HDI) | Truth |
+|---|---|---|
+| TV | 1.03 (0.90 to 1.13) | 1.00 |
+| search | 0.96 (0.49 to 1.44) | 1.00 |
+| social | **0.57 (0.43 to 0.71)** | **0.42** |
+| display | 1.12 (0.51 to 1.76) | 1.00 |
+
+The model finds the decline (social's whole interval lies below 1) and finds no decline for the other three channels, but it understates social's: 0.57 against 0.42, with the truth just outside the interval. Search's and display's intervals are wide, because letting every channel drift makes a channel's level and its path trade off against each other.
+
+The decline is identified by the pushes. Each quarter social's spend jumps for four weeks, and the jump in sales that follows shows how well social works at that time. Over the three years the jumps shrink. Without the pushes, a slowly fading channel and a slowly falling baseline would produce the same sales, and no model could tell them apart from these data.
+
+### What it says about now
+
+Last-quarter ROAS, FULL run, posterior mean and 94% HDI:
+
+| Channel | Static model | Drifting model | Truth |
+|---|---|---|---|
+| TV | 1.71 (1.59 to 1.84) | 1.72 (1.54 to 1.90) | 1.59 |
+| search | 5.00 (0.99 to 11.56) | 2.32 (0.68 to 4.70) | 2.85 |
+| social | 3.88 (3.48 to 4.28) | **2.53 (1.94 to 3.15)** | **2.11** |
+| display | 3.82 (0.25 to 8.56) | 2.21 (0.03 to 5.10) | 0.58 |
+
+For social, the static model's interval lies wholly above the truth; the drifting model's contains it. Because the drifting model understated the fall, its current-quarter ROAS errs high (2.53 against 2.11), not low.
+
+## 5. A Prophet baseline
+
+**Objective for this section:** feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves.
+
+### Prophet's additive model
+
+**Prophet** (Taylor and Letham 2018) is a forecasting model fitted to dates and sales only. It adds a trend, a yearly seasonal pattern and holiday effects:
+
+$$
+\begin{aligned}
+y(t) &= g(t) + q(t) + h(t) + \varepsilon_t, \\[4pt]
+g(t) &= k\,t + b + \sum_{j=1}^{25} \delta_j\, (t - t^*_j)_+, \qquad \delta_j \sim \text{Laplace}(0,\ 0.05), \\[4pt]
+q(t) &= \sum_{n=1}^{10} \Big[u_n \cos\Big(\frac{2\pi n\, t}{P}\Big) + v_n \sin\Big(\frac{2\pi n\, t}{P}\Big)\Big], \qquad P = 365.25 \text{ days}, \\[4pt]
+h(t) &= \kappa\; \mathbb 1\big[\,t \text{ is a holiday week}\,\big],
+\end{aligned}
+$$ {#eq-prophet}
+
+where $(u)_+ = \max(u, 0)$ and $t$ is the date (counted in days for the season). The trend $g$ is piecewise linear: it starts with slope $k$ and may change slope by $\delta_j$ at each **changepoint** $t^*_j$. Prophet places 25 candidate changepoints evenly in the first 80% of the history and puts a sparse (Laplace) prior on the slope changes, with scale 0.05 by default (`changepoint_prior_scale`), so the slope changes only where the data insist. The season $q$ is ten pairs of yearly sine and cosine terms. In the lab the holiday table has one holiday, the weeks the data flag as holiday weeks (those containing Black Friday, December 18 or December 24). Prophet fits this model to its own scaled sales and time by maximizing the posterior; the lab asks for no uncertainty samples.
+
+### How Robyn uses it, and how the lab does
+
+**Robyn**, Meta's open-source MMM package (Module 9), fits Prophet to the dependent variable and adds the trend, season and holiday components to its regression as baseline variables. Paid media are not Prophet regressors: in Robyn's source, `add_regressor` is called only for one-hot-encoded factor variables (`R/R/inputs.R`, read 2026-10-10). Robyn's documentation lists trend, season and holiday as non-steerable baseline variables.
+
+The lab does the same in PyMC-Marketing. It replaces the static model's own baseline (a linear trend, two orders of yearly Fourier terms and the holiday flag) with Prophet's three components, keeps the price index, and keeps the media part static, so that the only difference from the static model is the baseline:
+
+$$
+\begin{gathered}
+y_t = \gamma_0 + \gamma_p\, p_t + \theta_g\, \hat g(t) + \theta_q\, \hat q(t) + \theta_h\, \hat h(t) + \sum_{c} \beta_c\, s(a_{c,t};\, \lambda_c) + \varepsilon_t, \\[4pt]
+\theta_g,\ \theta_q,\ \theta_h \sim \text{Normal}(1,\ 0.1^2),
+\end{gathered}
+$$ {#eq-prophet-mmm}
+
+where $p_t$ is the price index and the hats mark Prophet's fitted components. An **informed prior** is a prior centered on what we already believe: here each component enters at its own size (a coefficient of 1), give or take about 20%, since 94% of a normal distribution lies within 1.88 standard deviations. PyMC-Marketing divides sales by their maximum and leaves controls as they are, so the lab divides each component by the maximum of sales too; otherwise a coefficient of 1 would mean something else.
+
+### What it did to channel ROAS
+
+Prophet's fitted trend grows by \$149 a week on average over the three years; the true baseline grows by \$500 a week. Its holiday effect is \$53,641 a holiday week, against the true \$40,000. All-period ROAS, FULL run:
+
+| Channel | Own baseline | Prophet baseline | Prophet told about spend (stretch B) | Truth |
+|---|---|---|---|---|
+| TV | 1.73 (1.60 to 1.86) | 1.44 (1.25 to 1.63) | 1.51 (1.40 to 1.63) | 1.60 |
+| search | 5.43 (1.01 to 12.98) | 7.53 (2.05 to 18.34) | 5.59 (0.41 to 15.25) | 3.00 |
+| social | **3.90 (3.52 to 4.32)** | **2.90 (2.25 to 3.58)** | 3.15 (2.67 to 3.72) | **4.00** |
+| display | 3.99 (0.19 to 9.00) | 4.94 (0.93 to 9.45) | 3.52 (0.35 to 6.67) | 0.60 |
+
+With Prophet's baseline, social's ROAS fell by 1.0 and its interval moved below the truth; TV's fell too. Every channel's posterior mean was further from the truth than with the model's own baseline: absolute errors of 0.16 against 0.13 (TV), 4.53 against 2.43 (search), 1.10 against 0.10 (social) and 4.34 against 3.39 (display). Display's interval no longer covers its truth. The second stretch exercise tells Prophet about spend, adding each channel's spend as a Prophet regressor before taking the components. That brought TV and display closer to the truth than the model's own baseline did, left search further away, and moved social only partway back, its interval still excluding the truth.
+
+Two cautions keep this to what the data show. First, the model's own baseline has the same form as the simulation's true baseline (a straight trend and two orders of yearly Fourier terms), which favors it. The brief's prototype, a cheaper least-squares check that the build did not re-run, also tried a baseline with a break in the trend that a straight line cannot follow, and other Prophet settings; there too, no Prophet variant improved every channel ([the brief]({{< var repo.url >}}/blob/main/briefs/17-mmm-time-varying.md), "What the runs support"). Second, this is one simulated retailer. In this simulation, no variant helped every channel; that is not a law about Prophet baselines.
+
+### Why a baseline fitted to sales takes media credit
+
+Prophet is fitted to sales, and sales include what the media produced. Its trend follows any slow change in sales, and a fading channel lowers sales slowly: the slow part of social's decline is exactly what a trend with changepoints is built to follow. That is why Prophet's trend grows by \$149 a week, not \$500: it bends down with social's falling contribution. The lab plots Prophet's trend minus the true trend next to social's true contribution: the gap is flat through 2023 and falls steadily from early 2024, as social's contribution falls, with a correlation of 0.56 between the two. Prophet cannot know that the fall came from social. Once the MMM takes Prophet's trend as given (a coefficient held near 1), that part of social's effect already sits in the baseline, and the MMM gives social less. The fade is not all it takes: the trend and the yearly season (ten sine-cosine pairs) can also follow parts of TV's flights, social's pushes and search's demand-following spend, whatever repeats with the calendar or drifts slowly.
+
+PyMC-Marketing's documentation of time-varying parameters recommends a linear or Fourier basis for trends and seasonality rather than a GP. The lab's static model is that: a baseline estimated jointly with the media, in which a straight trend cannot bend to follow one channel's decline.
+
+### Why its uncertainty does not reach the ROAS interval
+
+In @eq-prophet-mmm the components are data. Prophet's own uncertainty about its trend never enters the MMM: the lab fits Prophet without uncertainty samples, and Robyn, too, adds the fitted components as data. By the law of total variance, a model that estimated the baseline jointly would report
+
+$$
+\operatorname{Var}(\text{ROAS}_c \mid y)
+= \mathbb E_{g}\big[\operatorname{Var}(\text{ROAS}_c \mid y, g)\big] + \operatorname{Var}_{g}\big(\mathbb E[\text{ROAS}_c \mid y, g]\big),
+$$ {#eq-total-variance}
+
+where the expectation and variance over $g$ run over the baselines the data allow. Plugging in one fitted baseline $\hat g$ gives $\operatorname{Var}(\text{ROAS}_c \mid y, \hat g)$: the variance at one baseline in place of the average in the first part, and nothing for the second part, how much the answer would change under other plausible baselines. The same sales are also used twice, once to fit Prophet and once to fit the MMM. In this lab the intervals did not shrink: social's was 0.80 wide with the model's own baseline and 1.33 with Prophet's. They moved, and a reasonable-looking interval excluded the truth. Width does not fix bias.
+
+::: {.self-check}
+**Check yourself.** A colleague proposes to fix the problem by letting the MMM estimate Prophet's coefficients freely (wide priors) instead of holding them near 1. Does that separate social's fade from the trend?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Not by itself. A free coefficient scales the whole trend column up or down; it cannot pull social's decline out of the column while keeping the rest, because Prophet has already mixed the two into one curve. The model can only keep more or less of everything in $\hat g$. Separating them needs a baseline the MMM estimates jointly with the media, from a form that cannot follow one channel's decline (the static model's straight trend and Fourier terms), or outside evidence such as a lift test.
+:::
+:::
+
+## 6. The decision
+
+**Objective for this section:** decide on next quarter's budget for the fading channel from its current-quarter ROAS interval against break-even, and say how that differs from the all-period answer.
+
+The **fading** channels are those whose drift ratio's 94% HDI lies entirely below 1: social, and only social, in the lab. For each, the lab computes from the $J = 2{,}000$ posterior draws (2 chains of 1,000) of its last-quarter ROAS the probability that it is below break-even, and what last quarter's spend returned net of its cost:
+
+$$
+\begin{aligned}
+P_{\text{below}} &= \frac{1}{J}\sum_{j=1}^{J} \mathbb 1\Big[\text{ROAS}_c^{(j)}(\text{LQ}) < \frac{1}{0.30}\Big], \\[4pt]
+\text{net}_c &= X_{c,\text{LQ}}\,\big(0.30 \times \text{ROAS}_c(\text{LQ}) - 1\big),
+\end{aligned}
+$$ {#eq-decision}
+
+where $X_{c,\text{LQ}}$ is the channel's spend in the last quarter and $\text{net}_c$ is computed draw by draw.
+
+::: {.module-decision}
+**Decision.** The rule, fixed before any number: cut a fading channel's budget next quarter if $P(\text{current-quarter ROAS} < 3.33) \ge 0.9$; keep it if $P(\text{current-quarter ROAS} > 3.33) \ge 0.9$; otherwise run a lift test first (Module 9). The 0.9 is a business choice: how sure we want to be before moving money. The rule assumes next quarter's effect per dollar equals last quarter's. The model's multiplier is not extrapolated: beyond the data its latent curve reverts to its prior mean and forgets the decline. Under saturation the last dollar returns less than the average dollar, so an average below break-even means the marginal dollar is below it too.
+
+FULL run, social:
+
+| Model and window | ROAS (94% HDI) | Probability | Verdict |
+|---|---|---|---|
+| Drifting model, last quarter | 2.53 (1.94 to 3.15) | $P(\text{ROAS} < 3.33) = 0.99$ | **cut** |
+| Static model, all weeks | 3.90 (3.52 to 4.32) | $P(\text{ROAS} > 3.33) = 0.997$ | keep |
+
+- **Scale:** social spent \$192,407 last quarter. Net of that spend, the margin on the sales it produced was about −\$46,199 (94% HDI −\$80,289 to −\$10,515). This is the average return of last quarter's spend, not the return of the next dollar, which under saturation is lower.
+- **How it differs from the all-period answer:** the static model's three-year average says keep, with near certainty. It answers a question about the past three years, and its interval is narrow because it pools three years of weeks into one effect size.
+- **Recommendation: cut social's budget next quarter.** The probability that its current return is below break-even is 0.99. How much to cut is Module 10's question, with social's current-quarter response curve. What would change it: a creative refresh that a test shows has brought the effect back above break-even, or a lift test now (stretch A).
+
+The lab then reveals the truth. Social's true last-quarter ROAS is 2.11: below break-even now, above it on average (4.00). The true net return of last quarter's spend was −\$70,731, inside the interval above. The drifting model understated the fall, so its "cut" is not the model exaggerating the fade.
+:::
+
+The decision rests on one simulated dataset. The build also fitted the lab's three models on 15 generator seeds, the committed one and 14 others, at QUICK settings (300 draws per chain): the drifting model said "cut" in 14 of 15; in the remaining one, $P_{\text{below}}$ was 0.81, which the rule calls "lift test first". Its current-quarter ROAS lay above the truth in 14 of 15. Every fit-against-truth check of the lab held in 15 of 15 seeds, except the full check of Exercise 5 (12 of 15): the Prophet baseline lowered social's ROAS in every seed, but in two seeds the model's own baseline also missed social's truth, and in one the Prophet baseline's interval still covered it.
+
+The first stretch exercise runs the lift test the rule would call for: one randomized test on social, +30% weekly spend for 8 weeks ending 2025-11-17, added to the drifting model as in Module 9. With a time-varying multiplier, PyMC-Marketing multiplies the saturation curve by the multiplier at the test's date, so a recent test measures the current level. Social's last-quarter ROAS becomes 2.22 (94% HDI 1.92 to 2.50), $P(\text{ROAS} < 3.33) = 1.00$, against 2.53 (1.94 to 3.15) without the test; the truth is 2.11.
+
+::: {.self-check}
+**Check yourself.** In one of the build's seeds, the drifting model gave $P(\text{current-quarter ROAS} < 3.33) = 0.81$. What does the rule say, and what would you do next?
+
+::: {.callout-tip collapse="true" title="Answer"}
+"Lift test first": 0.81 is below the 0.9 the business asked for, and $P(\text{ROAS} > 3.33) = 0.19$ is far from 0.9 too. Design a randomized test of social now (Module 7 for geo tests, Module 9 for turning the result into a lift-test row), dated so that it falls in the current quarter, and add it to the drifting model. Keep social's spend as it is until the result arrives, or trim it only as far as the margin at risk is acceptable. A test from last year would not help: it measures last year's effect, which is the number that has changed.
+:::
+:::
+
+## 7. What this module cannot tell you
+
+- **What happens next quarter.** The model describes the past. The decision assumes next quarter repeats the last; a creative refresh, a new audience or a platform change can move the effect either way, and the multiplier cannot forecast it.
+- **Why the effect fell.** The multiplier says when and by how much. Creative fatigue, a used-up audience and a platform change look the same in weekly totals.
+- **A drift in a channel whose spend never varies.** The pushes identified social's decline. A channel that spends the same every week gives the model no way to tell a fading effect from a falling baseline, and the residual check has nothing to correlate.
+- **Sudden changes.** The lengthscale prior assumes change over months. An overnight change would be smoothed and found late. Even this slow decline was understated at both ends: the band missed the truth in 49 of 156 weeks.
+- **Confounding.** Letting effects drift does not fix Module 9's problem. Search's spend follows demand, and its intervals stay wide in every model here (last quarter, drifting: 0.68 to 4.70).
+- **Whether a Prophet baseline helps on your data.** One simulated retailer, two variants, and a model whose own baseline had the true form. In this simulation no variant helped every channel; on other data the balance can differ, and only outside evidence can show which baseline is right.
+- **Real data.** Everything here is simulated, which is what made the truth available.
+
+## Summary
+
+- A channel's ROAS depends on the window (@eq-window-roas). The all-period ROAS is a spend-weighted average of the windows' (@eq-weighted), so a channel that has worn out keeps the average of its good years: social 4.00 over three years, 2.11 in the last quarter.
+- A static MMM has no way to represent the change (@eq-static): it gave social 3.88 for the last quarter, with its whole interval above the truth.
+- Without the truth, the year-by-year correlation of the static model's residuals with spend (@eq-residual) flags the drift: social's fell from +0.40 to −0.57.
+- The drifting MMM (@eq-drift-mmm) gives each channel a multiplier with mean 1 and a Gaussian process prior (@eq-gp): the lengthscale sets how fast it changes, the amplitude how far. The HSGP approximation (@eq-hsgp) makes it fast; a random walk (@eq-grw) ties speed and range to one parameter.
+- The prior allowed the true fall but treated it as unusual (7.4% of draws at or below the true drift ratio of 0.42). The fit found the decline (drift ratio 0.57, 94% HDI 0.43 to 0.71), covered the true path in 69% of weeks, and put social's current-quarter ROAS at 2.53 (1.94 to 3.15).
+- Prophet's components as a baseline (@eq-prophet, @eq-prophet-mmm) moved social's all-period ROAS from 3.90 to 2.90 against a truth of 4.00, and put every channel's mean further from the truth. A baseline fitted to the same sales takes part of the media effect, and its uncertainty never reaches the ROAS interval (@eq-total-variance).
+- Decision (@eq-decision): cut social's budget next quarter, $P(\text{ROAS} < 3.33) = 0.99$; the all-period average would have said keep.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 17 |
+|---|---|---|
+| @eq-window-roas, @eq-weighted | ROAS over a window | **Exercise 1**: `window_roas(contrib, spend, start, end)`; Checkpoint 1, the lab's first, checks three toys (one that catches a mean of weekly ratios) and the truth's three windows |
+| @eq-static | the static model by window | Provided: the static fit; a labeled check compares your function with PyMC-Marketing's `contribution_over_spend` over all weeks and social's last quarter with the truth |
+| @eq-residual | residual-spend correlation by year | **Exercise 2**: `residual_spend_corr(resid, spend, year)`; Checkpoint 2 checks a toy against `np.corrcoef`, the reference, and social's fall |
+| @eq-drift-mmm, @eq-gp, @eq-hsgp | the drifting MMM and its prior | Provided: `drifting_mmm()`, 1,000 prior draws and the fit |
+| @eq-ratio (drift ratio) | how much drift the prior allows | **Exercise 3**: `drift_ratio(mult, early, late)`; Checkpoint 3 checks a constant, a linear and a one-week spike toy and the prior draws' dimensions |
+| @eq-ratio (coverage) | does the band cover the true path | **Exercise 4**: `path_coverage(mult_draws, true_path, prob)`; Checkpoint 4 runs four toys (one that catches an equal-tailed or 89% interval, one that catches a band pooled over weeks), then the fit |
+| @eq-grw | the random-walk alternative | Briefing only |
+| @eq-prophet, @eq-prophet-mmm | Prophet's components as a baseline | Provided: `prophet_components(weekly, holidays)` with a labeled check, and the Prophet-baseline fit |
+| @eq-total-variance | why Prophet's uncertainty is lost | Briefing only |
+| Own against Prophet baseline | ROAS with each baseline, against the truth | **Exercise 5**: `baseline_comparison(roas_own, roas_prophet, true_roas, prob)`; Checkpoint 5 checks a skewed toy, then social's fits |
+| @eq-decision | cut, keep or test | Provided: the Decision cell |
+
+## Gotchas
+
+- **`time_varying_media=True` is one multiplier shared by all channels.** One curve per channel needs an HSGP object with `dims=("date", "channel")`.
+- **Choose the prior; do not take the default.** PyMC-Marketing's default for time-varying media (200 basis functions, lengthscale prior with mean 5 weeks) wiggles from week to week. `parameterize_from_data` defaults to the `ExpQuad` kernel; the lab sets Matérn 5/2. Say which you used.
+- **Check the prior in the decision's units** (here, the drift ratio) before the long fit.
+- **The multiplier has mean 1 over the fitted weeks.** Compare it with the truth's relative path, not with the raw multiplier.
+- **Say which window ROAS you report.** The window definition and PyMC-Marketing's counterfactual one agree over all weeks and differ for a quarter (social's truth: 2.11 and 2.04).
+- **Do not extrapolate the multiplier.** Beyond the data the GP's latent curve reverts to its prior mean.
+- **PyMC-Marketing does not scale controls.** Divide Prophet's components (in dollars) by the maximum of sales, or a prior centered on 1 means nothing.
+- **A baseline fitted to the same sales is not neutral.** It can take part of the media effect, and its uncertainty never reaches the ROAS interval.
+- **Prophet logs every fit** through `cmdstanpy` at INFO level; set that logger to WARNING.
+- **ArviZ 1.x defaults to an 89% equal-tailed interval.** Name the interval: here, 94% HDI.
+
+## Next steps
+
+This is the last extension. A drift estimated from observational data is still an estimate. A lift test run now (Module 9) checks the current level: in the first stretch exercise, one recent test on social narrowed its current-quarter interval from 1.94–3.15 to 1.92–2.50. To decide how much to move, rerun [Module 10](/modules/10-budget-allocation.qmd)'s allocation with each channel's current-quarter response curve (its curve scaled by the multiplier's mean over the last quarter) instead of the all-period curve, and calibrate the model with tests dated in the current quarter ([Module 9](/modules/09-mmm-calibration.qmd)).
+
+## Further reading
+
+1. Taylor, S. J., & Letham, B. (2018). [Forecasting at scale](https://doi.org/10.1080/00031305.2017.1380080). *The American Statistician*, 72(1), 37–45. Prophet: a modular regression model for forecasting, with analyst input.
+2. Prophet documentation: [Trend changepoints](https://facebook.github.io/prophet/docs/trend_changepoints.html) (25 candidate changepoints in the first 80% of the history, `changepoint_prior_scale` 0.05) and [Seasonality, holiday effects, and regressors](https://facebook.github.io/prophet/docs/seasonality,_holiday_effects,_and_regressors.html) (the holidays table, and regressors that must be known for the history and the future).
+3. Riutort-Mayol, G., Bürkner, P.-C., Andersen, M. R., Solin, A., & Vehtari, A. (2023). [Practical Hilbert space approximate Bayesian Gaussian processes for probabilistic programming](https://doi.org/10.1007/s11222-022-10167-2). *Statistics and Computing*, 33, 17. The HSGP approximation and the basis-size heuristics PyMC-Marketing applies.
+4. PyMC-Marketing documentation: [MMM with time-varying media baseline](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_time_varying_media_example.html) (one multiplier shared by all channels) and [MMM with time-varying parameters](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_tvp_example.html) (a GP reverts to its prior mean out of sample; linear or Fourier bases for trends and seasonality).
+5. Robyn: the [Features](https://facebookexperimental.github.io/Robyn/docs/features/) page (Prophet's trend, season and holiday as baseline variables) and the source of [`R/R/inputs.R`](https://raw.githubusercontent.com/facebookexperimental/Robyn/main/R/R/inputs.R) on `main`, version 3.12.1 (Prophet fitted to the dependent variable; its components added as independent variables; paid media not Prophet regressors).
+
+Each entry was checked on 2026-10-10. For Taylor and Letham (2018), only the bibliographic record and the abstract, since the publisher refused automated access. The lab follows the installed pymc-marketing 1.2.0 and prophet 1.4.0 source where it differs from the documentation pages. The lab brief lists what each entry supports.

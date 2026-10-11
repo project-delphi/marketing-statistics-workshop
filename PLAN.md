@@ -184,3 +184,19 @@ Owner in brackets: [AD] Academic Director, [PE] Pedagogy Expert, [UI] UI Expert,
 
 ### Phase 7 — release
 - [x] [Lead] `repo.ref` → tag; full Colab sweep; `release_check.py` passes; final report (`v2026.10.1`, which also pins the Python labs' data; all 18 notebooks swept on Colab 2026-10-10; `release_check.py` passes through `--as-of 2026-10-31`)
+
+### Phase 8 — Extensions track (Modules 13–17, optional; DECISIONS.md "Extensions track")
+Day `d6`, no timed blocks. Each module: brief [AD] → review [PE] → build + run [TE] → module page [AD].
+Nothing here may change a file the 18 core notebooks' run records hash.
+- [x] [Lead] scaffold: `d6` and `m13`–`m17` in `_variables.yml`, per-file synth deps for m01/m03/m04/m05 (deps_sha unchanged), `EXTENSIONS` + `truth_<name>.json` in `make_synthetic.py`, lifelines and prophet pins
+- [x] [TE] site machinery: core vs extensions readiness verdict and release check (`--extensions`), counts, `extensions.qmd` and Days menu, module page stubs, notebook footers (merged afdec69)
+- [ ] M13 messy real data (dirtied synthetic retailer → Online Retail II; BG/NBD, Gamma-Gamma, capping) — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 1429146), notebook review ✓, module page ✓, checkpoint-message fixes and re-recorded runs ✓ (89bcf99); Colab needs a tag
+- [ ] M14 survival analysis (Kaplan–Meier, Cox, proportional-hazards check, RMST; KM vs sBG) — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 1a9e9bb), notebook review ✓, module page ✓, checkpoint-message fixes and re-recorded runs ✓ (1d50aa5); Colab needs a tag
+- [ ] M15 double machine learning (partialling out by hand, EconML LinearDML, overlap; Hillstrom benchmark) — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 7ab8018), module page ✓, notebook review ✓, checkpoint-message fixes and re-recorded runs ✓ (2c96130); Colab needs a tag
+- [ ] M16 multi-touch attribution (heuristics, Markov removal effect, Shapley) scored against true incrementality — brief [AD] ✓, review [PE] ✓, build + macOS and Docker FULL runs [TE] ✓ (merged 5e49461), notebook review ✓, module page ✓, checkpoint-message fixes and re-recorded runs ✓ (38cc6c8); Colab needs a tag
+- [ ] M17 time-varying MMM and a Prophet baseline, scored against truth — brief ✓, review ✓, build + macOS and Docker FULL runs ✓ (merged 68032d0), notebook review ✓, module page ✓, checkpoint-message fixes and re-recorded runs ✓ (b5fd2b5); Colab needs a tag
+- [x] [PE] review of briefs and notebooks (all five, each brief and each built notebook); teach.qmd and knowledge checks for the track (eb29f9c)
+- [x] [AD] module pages from the recorded runs (all five; run times synced to the final records, 60c7729); references.qmd entries (f7f4d2d)
+- [x] [TE] no Colab link to a notebook `repo.ref` lacks: `in_ref: false` chip, release-check blocker, git cross-check test (ac84aea)
+- [x] [UI] browser check of the track's pages (desktop and phone width, both themes; headless Chromium 124, 52 page×width×theme combinations; three CSS fixes, 3c95114)
+- [ ] [Lead] new release tag + full Colab sweep (core and extensions) — needs the user's go-ahead

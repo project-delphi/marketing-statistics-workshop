@@ -1,0 +1,450 @@
+---
+title: "{{< var modules.m13.title >}}"
+---
+
+{{< include /_includes/module-13.md >}}
+
+::: {.recap}
+**Where we are.** Module 1 cleaned UCI Online Retail II with three rules (drop lines without a customer ID, drop invoices whose number starts with `C`, drop lines with a quantity or price of zero or less) and checked them only by counting rows. Modules 2 and 4 then fitted the BG/NBD and the Gamma-Gamma to data that were already clean: CDNOW, a curated benchmark, and the synthetic retailer, whose purchases came straight from a generator. Nothing so far showed whether a cleaning pipeline is right, which errors it leaves in, or what a cleaning error does to a model or to a decision. This module asks: can we trust BTYD and spend models fitted to a real, messy transaction log, and which cleaning choices actually matter?
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-13.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings, Run all took 11.0 s on an Apple Silicon laptop (native Python) and 21.7 s in the workshop's Docker image on the same laptop, limited to two CPUs ([run records]({{< var repo.url >}}/tree/main/runs), dated 2026-10-11). Neither is a Colab time. Nothing in the lab samples a posterior, so QUICK and FULL settings run the same code. The lab has not run on Colab yet: the Colab button opens the notebook at the release tag `v2026.10.1`, which was cut before this lab existed, so it cannot find the notebook until a later release contains it. Until then, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
+
+## 1. A log is not a list of purchases
+
+A transaction log records what the till or the web shop wrote down, not what customers decided. Four terms carry this module:
+
+- a **line** is one row of the log: one product on one invoice;
+- an **invoice** is one order, usually several lines;
+- a **purchase day** is all of one customer's invoices on one calendar day, merged into one purchase, as in Module 1. Modules 2 and 4 count purchase days, so $x$ (frequency) is the number of purchase days after the first;
+- a **cancellation line** is a line on an invoice whose number starts with `C`. Its quantity is negative.
+
+Online Retail II (Chen 2012) has one line per product per invoice of a UK online retailer, from December 2009 to December 2011: 1,044,848 lines after the workshop's loader stacks the two yearly sheets and removes the overlap (FULL run). Module 1's three rules leave three kinds of row that are not a customer's purchase, and a fourth problem lies in how purchases are counted:
+
+| What | Example | What it does to the RFM table | Rule in this module |
+|---|---|---|---|
+| A **non-product line**: a stock code that does not start with five digits | postage `POST`, carriage `C2`, a manual adjustment `M`, `BANK CHARGES`, a test product `TEST001` | on an order, inflates that purchase day's amount; alone on a day, adds a purchase day with a made-up amount | flag it |
+| An **exact duplicate**: a line equal to an earlier line in all eight columns | the same product, quantity, price and minute, twice | inflates the amount | flag every copy after the first |
+| A **cancelled purchase**: an order a later `C` invoice cancels | an order and its cancellation 16 minutes later | Module 1 drops the `C` line and keeps the order, so the order adds a purchase day and its amount | match each cancellation to the purchase it cancels; drop both |
+| A **split order**: one basket written as two invoices on the same day | two invoices minutes or hours apart | counting invoices adds a purchase with no time between them | count purchase days, not invoices (as Module 1 did) |
+
+Two more features of a real log are not errors and cannot be cleaned away. **Wholesale customers**, businesses that buy in bulk, have few purchase days and very large amounts; they are real customers whose spend the Gamma-Gamma must cope with (section 4). And 22.5% of Online Retail II's lines have no customer ID: they belong to no customer the model can see (section 8).
+
+### Ground truth first
+
+Module 1 could not test its rules, because nobody knows the clean version of Online Retail II. So the lab does what every core module does: it starts where the answer is known. A seeded generator (`mktstats.synth.messy`, seed 2033) takes the synthetic retailer's purchases for its customers 1 to 2,500 (Modules 1 to 5), adds 13 wholesale customers (IDs 5001 to 5013) drawn with a mean spend per purchase day of \$1,200, against \$30 for the retail customers, and writes everything as a line log with **exactly the columns of Online Retail II**. It then adds errors at rates measured on Online Retail II and records which lines it dirtied only in the truth file. Measured on the committed log, against Online Retail II: lines without a customer ID 22.4% (22.5%), duplicates 1.45% of identified lines (1.44%), cancellation lines 2.28% of identified lines (2.28%), and a second or later invoice on the same day for 10.0% of identified invoices (about 10%).
+
+The result is a 36,453-line log of 2,513 customers whose clean answer is known exactly. A pipeline that is right must turn it back into the clean RFM table, customer by customer. The same pipeline then runs, unchanged, on the real log. The amounts in the messy log are in dollars; Online Retail II's are in pounds sterling.
+
+## Notation for this module
+
+Time is in weeks (days divided by 7), as in Modules 1, 2 and 4.
+
+| Symbol | Meaning |
+|---|---|
+| $x$, $t_x$, $T$ | repeat purchase days, time of the last purchase day since the first, age at the calibration end ([Module 1](/modules/01-customer-base.qmd#rfm-table)) |
+| $\tau$ | the calibration end: 2024-12-29 for the messy log, 2011-06-30 for Online Retail II |
+| $z_{id}$ | the amount of customer $i$'s purchase day $d$ (the sum of its lines' quantity × price) |
+| $\bar z_i$ | customer $i$'s mean amount over their $x_i$ repeat purchase days (`monetary_value`) |
+| $r$, $\alpha$ | shape and rate of the gamma distribution of purchase rates across customers (BG/NBD, Module 2) |
+| $a$, $b$ | parameters of the beta distribution of the probability of leaving after a repeat purchase (BG/NBD) |
+| $p$, $q$, $v$ | Gamma-Gamma parameters (Module 4); the population mean spend per purchase day is $p v/(q - 1)$ |
+| $\theta$ | the parameters of one model: $(r, \alpha, a, b)$ or $(p, q, v)$ |
+| $s_i$ | customer $i$'s expected spend per purchase day, given their history |
+| $X_i(h)$ | customer $i$'s purchase days in the next $h$ weeks |
+| $R_i(h)$ | **revenue score**: expected purchase days in the next $h$ weeks × expected spend per purchase day |
+| $C_P$ | the cap at the $P$th percentile of calibration purchase-day amounts |
+| $c$, $m$, $\ell$ | contact cost (£10), margin (30%) and the assumed lift of a contact (10%) |
+
+## 2. Cleaning rules you can check
+
+**Objective for this section:** write SQL rules that flag non-product lines, exact duplicate lines, and cancellations together with the purchases they cancel, and show that they reproduce the clean RFM table of the synthetic retailer exactly.
+
+### Flags, not deletions
+
+A **flag** is a true/false column that marks a line for removal without removing it. Flags keep every rule separate, so section 3 can switch one off at a time and measure what it does. Exercise 1 writes three of them in DuckDB SQL, one row per line:
+
+```sql
+SELECT line_id,
+       customer_id IS NULL                       AS no_customer,
+       NOT regexp_matches(stock_code, '^[0-9]{5}') AS non_product,
+       ROW_NUMBER() OVER (PARTITION BY invoice, stock_code, description, quantity,
+                                       invoice_date, price, customer_id, country
+                          ORDER BY line_id) > 1   AS duplicate
+FROM lines
+```
+
+Each expression encodes a decision. The pattern `'^[0-9]{5}'` asks only that a code *start* with five digits, so `15056BL`, a product with a letter suffix, stays; the UCI page describes a stock code as "a 5-digit integral number uniquely assigned to each distinct product" (Chen 2012). On the real log the rule also drops a few product-like codes, such as `PADS` (19 lines with a customer) and `SP1002` (2): a known approximation. `ROW_NUMBER()` numbers identical lines in log order, so `> 1` keeps the first copy and flags the rest. `PARTITION BY` treats two missing customer IDs as equal; a self-join on `=` would not, and would miss copies of lines without a customer ID. Treating exact copies as errors is itself an assumption: a customer may really have entered the same line twice. Section 3 measures what it costs if that assumption is wrong.
+
+One customer of the messy log shows why the first two rules matter. Customer 563 bought once, a \$37.24 product on 2024-02-25, on an invoice that also carries a `POST` line (\$4.95) and a `C2` line (\$25.00); on 2024-07-02 a standalone invoice holds one `M` line of \$30.77. Under Module 1's rules this customer has two purchase days, \$67.19 and \$30.77: a repeat buyer ($x = 1$) whose only repeat "purchase" is a manual adjustment. Under the pipeline they bought once, \$37.24, and $x = 0$.
+
+On the messy log (FULL run), the three flags mark 8,169 lines without a customer (22.4% of all lines), 1,447 non-product lines (4.0%) and 530 duplicates (1.5%). Module 1's rules keep 27,640 lines; the two new rules flag 1,836 of them, **6.6%**.
+
+### Matching a cancellation to the purchase it cancels
+
+Module 1 dropped the cancellation lines and kept the purchases they cancel. To drop both, each cancellation line $j$ must find its purchase line. The rule: the **latest** purchase line, at or before the cancellation, of the same customer, with the same stock code, the same price and the opposite quantity. With $\text{ts}_k$ the timestamp of line $k$ and $n_k$ its quantity,
+
+$$
+\begin{aligned}
+P(j) &= \{\, k \text{ a purchase line} :\ \text{customer}_k = \text{customer}_j, \\
+&\hphantom{{}= \{\, k \text{ a purchase line} :\ } \text{code}_k = \text{code}_j,\ \text{price}_k = \text{price}_j, \\
+&\hphantom{{}= \{\, k \text{ a purchase line} :\ } n_k = -n_j,\ \text{ts}_k \le \text{ts}_j \,\}, \\[4pt]
+\text{original}(j) &= \operatorname*{arg\,max}_{k \in P(j)}\ \text{ts}_k \quad \text{(none if } P(j) \text{ is empty)}.
+\end{aligned}
+$$ {#eq-asof}
+
+That is exactly an **ASOF join**: it matches each row on the left to the nearest earlier row on the right with the same keys, at most one (DuckDB's guide). The equality conditions choose the group; the one inequality chooses the nearest earlier row. `ASOF LEFT JOIN` keeps a cancellation that finds no purchase, with the purchase missing:
+
+```sql
+FROM c ASOF LEFT JOIN p
+  ON c.customer_id = p.customer_id AND c.stock_code = p.stock_code
+ AND c.price = p.price AND -c.quantity = p.quantity
+ AND c.invoice_date >= p.invoice_date
+```
+
+with `c` the cancellation lines and `p` the purchase lines among those no flag removes. The matching runs after the duplicate rule, because a duplicated purchase would otherwise compete for the match. The lab shows the join first on last-click attribution (each order gets the customer's latest click at or before it), a case most analysts know.
+
+### The check: the clean answer, exactly
+
+A provided pipeline drops every flagged line, every cancellation line and every matched purchase, applies Module 1's last rule (quantity and price above zero), sums each customer's lines per purchase day and builds the calibration RFM table. On the messy log, all 644 cancellation lines find a purchase, 644 different ones, and the result equals the RFM table of the clean log for **all 2,513 customers**, to $10^{-9}$ (FULL run). That is a test Module 1 could not run: not "how many rows were dropped" but "is every customer's frequency, recency, age and mean spend what it should be".
+
+The difference Module 1's cancellation rule makes, measured on the same log: mean frequency 3.727 against 3.683, and mean repeat spend \$36.09 against \$35.73. Kept cancelled orders make the average customer look about 1% more frequent and 1% bigger.
+
+**Clean the whole log, then split it.** Eleven matched purchases fall on or before the calibration end and their cancellations after it. Split the log first and clean each part, and those eleven purchases stay in the calibration data as if they were real, because their cancellations are in the other part.
+
+### On the real log
+
+The same SQL on Online Retail II (FULL run): 235,287 lines without a customer, 5,992 non-product lines and 11,812 duplicates; of the 17,586 cancellation lines that remain, **6,107 (35%) find a purchase**. Computed for this page: of the 11,479 that find none, 9,049 have an earlier purchase of the same product at the same price in a larger quantity, as a partial return would; 1,530 have no earlier purchase of that product by that customer in the data, as when the goods were bought before the data begin; and 706 have earlier purchases only at another price. These cancellation lines are dropped without netting, so those purchases keep their gross amount, an approximation the lab states. The cleaned log has 32,721 purchase days of 5,839 customers.
+
+An ASOF join gives each cancellation at most one purchase, but two cancellations can pick the same purchase: 123 of the 6,107 did. The lab keeps that as a stated approximation. When it was built, pairing them one to one matched 39 more purchase lines (£4,955) and changed one customer's place on the contact list of section 7.
+
+::: {.self-check}
+**Check yourself.** A customer buys 3 units of a product at £2 on Monday. On Wednesday a `C` invoice returns 1 unit. What does @eq-asof do with the return, and what happens to Monday's £6 in the pipeline?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Nothing matches: the return's quantity is $-1$ and the purchase's is 3, not 1. The `C` line is dropped by Module 1's rule, and Monday's line stays at its gross £6, although the customer kept goods worth £4. Netting partial returns needs a different rule (subtract returned units from the latest earlier purchases); the lab leaves it as an approximation. On Online Retail II, partial returns are one reason only 35% of cancellation lines find a match.
+:::
+:::
+
+## 3. One error at a time: what moves, and for whom
+
+**Objective for this section:** measure, one rule at a time, how leaving each error in moves BG/NBD and Gamma-Gamma estimates, total expected revenue and individual customer scores, against the clean answer and the known truth.
+
+The **pipeline** is the ordered list of cleaning rules; the **reference pipeline** applies them all; a **variant** is the reference with one rule changed. The lab fits both models to the reference and to five variants: keep the non-product lines; keep the duplicates; Module 1's cancellation rule (drop the `C` lines, keep the purchases they cancel); all three of Module 1's leftovers together (the pipeline Module 1 used); and count invoices instead of purchase days.
+
+### What gets fitted: two likelihoods, maximized
+
+PyMC-Marketing builds and compiles a model for each fit; in the workshop's Colab spike, a first BG/NBD MAP fit on CDNOW took 30.3 s. Twelve fits in one sweep, and more in Parts C and D, would take minutes, so the lab uses a small helper, `mktstats.mle`, that maximizes the same two likelihoods directly. Neither is new. Averaged over the gamma distribution of purchase rates and the beta distribution of dropout probabilities, [Module 2](/modules/02-btyd.qmd)'s likelihood of one customer's history becomes a closed form in the population parameters (Fader, Hardie and Lee's note 004):
+
+$$
+\begin{aligned}
+L(r, \alpha, a, b \mid x, t_x, T) &= A_1\, A_2 \left(A_3 + \mathbb{1}[x > 0]\, A_4\right), \\[4pt]
+A_1 &= \frac{\Gamma(r + x)\, \alpha^{r}}{\Gamma(r)}, \qquad
+A_2 = \frac{\Gamma(a + b)\, \Gamma(b + x)}{\Gamma(b)\, \Gamma(a + b + x)}, \\[4pt]
+A_3 &= \left(\frac{1}{\alpha + T}\right)^{r + x}, \qquad
+A_4 = \frac{a}{b + x - 1} \left(\frac{1}{\alpha + t_x}\right)^{r + x},
+\end{aligned}
+$$ {#eq-bgnbd-ll}
+
+where $\Gamma$ is the gamma function and $\mathbb{1}[x > 0]$ is 1 for a repeat buyer and 0 otherwise. $A_3$ is the "still alive at $T$" term and $A_4$ the "left right after the last purchase" term of Module 2; the indicator is why a customer with no repeat purchase cannot have left in the BG/NBD. For the spend model, a repeat buyer's mean $\bar z$ over $x$ repeat purchase days, averaged over the gamma distribution of customers' spend rates, has the density (Fader and Hardie's note 025, equation 1a, who write $\gamma$ for $v$):
+
+$$
+f(\bar z \mid x;\ p, q, v) = \frac{\Gamma(p x + q)}{\Gamma(p x)\, \Gamma(q)}\; \frac{v^{q}\, \bar z^{\,p x - 1}\, x^{p x}}{(v + x \bar z)^{p x + q}} .
+$$ {#eq-gg-ll}
+
+The **maximum-likelihood estimate** is the parameter value that makes the observed RFM table most probable:
+
+$$
+\hat\theta = \operatorname*{arg\,max}_{\theta} \sum_{i} \log L_i(\theta),
+$$ {#eq-mle}
+
+summed over all customers for @eq-bgnbd-ll and over repeat buyers for @eq-gg-ll. Modules 2 and 4 showed that PyMC-Marketing's MAP with flat priors is this estimate and reproduces the published CDNOW values. The helper writes the two log-likelihoods with NumPy, transcribed from PyMC-Marketing 1.2.0's source, and maximizes them with SciPy on the log of each parameter, so every parameter stays positive. Like MAP, it gives one number per parameter and **no interval**: every comparison in this module is between point estimates.
+
+Before any sweep relies on it, the lab fits the reference pipeline's RFM table both ways. The helper and PyMC-Marketing's flat-prior MAP agree to a largest relative difference of $1.6 \times 10^{-5}$ for the BG/NBD and $9.5 \times 10^{-8}$ for the Gamma-Gamma (FULL run; the lab's check allows 0.5%).
+
+### Why purchase days, not invoices or lines
+
+Both models describe *decisions to buy*. The BG/NBD says purchases arrive at a steady random rate while a customer is alive, and that after each repeat purchase the customer may leave; the Gamma-Gamma says each purchase's amount varies around the customer's own mean. A split order is one decision written down twice. Counted as two invoices, it adds 1 to $x$ with no time between the two "purchases": the purchase model can only read that as a faster buyer, with one more chance to leave, and the spend model sees two halves of one basket, smaller and more variable than the customer's real purchases. Counting lines is worse still: every product in a basket becomes a purchase. Purchase days are the unit both models assume; the pre-work and Module 1 fixed that rule, and this sweep measures what breaking it costs.
+
+On the messy log, counting lines raises the mean frequency from 3.68 to 5.00 (the lab does not fit it). Counting invoices is fitted: see its row in the tables below. It also breaks a rule every RFM table of purchase days obeys, that recency is 0 exactly when frequency is 0: two invoices on a customer's first day give frequency 1 and recency 0.
+
+### What each choice moves
+
+Purchase model, on the messy log (FULL run). The reference row shows values; the other rows the change from it:
+
+| Pipeline | $r$ | $\alpha$ | $a$ | $b$ | 52-week forecast |
+|---|---|---|---|---|---|
+| reference | 0.385 | 2.619 | 0.402 | 2.915 | 8,358 |
+| keep non-product lines | +6.5% | +6.2% | −7.3% | −11.1% | +2.7% |
+| keep duplicate lines | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| Module 1's cancellation rule | +0.3% | −2.2% | +3.4% | +2.1% | 0.0% |
+| Module 1's rules | +6.8% | +3.8% | −4.0% | −8.9% | +2.8% |
+| count invoices, not days | −1.0% | −27.6% | −1.8% | −23.5% | +8.5% |
+
+Spend model (truth for the retail customers: $p = 6$, $q = 4$, $v = 15$, population mean \$30):
+
+| Pipeline | $p$ | $q$ | $v$ | Population mean spend |
+|---|---|---|---|---|
+| reference | 8.333 | 3.375 | 9.242 | \$32.42 |
+| keep non-product lines | −16.5% | +5.1% | +29.1% | +0.6% |
+| keep duplicate lines | +2.3% | −0.9% | −1.9% | +1.7% |
+| Module 1's cancellation rule | −14.2% | +1.0% | +19.8% | +1.4% |
+| Module 1's rules | −24.7% | +5.4% | +48.0% | +3.5% |
+| count invoices, not days | −68.7% | +10.8% | +231.7% | −9.9% |
+
+Duplicates leave the purchase model exactly unchanged: a copy sits on the same invoice and day, so it never adds a purchase day. Counting invoices does more damage than any row-level error: $\alpha$ falls by 27.6%, which raises the average purchase rate $r/\alpha$, the forecast rises by 8.5%, and $p$ falls by more than two thirds, the signature of spend that looks more variable than it is.
+
+The purchase model has no true parameters to compare with. The synthetic retailer was generated by a Pareto/NBD (Module 2), so a BG/NBD fitted to it can only be judged by its forecast. The reference forecasts 8,358 purchase days in the 52-week holdout against 7,787 that the clean log realized, **7.3% high**. The lab allows 20%, set above the largest error over 30 independent seeds of the generator (17.8%; mean +8.0%). So in aggregate the model's own error is larger than what any row-level cleaning error did to the forecast.
+
+### Aggregate and individual
+
+For a decision about customers, the quantity that matters is each customer's **revenue score**,
+
+$$
+\begin{aligned}
+R_i(h) &= E\left[X_i(h) \mid x_i, t_{x,i}, T_i\right] \times s_i, \\[4pt]
+s_i &= (1 - w_i)\,\frac{p\, v}{q - 1} + w_i\, \bar z_i, \\[4pt]
+w_i &= \frac{p\, x_i}{p\, x_i + q - 1},
+\end{aligned}
+$$ {#eq-score}
+
+the BG/NBD's expected purchase days in the next $h$ weeks (Module 2) times the Gamma-Gamma's expected spend per purchase day, a weighted average of the population mean and the customer's own mean (Module 4; note 025, equation 5). Exercise 3 compares each variant's scores $R^{(v)}_i$ with the reference's $R^{(0)}_i$ in two ways:
+
+$$
+\begin{aligned}
+\Delta_{\text{total}} &= 100 \left( \frac{\sum_i R^{(v)}_i(52)}{\sum_i R^{(0)}_i(52)} - 1 \right), \\[4pt]
+N_{\text{moved}} &= \#\left\{ i : \left| \frac{R^{(v)}_i(52)}{R^{(0)}_i(52)} - 1 \right| > 0.10 \right\}.
+\end{aligned}
+$$ {#eq-effects}
+
+FULL run, 2,513 customers:
+
+| Pipeline | Total change | Customers moved by more than 10% |
+|---|---|---|
+| keep non-product lines | +3.6% | 225 |
+| keep duplicate lines | +1.5% | 75 |
+| Module 1's cancellation rule | +1.3% | 127 |
+| Module 1's rules | **+6.4%** | **449** |
+| count invoices, not days | −3.2% | 1,710 |
+
+Module 1's rules move the total by 6.4%, and move 449 customers, 18% of them, by more than 10% each. The two numbers answer different questions. The total is a sum over 2,513 customers, so large changes for a minority, or rises offset by falls, can leave it nearly unchanged. Each customer's score moves for two reasons. Their own data change, if a fee invoice or a cancelled order touched them. And the spend parameters change for everyone: $p$, $q$ and $v$ trade off against each other, so under Module 1's rules $p$ fell 24.7% and $v$ rose 48.0% while the population mean $p v/(q-1)$ rose only 3.5%. A smaller $p$ and a larger $q$ lower every repeat buyer's weight $w_i$ in @eq-score, so every customer's expected spend leans differently between their own mean and the population's. The largest single change is extreme: under "keep non-product lines" one customer's score rose by about 37.7 million percent. Computed for this page from the committed data: customer 1311 bought on 14 days between late March and early June 2024 and then nothing for 30 weeks. The BG/NBD reads a frequent buyer gone silent that long as almost certainly lost and scores them at a fraction of a cent. A single \$56.97 manual-adjustment invoice five weeks before the calibration end shortens the silence to five weeks, and the score becomes \$213.
+
+The lesson for reporting: a cleaning choice that barely moves a total can still move many individual customers. Measure it on the quantity the decision uses, not on the parameters or the total.
+
+::: {.self-check}
+**Check yourself.** Keeping duplicate lines changed nothing in the purchase model but moved 75 customers' scores by more than 10%. How can a rule that never touches $x$, $t_x$ or $T$ move a customer's score?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Through spend. A duplicate inflates the amount of a purchase day, so it raises $\bar z_i$ for the customers it touches, and it shifts $p$, $q$ and $v$ for everyone (+2.3%, −0.9% and −1.9%; the population mean +1.7%). The score is expected purchases times expected spend (@eq-score), so a customer's score moves when either factor does. Here the purchase factor was identical and only the spend factor moved.
+:::
+:::
+
+## 4. Extreme orders: cap for the fit, not for the value
+
+**Objective for this section:** cap extreme order values at a stated percentile and show what the cap does to the spend parameters and to the value of the capped wholesale customers.
+
+The 13 wholesale customers are 0.5% of the messy log's customers. On the 11,768 purchase days of the calibration period the median amount is \$24.39, and the ten largest, from \$1,021.39 to \$2,449.80, all belong to wholesale customers (FULL run). They are real customers, but the Gamma-Gamma describes one population of spend rates, and a handful of customers who spend 40 times as much stretch it: the reference fit gives $p = 8.333$, $q = 3.375$, $v = 9.242$ against the retail truth of 6, 4 and 15.
+
+To **cap at a percentile** (also called winsorizing) is to replace every amount above a percentile with that percentile:
+
+$$
+\begin{aligned}
+C_P &= \text{the } P\text{th percentile of } \{ z_{id} : d \le \tau \}, \\[4pt]
+\tilde z_{id} &= \min\left(z_{id},\ C_P\right),
+\end{aligned}
+$$ {#eq-cap}
+
+over all customers' calibration purchase days, first purchases included, with pandas' default linear interpolation. Three details matter, and the lab's checkpoint names each mistake: the cap comes from calibration days only, so nothing from the holdout leaks in; it caps each purchase day *before* the RFM table is built, not customers' means; and `pct` is in percent, so the pandas call is `quantile(pct / 100)`.
+
+### What the cap does to the spend parameters
+
+FULL run, Gamma-Gamma maximum-likelihood fits on the messy log:
+
+| Cap | $C_P$ | $p$ | $q$ | $v$ | Population mean |
+|---|---|---|---|---|---|
+| none | — | 8.333 | 3.375 | 9.242 | \$32.42 |
+| P99.9 | \$958.20 | 8.204 | 3.398 | 9.458 | \$32.36 |
+| P99.5 | \$323.73 | 7.339 | 3.581 | 11.212 | \$31.88 |
+| P99 | \$171.91 | 6.685 | 3.773 | 13.039 | \$31.43 |
+| P95 | \$83.09 | 5.392 | 4.469 | 19.353 | \$30.08 |
+| wholesale dropped (oracle) | — | 6.576 | 3.917 | 13.713 | \$30.92 |
+| truth (retail customers) | | 6 | 4 | 15 | \$30 |
+
+The **oracle** row drops the wholesale customers using the truth file, which no analyst has; it shows what the retail customers' own data give, sampling noise included. Capping at the 99th percentile lands near it. Computed for this page from the committed data: the \$171.91 cap lies below 118 of the 11,768 calibration purchase days, and 55 of those are wholesale days, which is every wholesale purchase day in the calibration period. The P99.9 cap touches only 12 of those 55 days. The P99.5 cap touches 54 of them, but at \$323.73 they stay more than ten times the median purchase day (\$24.39). A deeper cap (P95) goes past the oracle ($p$ 5.392 and $v$ 19.353 against 6.576 and 13.713): it also trims ordinary large retail orders, and the population mean drops below what the retail customers' own data give.
+
+The lab's check of the P99 fit against the truth is loose for $p$ and $v$ (within 90% and 55%) and tight for the population mean (8%). Those are the largest errors over 30 independent seeds of the generator, rounded up. $p$, $q$ and $v$ trade off against each other, so data of this size pin down their combination $p v/(q-1)$ much better than any one of them.
+
+### What the cap does to the wholesale customers' value
+
+The cap belongs in the **fit**, where it stops a few huge purchases from setting the shape of everyone's spend distribution. It does not belong in the **valuation**, where each customer's expected spend $s_i$ uses their own mean $\bar z_i$ (@eq-score). The 13 wholesale customers' expected 52-week revenue against their true value of \$30,309 (FULL run):
+
+| Valuation | Expected 52-week revenue | Against the truth |
+|---|---|---|
+| no cap | \$24,950 | −18% |
+| P99 parameters, their own raw means | \$24,458 | −19% |
+| P99 parameters and capped amounts | \$6,469 | **−79%** |
+
+With capped amounts, every wholesale customer enters the valuation with a mean of at most \$171.91, against a true mean spend of \$1,200 for the wholesale population: the cap rewrites their history. Even uncapped they are undervalued, because the Gamma-Gamma pulls each customer's mean toward the population mean of about \$32, and wholesale customers have few repeat purchases: at the reference fit, a customer with one repeat purchase day gets a weight of $w = 8.333/(8.333 + 2.375) = 0.78$ on their own mean (computed for this page from the printed parameters), and the purchase model adds its own error. A segment of their own, valued with their own means, is the real fix (stretch 3).
+
+::: {.self-check}
+**Check yourself.** Take the P99 fit ($p = 6.685$, $q = 3.773$, population mean \$31.43) and a wholesale customer with two repeat purchase days averaging \$1,200. What expected spend per purchase day does @eq-score give with their raw mean, and with their mean capped at \$171.91?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$w = 2 \times 6.685 / (2 \times 6.685 + 2.773) = 0.828$. Raw: $0.172 \times 31.43 + 0.828 \times 1{,}200 \approx \$999$. Capped: $0.172 \times 31.43 + 0.828 \times 171.91 \approx \$148$. The same parameters value the same customer at about a seventh of their raw-mean spend once their history is capped: the mechanism behind the −79% in the table.
+:::
+:::
+
+## 5. The real log: Online Retail II
+
+**Objective for this section:** fit BG/NBD and Gamma-Gamma to cleaned UCI Online Retail II, check them on a holdout period, and test the spend-independence assumption with Pearson and rank correlations.
+
+The pipeline tested in section 2 runs on Online Retail II unchanged. The calibration period ends on 2011-06-30 and the holdout runs to 2011-12-09, the last day in the data (23.14 weeks). At the calibration end there are 5,008 customers, 3,390 of them repeat buyers. FULL run, maximum-likelihood fits:
+
+- **BG/NBD:** $r = 0.672$, $\alpha = 9.444$, $a = 0.150$, $b = 3.051$. The average purchase rate $r/\alpha$ is 0.071 purchase days a week, about one every 14 weeks, and the average probability of leaving after a repeat purchase, $a/(a + b)$, is 0.047 (arithmetic on the fitted values).
+- **Gamma-Gamma:** $p = 2.402$, $q = 3.553$, $v = 418.79$; population mean spend £393.9 per purchase day. A small $p$ means each customer's purchase days vary a lot around their own mean, so one purchase is weak evidence: a customer with one repeat purchase day gets a weight of 0.48 on their own mean, one with ten, 0.90 (@eq-score).
+
+### Holdout tracking
+
+The model forecasts each customer's purchase days in the holdout from their calibration history alone. Grouped by calibration frequency (FULL run):
+
+| Repeat purchase days in calibration | Customers | Actual mean in holdout | Predicted mean |
+|---|---|---|---|
+| 0 | 1,618 | 0.42 | 0.42 |
+| 1 | 892 | 0.67 | 0.68 |
+| 2 | 560 | 0.95 | 0.90 |
+| 3 | 415 | 1.15 | 1.13 |
+| 4 | 318 | 1.47 | 1.42 |
+| 5 | 200 | 1.68 | 1.64 |
+| 6 | 183 | 1.85 | 1.78 |
+| 7 or more | 822 | 4.47 | 4.10 |
+
+In total the model predicts 6,738 holdout purchase days against 7,107 actual, **5.2% low**, and most of the shortfall is among the most frequent buyers. Two features of the data work against it. The holdout contains the pre-Christmas season, and the BG/NBD has no seasonality. And the data are **left-censored**: customers who bought before December 2009 enter the data as if they were new (Module 1's first cohort), so their age $T$ is too short and the model misreads how often they buy (stretch 2).
+
+### Is spend independent of how often a customer buys?
+
+The Gamma-Gamma assumes that "the distribution of average transaction values across customers is independent of the transaction process" (Fader and Hardie, note 025). Module 4 checked it with the Pearson correlation between $x$ and $\bar z$ among repeat buyers, and accepted 0.11 on CDNOW. A **rank correlation** (Spearman's) is the Pearson correlation of the ranks, so a few huge values cannot dominate it. Among Online Retail II's 3,390 repeat buyers (FULL run):
+
+| Correlation of $x$ and $\bar z$ | Value |
+|---|---|
+| Pearson | 0.134 |
+| Spearman (rank) | 0.255 |
+| Pearson, $\bar z$ capped at its own 99th percentile | 0.184 |
+
+The rank correlation is about twice the Pearson one, and capping the largest means raises Pearson: a few customers with very large means weaken the linear association, and with them set aside, frequent buyers tend to spend more per purchase. The assumption is strained. Its consequence runs through @eq-score: a customer with few purchases is shrunk toward a population mean that is probably too high for them. The lab notes this and does not fix it; fixing it needs a model in which spend and frequency are related.
+
+## 6. From scores to a contact list
+
+**Objective for this section:** turn the fitted models into a retention-contact list and report which cleaning or counting choice moves it most.
+
+A **contact lift** is the share by which a retention contact raises a customer's purchases. A contact earns lift × margin × expected revenue and costs $c$, so it pays when
+
+$$
+\ell\, m\, R_i(26) > c
+\quad\Longleftrightarrow\quad
+R_i(26) > \frac{c}{\ell\, m}
+\quad\Longleftrightarrow\quad
+\ell_i^{*} = \frac{c}{m\, R_i(26)} < \ell ,
+$$ {#eq-contact}
+
+with $R_i(26)$ from @eq-score over a 26-week horizon. The middle form is a bar on expected revenue; the right-hand form is [Module 5](/modules/05-clv-decisions.qmd)'s break-even lift $\ell_i^*$ turned around: contact when the lift the customer needs is below the lift assumed. At $c$ = £10, $m$ = 30% and $\ell$ = 10%, the bar is £10 / (0.10 × 0.30) = **£333.33** of expected 26-week revenue. The margin is Module 5's; the cost and, above all, the lift are assumptions. Nobody has measured the lift.
+
+On Online Retail II the mean customer's expected 26-week revenue is £713 and the median £283 (FULL run): the median customer is below the bar, a few large customers pull the mean above it, and 2,212 of the 5,008 customers (44%) clear it.
+
+**Who is on the list.** The largest expected gains belong to frequent, recent buyers. Customer 18102, for example, has 51 repeat purchase days, last bought 2.3 weeks before the calibration end and averaged £8,309.54 per repeat purchase day; the models expect 14.22 purchase days in the next 26 weeks at £8,147.89 each; at a 10% lift, a contact gains £3,476.43 of margin. Just above the bar are customers of another kind: three of the ten closest have no repeat purchase and were first seen 10.29 weeks before the calibration end. The BG/NBD says such a customer cannot have left yet (Module 2), so they are expected to buy on 0.85 days in 26 weeks, and with no repeat purchase their expected spend is the population mean, £393.90. Together that is about £335 of expected revenue and a gain of £10.04 against a £10 cost. They are on the list because of the model's assumptions, not their own history.
+
+**What cleaning does to one customer.** Customer 12346 shows how a cleaning error concentrates on individuals. Under Module 1's rules this customer has frequency 7 and a mean repeat spend of £11,066.64: most of their "purchases" are eight `TEST001` lines ("This is a test product.") in December 2009 and January 2010, and on 2011-01-18 they ordered 74,215 `MEDIUM CERAMIC TOP STORAGE JAR` at £1.04 (£77,183.60), cancelled 16 minutes later by invoice `C541433`. Module 1's rules keep the order and value the customer at £18,026.64 over 26 weeks, far above the bar. The pipeline drops the test lines and the cancelled order: frequency 1, mean repeat spend £142.31, £113.12 over 26 weeks, below the bar. (The largest line in the whole log, 80,995 `PAPER CRAFT , LITTLE BIRDIE` at £2.08, £168,469.60, was also cancelled 12 minutes later, on 2011-12-09; it falls in the holdout.)
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Contact an Online Retail II customer at the end of June 2011 when the assumed lift times margin times expected 26-week revenue exceeds the contact cost (@eq-contact), with the reference pipeline's fits. At £10 a contact, a 30% margin and a 10% lift, that is expected 26-week revenue above £333.33.
+
+FULL run, 5,008 customers:
+
+- **The list:** 2,212 customers. Contacting them costs £22,120. If the lift is 10%, the extra margin they bring is £92,541, £70,421 net of the cost.
+- **The assumption that moves it:** at a 5% lift the list falls to 1,114 customers; at 20% it grows to 3,446. Halving or doubling the lift moves 1,098 or 1,234 customers.
+- **The cleaning choices**, each against the reference list:
+
+| Cleaning or counting choice | Added | Dropped | Moved |
+|---|---|---|---|
+| count invoices, not purchase days | 14 | 139 | **153** |
+| Module 1's rules | 48 | 3 | 51 |
+| Module 1's cancellation rule | 24 | 3 | 27 |
+| keep non-product lines | 17 | 3 | 20 |
+| cap at P99 (£3,663) | 5 | 15 | 20 |
+| cap at P99, for fitting only | 5 | 14 | 19 |
+| keep duplicate lines | 10 | 1 | 11 |
+| cap at P99.9 (£16,488) | 1 | 1 | 2 |
+
+- **No interval.** The fits are point estimates; the spread shown is across assumed lifts and cleaning choices, not a posterior.
+
+**Recommendation.** Contact the 2,212 customers the tested pipeline puts above the bar, at a cost of £22,120, and treat the £70,421 as conditional on a lift nobody has measured: hold out a random part of the list (Module 6) so the campaign measures the lift it assumed. The assumed lift moves the list about seven times as much as the most damaging cleaning choice (1,098 customers against 153), but cleaning still decides *who* is on it: Module 1's rules add 48 customers, among them a test account they value at £18,027 that the pipeline values at £113, and counting invoices drops 139.
+
+What would change the recommendation: a measured lift (it moves the bar, and the list, more than anything else here), a different contact cost or margin, or a cleaning rule this module did not test, such as netting partial returns.
+:::
+
+## 8. What this module cannot tell you
+
+- **Who the missing customers are.** 235,287 lines of Online Retail II (22.5%) have no customer ID. No rule can give them one. If some are known customers who checked out without logging in, their frequency is understated and their value with it; nothing in the data says how many (stretch 1 simulates it on the messy log).
+- **The lift.** The decision's largest uncertainty is an assumption. Whether a contact raises purchases at all, and for whom, is a question for an experiment (Modules 6 and 11), not for a BTYD model.
+- **Whether the purchase model is right on the messy log.** The synthetic retailer is a Pareto/NBD, so the BG/NBD fitted to it has no true parameters. The sweep compares each variant's purchase model with the reference pipeline and the realized holdout; only the spend model has a truth to hit. On the real log there is no truth at all, only the holdout.
+- **How sure the fits are.** Every fit is a maximum-likelihood point estimate. Customers near the bar could fall on either side once parameter uncertainty is counted (stretch 4 adds a posterior).
+- **Whether the cleaning is right on the real log.** The pipeline reproduced a known answer on a log built to resemble Online Retail II. On the real log, errors the generator did not imitate, such as partial returns, price adjustments and returns of goods bought before the data begin, are handled only approximately.
+
+## Summary
+
+- A log records lines and invoices, not decisions. Non-product lines, exact duplicates and cancelled purchases survive Module 1's rules and change frequency or spend; split orders do too unless purchases are counted by day.
+- Flags in SQL keep each rule separate. An ASOF join (@eq-asof) matches each cancellation to the latest earlier purchase with the same customer, code, price and opposite quantity. On a dirtied copy of the retailer the pipeline reproduced the clean RFM table of all 2,513 customers exactly.
+- Clean the whole log, then split it: 11 cancelled purchases would otherwise stay in the calibration data.
+- The sweep fits the BG/NBD and Gamma-Gamma by maximum likelihood (@eq-bgnbd-ll, @eq-gg-ll, @eq-mle), the same estimate as Modules 2 and 4's flat-prior MAP.
+- Row-level errors moved totals a few percent (Module 1's rules: +6.4% of 52-week revenue) but moved 449 of 2,513 customers by more than 10% (@eq-effects). Counting invoices instead of purchase days did the most damage.
+- Capping purchase days at the 99th percentile (@eq-cap) brought the spend parameters close to a fit without the wholesale customers. Cap for the fit, not the valuation: capped amounts undervalued the wholesale customers by 79%.
+- On Online Retail II the BG/NBD forecast the holdout 5.2% low, and the rank correlation of frequency and spend (0.255) strains the Gamma-Gamma's independence assumption.
+- Contact when lift × margin × expected revenue exceeds the cost (@eq-contact): 2,212 of 5,008 customers. The assumed lift moves the list far more than any cleaning choice; cleaning decides which customers are on it.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 13 |
+|---|---|---|
+| The three flags (section 2) | non-product, duplicate and no-customer lines | **Exercise 1**: `flag_lines(con, table)`; Checkpoint 1 checks a nine-line toy table, then each flag's count and the hash of its lines against the truth, before any fit |
+| @eq-asof | matching cancellations to purchases | **Exercise 2**: `match_cancellations(con, table)`; Checkpoint 2 checks eight toy cases, then one row per cancellation line, all matched, none twice; then the provided exact-recovery check of the RFM table |
+| @eq-bgnbd-ll, @eq-gg-ll, @eq-mle | the likelihoods and their maximum | Provided: `mktstats.mle`, checked once against PyMC-Marketing's flat-prior MAP |
+| @eq-score, @eq-effects | revenue scores; total change and customers moved | **Exercise 3**: `variant_effects(scores, reference, threshold)`; Checkpoint 3 checks a toy with hand-computed answers and an independent computation on the sweep |
+| @eq-cap | the cap at a percentile | **Exercise 4**: `capped_spend_fit(tx, pct, cal_end)`; Checkpoint 4 checks the cap, the fit on clipped amounts, $p$, $q$, $v$ and the mean against the truth's tolerances, and that `pct=100` changes nothing |
+| Correlations of $x$ and $\bar z$ | the independence check | Provided: Part D |
+| @eq-contact | the contact rule | **Exercise 5**: `contact_list(exp_purchases, exp_spend, cost, margin, lift)`; Checkpoint 5 checks hand cases, one exactly at the bar, that the count never rises with the cost, and the reference count; then the Decision cell |
+
+## Gotchas
+
+- **Timestamps are not days.** `invoice_date` has a time of day; cast it to a date before counting purchase days.
+- **Missing customer IDs form a group.** DuckDB's `GROUP BY customer_id` keeps them as one "customer" with hundreds of purchases; pandas' `groupby` drops them silently. Drop them explicitly.
+- **Anchor the code pattern at the start only.** `'^[0-9]{5}$'` would flag `15056BL`, a product.
+- **`ROW_NUMBER()`, not `COUNT(*)`.** Counting a partition flags the first copy too, and the first copy is the real line.
+- **`ASOF LEFT JOIN`, not `ASOF JOIN`.** Without `LEFT`, cancellations with no match disappear from the result.
+- **Exact ties in an ASOF join.** When two purchase lines tie on every join key and on the timestamp, DuckDB may match either, and with more than one thread the choice can change from run to run. Checked for this page with DuckDB 1.3.2 on Online Retail II: with 10 threads, 8 runs gave two different match sets, which differ for 2 cancellations whose candidate lines sit on the same invoice and minute and differ only in description; with `SET threads = 1`, 8 runs gave one set. The counts, purchase days and amounts were the same either way.
+- **Clean, then split.** Matching within the calibration and holdout parts separately leaves cancelled purchases in the calibration data.
+- **Do not round prices before matching.** A cancellation matches its purchase only on an equal price.
+- **Purchase days, not invoices or lines.** Invoice counts break the RFM rule that recency is 0 exactly when frequency is 0.
+- **The Gamma-Gamma takes repeat buyers with a positive mean.** Pass `rfm[rfm["frequency"] > 0]`.
+- **Cap from the calibration days, before the RFM table, in percent.** `quantile(pct / 100)`; capping customers' means is a different, weaker cap.
+- **Know your customer key.** In Olist's Brazilian e-commerce data, for example, `customer_id` is different for every order; keyed on it, every customer is a one-time buyer, and repeat buyers appear only through `customer_unique_id`.
+- **Currencies.** The messy log is in dollars, Online Retail II in pounds sterling.
+
+## Next steps
+
+Everything in this module inferred churn: a BTYD model never sees a customer leave, and a retention contact is aimed at customers the model believes may be drifting away. Subscribers are different. When a subscriber cancels, the company knows the date. [Module 14](/modules/14-survival-churn.qmd) turns to subscribers, whose churn is observed: survival models with censoring and covariates.
+
+## Further reading
+
+1. Chen, D. (2012). [Online Retail II](https://doi.org/10.24432/C5CG6D) [Dataset]. UCI Machine Learning Repository ([dataset page](https://archive.ics.uci.edu/dataset/502/online+retail+ii)). The data, its license (CC BY 4.0) and its column descriptions, including the `C` prefix for cancellations and the five-digit stock code.
+2. Fader, P. S., Hardie, B. G. S., & Lee, K. L. (2005). [Implementing the BG/NBD model for customer base analysis in Excel](https://www.brucehardie.com/notes/004/). The BG/NBD likelihood in the form of @eq-bgnbd-ll, and how to maximize it in a spreadsheet.
+3. Fader, P. S., & Hardie, B. G. S. (2013). [The Gamma-Gamma model of monetary value](https://www.brucehardie.com/notes/025/). The density of @eq-gg-ll, the expected spend of @eq-score, and the independence assumption.
+4. DuckDB. [AsOf join](https://duckdb.org/docs/current/guides/sql_features/asof_join.html) (guide). The nearest-preceding match, at most one per row, and `ASOF LEFT JOIN`.
+
+Also mentioned: Olist, [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (Kaggle), considered for the lab and not used: its license is CC BY-NC-SA 4.0, and few of its customers buy more than once. Each entry was checked on 2026-10-10; notes 004 and 025 and Online Retail II are also on the [References](/references.qmd) page.

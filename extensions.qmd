@@ -1,0 +1,30 @@
+---
+title: "{{< var days.d6.label >}}"
+subtitle: "{{< var days.d6.title >}}"
+toc: false
+---
+
+<!--
+The page of days.d6 (`track: extensions` in _variables.yml). Written by the Technical Expert as a
+short factual page; the Academic Director may rewrite the prose. Facts come from _variables.yml
+through var shortcodes and the generated _includes/day-6.md.
+-->
+
+::: {.day-question}
+{{< var days.d6.question >}}
+:::
+
+These modules go beyond the {{< var workshop.length >}}. They are optional and have no timetable, and they are not part of the workshop's readiness verdict: they have their own section on the [readiness](readiness.qmd#extensions) page. Each one keeps the module format (a briefing, a lab in Colab and a debrief that ends in a business decision) and starts from the core modules named on its card, not from the capstone.
+
+## How to use them {#use}
+
+- **On your own, after the week.** Pick the extension closest to a problem you have. Review the modules it builds on, read its briefing, then open its lab.
+- **In a custom schedule.** A facilitator can swap an extension in place of a core module: it fits a module's slot. Teach it after the modules it builds on, and check its line on the [readiness](readiness.qmd#extensions) page first, since an extension without a current Colab run is not ready to teach. The [instructor guide](teach.qmd#extensions) gives each lab's timing plan, expected stall points and debrief prompts.
+
+Until a release contains an extension's notebook, its card says "Colab after the next release" instead of offering a Colab button, and links to [running the lab locally](setup.qmd#local).
+
+## The modules {#modules}
+
+{{< include /_includes/day-6.md >}}
+
+The extension notebooks are also listed on the [notebooks](notebooks.qmd#extensions) page.

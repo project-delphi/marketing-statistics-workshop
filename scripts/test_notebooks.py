@@ -11,13 +11,14 @@ Modes:
            verify-end cell that fails unless the copy failed. So one pass shows that the
            lab runs and that every checkpoint can fail on unfinished code (--no-verify
            skips this).
-  learner  nothing written (MKTSTATS_WORKED=0): the run must stop at the first checkpoint
-           with the harness's "TODO n is not written yet" recovery message.
+  learner  nothing written (MKTSTATS_WORKED=0): the run must stop at the first numbered
+           checkpoint (labeled checks of provided code before it pass) with the harness's
+           "TODO n is not written yet" recovery message.
   both     worked, then learner.
 
 Run:
   python scripts/test_notebooks.py [--notebooks ID ...] [--mode worked|learner|both]
-      [--full] [--no-verify] [--save DIR] [--record runs/FILE.json --env ENV]
+      [--full] [--no-verify] [--save DIR] [--record runs/FILE.json --env ENV [--note TEXT]]
   python scripts/test_notebooks.py --notebooks ID --verify-checkpoints   (= --mode worked)
   python scripts/test_notebooks.py --notebooks ID --learner              (= --mode learner)
   python scripts/test_notebooks.py --list-matrix   JSON list of {id, slug, kernel, path}
@@ -26,7 +27,8 @@ The exit code is 1 if any run failed; the --record file is written either way.
 
 `--notebooks` takes ids (python/00-setup-warmup), stems (00-setup-warmup) or paths.
 `--record` writes (or extends) a run-record batch (runs/README.md); `--env` names the
-machine, a key of readiness.envs in _variables.yml.
+machine, a key of readiness.envs in _variables.yml; `--note` adds free text to every new
+entry's `note` (for example the thread limits of a container run).
 """
 
 from __future__ import annotations
@@ -142,10 +144,14 @@ def first_error(nb):
     return None
 
 
-def learner_verdict(nb) -> tuple[bool, str]:
-    """A learner run passes when it stops at the first checkpoint with the recovery message."""
+def learner_verdict(nb, kernel: str = "python3") -> tuple[bool, str]:
+    """A learner run passes when it stops at checkpoint 1 with the recovery message. A labeled
+    check of provided code before it (``workshop.checkpoint(label="data")``) passes on an
+    unwritten notebook, so the run must stop at the first *numbered* checkpoint."""
     stopped = first_error(nb)
     checkpoints = [c for c in nb.cells if c.cell_type == "code" and "checkpoint" in tags(c)]
+    numbered = [c for c in checkpoints if checkpoint_number(c, kernel) is not None]
+    checkpoints = numbered or checkpoints
     if stopped is None:
         return False, "the run did not stop at an unwritten exercise"
     if not checkpoints or stopped is not checkpoints[0]:
@@ -210,7 +216,7 @@ def run(entry: dict, mode: str, verify: bool, save: Path | None, timeout: int) -
         suffix = "" if mode == "worked" else f"-{mode}"
         nbformat.write(nb, out / f"{path.stem}{suffix}.ipynb")
     if mode == "learner":
-        status_ok, verdict = learner_verdict(nb)
+        status_ok, verdict = learner_verdict(nb, kernel)
         if ok:
             status_ok, verdict = False, "the run did not stop at an unwritten exercise"
     else:
@@ -254,7 +260,7 @@ def git_commit() -> str | None:
     return out.stdout.strip() or None
 
 
-def entry_of(r: dict, env: str, v: dict) -> dict:
+def entry_of(r: dict, env: str, v: dict, note: str | None = None) -> dict:
     rec = r["record"] or {}
     entry = {
         "date": dt.date.today().isoformat(),
@@ -293,14 +299,16 @@ def entry_of(r: dict, env: str, v: dict) -> dict:
     ):
         if rec.get(field) is not None:
             entry[field] = rec[field]
-    if not r["ok"]:
-        entry["note"] = r["verdict"]
+    notes = [n for n in (None if r["ok"] else r["verdict"], note) if n]
+    if notes:
+        entry["note"] = "; ".join(notes)
     return entry
 
 
-def write_record(path: Path, env: str, results: list[dict], v: dict) -> Path:
+def write_record(path: Path, env: str, results: list[dict], v: dict,
+                 note: str | None = None) -> Path:
     """Write (or extend) one run-record batch file."""
-    new = [entry_of(r, env, v) for r in results]
+    new = [entry_of(r, env, v, note) for r in results]
     old = []
     if path.exists():
         old = run_records.records_of(json.loads(path.read_text(encoding="utf-8")), path.name)
@@ -346,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--save", type=Path, help="write executed notebooks here")
     parser.add_argument("--record", type=Path, help="write a run-record batch to this file")
     parser.add_argument("--env", help="a key of readiness.envs (with --record)")
+    parser.add_argument("--note", help="a note for every entry the --record batch gets, e.g. the"
+                        " docker run's CPU and thread settings (runs/README.md: `note`)")
     parser.add_argument("--timeout", type=int, default=TIMEOUT, help="seconds per cell")
     parser.add_argument("--list-matrix", action="store_true", help="print notebooks as JSON")
     args = parser.parse_args(argv)
@@ -368,6 +378,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.record and not args.env:
         parser.error("--record needs --env")
+    if args.note and not args.record:
+        parser.error("--note needs --record")
     if args.env and args.env not in v["readiness"]["envs"]:
         parser.error(f"--env {args.env}: not a key of readiness.envs")
     os.environ.setdefault("MKTSTATS_REPO_ROOT", str(ROOT))
@@ -400,7 +412,7 @@ def main(argv: list[str] | None = None) -> int:
                 if r["error"] and mode == "worked":
                     print(r["error"][-4000:])
     if args.record and results:
-        print(f"Run record: {write_record(args.record, args.env, results, v)}")
+        print(f"Run record: {write_record(args.record, args.env, results, v, args.note)}")
     total = len(results) + sum(1 for e in entries if not kernel_available(e["kernel"]))
     print(f"{total - failures} of {total} runs passed")
     return 1 if failures else 0

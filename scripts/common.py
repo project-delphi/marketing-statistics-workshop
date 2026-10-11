@@ -58,6 +58,46 @@ def module_number(key: str) -> int:
     return int(key[1:])
 
 
+CORE = "core"
+
+
+def day_track(v: dict, dkey: str) -> str:
+    """'core' for the workshop's own days (pre-work and Days 1-5); otherwise the day's
+    `track` (`extensions`): optional modules counted and judged apart from the core."""
+    return str(v["days"][dkey].get("track") or CORE)
+
+
+def module_track(v: dict, key: str) -> str:
+    return day_track(v, v["modules"][key]["day"])
+
+
+def track_page(v: dict, dkey: str) -> str:
+    """The page stem of a non-core day: its track's name (`extensions` -> extensions.qmd).
+    The site's page and the notebook footers both link it, so the rule lives here."""
+    return day_track(v, dkey)
+
+
+def extension_days(v: dict) -> list[str]:
+    """Keys of the days on a track other than the core (the extensions), in order."""
+    return [k for k in sorted(v["days"], key=lambda k: int(k[1:])) if day_track(v, k) != CORE]
+
+
+def day_module_numbers(v: dict, dkey: str) -> list[int]:
+    return sorted(module_number(k) for k, m in v["modules"].items() if m["day"] == dkey)
+
+
+def module_range(nums: list[int], noun: str = "Module") -> str:
+    """'Modules 13–17', 'Module 13' or 'Modules 13, 15 and 17' (noun 'Day': 'Days 1–5')."""
+    nums = sorted(nums)
+    if not nums:
+        return f"no {noun.lower()}s"
+    if len(nums) == 1:
+        return f"{noun} {nums[0]}"
+    if nums == list(range(nums[0], nums[-1] + 1)):
+        return f"{noun}s {nums[0]}–{nums[-1]}"
+    return f"{noun}s {', '.join(map(str, nums[:-1]))} and {nums[-1]}"
+
+
 def notebook_id(path: str) -> str:
     """labs/python/00-setup-warmup.ipynb -> python/00-setup-warmup (the id in run records)."""
     p = Path(path)
@@ -66,7 +106,9 @@ def notebook_id(path: str) -> str:
 
 def notebooks(v: dict) -> list[dict]:
     """Every notebook declared in modules.*.notebooks, in module order: one dict with the
-    module key, id, path, source, kernel, language and install list."""
+    module key, its track (day_track), id, path, source, kernel, language, install list and
+    in_ref (False when the entry says `in_ref: false`: repo.ref does not contain the notebook,
+    so a Colab link at repo.ref would not open it; see colab_ready)."""
     out = []
     for key in sorted(v["modules"], key=module_number):
         m = v["modules"][key]
@@ -75,6 +117,7 @@ def notebooks(v: dict) -> list[dict]:
             out.append(
                 {
                     "module": key,
+                    "track": module_track(v, key),
                     "n": module_number(key),
                     "index": i,
                     "id": notebook_id(nb["path"]),
@@ -83,6 +126,7 @@ def notebooks(v: dict) -> list[dict]:
                     "kernel": nb["kernel"],
                     "language": k["language"],
                     "install": list(nb.get("install") or []),
+                    "in_ref": nb.get("in_ref", True) is not False,
                 }
             )
     return out
@@ -90,6 +134,21 @@ def notebooks(v: dict) -> list[dict]:
 
 def existing_notebooks(v: dict) -> list[dict]:
     return [e for e in notebooks(v) if (ROOT / e["path"]).exists()]
+
+
+# What a page or notebook shows instead of a Colab link for a notebook that is written but not
+# in repo.ref (`in_ref: false`), and where it sends the reader: running the lab locally.
+NOT_IN_REF = "Colab after the next release"
+LOCAL_SETUP = "setup.qmd#local"
+
+
+def colab_ready(entry: dict) -> bool:
+    """A Colab link at repo.ref opens this notebook: it is written and repo.ref contains it.
+
+    Whether repo.ref contains it is the declared `in_ref`, never a git lookup, so generated
+    files do not depend on which tags a checkout has fetched; tests/test_colab_ref.py checks
+    the declaration against git wherever repo.ref resolves."""
+    return entry["in_ref"] and (ROOT / entry["path"]).exists()
 
 
 def notebook_by_id(v: dict) -> dict[str, dict]:

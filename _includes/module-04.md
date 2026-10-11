@@ -26,7 +26,7 @@ Time
 :   120 minutes (55 briefing, 55 lab, 10 debrief)
 
 Languages
-:   Python. Python. PyMC-Marketing's GammaGammaModel and ShiftedBetaGeoModel sit on the same posterior machinery as the Module 2 transaction models, so uncertainty can flow from purchases to dollars.
+:   Python. PyMC-Marketing's GammaGammaModel and ShiftedBetaGeoModel sit on the same posterior machinery as the Module 2 transaction models, so uncertainty can flow from purchases to dollars.
 
 Labs
 :   Python: `labs/python/04-monetary-clv.ipynb`

@@ -1,0 +1,465 @@
+---
+title: "{{< var modules.m15.title >}}"
+---
+
+{{< include /_includes/module-15.md >}}
+
+::: {.recap}
+**Where we are.** Modules 6, 7 and 11 estimated the effects of things the company randomized or switched on: an email sent to a random half of a list, a campaign switched on in chosen regions. Installing an app, joining a loyalty program or finishing onboarding (Module 14) are different. Customers choose them, and the customers who choose them differ from those who do not, so a comparison of the two groups mixes the effect with who chose. This module asks: did customers who installed the retailer's new app spend more *because of* the app, and would paying customers to install it pay back?
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-15.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings on 2026-10-10, Run all took 47.0 s on an Apple Silicon laptop (native Python, two threads) and 49.7 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
+
+## 1. A choice nobody randomized
+
+The retailer launched a shopping app and announced it by email and on the checkout page during four launch weeks. Of 20,000 customers, 29.3% installed it in those weeks. Over the next 26 weeks, installers spent \$97.54 on average and non-installers \$31.90. Did the app cause the difference?
+
+Not by itself. Nobody assigned the app; customers chose it. Data in which the treatment was chosen rather than assigned are **observational data**, and the choice is **self-selection**. Customers who had just bought were shopping during the launch weeks and saw the announcement; customers who shop on their phones had a use for an app; customers who open emails read about it. The same customers, recent, frequent, mobile and loyal, also spend the most in the next 26 weeks, app or no app. A **confounder** (a common cause) is a variable that moves both the treatment and the outcome.
+
+The data are synthetic: 20,000 customers from a seeded generator, so the effect of the app on every customer is known and every estimate in the lab is checked against it. Nine covariates were measured in the 12 months before the launch (channel counts as two):
+
+| Covariate | Moves install | Moves spend |
+|---|---|---|
+| `orders_12m`: orders in the 12 months before launch | yes | yes |
+| `days_since_last_order`: at launch | yes | yes |
+| `mobile_share`: share of web sessions on a phone | yes | yes |
+| `loyalty_member` | yes | yes |
+| `avg_order_value` | no | yes |
+| `email_open_rate` | yes | no |
+| `acquisition_channel`: search, social or referral | yes | no |
+| `tenure_months` | no | no |
+
+"Moves" means that the covariate enters the simulation's formula for install or for spend directly (`confounders` in the truth file). The first four are confounders. The covariates are also correlated with one another through a latent activity level that the file does not contain.
+
+### Potential outcomes and three averages
+
+For customer $i$, let $Y_i(1)$ be the spend over the 26 weeks with the app installed and $Y_i(0)$ the spend without it: the **potential outcomes**, as in Module 11. We observe one of them, $Y_i = T_i\,Y_i(1) + (1 - T_i)\,Y_i(0)$, where $T_i = 1$ if customer $i$ installed. The effect for customers like $x$ is Module 11's conditional average treatment effect,
+
+$$
+\tau(x) = E\big[\,Y(1) - Y(0) \mid X = x\,\big],
+$$ {#eq-cate}
+
+and three averages of it answer three different questions:
+
+$$
+\begin{aligned}
+\text{ATE} &= E\big[\tau(X)\big], \\
+\text{ATT} &= E\big[\tau(X) \mid T = 1\big], \\
+\text{ATC} &= E\big[\tau(X) \mid T = 0\big].
+\end{aligned}
+$$ {#eq-averages}
+
+The **average treatment effect** (ATE) averages over all customers, the **average treatment effect on the treated** (ATT) over installers, and the **average treatment effect on the controls** (ATC) over non-installers. In the simulation, $\tau(x) = 8 + 0.12\,\mu_0(x)$ dollars over 26 weeks, where $\mu_0(x) = E[Y(0) \mid X = x]$ is expected spend without the app: heavier spenders gain more, and heavier spenders are also the ones who install. So the three averages differ. From the truth file: ATE \$13.58, ATT \$17.64, ATC \$11.87 (ATT and ATC weight each customer by their true probability of installing or of not installing).
+
+### Two assumptions
+
+The effect can be estimated from observational data under two assumptions:
+
+1. **No unobserved confounding** (unconfoundedness): given the covariates, installing is as good as random, $\big(Y(0), Y(1)\big) \perp T \mid X$. In words: every common cause of install and spend is among the covariates.
+2. **Overlap**: $0 < e(x) < 1$ for every $x$, where $e(x) = P(T = 1 \mid X = x)$ is the **propensity score**, the probability that a customer like $x$ installs.
+
+Together they give
+
+$$
+\tau(x) = E[Y \mid X = x, T = 1] - E[Y \mid X = x, T = 0],
+$$ {#eq-identify}
+
+because by (1) $E[Y \mid X = x, T = 1] = E[Y(1) \mid X = x, T = 1] = E[Y(1) \mid X = x]$, and likewise for $T = 0$, while (2) makes sure both groups have customers at every $x$. Comparing installers with non-installers who look alike in $x$ estimates the effect. Every method in this module rests on (1). In the simulation it holds by construction, because every arrow into install and spend starts at a column of the file. In real data it is an assumption, and no test on the data can confirm it. Section 6 shows what happens when it fails.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $T_i$ | 1 if customer $i$ installed the app in the four launch weeks, else 0 |
+| $Y_i$; $Y_i(1)$, $Y_i(0)$ | spend in the 26 weeks after the launch window, in dollars; its potential outcomes with and without the app |
+| $X_i$ | the nine pre-launch covariates (`W` in the lab's code: EconML's name for controls) |
+| $e(x)$, $\hat e(x)$ | propensity score $P(T = 1 \mid X = x)$, and its prediction |
+| $q(x)$, $\hat q(x)$ | expected spend given the covariates, $E[Y \mid X = x]$, and its prediction |
+| $\mu_0(x)$, $\tau(x)$ | expected spend without the app; the effect of the app (@eq-cate) |
+| $g(x)$ | the covariates' contribution to spend in the partially linear model (@eq-plm) |
+| $\tilde Y_i$, $\tilde T_i$ | residuals $Y_i - \hat q(X_i)$ and $T_i - \hat e(X_i)$ |
+| $\theta$, $\hat\theta$ | the one effect double machine learning estimates, and its estimate |
+| $K$, $I_k$ | the number of folds (5); the customers in fold $k$ |
+| $\ell$, $h$ | the lower and upper propensity cutoffs of a trim |
+| $m$, $c$ | gross margin rate (0.30, Module 5) and the install credit (\$2.50) |
+| $\kappa$ | the factor by which a credit multiplies the odds of installing (section 7) |
+
+$m$ and $c$ play the roles they had in Modules 6 and 11. Module 6 used $\theta$ for the CUPED coefficient; here it is the effect.
+
+## 2. Why the obvious answers are wrong
+
+**Objective for this section:** show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls.
+
+### The naive comparison
+
+The **naive difference** is mean spend of installers minus mean spend of non-installers, $\bar Y_1 - \bar Y_0$, with Module 6's standard error. In a randomized experiment it estimates the ATE. Here, adding and subtracting $E[Y(0) \mid T = 1]$,
+
+$$
+\begin{aligned}
+&E[Y \mid T = 1] - E[Y \mid T = 0] \\[4pt]
+&\qquad = \underbrace{E\big[Y(1) - Y(0) \mid T = 1\big]}_{\text{ATT}} \\[4pt]
+&\qquad\quad + \underbrace{E[Y(0) \mid T = 1] - E[Y(0) \mid T = 0]}_{\text{selection bias}} .
+\end{aligned}
+$$ {#eq-selection}
+
+The second term is how much more installers would have spent than non-installers *without* the app. In the simulation the naive difference estimates \$65.73 (truth file): the ATT of \$17.64 plus \$48.09 of selection bias.
+
+### A regression with linear controls
+
+The usual fix is a regression with **linear controls**, $Y = \alpha + \beta\,T + \gamma' X + \text{error}$, reporting $\hat\beta$ with a robust (HC1) standard error, which section 3 defines. It removes the part of the confounding that is a straight-line function of the covariates. FULL run:
+
+| Estimate | Effect over 26 weeks | 95% CI |
+|---|---|---|
+| Naive difference | \$65.64 | \$61.14 to \$70.14 |
+| Regression with the nine covariates as linear controls | \$32.11 | \$28.76 to \$35.47 |
+| *True ATE / ATT / ATC* | *\$13.58 / \$17.64 / \$11.87* | |
+
+Both intervals lie above all three true averages. In the Technical Expert's sweep over 30 seeds of the same simulation (`tolerances` in the truth file), both intervals lay above the true ATT every time, with 20,000 and with 10,000 customers, and the regression estimate ranged from \$28.18 to \$37.03 with 20,000.
+
+Why does a regression that contains every confounder still miss? Because the confounding is not a straight line. In the simulation, recency enters both install and spend through $r_{30} = e^{-\text{days}/30}$, which is 0.79 a week after the last order, 0.37 after 30 days, 0.14 after 60 and 0.05 after 90; and expected spend is a product of orders, order value and phone use. The lab plots install rate and mean spend against days since the last order: both fall steeply over the first 60 days and then flatten. A straight line in days fits the average slope and leaves the steep part in the residual, where it still moves with install, so the regression credits part of the confounding to the app. The right transformation would fix this regression, but only if you knew the shape. Double machine learning learns the shape from the data.
+
+::: {.self-check}
+**Check yourself.** On the lab's data (computed for this page; the lab does not run it), adding `days_since_last_order` squared to the regression moves the estimate from \$32.11 to \$21.53 (95% CI \$18.30 to \$24.75). Is the new estimate the effect of the app?
+
+::: {.callout-tip collapse="true" title="Answer"}
+No. Its interval still lies above the true ATT (\$17.64), so it is still too high under every definition of the effect. The drop shows that part of the bias came from the shape of recency, and a quadratic follows a curve that loses 63% of its height in 30 days and is flat after 90 only roughly. Adding $e^{-\text{days}/30}$ itself, the shape the simulation used, gives \$14.59 (\$11.39 to \$17.80), an interval that contains all three true averages. But you could add it only because we wrote the simulation. At work nobody hands you the shape, and nothing in a regression's output says whether the remaining confounding is gone. Learning the shape from the data is what section 3 does.
+:::
+:::
+
+## 3. Double machine learning by hand
+
+**Objective for this section:** write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval.
+
+### Partialling out, from straight lines to machine learning
+
+A result of linear algebra, the Frisch–Waugh–Lovell theorem, says that the coefficient on $T$ in a linear regression of $Y$ on $T$ and $X$ equals the slope from three steps: regress $Y$ on $X$ and keep the residuals; regress $T$ on $X$ and keep the residuals; regress the first residuals on the second. Controlling for $X$ means removing from both $Y$ and $T$ what $X$ predicts and relating what is left. This is **partialling out**. Section 2's regression did it with straight lines.
+
+Robinson (1988) did it with flexible regressions. The **partially linear model** is
+
+$$
+\begin{aligned}
+Y &= \theta\,T + g(X) + \varepsilon, & E[\varepsilon \mid X, T] &= 0, \\
+T &= e(X) + v, & E[v \mid X] &= 0,
+\end{aligned}
+$$ {#eq-plm}
+
+where $g$ is any function of the covariates: the effect $\theta$ is one number, and the covariates may act on spend in any shape. Take expectations given $X$, $q(X) = E[Y \mid X] = \theta\,e(X) + g(X)$, and subtract:
+
+$$
+Y - q(X) = \theta\,\big(T - e(X)\big) + \varepsilon,
+\qquad
+\theta = \frac{E\big[\big(T - e(X)\big)\big(Y - q(X)\big)\big]}{E\big[\big(T - e(X)\big)^2\big]} .
+$$ {#eq-robinson}
+
+$g$ has gone. What remains is a regression through the origin of the spend residual on the install residual, and it needs two predictions from the covariates alone: $q(x)$, expected spend, and $e(x)$, the propensity score. Neither needs $\theta$. Robinson showed that inserting **nonparametric** estimates of these regressions (estimates that assume no formula for them) gives an estimate of $\theta$ that is **root-$n$-consistent**, its error shrinking like $1/\sqrt n$ with $n$ customers, and approximately normal in large samples, while an estimate based on a wrong parametric form for $g$, such as section 2's straight lines, is generally inconsistent. $T - e(X)$ is the part of installing that the covariates cannot predict: under no unobserved confounding, the "as good as random" variation from which the effect is learned.
+
+**Double machine learning** (DML; Chernozhukov et al. 2018) estimates $q$ and $e$ with machine-learning models, here gradient-boosted trees, and adds one more ingredient: cross-fitting.
+
+### Cross-fitting
+
+Split the customers at random into $K = 5$ folds $I_1, \dots, I_5$ (the lab stratifies them on install). For each fold $k$, fit both models on the other four folds and predict the customers in fold $k$:
+
+$$
+\tilde Y_i = Y_i - \hat q^{(-k)}(X_i),
+\qquad
+\tilde T_i = T_i - \hat e^{(-k)}(X_i),
+\qquad i \in I_k ,
+$$ {#eq-crossfit}
+
+where $\hat q^{(-k)}$ and $\hat e^{(-k)}$ were fitted without fold $k$. This is **cross-fitting**: every customer's predictions are **out of fold**, from models that never saw that customer, and each model still learns from 80% of the data. It matters because a flexible model scored on its own training data reproduces part of their noise: its residuals are too small and no longer behave like a new customer's, and a model that has memorized who installed leaves almost no $\tilde T$ to learn from. The lab shows both, below.
+
+### The estimate and its standard error
+
+The sample version of @eq-robinson, with no intercept, and its standard error are
+
+$$
+\begin{aligned}
+\hat\theta &= \frac{\sum_i \tilde T_i\, \tilde Y_i}{\sum_i \tilde T_i^2}, \\[4pt]
+\widehat{\mathrm{se}}_{\text{HC0}}(\hat\theta) &= \frac{\sqrt{\sum_i \tilde T_i^2\,\big(\tilde Y_i - \hat\theta\,\tilde T_i\big)^2}}{\sum_i \tilde T_i^2},
+\qquad \text{95\% CI: } \hat\theta \pm 1.96\,\widehat{\mathrm{se}} .
+\end{aligned}
+$$ {#eq-dml}
+
+The standard error follows from $\hat\theta - \theta = \sum_i \tilde T_i\, r_i / \sum_i \tilde T_i^2$ with $r_i = \tilde Y_i - \theta\,\tilde T_i$: its variance is $\sum_i \tilde T_i^2 \operatorname{Var}(r_i) / \big(\sum_i \tilde T_i^2\big)^2$, and each unknown $\operatorname{Var}(r_i)$ is replaced by that customer's own squared residual. This is the **heteroskedasticity-robust** standard error called **HC0**. It does not assume that every customer's spend is equally noisy, which matters here: 61% of customers spent nothing in the 26 weeks and the largest spend was \$3,145.81. The **classical** standard error, $\sqrt{\hat\sigma^2 / \sum_i \tilde T_i^2}$ with one common variance $\hat\sigma^2$, assumes equal noise. **HC1** multiplies the HC0 variance by $n/(n - p)$, where $p$ is the number of coefficients. Here $p = 1$, so the standard error grows by $\sqrt{n/(n - 1)}$, a factor of 1.000025 with 20,000 customers. statsmodels' `cov_type="HC1"` (section 2's regression, where $p = 11$) and EconML's `LinearDML` (section 5) use HC1. The interval is a **95% normal-approximation confidence interval**: estimate ± 1.96 standard errors.
+
+### Results
+
+The lab's **nuisance models**, the two prediction models that the estimate needs but that are not of interest in themselves, are scikit-learn's histogram gradient boosting: a regressor for spend and a classifier for install, each with 300 rounds of trees of at most 15 leaves and 50 customers per leaf, a learning rate of 0.05, and early stopping switched off (scikit-learn's default switches it on above 10,000 rows, which would hold out a random validation set inside every fold). Out of fold, the spend predictions have an $R^2$ of 0.47 (they explain 47% of the variance of spend), and the install predictions have an AUC of 0.78: the chance that a random installer gets a higher $\hat e$ than a random non-installer, where 0.5 is guessing and 1 is perfect. FULL run:
+
+| Estimate | Effect over 26 weeks | 95% CI |
+|---|---|---|
+| Regression with linear controls (section 2) | \$32.11 | \$28.76 to \$35.47 |
+| **DML, cross-fitted, written by hand** | **\$13.51** | **\$10.51 to \$16.50** |
+| *True overlap-weighted average (section 4)* | *\$14.28* | |
+| *True ATE* | *\$13.58* | |
+
+DML removed the curved relationships that the regression could not, and its interval contains the truth it targets. Section 4 explains why that truth is the overlap-weighted average and not the ATE. In the 30-seed sweep the interval covered that truth 27 times with 20,000 customers and 29 times with 10,000. With 20,000 the error averaged −\$0.20, and its standard deviation across seeds, \$1.66, was close to the average standard error, \$1.56: the standard error describes the actual spread of the estimate. Three misses in 30 are within chance for a 95% interval; at least three happen in about one set of 30 in five.
+
+### What skipping cross-fitting does
+
+The lab then fits a booster that memorizes its data (600 rounds, trees of up to 255 leaves, leaves of 2 customers) on all 20,000 customers and computes @eq-dml from its **in-sample predictions**, predictions for the customers it was fitted on. FULL run:
+
+| Predictions | $\hat\theta$ | Standard error | Mean of $\lvert T - \hat e \rvert$ |
+|---|---|---|---|
+| Cross-fitted (5 folds) | \$13.51 | \$1.53 | 0.319 |
+| In sample, no cross-fitting | \$12.13 | \$6.95 | 0.003 |
+
+The in-sample install predictions are almost exactly the 0s and 1s, so $\tilde T$ is close to 0 for nearly everyone and @eq-dml divides noise by almost nothing: the standard error is 4.5 times the cross-fitted one. Over the 30 seeds the ratio ranged from 4.0 to 6.5 with 20,000 customers and from 34 to 50 with 10,000, and the in-sample point estimate moved from seed to seed. The lab checks only that the ratio is at least 2.
+
+::: {.callout-note collapse="true" title="Why imperfect predictions still work: Neyman orthogonality"}
+Write the errors of the out-of-fold predictions as $\delta_q = \hat q - q$ and $\delta_e = \hat e - e$, and let $\Delta = \delta_q - \theta\,\delta_e$, the error they imply for $g$. Under @eq-plm, $\tilde T_i = v_i - \delta_{e,i}$ and $\tilde Y_i - \theta\,\tilde T_i = \varepsilon_i - \Delta_i$, so
+
+$$
+\hat\theta - \theta
+= \frac{\frac1n\sum_i v_i\,\varepsilon_i \;-\; \frac1n\sum_i v_i\,\Delta_i \;-\; \frac1n\sum_i \delta_{e,i}\,\varepsilon_i \;+\; \frac1n\sum_i \delta_{e,i}\,\Delta_i}{\frac1n \sum_i \tilde T_i^2} .
+$$
+
+The first term is what perfect predictions would give. With cross-fitting, customer $i$'s errors $\delta_{e,i}$ and $\Delta_i$ come from models fitted on other customers, so once those models are fitted they depend only on $X_i$. Because $E[v \mid X] = 0$ and $E[\varepsilon \mid X, T] = 0$, the second and third terms are averages of terms with mean zero, and they shrink like the size of the errors divided by $\sqrt n$. Only the last term is a bias, and it is a **product** of two errors: if each prediction's error shrinks faster than $n^{-1/4}$, their product shrinks faster than $n^{-1/2}$, the rate at which the standard error shrinks. An error in one prediction alone does not move $\hat\theta$ to first order. This insensitivity is called **Neyman orthogonality**; the EconML user guide attributes DML's robustness to it, and Chernozhukov et al. (2018) build their estimators on such orthogonal scores with cross-fitting.
+
+Without cross-fitting, $\delta_{e,i}$ and $\Delta_i$ come from models fitted on customer $i$'s own $T_i$ and $Y_i$, so they are correlated with $v_i$ and $\varepsilon_i$, and the second and third terms no longer have mean zero. A model that memorizes the data predicts each customer's own install, $\hat e_i \approx T_i$, so $\delta_{e,i} \approx v_i$ and $\tilde T_i \approx 0$: the near-zero mean of $\lvert T - \hat e \rvert$ in the table above.
+:::
+
+## 4. Whose effect is it?
+
+**Objective for this section:** check overlap with propensity scores, trim, and state which customers the estimate describes.
+
+### What the estimate targets when effects vary
+
+@eq-plm assumes one effect for everyone. In the simulation, as in most real data, the effect differs between customers. What does $\hat\theta$ estimate then? Write spend as $Y = \mu_0(X) + T\,\tau(X) + \varepsilon$ with $E[\varepsilon \mid X, T] = 0$, which no unobserved confounding gives. Then $q(X) = \mu_0(X) + e(X)\,\tau(X)$, and
+
+$$
+Y - q(X) = \big(T - e(X)\big)\,\tau(X) + \varepsilon .
+$$
+
+Put this into the ratio of @eq-robinson. Given $X$, $T$ is 1 with probability $e(X)$ and 0 otherwise, so $E\big[(T - e(X))^2 \mid X\big] = e(X)\big(1 - e(X)\big)$, and the term with $\varepsilon$ averages to zero. Hence
+
+$$
+\theta = \frac{E\big[\,e(X)\,\big(1 - e(X)\big)\,\tau(X)\,\big]}{E\big[\,e(X)\,\big(1 - e(X)\big)\,\big]} ,
+$$ {#eq-overlap}
+
+an average of the customers' effects in which each customer counts with weight $e(1 - e)$:
+
+| $e(x)$ | 0.02 or 0.98 | 0.05 or 0.95 | 0.1 or 0.9 | 0.2 or 0.8 | 0.3 or 0.7 | 0.5 |
+|---|---|---|---|---|---|---|
+| weight $e(1 - e)$ | 0.020 | 0.048 | 0.090 | 0.160 | 0.210 | 0.250 |
+
+The weight is largest for customers whose install was a toss-up and near zero for customers almost sure to install or not to: their install leaves little that the covariates cannot predict, so they carry little information about the effect. This is the **overlap-weighted average effect**. Li, Morgan and Zaslavsky (2018) proposed **overlap weights**, which weight each unit by its probability of being in the other group: an installer by $1 - e$, a non-installer by $e$. Since installers make up a share $e(x)$ of the customers at $x$, both groups are then reweighted to the same population, the customers weighted by $e(x)\big(1 - e(x)\big)$. Li, Morgan and Zaslavsky show that these weights are bounded and minimize the asymptotic variance of the weighted average effect among such weights. That residual-on-residual regression targets this same average is the derivation above, not a result quoted from their paper.
+
+If the effect is the same for everyone, $\theta = \tau$ and the question does not arise. In the simulation the overlap-weighted average is \$14.28: between the ATC and the ATT, and \$0.70 above the ATE.
+
+A caution about evidence. Over the 30 seeds, the DML interval covered the ATE 27 times with 20,000 customers and 28 times with 10,000, as often as it covered the overlap-weighted average, because here the two differ by less than half a standard error. Coverage cannot tell which of two averages this close an estimator targets; the derivation does. When the effect varies more strongly with the propensity, the averages separate, and an interval centered on the overlap-weighted average can miss the ATE, the ATT and the ATC.
+
+### Overlap
+
+**Overlap** means that every kind of customer had some chance both to install and not to. In the simulation some customers almost never install: the true propensity has a 1st percentile of 0.036, a median of 0.232 and a 99th percentile of 0.895, and 653 customers (3.3%) are below 0.05 while 19 are above 0.95 (the truth file and the data file's `true_propensity`). The lab plots the out-of-fold $\hat e$ of installers and of non-installers on one axis. 5.5% of customers have $\hat e$ outside $[0.05, 0.95]$ (5.5% below 0.05 and 0.10% above 0.95). At the left edge, customers almost sure not to install have few installers like them to be compared with.
+
+### Trimming
+
+**Trimming** drops the customers whose $\hat e$ lies outside $[\ell, h]$ before estimating, using the same out-of-fold predictions. The trimmed estimate targets @eq-overlap among the customers kept:
+
+$$
+\theta_{[\ell, h]} = \frac{E\big[\,e(1 - e)\,\tau \mid \ell \le \hat e \le h\,\big]}{E\big[\,e(1 - e) \mid \ell \le \hat e \le h\,\big]} .
+$$ {#eq-trim}
+
+Trimming changes the population the estimate describes, and so its target. Crump et al. (2009) found that discarding units with estimated propensity outside $[0.1, 0.9]$ approximates their optimal rule for a wide range of distributions; the lab starts gentler, at $[0.05, 0.95]$, where the largest weight dropped is under 0.0475, a fifth of the largest weight. FULL run:
+
+| Trim | Customers kept | Weight $\hat e(1 - \hat e)$ dropped | Estimate | 95% CI | Truth for the customers kept |
+|---|---|---|---|---|---|
+| none | 100% | 0% | \$13.51 | \$10.51 to \$16.50 | \$14.28 |
+| $[0.05, 0.95]$ | 94.5% | 1.2% | \$13.85 | \$10.85 to \$16.86 | \$14.36 |
+| $[0.1, 0.9]$ | 79.1% | 8.1% | \$14.15 | \$10.94 to \$17.35 | \$14.61 |
+| $[0.2, 0.8]$ | 50.0% | 31.3% | \$15.84 | \$12.03 to \$19.64 | \$15.23 |
+
+The weight share dropped for the two stricter trims was computed for this page with the lab's predictions; the lab prints the rest. Dropping 5.5% of the customers removed only 1.2% of the weight and moved the estimate by about 35 cents: residual on residual already gives customers who were nearly sure either way almost no weight. Stricter trims drop more weight and move the target. At $[0.2, 0.8]$ half the customers remain, they carry 69% of the weight, and their true overlap-weighted effect is \$15.23 rather than \$14.28. Every trimmed interval contains the truth for the customers it keeps, and each describes a different population. Estimators that divide by $\hat e$, such as inverse-probability weighting and the doubly robust score of Module 11, react much more to customers with extreme propensities.
+
+### Whom the estimate describes
+
+Weighting the customers by $\hat e(1 - \hat e)$ shows whom the estimate describes. FULL run, means:
+
+| | All customers | Installers | Non-installers | Weighted by $\hat e(1 - \hat e)$ |
+|---|---|---|---|---|
+| Orders in the 12 months before launch | 3.12 | 3.74 | 2.86 | 3.36 |
+| Days since the last order | 102.01 | 68.06 | 116.05 | 87.51 |
+| Loyalty member (share) | 0.31 | 0.39 | 0.28 | 0.35 |
+| Share of web sessions on a phone | 0.52 | 0.61 | 0.48 | 0.57 |
+| Average order value (\$) | 63.67 | 64.83 | 63.19 | 64.39 |
+
+The customers the estimate describes sit between installers and non-installers on every measure: compared with the average customer, they bought more recently (87.5 days since the last order against 102.0), shop more on their phones (0.57 against 0.52) and are more often loyalty members (0.35 against 0.31). The estimate says least about customers who were nearly certain not to install, who in the simulation are those long past their last order, rarely on a phone and rarely opening emails. Which average matters depends on the decision; section 7 needs the effect on the customers a credit would persuade.
+
+::: {.self-check}
+**Check yourself.** A slide says: "DML shows the app adds \$13.51 of spend per customer, so getting all 20,000 customers to install would add about \$270,000." What is wrong with the second half, and which average would it need?
+
+::: {.callout-tip collapse="true" title="Answer"}
+\$13.51 estimates the overlap-weighted average, which describes customers whose install was in doubt, not every customer. The installers already have the app, so the gain would come only from the 71% who did not install, and their average effect is the ATC (true value \$11.87, against \$14.28 for the overlap-weighted average), multiplied by about 14,100 customers, not 20,000. Estimating the ATC or the ATE needs an estimator that targets it, such as the doubly robust learner in the lab's stretch, which divides by $\hat e$ and so leans on the customers with extreme propensities that DML down-weights. And no incentive makes everyone install: section 7 asks about the customers a credit would actually move.
+:::
+:::
+
+## 5. The library: EconML's LinearDML
+
+**Objective for this section:** reproduce your estimate with EconML's LinearDML, using the same folds and gradient-boosting models.
+
+EconML's `LinearDML` runs @eq-crossfit and @eq-dml in one call:
+
+```python
+from econml.dml import LinearDML
+
+est = LinearDML(model_y=model_y, model_t=model_t,       # the two boosted models
+                discrete_treatment=True,                 # install is 0 or 1: model_t is a classifier
+                cv=folds,                                # the lab's five folds; the default is cv=2
+                random_state=SEED)
+est.fit(y, t, X=None, W=W)                               # covariates as controls, one constant effect
+est.ate(), est.ate_interval(alpha=0.05)                  # the estimate and its 95% interval
+```
+
+EconML separates two roles for covariates. **Controls** `W` are adjusted for; **effect modifiers** `X` are covariates the effect may vary with. With `X=None` the final stage regresses the spend residual on the install residual with no other term, which is @eq-dml. With `discrete_treatment=True`, EconML uses the classifier's probability of class 1 as $\hat e$. FULL run:
+
+| | Estimate | 95% CI |
+|---|---|---|
+| Yours, @eq-dml | \$13.507501 | \$10.5101 to \$16.5049 |
+| `LinearDML` | \$13.507501 | \$10.5100 to \$16.5050 |
+
+The estimates agree to $2 \times 10^{-15}$, relative (computed for this page by repeating the lab's fits; the lab prints six decimals): the same folds and the same seeded models give the same predictions. The interval is slightly wider for two reasons: EconML's default inference is HC1, so its standard error is the hand HC0 one times $\sqrt{n/(n - 1)}$, and it uses the exact normal quantile 1.959964 where the lab uses 1.96. Together these widen the half-width by a factor of 1.0000066 with 20,000 customers. Over the 30 seeds the estimates never differed by more than $2.3 \times 10^{-15}$ (relative), and EconML's interval covered the overlap-weighted truth as often as the hand interval (27 of 30 with 20,000 customers, 29 with 10,000). Per fold, the spend model's out-of-fold $R^2$ was 0.445, 0.478, 0.450, 0.509 and 0.461, and the install model's accuracy 0.768, 0.774, 0.759, 0.764 and 0.772 (`est.nuisance_scores_y`, `est.nuisance_scores_t`). Accuracy is a weak score for a probability model: predicting "not installed" for everyone would score 0.707 here. The AUC above says more.
+
+What would make them differ: EconML's default `cv=2` (two folds of its own), repeated cross-fitting with new folds (`mc_iters`), or other models. In practice use the library, which is tested, has more inference options and estimates effects that vary with `X`, and keep the two-step version in mind to check it.
+
+**Why histogram gradient boosting and not LightGBM.** The original plan used LightGBM for the nuisance models. In the prototype it gave the same lesson, but two things counted against it. Its macOS wheel needs the OpenMP library from Homebrew (`brew install libomp`, per its README), and without it LightGBM would not import on the laptop where the lab was prototyped, which breaks the local install path. And inside EconML it raised 20 warnings per `LinearDML` fit ("X does not have valid feature names"). scikit-learn's histogram gradient boosting ships with scikit-learn, raised no warnings and is what Module 11 used. Any scikit-learn-compatible regressor and classifier can take their place.
+
+## 6. Checks against reality: a spoiled experiment and a hidden confounder
+
+**Objective for this section:** recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate.
+
+### A randomized benchmark, spoiled on purpose
+
+The app data have a known truth only because they are simulated. One way to test an observational method on real data is to take a randomized experiment, whose simple comparison is the right answer, spoil the randomization with a known rule, and see whether the method recovers the experiment. LaLonde (1986) compared nonexperimental estimates with the results of a randomized training experiment this way and found that many econometric methods failed to reproduce them.
+
+The lab uses Hillstrom's email experiment (Modules 6 and 11): the 42,693 customers randomized to the Womens email or to no email, and whether each **visited** the website within two weeks. The **benchmark** is the difference in visit rates between the two arms on all of them: 4.52 percentage points (pp; standard error 0.32 pp). The **spoiling rule** keeps every customer who got no email, and keeps a customer who got the email with probability 0.9 if they are **favored**, that is recent (`recency` ≤ 3 months since the last purchase) or a big spender (`history` ≥ \$250 last year), and with probability 0.2 otherwise. The spoiled sample has 33,526 customers, 36.4% of them emailed. Because the two arms were about equal in size, the share emailed is now about $0.45/0.95 = 0.47$ among favored customers and $0.1/0.6 = 0.17$ among the others (47.5% and 16.5% in the sample, computed for this page), and favored customers visit more anyway: without the email, 13.1% of them visited, against 7.9% of the others. That is confounding by a known rule.
+
+FULL run, in percentage points:
+
+| | Effect on visits (pp) | 95% CI |
+|---|---|---|
+| *Benchmark: the experiment, all customers* | *4.52* | *3.89 to 5.16* |
+| Naive difference, spoiled sample | 6.18 | 5.39 to 6.96 |
+| Regression with linear controls, spoiled sample | 4.76 | 3.96 to 5.56 |
+| `LinearDML`, spoiled sample | 4.65 | 3.83 to 5.46 |
+
+The naive interval excludes the benchmark, and `LinearDML`'s contains it. Over 30 spoiling seeds with all of Hillstrom, the naive interval excluded the benchmark 30 times and `LinearDML`'s contained it 30 times. On half of the customers (the lab's QUICK setting), `LinearDML`'s interval still contained it in 30 of 30, while the naive interval excluded it in 27 to 29 of 30: with fewer customers the naive interval is wide enough to reach the benchmark now and then.
+
+Two features of the design matter. First, the benchmark is the right target for the spoiled sample because the email's effect on visits is about the same for favored customers and for the others: 4.55 and 4.50 pp on all customers in the two arms (computed for this page). The selection changes how much each group counts, but not the average it produces. A rule that selected on whether customers bought women's merchandise last year would not have this property: the effect is 7.31 pp for those who did and 1.11 pp for those who did not, so the sample's overlap-weighted effect would differ from the benchmark, and even a perfect adjustment would miss it. Second, linear regression also came close here, because visiting rises smoothly with recency and past spend, so straight-line controls capture most of this selection. In the app data the confounding ran through a sharp curve.
+
+What did we know here that you never know at work? We built the selection, so we *know* it depends only on columns the model sees. In real observational data that is the assumption of no unobserved confounding, and nothing in the data confirms it. The same comparison has been made on real advertising: across 15 advertising experiments at Facebook, matching and regression-based methods overestimated the effects the randomized experiments measured (Gordon et al. 2019).
+
+### A confounder you cannot see
+
+What if a common cause is missing? The lab refits $\hat q$ and $\hat e$ without `mobile_share`, as if the CRM extract had no web analytics, and, for contrast, without `email_open_rate`. FULL run:
+
+| Covariates | Estimate | 95% CI | Shift from all nine |
+|---|---|---|---|
+| All nine | \$13.51 | \$10.51 to \$16.50 | |
+| Without `mobile_share` (moves install and spend) | \$19.90 | \$16.80 to \$23.00 | +\$6.39 |
+| Without `email_open_rate` (moves install only) | \$13.64 | \$10.64 to \$16.65 | +\$0.13 |
+| *True overlap-weighted average* | *\$14.28* | | |
+
+Without `mobile_share`, customers who shop on their phones are both more likely to install and heavier spenders, and the models can no longer remove that, so part of it stays in both residuals and is credited to the app: the estimate rises by \$6.39, to \$19.90, and its interval no longer contains the true \$14.28. Over the 30 seeds the shift ranged from +\$4.33 to +\$7.20 with 20,000 customers. Leaving out `email_open_rate` hardly matters, because it moves install but not spend: in @eq-robinson it changes how well $\hat e$ predicts install, not what is left in the spend residual, so no confounding enters. A covariate that moves only the treatment is not a confounder.
+
+Nothing in the run without `mobile_share` signals a problem: the models fit, the interval is about as wide as before, and only the truth shows the error. **Sensitivity analysis** asks instead how strong a missing confounder would have to be to change a conclusion. In "Long story short", Chernozhukov, Cinelli, Newey, Sharma and Syrgkanis bound the omitted-variable bias of causal estimates like this one, including in the partially linear model, from plausible limits on how much an omitted variable could explain. EconML 0.17 offers `sensitivity_interval` and `robustness_value` on `LinearDML`, and the lab's third stretch exercise runs them. Read the paper's definitions before quoting a number from them: this page has not checked how EconML's parameters correspond to the paper's.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Should the retailer pay customers a \$2.50 credit for installing the app? A **persuaded install** is one that happens because of the credit and would not have happened without it. The credit pays back within 26 weeks if the extra margin from a persuaded install exceeds the credit: $m\,\tau > c$, so the **break-even effect** is $c/m = \$2.50 / 0.30 = \$8.33$ of extra spend over 26 weeks.
+
+**The rule**, fixed before any number: offer the \$2.50 credit only if the lower end of the 95% CI of incremental margin per persuaded install, $m\,\hat\theta$, is above \$2.50; the same as the effect's interval lying above \$8.33. The largest credit the rule allows is that lower end.
+
+**It assumes** (1) every common cause of install and spend is in the data; (2) every customer who installs after the offer is persuaded by it, that is, customers who did not install in the launch window would not have installed in the next 26 weeks without the credit, so the credit is the cost per persuaded install; and (3) the customers the credit persuades gain about as much as the customers the estimate describes (section 4).
+
+Why (3) is plausible here, and only here. In the simulation each customer installs if a uniform draw $U_i$ falls below $e(x_i) = \operatorname{expit}\big(\eta(x_i)\big)$, where $\operatorname{expit}(u) = 1/(1 + e^{-u})$ and $\eta$ is the install log-odds. A credit that multiplies the odds of installing by $\kappa$ makes the customer install if $U_i < \operatorname{expit}(\eta + \log \kappa)$. The persuaded customers are those in between, so customer $i$ is persuaded with probability
+
+$$
+\begin{aligned}
+w_i &= \operatorname{expit}\big(\eta_i + \log \kappa\big) - \operatorname{expit}(\eta_i) \\[4pt]
+&\approx \log \kappa \cdot e_i\,(1 - e_i)
+\quad\text{for } \kappa \text{ near } 1,
+\end{aligned}
+$$ {#eq-persuaded}
+
+because the slope of $\operatorname{expit}$ at $\eta$ is $e(1 - e)$. A small credit persuades customers in proportion to $e(1 - e)$: exactly the weights of @eq-overlap. This is a property of the logistic install model the simulation uses, not a general law. A larger credit reaches further into the customers who were unlikely to install, who gain less.
+
+FULL run:
+
+- **The number:** each persuaded install adds \$4.05 of margin over 26 weeks (95% CI \$3.15 to \$4.95): an effect of \$13.51 of spend (\$10.51 to \$16.50) at a 30% margin, \$5.17 above the \$8.33 break-even. Per 1,000 persuaded installs, about \$4,052 of margin (\$3,153 to \$4,951) for \$2,500 of credits.
+- **Recommendation:** offer the credit. The lower end of the margin interval, \$3.15, is above \$2.50, and \$3.15 is the largest credit the rule allows.
+- **The hidden confounder:** leaving out `mobile_share` moved the estimate by +\$6.39. A common cause that strong, unobserved and pushing the same way would shift the interval to \$4.12 to \$10.11 of spend (\$1.24 to \$3.03 of margin): by the rule, do not offer. The shifted point estimate, \$7.12, would fall below the \$8.33 break-even.
+- **What would change it:** a common cause missing from the data (above); customers who would install anyway taking the credit, which makes the cost per persuaded install the credit divided by the persuaded share, a share only a randomized test of the credit can measure (Module 6); and a larger credit, which reaches customers who gain less.
+
+Across the 30 seeds the rule said "offer" in 28 with 20,000 customers and in 21 with 10,000, and after the `mobile_share` shift in 1 and 2: at full size the decision held in most samples, and it almost never survived one missing confounder of that strength.
+
+Only a simulation can reveal the answer. A credit that doubles the odds of installing (a customer with a 20% chance would then have a 33% chance) persuades 12.2% of customers, whose true average effect is \$13.65, a true margin of \$4.10 per persuaded install against the \$2.50 credit. The 95% CI for the effect, \$10.51 to \$16.50, contains it. The credit really pays in this synthetic world. For a credit that multiplied the odds by ten, the persuaded customers (42.5% of all) would gain \$12.58 on average: bigger incentives reach customers who gain less.
+:::
+
+## 8. What this module cannot tell you
+
+- **Whether there is a confounder you did not measure.** DML removes the confounding by the covariates it is given, in whatever shape. One missing common cause as strong as phone use moved the estimate by \$6.39, enough to overturn the decision, and nothing in the output signaled it. One plausible candidate in real data is purchase intent at launch: customers about to buy may install the app to do it, and no CRM extract records intent.
+- **The effect on the customers an incentive persuades.** The estimate describes customers weighted by $e(1 - e)$. That those are the customers a small credit persuades follows from the simulation's logistic install model (@eq-persuaded), not from the data. Real customers may respond to a credit in ways the propensity does not predict.
+- **What the credit does.** The data say what installing did for customers who chose to install. Whether a credit makes customers install, how many would have installed anyway, and whether persuaded installers behave like voluntary ones are questions about the credit itself. A randomized test of the credit (Module 6) answers them: offer it to a random half and compare installs and spend.
+- **Anything about customers without overlap.** Customers who almost never install contribute almost nothing to the estimate, and trimming drops them. The data hold little information about what the app would do for them.
+- **Effects of variables measured after the install.** App sessions or spend in the launch weeks are changed by the app; putting them in the covariates removes part of the effect.
+
+## Summary
+
+- When customers choose the treatment, the naive difference is the ATT plus selection bias (@eq-selection): \$65.73 expected against an ATT of \$17.64 here.
+- Under no unobserved confounding and overlap (@eq-identify), comparing similar customers estimates the effect. Linear controls compare them only along straight lines: with every confounder included, the regression still gave \$32.11.
+- Partialling out (@eq-robinson) removes from spend and install what the covariates predict and regresses residual on residual. DML predicts with machine learning, cross-fitted (@eq-crossfit), and gives \$13.51 (\$10.51 to \$16.50) with a robust standard error (@eq-dml).
+- Without cross-fitting, a model that memorizes the data leaves almost no install residual, and the standard error grows several times. Cross-fitting with an orthogonal score makes first-order prediction errors cancel.
+- When effects vary, residual on residual estimates the overlap-weighted average (@eq-overlap), with weights $e(1 - e)$: customers whose install was in doubt. Trimming (@eq-trim) changes the population and the target.
+- EconML's `LinearDML` with the same folds and models reproduces the hand estimate to rounding; its interval differs only by HC1 and the exact normal quantile.
+- On a deliberately spoiled Hillstrom experiment, the naive interval missed the benchmark and `LinearDML` recovered it, because the selection depended only on observed columns. Hiding one confounder moved the app estimate by +\$6.39.
+- Decision: offer the \$2.50 credit if the lower end of the margin interval is above \$2.50 (here \$3.15, so offer), and name the confounder that could overturn it. A randomized test of the credit settles what the data cannot.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 15 |
+|---|---|---|
+| @eq-averages | ATE, ATT and ATC | Provided: the truth table after loading the data, and `overlap_truth(rows)` for the checkpoints |
+| @eq-selection | naive difference and selection bias; linear controls | **Exercise 1**: `baseline_estimates(y, t, W)`; Checkpoint 1 checks a six-row toy by hand, the app data against a reference, and both intervals above the true ATT |
+| @eq-crossfit | cross-fitted predictions | **Exercise 2**: `cross_fit(model, X, target, folds)`; Checkpoint 2 checks on toys that no customer is predicted by a model that saw them, that the result matches `cross_val_predict`, and that a classifier gives probabilities of class 1 |
+| @eq-robinson, @eq-dml | residual on residual with an HC0 interval | **Exercise 3**: `dml_estimate(y, t, y_hat, t_hat)`; Checkpoint 3 checks a four-row toy by hand and the overlap-weighted truth inside the interval; then the provided run without cross-fitting |
+| @eq-overlap, @eq-trim | overlap weights and trimming | **Exercise 4**: `trimmed_estimate(y, t, y_hat, t_hat, low, high)`; Checkpoint 4 checks a six-row toy, less weight than customers dropped, and the kept customers' truth inside the interval; then the provided profile |
+| `LinearDML` | the library's version of @eq-dml | **Exercise 5**: `fit_linear_dml(y, t, W, folds, model_y, model_t, seed)`; Checkpoint 5 checks the estimate against yours to a millionth and the interval to a ten-thousandth; then the provided Hillstrom benchmark with your functions |
+| @eq-persuaded | the persuaded customers | Provided: the Decision cells and the truth revealed after them |
+
+## Gotchas
+
+- **Compare the estimate with the right average.** Residual on residual targets the overlap-weighted effect; say so when you report it, and do not multiply it by every customer.
+- **Pass the covariates as `W`, with `X=None`,** for one effect. Covariates passed as `X` fit without complaint, and then `est.ate()` without `X` raises `AssertionError: X was not None when fitting`.
+- **`discrete_treatment=True` needs a classifier for `model_t`.** A classifier without it raises "Cannot use a classifier as a first stage model when the target is continuous!".
+- **EconML's default is `cv=2`.** Pass your folds (`cv=folds`) when you compare with a hand calculation.
+- **Switch early stopping off explicitly.** `HistGradientBoosting*(early_stopping="auto")` turns it on above 10,000 rows and holds out a random validation set inside every fold.
+- **No intercept in residual on residual.** `np.polyfit` or a regression with a constant gives a different answer.
+- **HC0 against HC1.** The two differ by $\sqrt{n/(n-1)}$: invisible with 20,000 customers, 15% with four.
+- **Never adjust for something the treatment changes.** App sessions or launch-week spend in `W` remove part of the effect.
+- **Keep the truth columns out of the model.** The lab's `features()` selects the nine covariates by name.
+- **Spend is heavy-tailed.** 61% of customers spent \$0; intervals are wide, and robust standard errors are a requirement.
+- **Hillstrom spells the zip code "Surburban".** Reuse Module 11's features.
+
+## Next steps
+
+Double machine learning removes the confounding that the covariates carry, and no more. The credit decision rests on the assumption that nothing important is missing, which only a randomized test of the credit (Module 6) can replace. [Module 16](/modules/16-multi-touch-attribution.qmd) looks at another observational claim made every day: the credit multi-touch attribution gives each channel. There, as here, some channels reach users who were likely to buy anyway, and no way of sharing credit removes that.
+
+## Further reading
+
+1. Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & Robins, J. (2018). [Double/debiased machine learning for treatment and structural parameters](https://doi.org/10.1111/ectj.12097). *The Econometrics Journal*, 21(1), C1–C68. Orthogonal scores, cross-fitting, and estimates that are approximately unbiased and normal with machine-learning predictions; abstract on [arXiv](https://arxiv.org/abs/1608.00060).
+2. Robinson, P. M. (1988). [Root-N-consistent semiparametric regression](https://ideas.repec.org/a/ecm/emetrp/v56y1988i4p931-54.html). *Econometrica*, 56(4), 931–954. Partialling out with nonparametric regressions; the ancestor of DML.
+3. Li, F., Morgan, K. L., & Zaslavsky, A. M. (2018). [Balancing covariates via propensity score weighting](https://doi.org/10.1080/01621459.2016.1260466). *Journal of the American Statistical Association*, 113(521), 390–400. Overlap weights and the overlap-weighted average effect.
+4. Crump, R. K., Hotz, V. J., Imbens, G. W., & Mitnik, O. A. (2009). [Dealing with limited overlap in estimation of average treatment effects](https://academic.oup.com/biomet/article-abstract/96/1/187/235329). *Biometrika*, 96(1), 187–199. Trimming, and the $[0.1, 0.9]$ rule of thumb.
+5. LaLonde, R. J. (1986). [Evaluating the econometric evaluations of training programs with experimental data](https://ideas.repec.org/a/aea/aecrev/v76y1986i4p604-20.html). *American Economic Review*, 76(4), 604–620. Testing nonexperimental methods against an experiment, the design of section 6.
+6. Gordon, B. R., Zettelmeyer, F., Bhargava, N., & Chapsky, D. (2019). [A comparison of approaches to advertising measurement: Evidence from big field experiments at Facebook](https://doi.org/10.1287/mksc.2018.1135). *Marketing Science*, 38(2), 193–225. Observational methods against 15 randomized advertising experiments.
+7. EconML (PyWhy): the [`LinearDML` reference](https://www.pywhy.org/EconML/_autosummary/econml.dml.LinearDML.html) and the [double machine learning user guide](https://www.pywhy.org/EconML/spec/estimation/dml.html). Both pages are labeled econml 0.16.0; the lab pins 0.17.0, whose source was checked.
+
+Also cited above: Chernozhukov, V., Cinelli, C., Newey, W., Sharma, A., & Syrgkanis, V., [Long story short: Omitted variable bias in causal machine learning](https://arxiv.org/abs/2112.13398) (checked from its abstract; the sensitivity analysis behind the lab's third stretch exercise); the [LightGBM 4.6.0 Python package README](https://raw.githubusercontent.com/microsoft/LightGBM/v4.6.0/python-package/README.rst) (the OpenMP requirement on macOS); and Hillstrom, K. (2008), [The MineThatData e-mail analytics and data mining challenge](https://blog.minethatdata.com/2008/03/minethatdata-e-mail-analytics-and-data.html). Each entry was checked on 2026-10-10, except Gordon et al. (2019), checked on 2026-10-09 (its publisher refused automated access on 2026-10-10; the [Marketing Science Institute summary](https://msi.org/working-papers/a-comparison-of-approaches-to-advertising-measurement-evidence-from-big-field-experiments-at-facebook-2) was checked that day). The [References](/references.qmd) page lists the workshop's entries with what each supports.

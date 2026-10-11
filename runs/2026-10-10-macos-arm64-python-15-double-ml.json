@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "source": "test_notebooks",
+  "env": "macos-arm64",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit-Mach-O, runner Python 3.13.2",
+  "kernel": "python3",
+  "settings": {},
+  "commit": "3834f08",
+  "ref": "v2026.10.1",
+  "evidence": "scripts/test_notebooks.py --record",
+  "content_sha": "8bcf39e198f03908",
+  "deps_sha": "2ca2afa8bf48b5ec",
+  "runs": [
+    {
+      "mode": "worked",
+      "notebook": "python/15-double-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 47.0,
+      "phases": {
+        "generated": 0.1,
+        "other": 31.25,
+        "checkpoint": 3.74,
+        "exercise": 0.0,
+        "solution": 8.4,
+        "verify": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-031",
+        "seconds": 12.64
+      },
+      "verified": 5,
+      "python": "3.13.2",
+      "runtime": "local",
+      "platform": "Darwin arm64",
+      "cpus": 10,
+      "memory_gb": 17.2,
+      "packages": {
+        "mktstats": "0.1.0",
+        "pymc-marketing": "1.2.0",
+        "pymc": "6.3.2",
+        "pytensor": "3.3.3",
+        "arviz": "1.3.0",
+        "nutpie": "0.16.11",
+        "numba": "0.62.1",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scipy": "1.16.3",
+        "scikit-learn": "1.6.1",
+        "statsmodels": "0.15.0",
+        "econml": "0.17.0",
+        "lightgbm": "4.6.0",
+        "duckdb": "1.3.2",
+        "matplotlib": "3.10.0"
+      },
+      "install_seconds": 0.0,
+      "checkpoints": {
+        "data": {
+          "passed": true,
+          "whose": null
+        },
+        "1": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "2": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "3": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "no cross-fitting": {
+          "passed": true,
+          "whose": null
+        },
+        "4": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "5 on Hillstrom": {
+          "passed": true,
+          "whose": "the REFERENCE solution"
+        },
+        "hidden confounder": {
+          "passed": true,
+          "whose": null
+        }
+      },
+      "cell_errors": 0,
+      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run (load average about 7 on 10 cores at the start, a Docker VM busy)."
+    },
+    {
+      "mode": "learner",
+      "notebook": "python/15-double-ml",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 4.4,
+      "phases": {
+        "generated": 0.1,
+        "other": 2.88,
+        "checkpoint": 0.02,
+        "exercise": 0.0,
+        "solution": 0.0
+      },
+      "slowest_cell": {
+        "id": "cell-001",
+        "seconds": 2.86
+      },
+      "note": "macOS native, OMP_NUM_THREADS=2, OPENBLAS_NUM_THREADS=2 and VECLIB_MAXIMUM_THREADS=2 (two threads for scikit-learn's boosting and for BLAS, as on Colab's 2 CPUs; cpus reports the laptop's 10 cores). Laptop shared with other build jobs during the run (load average about 7 on 10 cores at the start, a Docker VM busy)."
+    }
+  ]
+}

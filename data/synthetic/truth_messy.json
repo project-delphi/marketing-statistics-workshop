@@ -1,0 +1,803 @@
+{
+  "about": "True parameters of the messy extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "messy_lines.csv"
+  ],
+  "description": "The synthetic retailer's purchases (first n_retail customers) plus wholesale customers, written as an Online-Retail-II-style line log with labeled errors. Positions are 0-based rows of messy_lines.csv; sha256 is of the sorted positions joined by commas (mktstats.synth.messy.positions_sha256).",
+  "seed": 2033,
+  "retailer_seed": 2026,
+  "rates": {
+    "n_retail": 2500,
+    "n_wholesale": 13,
+    "wholesale_multiplier": 40.0,
+    "extra_lines": 0.25,
+    "guest_invoices": 0.285,
+    "postage": 0.051,
+    "carriage": 0.007,
+    "fee_manual": 0.065,
+    "fee_bank": 0.02,
+    "duplicate": 0.0152,
+    "cancelled_order": 0.0105,
+    "returned_line": 0.0175,
+    "same_day_cancel": 0.15,
+    "same_day_split": 0.08,
+    "catalog_size": 600
+  },
+  "measured": {
+    "lines_without_customer": 0.2241,
+    "postage_invoices": 0.04833,
+    "fee_only_invoices": 0.0104,
+    "duplicate_identified_lines": 0.01453,
+    "cancellation_identified_lines": 0.02277,
+    "extra_same_day_invoices": 0.1003,
+    "lines_per_invoice": 1.245
+  },
+  "start_date": "2024-01-01",
+  "calibration_end": "2024-12-29",
+  "holdout_end": "2025-12-28",
+  "holdout_weeks": 52,
+  "rfm_settings": {
+    "time_unit": "D",
+    "time_scaler": 7
+  },
+  "n_lines": 36453,
+  "n_customers": 2513,
+  "rules": {
+    "no_customer": {
+      "count": 8169,
+      "sha256": "8008d5a1ee1c0cb9b7dd6cef30a8c40651b620a0e130e1c2886f5f9939944f30"
+    },
+    "non_product": {
+      "count": 1447,
+      "sha256": "021d208733312b6ec9a644af75af7fd00dd4b9a9ed2fb3e91b2c80bb3c013f65"
+    },
+    "duplicate": {
+      "count": 530,
+      "sha256": "a93c49570d8150fd3a35371e9b38323a74d3cc840b730fa9f8992d53b370d94a"
+    },
+    "cancellation": {
+      "count": 1288,
+      "sha256": "196e4dc17e213af67cbac6e92248825c4ab0cefe9d7d9c872da3a4555359a06a",
+      "cancel_lines": 644,
+      "applies_to": "lines that no_customer, non_product and duplicate keep"
+    },
+    "nonpositive": {
+      "count": 644,
+      "sha256": "3478651789a19c58c19035b039f8fdd2e69179e097f1c0a6b5e615d9dc84fe72",
+      "applies_to": "all lines (Module 1's last rule)"
+    }
+  },
+  "labels": {
+    "guest": {
+      "count": 8050,
+      "sha256": "afc88a4ca6b220f18031f2cb43da8fae5fc083db03c3f6d3fae7dc87ce586d3b"
+    },
+    "postage": {
+      "count": 1073,
+      "sha256": "597439a28345a72ebf7a68664bc49874df097e0773e16c3dc45c0989a1c24f81"
+    },
+    "carriage": {
+      "count": 121,
+      "sha256": "6bb45484e426f6d1be28c5334146f0cefa57394b213e2a09478d36fcbedfff7d"
+    },
+    "fee_invoice": {
+      "count": 231,
+      "sha256": "a84eb9086b3cb024d4f399111845c00d96aebdd38e524e7cb079afbea2304c9b"
+    },
+    "duplicate": {
+      "count": 530,
+      "sha256": "a93c49570d8150fd3a35371e9b38323a74d3cc840b730fa9f8992d53b370d94a"
+    },
+    "cancelled_order": {
+      "count": 564,
+      "sha256": "56ac8508411f5c0de76a4e1f27e5deb97a8ea14380bcaf3e2e691c40e475a4f6"
+    },
+    "returned_line": {
+      "count": 724,
+      "sha256": "7cf78cec9e142be367ce8a5059f8a0b0fbd4d053ff8b16dbb036b3f83ff6658c"
+    },
+    "same_day_split": {
+      "count": 1710,
+      "sha256": "3863dc5b911df61ef5ca7c2abdfd7267dcb46b41b8526dca675b83f46d47ec7a"
+    },
+    "wholesale": {
+      "count": 128,
+      "sha256": "afcb62765a4af51607af507305a85fd69f263a086b6971edca2175425fdcf879"
+    }
+  },
+  "clean": {
+    "n_purchases": 20140,
+    "n_purchase_days": 19555,
+    "holdout_purchase_days": 7787,
+    "rule": "clean log = retailer_transactions for customer_id <= n_retail, plus wholesale.transactions"
+  },
+  "wholesale": {
+    "customer_ids": [
+      5001,
+      5002,
+      5003,
+      5004,
+      5005,
+      5006,
+      5007,
+      5008,
+      5009,
+      5010,
+      5011,
+      5012,
+      5013
+    ],
+    "spend_multiplier": 40.0,
+    "params": {
+      "r": 0.8,
+      "alpha": 5.0,
+      "s": 0.5,
+      "beta": 10.0,
+      "p": 6.0,
+      "q": 4.0,
+      "v": 600.0
+    },
+    "true_mean_spend_population": 1200.0,
+    "customers": [
+      {
+        "customer_id": 5001,
+        "true_lambda": 0.0302509,
+        "true_mu": 0.174377,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 524.101,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5002,
+        "true_lambda": 0.02329,
+        "true_mu": 0.0111778,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 627.74,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5003,
+        "true_lambda": 0.02101,
+        "true_mu": 0.00947085,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 926.91,
+        "true_expected_revenue_26w": 448.811,
+        "true_expected_revenue_52w": 799.661
+      },
+      {
+        "customer_id": 5004,
+        "true_lambda": 0.0735088,
+        "true_mu": 0.0840663,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 1644.43,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5005,
+        "true_lambda": 0.0820758,
+        "true_mu": 0.108505,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 446.862,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5006,
+        "true_lambda": 0.0225861,
+        "true_mu": 0.000964373,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 928.925,
+        "true_expected_revenue_26w": 538.72,
+        "true_expected_revenue_52w": 1064.1
+      },
+      {
+        "customer_id": 5007,
+        "true_lambda": 0.306365,
+        "true_mu": 0.0125508,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 748.446,
+        "true_expected_revenue_26w": 5086.74,
+        "true_expected_revenue_52w": 8757.19
+      },
+      {
+        "customer_id": 5008,
+        "true_lambda": 0.0182382,
+        "true_mu": 0.00182361,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 826.573,
+        "true_expected_revenue_26w": 382.808,
+        "true_expected_revenue_52w": 747.89
+      },
+      {
+        "customer_id": 5009,
+        "true_lambda": 0.0970172,
+        "true_mu": 0.0102864,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 843.53,
+        "true_expected_revenue_26w": 1866.99,
+        "true_expected_revenue_52w": 3295.85
+      },
+      {
+        "customer_id": 5010,
+        "true_lambda": 0.308745,
+        "true_mu": 0.0466535,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 2554.32,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5011,
+        "true_lambda": 0.106174,
+        "true_mu": 0.00828006,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 921.139,
+        "true_expected_revenue_26w": 2287.74,
+        "true_expected_revenue_52w": 4132.37
+      },
+      {
+        "customer_id": 5012,
+        "true_lambda": 0.121482,
+        "true_mu": 0.0237136,
+        "true_alive_at_cal_end": 0,
+        "true_mean_spend": 930.469,
+        "true_expected_revenue_26w": 0.0,
+        "true_expected_revenue_52w": 0.0
+      },
+      {
+        "customer_id": 5013,
+        "true_lambda": 0.430269,
+        "true_mu": 9.86215e-06,
+        "true_alive_at_cal_end": 1,
+        "true_mean_spend": 514.653,
+        "true_expected_revenue_26w": 5756.68,
+        "true_expected_revenue_52w": 11511.9
+      }
+    ],
+    "transactions": [
+      [
+        5001,
+        "2024-06-13",
+        531.61
+      ],
+      [
+        5002,
+        "2024-01-16",
+        513.86
+      ],
+      [
+        5002,
+        "2024-02-01",
+        987.53
+      ],
+      [
+        5003,
+        "2024-01-26",
+        902.08
+      ],
+      [
+        5003,
+        "2024-02-14",
+        1720.5
+      ],
+      [
+        5004,
+        "2024-05-03",
+        1330.78
+      ],
+      [
+        5004,
+        "2024-06-07",
+        1018.21
+      ],
+      [
+        5005,
+        "2024-01-17",
+        444.68
+      ],
+      [
+        5006,
+        "2024-04-25",
+        1671.11
+      ],
+      [
+        5006,
+        "2025-07-23",
+        1123.38
+      ],
+      [
+        5007,
+        "2024-04-15",
+        396.09
+      ],
+      [
+        5007,
+        "2024-05-22",
+        528.9
+      ],
+      [
+        5007,
+        "2024-07-02",
+        824.12
+      ],
+      [
+        5007,
+        "2024-07-20",
+        389.33
+      ],
+      [
+        5007,
+        "2024-09-23",
+        809.68
+      ],
+      [
+        5007,
+        "2024-10-12",
+        462.12
+      ],
+      [
+        5007,
+        "2024-11-03",
+        359.34
+      ],
+      [
+        5007,
+        "2024-11-10",
+        681.5
+      ],
+      [
+        5007,
+        "2024-11-21",
+        586.54
+      ],
+      [
+        5007,
+        "2024-11-23",
+        464.51
+      ],
+      [
+        5007,
+        "2024-12-02",
+        1133.69
+      ],
+      [
+        5007,
+        "2024-12-12",
+        566.04
+      ],
+      [
+        5007,
+        "2024-12-25",
+        654.36
+      ],
+      [
+        5007,
+        "2025-01-02",
+        1378.82
+      ],
+      [
+        5007,
+        "2025-01-19",
+        755.78
+      ],
+      [
+        5007,
+        "2025-01-27",
+        441.65
+      ],
+      [
+        5007,
+        "2025-03-14",
+        440.3
+      ],
+      [
+        5007,
+        "2025-05-01",
+        498.18
+      ],
+      [
+        5007,
+        "2025-05-02",
+        1075.75
+      ],
+      [
+        5007,
+        "2025-05-10",
+        657.79
+      ],
+      [
+        5007,
+        "2025-05-18",
+        1086.32
+      ],
+      [
+        5007,
+        "2025-06-07",
+        485.36
+      ],
+      [
+        5008,
+        "2024-04-21",
+        629.64
+      ],
+      [
+        5008,
+        "2024-06-25",
+        814.88
+      ],
+      [
+        5008,
+        "2024-10-09",
+        521.38
+      ],
+      [
+        5009,
+        "2024-02-08",
+        432.74
+      ],
+      [
+        5009,
+        "2024-05-26",
+        1184.84
+      ],
+      [
+        5009,
+        "2024-06-05",
+        527.74
+      ],
+      [
+        5009,
+        "2024-08-28",
+        468.52
+      ],
+      [
+        5009,
+        "2024-12-02",
+        1430.48
+      ],
+      [
+        5009,
+        "2025-01-17",
+        626.2
+      ],
+      [
+        5009,
+        "2025-03-27",
+        428.76
+      ],
+      [
+        5009,
+        "2025-04-12",
+        998.62
+      ],
+      [
+        5009,
+        "2025-05-22",
+        1149.16
+      ],
+      [
+        5009,
+        "2025-05-31",
+        746.81
+      ],
+      [
+        5009,
+        "2025-08-12",
+        418.0
+      ],
+      [
+        5009,
+        "2025-11-13",
+        470.28
+      ],
+      [
+        5010,
+        "2024-06-16",
+        2449.8
+      ],
+      [
+        5011,
+        "2024-02-24",
+        699.39
+      ],
+      [
+        5011,
+        "2024-03-03",
+        1185.52
+      ],
+      [
+        5011,
+        "2024-05-01",
+        530.25
+      ],
+      [
+        5011,
+        "2024-05-13",
+        1021.39
+      ],
+      [
+        5011,
+        "2024-08-26",
+        323.72
+      ],
+      [
+        5011,
+        "2024-09-06",
+        425.3
+      ],
+      [
+        5011,
+        "2024-11-13",
+        530.56
+      ],
+      [
+        5011,
+        "2024-12-01",
+        683.53
+      ],
+      [
+        5011,
+        "2025-01-19",
+        358.37
+      ],
+      [
+        5011,
+        "2025-03-03",
+        363.75
+      ],
+      [
+        5011,
+        "2025-05-03",
+        825.62
+      ],
+      [
+        5011,
+        "2025-06-13",
+        1720.52
+      ],
+      [
+        5012,
+        "2024-01-15",
+        522.29
+      ],
+      [
+        5012,
+        "2024-01-16",
+        949.29
+      ],
+      [
+        5013,
+        "2024-03-13",
+        850.59
+      ],
+      [
+        5013,
+        "2024-03-16",
+        805.67
+      ],
+      [
+        5013,
+        "2024-03-29",
+        565.78
+      ],
+      [
+        5013,
+        "2024-04-13",
+        410.31
+      ],
+      [
+        5013,
+        "2024-04-30",
+        561.3
+      ],
+      [
+        5013,
+        "2024-05-06",
+        395.35
+      ],
+      [
+        5013,
+        "2024-05-06",
+        369.08
+      ],
+      [
+        5013,
+        "2024-06-07",
+        625.59
+      ],
+      [
+        5013,
+        "2024-06-14",
+        353.52
+      ],
+      [
+        5013,
+        "2024-07-28",
+        479.26
+      ],
+      [
+        5013,
+        "2024-09-06",
+        434.86
+      ],
+      [
+        5013,
+        "2024-09-13",
+        478.06
+      ],
+      [
+        5013,
+        "2024-10-03",
+        560.79
+      ],
+      [
+        5013,
+        "2024-11-13",
+        439.89
+      ],
+      [
+        5013,
+        "2024-11-23",
+        1045.98
+      ],
+      [
+        5013,
+        "2025-01-28",
+        463.1
+      ],
+      [
+        5013,
+        "2025-02-18",
+        225.45
+      ],
+      [
+        5013,
+        "2025-02-19",
+        425.88
+      ],
+      [
+        5013,
+        "2025-02-21",
+        717.67
+      ],
+      [
+        5013,
+        "2025-03-21",
+        477.57
+      ],
+      [
+        5013,
+        "2025-04-03",
+        401.08
+      ],
+      [
+        5013,
+        "2025-05-22",
+        915.58
+      ],
+      [
+        5013,
+        "2025-05-31",
+        306.32
+      ],
+      [
+        5013,
+        "2025-06-02",
+        328.61
+      ],
+      [
+        5013,
+        "2025-06-17",
+        406.72
+      ],
+      [
+        5013,
+        "2025-06-28",
+        761.99
+      ],
+      [
+        5013,
+        "2025-07-08",
+        433.83
+      ],
+      [
+        5013,
+        "2025-07-13",
+        286.42
+      ],
+      [
+        5013,
+        "2025-08-07",
+        528.27
+      ],
+      [
+        5013,
+        "2025-09-21",
+        401.06
+      ],
+      [
+        5013,
+        "2025-09-26",
+        419.55
+      ],
+      [
+        5013,
+        "2025-10-02",
+        203.62
+      ],
+      [
+        5013,
+        "2025-10-19",
+        778.45
+      ],
+      [
+        5013,
+        "2025-11-03",
+        315.07
+      ],
+      [
+        5013,
+        "2025-12-12",
+        535.17
+      ],
+      [
+        5013,
+        "2025-12-25",
+        853.57
+      ]
+    ],
+    "transactions_columns": [
+      "customer_id",
+      "date",
+      "amount"
+    ],
+    "true_expected_revenue_26w": 16368.5,
+    "true_expected_revenue_52w": 30309.0
+  },
+  "retail": {
+    "customer_ids": "1..2500 of retailer(seed=2026)",
+    "n_customers": 2500,
+    "gamma_gamma": {
+      "p": 6.0,
+      "q": 4.0,
+      "v": 15.0
+    },
+    "population_mean_spend": 30.0,
+    "true_expected_revenue_26w": 140045.0,
+    "true_expected_revenue_52w": 259909.0
+  },
+  "tolerances": {
+    "basis": "set above the largest relative error of the reference pipeline over 30 independent generator seeds",
+    "seeds": "messy seeds 3000-3029 with retailer seeds 4000-4029, default rates",
+    "holdout_forecast": {
+      "what": "BG/NBD maximum-likelihood fit on the reference calibration RFM; expected purchase days in the 52-week holdout, summed, against the clean log's realized holdout purchase days",
+      "rel": 0.2,
+      "largest_measured": 0.178,
+      "mean_measured": 0.08,
+      "basis": "the tolerance, set above the largest error over 30 independent generator seeds (17.8%; mean +8.0%: a BG/NBD over-predicts this Pareto/NBD holdout)"
+    },
+    "capped_gamma_gamma": {
+      "what": "Gamma-Gamma maximum-likelihood fit on the calibration RFM with purchase-day amounts capped at their 99th percentile (calibration days, all customers), against the retail truth p 6, q 4, v 15 and mean spend 30",
+      "p": {
+        "rel": 0.9,
+        "largest_measured": 0.862
+      },
+      "q": {
+        "rel": 0.15,
+        "largest_measured": 0.14
+      },
+      "v": {
+        "rel": 0.55,
+        "largest_measured": 0.514
+      },
+      "population_mean_spend": {
+        "rel": 0.08,
+        "largest_measured": 0.073
+      },
+      "basis": "the largest relative error over 30 independent generator seeds, rounded up (p, q and v trade off against each other; their mean p v / (q - 1) is tight)"
+    }
+  }
+}

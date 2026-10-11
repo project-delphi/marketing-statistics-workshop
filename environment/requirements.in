@@ -14,6 +14,9 @@ nevergrad
 statsmodels
 scikit-learn
 lightgbm
+# Extensions: survival analysis (Module 14) and Prophet baselines (Module 17)
+lifelines
+prophet
 scipy
 numpy
 pandas

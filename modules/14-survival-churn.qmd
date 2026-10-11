@@ -1,0 +1,430 @@
+---
+title: "{{< var modules.m14.title >}}"
+---
+
+{{< include /_includes/module-14.md >}}
+
+::: {.recap}
+**Where we are.** Module 4's shifted-beta-geometric (sBG) model projected the retention of a subscription cohort that everyone joined on the same day, observed for the same number of years. A real subscription program signs people up every day, so on any date most subscribers are still active and nobody knows when they will leave; and the sBG has no covariates, so it cannot say which subscribers churn faster or by how much. This module asks: how long do subscribers stay, what shortens or lengthens their stay, and what is a change in churn worth in months and dollars?
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-14.md >}}
+
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings on 2026-10-11, Run all took 9.2 s on an Apple Silicon laptop (native Python) and 11.7 s in the workshop's Docker image (linux/arm64, limited to two CPUs, also on an Apple Silicon laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. The lab has not run on Colab yet: the Colab button opens the notebook at the workshop's release tag, and no release contains it so far. Until one does, run it [on your own machine](/setup.qmd#local). The [Readiness](/readiness.qmd#extensions) page shows its current status.
+:::
+
+## 1. How long do subscribers stay?
+
+A subscription is **contractual**: a subscriber who cancels has left, and the company knows the date. The question is not "who is still a customer?", as in Modules 2 and 3, but "for how long?".
+
+The lab's data are a monthly replenishment subscription the retailer launched in January 2024 in three plans: basic, standard and premium. Each subscriber starts with a 14-day free trial, during which they complete onboarding or not. The first billing date ends the trial. Some subscribers joined through an introductory offer that discounts the first three paid months. First billing dates run from 2024-01-01 to 2025-12-31, more of them later than earlier, and the data stop on 2026-06-30, the **observation end**. The data are synthetic: 8,000 subscribers from a seeded generator whose churn process is known, so every estimate in the lab is checked against the truth.
+
+A subscriber's **tenure** is the time in months (of 30.4375 days, as in Module 4) from the first billing date to the cancellation. On 2026-06-30, 4,427 of the 8,000 had cancelled (55.3%); the other 3,573 were still active. Three rows of the lab's data show what that means:
+
+| Subscriber | First billing date | Cancelled | Observed tenure (months) | What we know |
+|---|---|---|---|---|
+| 1 | 2024-01-01 | 2024-03-01 | 1.97 | stayed exactly 1.97 months |
+| 6 | 2024-01-01 | still active | 29.93 | stayed at least 29.93 months |
+| 8000 | 2025-12-31 | still active | 5.95 | stayed at least 5.95 months |
+
+Subscribers 6 and 8000 are **right-censored**: they were still active when the data stopped, so we know they stayed at least this long, not when they will leave. Subscriber 8000 could not have been observed for more than 5.95 months whatever they did. A censored tenure is not missing data to be dropped: subscriber 8000 is evidence that someone stayed 5.95 months, and the methods below use it.
+
+Formally, subscriber $i$ has a true tenure $T_i$ and a **censoring time** $C_i$, the time from their first billing date to the observation end. We observe $Y_i = \min(T_i, C_i)$ and $\delta_i = 1$ if the cancellation was observed ($T_i \le C_i$), 0 if the tenure is censored. Three functions describe tenure:
+
+$$
+\begin{aligned}
+S(t) &= P(T > t), \\
+h(t) &= \lim_{\Delta \to 0} \frac{P(t \le T < t + \Delta \mid T \ge t)}{\Delta}, \\
+H(t) &= \int_0^t h(u)\, du, \qquad S(t) = e^{-H(t)} .
+\end{aligned}
+$$ {#eq-surv}
+
+The **survival curve** (retention curve) $S(t)$ is the share of subscribers still subscribed $t$ months after their first billing date. The **hazard** $h(t)$ is the churn rate per month among subscribers still active at $t$: a rate, not a probability, although over a short interval $\Delta$ the probability of cancelling is about $h(t)\,\Delta$. The **cumulative hazard** $H(t)$ adds the hazard up to $t$. Each of the three determines the other two. Survival analysis is the set of methods that estimate them from censored data.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $T_i$, $C_i$ | true tenure and censoring time of subscriber $i$, in months |
+| $Y_i$, $\delta_i$ | observed tenure $\min(T_i, C_i)$; 1 if the cancellation was observed, 0 if censored |
+| $S(t)$, $h(t)$, $H(t)$ | survival curve, hazard and cumulative hazard (@eq-surv) |
+| $t_j$, $d_j$, $n_j$ | the distinct cancellation times; cancellations at $t_j$; subscribers at risk just before $t_j$ |
+| $R(t)$ | the risk set: subscribers at risk just before $t$ |
+| $z_i$, $\gamma$ | covariates of subscriber $i$ (plan dummies, `onboarded`, `intro_offer`) and their Cox coefficients, as in Module 3 |
+| $h_0(t)$ | baseline hazard: basic plan, not onboarded, no offer |
+| $\text{HR}_k = e^{\gamma_k}$ | hazard ratio of covariate $k$ |
+| $L$ | the landmark, 3 months |
+| $t^*$ | the horizon of the restricted mean, 24 months |
+| $w_p$ | share of plan $p$ among subscribers who did not onboard |
+| $q$, $m$, $c$ | share of called subscribers who then onboard; monthly margin ($12); cost of a call ($15) |
+| $\alpha$, $\beta$ | the sBG's beta parameters (Module 4), section 3 only. Not the Cox coefficients, which are $\gamma$ |
+
+## 2. Kaplan-Meier: retention from censored data
+
+**Objective for this section:** write the Kaplan-Meier estimator, match lifelines' `KaplanMeierFitter`, and show against the known truth that two retention rates that ignore censoring miss in opposite directions.
+
+### Two dashboard numbers
+
+Two ways a dashboard might report 12-month retention (FULL run):
+
+- **A**, the share of all subscribers who did not cancel within 12 months of starting: **52.8%**.
+- **B**, the same share among subscribers whose 12-month status is known, because they cancelled within 12 months or were observed for more than 12: **42.5%** (6,570 of 8,000).
+
+The truth is 51.1%. A is too high because it counts as retained 1,430 subscribers who were censored before month 12, all of whom started on or after 2025-06-30: they have not had 12 months to cancel, and some of them will. B is too low because it drops those 1,430 but keeps the recent starters who already cancelled, so the newest cohorts contribute only their cancellations. Ignoring censoring is "a common mistake" (lifelines documentation), and it can bias either way.
+
+### The product-limit estimator
+
+Staying 12 months means staying past each month on the way. The **Kaplan-Meier estimator** (Kaplan and Meier 1958) multiplies, over each time at which someone cancelled, the share of those at risk then who did not cancel:
+
+$$
+\hat S(t) = \prod_{t_j \le t} \left(1 - \frac{d_j}{n_j}\right),
+$$ {#eq-km}
+
+where $t_j$ are the distinct cancellation times, $d_j$ the number of cancellations at $t_j$, and $n_j$ the number **at risk** just before $t_j$: everyone whose observed tenure is $t_j$ or longer, censored or not. A subscriber censored at $t$ counts as at risk at $t$ and leaves the risk set after it. A time with only censorings adds no factor, but it lowers $n_j$ for every later time. Each factor uses only subscribers who were observed at that tenure, so every subscriber contributes for exactly as long as they were watched.
+
+A worked example. Six subscribers: A cancels at month 1, B cancels at month 2, C is censored at month 2, D cancels at month 3, E is censored at month 4 and F at month 5.
+
+| $t_j$ | at risk $n_j$ | cancel $d_j$ | $1 - d_j/n_j$ | $\hat S(t_j)$ |
+|---|---|---|---|---|
+| 1 | 6 | 1 | 5/6 | 0.833 |
+| 2 | 5 (B, C, D, E, F) | 1 | 4/5 | 0.667 |
+| 3 | 3 (D, E, F) | 1 | 2/3 | 0.444 |
+
+C counts at month 2 and is gone by month 3. After month 3 nobody cancels, so $\hat S$ stays at 0.444 until month 5, and the curve says nothing about later months. The dashboard rules on the same six give, at month 3, $3/6 = 0.5$ (rule A: C counted as retained) and $2/5 = 0.4$ (rule B: C dropped), on either side of Kaplan-Meier's 0.444.
+
+Tenures in the lab are whole days, so several subscribers often share a time: $d_j$ counts all of them in one factor. The lab's data have 664 distinct cancellation times among 899 distinct tenures, and the learner's function matches lifelines' `KaplanMeierFitter` to within $6 \times 10^{-15}$ (FULL run).
+
+**Intervals.** Greenwood's formula estimates the variance of $\hat S(t)$:
+
+$$
+\widehat{\operatorname{Var}}\big[\hat S(t)\big] = \hat S(t)^2 \sum_{t_j \le t} \frac{d_j}{n_j\,(n_j - d_j)} .
+$$ {#eq-greenwood}
+
+lifelines applies it on the scale of $\log(-\log \hat S)$, the "exponential Greenwood" interval, which keeps the interval between 0 and 1. The result is a **95% pointwise interval**: it covers $S(t)$ at one $t$ at a time with 95% probability, and is not a band that covers the whole curve.
+
+**The assumption.** Kaplan-Meier assumes that censoring is unrelated to churn risk: subscribers censored at $t$ would have churned like those still observed. Here censoring comes only from the observation end, and the plan mix does not change with the start date, so it holds. It would fail if, say, the newest cohorts came from a promotion with different churn.
+
+On the lab's data (FULL run):
+
+| Month | Kaplan-Meier | 95% pointwise interval | Truth |
+|---|---|---|---|
+| 6 | 0.659 | 0.648 to 0.669 | 0.659 |
+| 12 | 0.505 | 0.494 to 0.516 | 0.511 |
+| 18 | 0.403 | 0.390 to 0.415 | 0.408 |
+| 24 | 0.336 | 0.321 to 0.350 | 0.333 |
+
+All four true values lie inside their intervals, and both dashboard numbers lie outside the 12-month interval. The lab's check asks for at least 3 of the 4: on 80 other seeds of the same generator, at least 3 of 4 held in 78.
+
+::: {.self-check}
+**Check yourself.** In the six-subscriber example, suppose C had cancelled at month 2 instead of being censored. What is $\hat S(3)$ now, and why did it fall?
+
+::: {.callout-tip collapse="true" title="Answer"}
+At month 2, 5 are at risk and 2 cancel: $\hat S(2) = 5/6 \times 3/5 = 0.5$. At month 3, 3 are at risk (D, E, F) and 1 cancels: $\hat S(3) = 0.5 \times 2/3 = 0.333$, down from 0.444. As a censored subscriber, C counted as someone who survived month 2 and then simply stopped being observed; as a cancellation, C is a failure at month 2.
+:::
+:::
+
+## 3. Where Kaplan-Meier stops, and the sBG goes on
+
+**Objective for this section:** show on the Fader-Hardie data that Kaplan-Meier reproduces observed retention but cannot extrapolate past the last observed year, while the sBG model from Module 4 can.
+
+Kaplan-Meier makes no assumption about the shape of $S(t)$. That is its strength inside the data and its limit outside. Module 4's real data show the limit: of 1,000 customers in each of two segments, how many were still subscribed at each annual renewal, years 0 to 12 (Fader and Hardie 2007). Following the paper, the methods see years 0 to 7 and are judged on years 8 to 12. Encoded for Kaplan-Meier (a customer lost in year $t$ has tenure $t$ and a cancellation; one still active after year 7 is censored at 7), Kaplan-Meier on the Regular segment reproduces the counts exactly: 1,000, 631, 468, 382, 326, 289, 262 and 241 survivors.
+
+For an annual subscription paid at each renewal, the **expected paid years in the first $H$** are
+
+$$
+E_H = \sum_{t=0}^{H-1} S(t),
+$$ {#eq-expected-periods}
+
+how many of the first $H$ years an average customer pays for: the area under the survival curve, and, times the annual margin, the undiscounted contractual CLV. $E_{12}$ needs $S(0)$ to $S(11)$, and Kaplan-Meier stops at year 7. Using the last known value for every later year, **carried flat**, assumes nobody leaves after the data end; lifelines' `predict` does exactly that, without a warning. The sBG of Module 4 assumes a form instead, a beta mixture of constant churn probabilities:
+
+$$
+S(t) = \frac{B(\alpha, \beta + t)}{B(\alpha, \beta)},
+$$ {#eq-sbg}
+
+with $B$ the beta function and Fader and Hardie's estimates for Regular, $\alpha = 0.704$ and $\beta = 1.182$ (Module 4 reproduced them). Survivors of 1,000 in the years neither method saw (FULL run):
+
+| Year | Kaplan-Meier, carried flat | sBG | Actual |
+|---|---|---|---|
+| 8 | 241 | 220.1 | 223 |
+| 9 | 241 | 204.4 | 207 |
+| 10 | 241 | 191.2 | 194 |
+| 11 | 241 | 179.9 | 183 |
+| 12 | 241 | 170.1 | 173 |
+
+Expected paid years in the first 12: actual 4.406, sBG 4.410 (+0.1%), Kaplan-Meier carried flat 4.563 (+3.6%). The High End segment tells the same story: actual 7.166, sBG 7.156, flat 7.381.
+
+Kaplan-Meier describes the churn rates it has seen and has no rate for a year it has not seen. The sBG extrapolates because it assumes a form, and the assumption fits these data. The subscription data follow subscribers for at most 29.9 months, and only 504 subscribers were observed for 24 months or more. That is why the decision in this module looks 24 months ahead and no further: beyond that, an answer would come from a parametric model's assumption, not from the data.
+
+## 4. Who churns faster: the Cox model
+
+**Objective for this section:** fit a Cox proportional-hazards model and check that, once plan is adjusted for, the true hazard ratios of plan and onboarding lie inside their 95% confidence intervals.
+
+### Time zero and immortal time
+
+Comparing groups needs a **time zero**, when each subscriber's clock starts, and every group must be defined by what is known then. Here time zero is the first billing date, and onboarding is completed or not during the trial, before it.
+
+Suppose instead the clock started at sign-up and onboarding could be completed any time in the first month. A subscriber who cancelled in week two could never be counted as onboarded, so the onboarded group would consist only of people who survived long enough to onboard. Onboarding would look protective even if it did nothing: the weeks before onboarding are "immortal" time credited to the onboarded group. This is **immortal-time bias**, a form of guarantee-time bias (Giobbie-Hurder et al. 2013): "assignment and time-zero must be aligned" (Lee and Nunan 2020). A status reached after time zero, such as a second order or a support ticket, needs a landmark (section 5) or a time-varying covariate, not a fixed group label.
+
+### Comparing curves: the log-rank test
+
+By Kaplan-Meier, 60.3% of onboarded subscribers and 41.4% of the rest were still subscribed at 12 months (FULL run). The **log-rank test** asks whether two groups have the same hazard at every tenure. At each cancellation time $t_j$, with $n_{1j}$ of the $n_j$ at risk in group 1, the number of group-1 cancellations expected if the groups were the same is $E_{1j} = d_j\, n_{1j}/n_j$, and
+
+$$
+\begin{aligned}
+\chi^2 &= \frac{\Big(\sum_j (d_{1j} - E_{1j})\Big)^2}{\sum_j V_j}, \\[4pt]
+V_j &= \frac{d_j\, n_{1j}\,(n_j - n_{1j})\,(n_j - d_j)}{n_j^2\,(n_j - 1)},
+\end{aligned}
+$$ {#eq-logrank}
+
+compared with a $\chi^2$ distribution with 1 degree of freedom (with $g$ groups, $g - 1$). It is most powerful when one group's hazard is a constant multiple of the other's. On the lab's data (computed for this page with lifelines' `logrank_test` and `multivariate_logrank_test`; the lab does not run it): onboarding $\chi^2 = 345.2$, $p \approx 5 \times 10^{-77}$; the three plans $\chi^2 = 415.4$ on 2 degrees of freedom, $p \approx 6 \times 10^{-91}$.
+
+The groups differ. The test says nothing about how much, and nothing about why: onboarded and other subscribers also differ in plan.
+
+### The Cox proportional-hazards model
+
+The **Cox model** (Cox 1972) is a regression for the hazard:
+
+$$
+\begin{aligned}
+h(t \mid z_i) &= h_0(t)\, \exp(\gamma' z_i), \\
+\text{HR}_k &= e^{\gamma_k}.
+\end{aligned}
+$$ {#eq-cox}
+
+The baseline hazard $h_0(t)$, the hazard of basic subscribers who did not onboard and had no offer, is left unspecified: any shape over tenure. The covariates multiply it. The **hazard ratio** $\text{HR}_k$ is the factor by which covariate $k$ multiplies the hazard at every tenure. That "every tenure" is the **proportional-hazards assumption** in the model's name; section 5 tests it.
+
+$\gamma$ is estimated without ever estimating $h_0$, from the partial likelihood: at each cancellation, the probability that it was this subscriber who cancelled, among all subscribers at risk then,
+
+$$
+L(\gamma) = \prod_{i:\, \delta_i = 1} \frac{\exp(\gamma' z_i)}{\sum_{j \in R(Y_i)} \exp(\gamma' z_j)} .
+$$ {#eq-partial}
+
+$h_0(Y_i)$ appears in the numerator and in every term of the denominator, so it cancels. With whole-day tenures many cancellations share a time; lifelines handles ties with Efron's method by default.
+
+A hazard ratio is a ratio of rates, not of probabilities (Hernán 2010). Under proportional hazards the survival curves are related by $S(t \mid z) = S_0(t)^{\exp(\gamma' z)}$, so a hazard ratio of 0.68 does not mean "32% less likely to churn".
+
+### Adjusting for plan
+
+Plan affects who onboards (FULL run):
+
+| Plan | Subscribers | Share onboarded |
+|---|---|---|
+| basic | 3,977 | 30.7% |
+| standard | 2,417 | 55.1% |
+| premium | 1,606 | 81.4% |
+
+and premium subscribers churn less whether or not they onboard. Plan is a **confounder**: a variable that affects both who onboards and who churns. A comparison of onboarded with other subscribers credits onboarding with part of the premium plan's lower churn. **Adjusting** for plan, by putting it in the model, compares subscribers on the same plan. Hazard ratios with 95% confidence intervals (FULL run):
+
+| Model | Covariate | Hazard ratio | 95% interval | Truth |
+|---|---|---|---|---|
+| With plan | standard (vs basic) | 0.740 | 0.691 to 0.793 | 0.779 |
+| | premium (vs basic) | 0.508 | 0.462 to 0.559 | 0.549 |
+| | onboarded | 0.680 | 0.637 to 0.725 | 0.670 |
+| | intro offer | 1.355 | 1.272 to 1.443 | 2.014 in months 0-3, 1.000 after |
+| Onboarding only | onboarded | 0.568 | 0.535 to 0.603 | 0.670 |
+
+Without plan, onboarding's ratio is 0.568 and its interval misses the truth: plan made onboarding look more protective than it is. With plan, every true ratio lies inside its interval. The lab's check asks for onboarding's truth inside its interval and at least 2 of the 3 truths inside theirs; on 80 other seeds that held in 73, about 91%, because it rests mainly on one 95% interval. Adjusting for plan is enough here only because, in this simulation, plan is the only thing that drives onboarding.
+
+The intro offer's 1.355 has no single true value to compare with. Section 5 explains why.
+
+::: {.self-check}
+**Check yourself.** A slide says: "Onboarded subscribers are 32% less likely to churn (hazard ratio 0.68)." Suppose 40% of comparable subscribers who did not onboard are still subscribed at 12 months, and hazards are proportional. What share of onboarded subscribers churn within 12 months, and how would you rewrite the slide?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$S_1(12) = 0.40^{0.68} = 0.536$, so 46.4% of onboarded subscribers churn within 12 months against 60% of the others: 23% fewer, not 32%. A hazard ratio compares rates at each tenure, not the share who churn by a date. Rewrite: "At every tenure, onboarded subscribers cancel at about two thirds of the rate of comparable subscribers on the same plan (hazard ratio 0.68, 95% interval 0.64 to 0.73); within 12 months, that means about 46% instead of 60% churn."
+:::
+:::
+
+## 5. An effect that fades: proportional hazards and a landmark
+
+**Objective for this section:** test the proportional-hazards assumption, find the covariate whose effect fades, and estimate its hazard ratio before and after a 3-month landmark.
+
+The intro offer discounts the first three paid months. The story the simulation encodes: some subscribers come for the discount and cancel before they would pay full price, so offer subscribers churn faster during the discounted months; those still subscribed after month 3 churn like everyone else. In the truth, the offer doubles the hazard in months 0 to 3 (hazard ratio 2.014) and has no effect after (1.000). A single hazard ratio cannot describe that.
+
+### Checking proportional hazards with Schoenfeld residuals
+
+At each cancellation, compare the covariate of the subscriber who cancelled with the average covariate of everyone at risk then, each weighted by their fitted hazard:
+
+$$
+\begin{aligned}
+r_{ik} &= z_{ik} - \bar z_k(Y_i), \\[4pt]
+\bar z_k(t) &= \frac{\sum_{j \in R(t)} z_{jk}\, e^{\hat\gamma' z_j}}{\sum_{j \in R(t)} e^{\hat\gamma' z_j}} .
+\end{aligned}
+$$ {#eq-schoenfeld}
+
+These are the **Schoenfeld residuals** of covariate $k$. If its hazard ratio is constant, they show no trend over tenure. Grambsch and Therneau (1994) showed that a scaled version of the residuals, smoothed over time, traces how the coefficient changes, and that several tests of proportional hazards are weighted least-squares lines through that plot. lifelines' `proportional_hazard_test` asks whether the scaled residuals trend with the rank of the cancellation times and reports one $\chi^2$ test (1 degree of freedom) per covariate. On the lab's Cox model (FULL run):
+
+| Covariate | $\chi^2$ | p-value |
+|---|---|---|
+| intro offer | 99.25 | $2.2 \times 10^{-23}$ |
+| onboarded | 0.60 | 0.44 |
+| premium | 0.37 | 0.54 |
+| standard | 0.05 | 0.82 |
+
+The offer's effect changes with tenure; the others show no sign of it. With 8,000 subscribers this test can flag deviations too small to matter (lifelines documentation), so judge a flagged covariate by the size of the change, here a doubling that disappears, not by the p-value alone.
+
+### A landmark at month 3
+
+A **landmark analysis** picks a time $L$ (the landmark), keeps those still at risk then, and starts the clock again (Giobbie-Hurder et al. 2013). Split the data at $L = 3$ months, when the discount ends:
+
+$$
+\begin{aligned}
+\text{before: } & \text{every } i, \quad Y_i^{(0)} = \min(Y_i, L), \quad \delta_i^{(0)} = \delta_i \,\mathbb{1}[Y_i \le L], \\
+\text{after: } & \text{each } i \text{ with } Y_i > L, \quad Y_i^{(1)} = Y_i - L, \quad \delta_i^{(1)} = \delta_i .
+\end{aligned}
+$$ {#eq-landmark}
+
+"Before" follows everyone to month 3 and censors there anyone still active; "after" follows those still active at month 3 from that point. A Cox model on each part (FULL run):
+
+| Period | Covariate | Hazard ratio | 95% interval | Truth |
+|---|---|---|---|---|
+| Months 0-3 | intro offer | 2.061 | 1.878 to 2.261 | 2.014 |
+| | onboarded | 0.680 | 0.614 to 0.753 | 0.670 |
+| After month 3 | intro offer | 0.955 | 0.873 to 1.045 | 1.000 |
+| | onboarded | 0.681 | 0.626 to 0.741 | 0.670 |
+
+All four truths lie inside their intervals; the lab's check asks for at least 3 of 4, which held on all 80 other seeds. The full-period 1.355 was an average of a doubled rate in the first three months and no difference afterwards, weighted by when cancellations happen. It described no month. Onboarding's ratio is the same in both periods, as its test said.
+
+**A caution.** The subscribers still active at month 3 are a selected group: the most churn-prone have left. Here subscribers differ only in observed ways, so the survivors at month 3 are comparable; in real data they also differ in unobserved ones, and an after-landmark hazard ratio carries that selection: "period-specific HRs have a built-in selection bias" (Hernán 2010). Two other tools fit the same problem: a model stratified by the offer (`strata=["intro_offer"]`) gives each group its own baseline hazard and keeps the other ratios, but reports no offer effect; a time-varying coefficient (lifelines' `CoxTimeVaryingFitter` on data split into episodes) is the general tool.
+
+::: {.self-check}
+**Check yourself.** A campaign report says: "The intro offer raises churn by 36% (hazard ratio 1.36)." Using the landmark results, what should the report say instead, and what does that mean for where the offer's cost lies?
+
+::: {.callout-tip collapse="true" title="Answer"}
+"During the three discounted months, offer subscribers cancel at about twice the rate of others (hazard ratio 2.06, 95% interval 1.88 to 2.26); after month 3 there is no detectable difference (0.96, 0.87 to 1.05)." The 36% is an average over tenure that holds in no month. The offer's cost is concentrated in subscribers who leave before paying full price; the ones who stay past month 3 are like everyone else, so judging the offer means comparing the discount spent on early leavers with what the stayers are worth.
+:::
+:::
+
+## 6. From hazard ratios to months: restricted mean survival time
+
+**Objective for this section:** compute the restricted mean survival time that onboarding adds within 24 months, standardized by plan, with a 95% bootstrap interval.
+
+A hazard ratio does not multiply by a margin. The **restricted mean survival time** does:
+
+$$
+\text{RMST}(t^*) = \int_0^{t^*} S(t)\, dt = E\big[\min(T, t^*)\big],
+$$ {#eq-rmst}
+
+the expected months subscribed within the first $t^*$ months: the area under the survival curve up to $t^*$, the continuous version of @eq-expected-periods. For a Kaplan-Meier curve it is the area under the step function; in the six-subscriber example, $\text{RMST}(5) = 1 \times 1 + 0.833 \times 1 + 0.667 \times 1 + 0.444 \times 2 = 3.39$ months. RMST suits a decision for three reasons (Royston and Parmar 2013): it is in months, it needs no proportional hazards, and months times a monthly margin is money. The horizon is $t^* = 24$ months, for the reason in section 3.
+
+### Whom the decision is about
+
+A call would reach the subscribers who did not complete onboarding, the **target population**: 4,139 subscribers, of whom 66.6% are on basic, 26.2% on standard and 7.2% on premium (FULL run). The question is how many months onboarding would add for **them**. Comparing all onboarded subscribers with all the others answers a different question, because the two groups have different plan mixes. **Standardizing** by plan compares within each plan and weights the differences by the target population's plan mix:
+
+$$
+\Delta\text{RMST} = \sum_{p} w_p \Big[\text{RMST}_{p,1}(t^*) - \text{RMST}_{p,0}(t^*)\Big],
+$$ {#eq-standardized}
+
+with $\text{RMST}_{p,1}$ and $\text{RMST}_{p,0}$ from Kaplan-Meier curves of plan $p$'s onboarded and not-onboarded subscribers, and $w_p$ the share of plan $p$ in the target population. This estimates the effect of onboarding on the target population if, within each plan, onboarding is unrelated to anything else that affects churn, and if every plan has subscribers in both groups. The first condition holds in the simulation by construction and cannot be checked from the data.
+
+### Results
+
+Unadjusted, onboarded subscribers stay 15.24 months within the first 24 and the others 11.18: a gain of 4.06 months. Plan by plan (FULL run):
+
+| Plan | RMST(24) onboarded | RMST(24) not onboarded | Difference | Weight $w_p$ | Weight × difference |
+|---|---|---|---|---|---|
+| basic | 12.97 | 10.28 | 2.69 | 0.666 | 1.79 |
+| standard | 15.09 | 12.55 | 2.54 | 0.262 | 0.67 |
+| premium | 17.53 | 14.54 | 2.99 | 0.072 | 0.22 |
+| **Sum** | | | | 1.000 | **2.67** |
+
+Onboarding adds **2.67 months** within 24 for the target population, with a 95% bootstrap interval of **2.22 to 3.10** months (B = 200). The truth is 2.907 months; the unadjusted 4.06 estimates a true 4.061 that is mostly plan, not onboarding.
+
+The interval is a **95% bootstrap percentile interval**: resample subscribers with replacement within each plan × onboarding group, recompute @eq-standardized, and take the 2.5th and 97.5th percentiles of the 200 results. lifelines' `restricted_mean_survival_time(..., return_variance=True)` is no substitute: it returns the variance of $\min(T, 24)$ across subscribers (a standard deviation of 9.45 months on these data, computed for this page), the spread of individual tenures, not the uncertainty of the estimate. On 80 other seeds the truth fell inside the interval in 73 with B = 200 (72 with B = 100), about 91%: the nominal 5% miss rate plus some undercoverage of the percentile bootstrap.
+
+The plans' own differences (2.69, 2.54 and 2.99 months, against true gains of 2.99, 2.82 and 2.44) do not come in the true order, a sign that each one is noisy: some plan × onboarding groups are small (premium subscribers who did not onboard are under a fifth of 1,606). Do not rank plans by these numbers; the lab's stretch puts bootstrap intervals on them.
+
+## 7. The decision
+
+::: {.module-decision}
+**Decision.** Call a subscriber who did not onboard when the margin from the months a call adds exceeds its cost:
+
+$$
+q \times \Delta\text{RMST} \times m > c
+\quad\Longleftrightarrow\quad
+q > q^* = \frac{c}{\Delta\text{RMST} \times m},
+$$ {#eq-decision}
+
+with $\Delta\text{RMST}$ from @eq-standardized, $m$ = $12 of margin a month and $c$ = $15 a call (scenario assumptions). $q$ is the share of called subscribers whom the call gets to complete onboarding; nobody knows it yet. The **break-even** $q^*$ is the share that must onboard for a call to pay.
+
+FULL run, 4,139 subscribers who did not onboard:
+
+- **The number:** onboarding adds 2.67 months within 24 (95% bootstrap interval 2.22 to 3.10), standardized by plan. Unadjusted: 4.06.
+- **Value per call:** $6.41 at $q = 0.20$ ($5.32 to $7.45); $11.22 at $q = 0.35$ ($9.31 to $13.03); $16.03 at $q = 0.50$ ($13.29 to $18.61), against a cost of $15. Calls pay in 0%, 0% and 74% of the bootstrap resamples at those three values of $q$; that share measures sampling noise only and is not a probability that calls pay.
+- **Break-even:** $q^* = 0.468$ (0.403 to 0.564). From the unadjusted gain it would be 0.308.
+- **Scale:** calling all 4,139 costs $62,085 and returns $46,444 at $q = 0.35$.
+
+**Recommendation.** Do not roll out calls on this evidence: at $q = 35\%$ a call returns about $11 for each $15, and calls pay only if they get more than about 40 to 56% of the subscribers they reach to onboard. The unadjusted comparison would have funded them from $q = 31\%$. Before spending, run a randomized pilot (Module 6) that measures $q$ and retention. A cheaper nudge changes the answer: at an illustrative $3, the break-even $q$ is 9%.
+
+**The assumptions to say aloud.** Onboarding was not randomized, so 2.67 months is an association, not a measured effect. The rule also assumes that onboarding prompted by a call, after the first billing date, works like onboarding chosen during the trial; the pilot tests that too. $\Delta\text{RMST}$ is undiscounted and counts only the first 24 months: discounting at Module 4's 0.8% a month would lower the true gain by 10% (2.907 to 2.614 months), while months after month 24, which these data cannot measure, would raise it.
+
+Only a simulation can reveal the answer: the true gain is 2.907 months (inside the interval), a call is truly worth $6.98, $12.21 and $17.44 at $q$ = 0.20, 0.35 and 0.50, and the true break-even is 0.430. The recommendation stands.
+:::
+
+## 8. What this module cannot tell you
+
+- **Whether onboarding causes longer subscriptions.** Adjusting for plan removed the one confounder in the data. Motivation is not in the data, and in real life it plausibly drives both onboarding and staying. The lab's stretch adds it to the simulation (`hidden_confounding=0.5`): the plan-adjusted onboarding hazard ratio becomes 0.584 (95% interval 0.547 to 0.623) against a true 0.670 for subscribers of the same motivation, and the standardized gain 3.80 months against a true 2.74. Nothing in the data signals the bias. Module 15 estimates causal effects from observational data and says what they still assume; a randomized pilot (Module 6) settles the question.
+- **Anything beyond the last follow-up.** Kaplan-Meier and RMST describe the 24 months the data cover. Lifetime value needs a parametric model, as in section 3, and its assumption.
+- **Whether censoring is innocent.** Kaplan-Meier, Cox and RMST all assume censoring unrelated to churn risk. When subscribers leave the data for reasons tied to churn (a billing migration, a market exit), the estimates are biased and the data alone will not show it.
+
+## Summary
+
+- Subscription tenure is right-censored: most subscribers are still active when the data stop. Retention rates that ignore censoring miss in either direction (52.8% and 42.5% against a true 51.1%).
+- Kaplan-Meier (@eq-km) multiplies, over cancellation times, the share of those at risk who stayed; each subscriber counts for as long as they were observed. Its 95% intervals are pointwise.
+- Kaplan-Meier describes the data and stops at the last observation; carried flat, it overstated Fader and Hardie's 12-year value by 3.6%, while the sBG (@eq-sbg) was within 0.1%.
+- Define groups at time zero, or immortal time makes a later status look protective.
+- The Cox model (@eq-cox) estimates hazard ratios, ratios of rates, without a model for the baseline. Adjusting for plan moved onboarding's ratio from 0.568 to 0.680, against a true 0.670.
+- Schoenfeld residuals (@eq-schoenfeld) test whether a ratio changes with tenure. The intro offer's did: 2.06 before month 3 and 0.96 after, where the full-period model said 1.36.
+- RMST (@eq-rmst) turns survival curves into months that multiply by a margin. Standardized to the subscribers a call would reach (@eq-standardized), onboarding adds 2.67 months within 24 (2.22 to 3.10), not the unadjusted 4.06.
+- At $12 a month and $15 a call, calls pay only if more than about 47% of those called onboard (@eq-decision): run a pilot first.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 14 |
+|---|---|---|
+| @eq-km | the Kaplan-Meier estimator | **Exercise 1**: `kaplan_meier(duration, event)`; Checkpoint 1, the lab's first, checks two hand-worked toys (one with tied cancellations) and lifelines on the lab's data |
+| @eq-greenwood | pointwise intervals | Provided: `kmf_subs.confidence_interval_`; a check that the truth lies inside for at least 3 of 4 months and the dashboards outside |
+| @eq-expected-periods, @eq-sbg | expected paid years; the sBG curve | **Exercise 2**: `expected_periods(survival, horizon)`; Checkpoint 2 checks toys, the refusal of a curve that is too short, and the Fader-Hardie totals |
+| @eq-logrank | the log-rank test | Briefing only |
+| @eq-cox, @eq-partial | hazard ratios with and without plan | **Exercise 3**: `cox_hazard_ratios(subs, covariates, alpha)`; Checkpoint 3 checks the table's structure and scale, the truths inside the adjusted intervals and outside the unadjusted one |
+| @eq-schoenfeld | the proportional-hazards test | Provided: `proportional_hazard_test` on the Exercise 3 model |
+| @eq-landmark | the landmark split | **Exercise 4**: `landmark_split(subs, landmark)`; Checkpoint 4 checks both parts, that `subs` is unchanged, and 3 of 4 truths inside the two periods' intervals |
+| @eq-rmst, @eq-standardized | the standardized RMST gain | **Exercise 5**: `rmst_gain(subs, horizon, weights)`; Checkpoint 5 checks one plan, unequal weights (0.75 and 0.25), that weights not summing to 1 are refused, and the truth inside the bootstrap interval with the unadjusted gain outside |
+| @eq-decision | the call rule | Provided: the Decision cell |
+
+## Gotchas
+
+- **Do not drop or count censored subscribers as retained.** Both bias retention, in opposite directions.
+- **A censored subscriber is at risk at their censoring time.** Count tenure $\ge t_j$, not $> t_j$.
+- **Carried flat is silent.** `KaplanMeierFitter.predict(t)` beyond the last observed time returns the last value without a warning.
+- **Pointwise is not a band.** 95% at each month is not 95% for the whole curve.
+- **Hazard ratios are ratios of rates**, not of probabilities of churning by a date, and an average hazard ratio can describe no tenure at all.
+- **Time zero first.** A group defined by something that happens after time zero gets immortal time for free.
+- **Pass `CoxPHFitter` only the covariates and the two outcome columns.** It treats every column as a covariate: all of the lab's `subs` fails with `TypeError: Cannot cast DatetimeArray to dtype float64`.
+- **`confidence_intervals_` is on the log scale**, and its column names change with `alpha`; exponentiate it and take the columns by position.
+- **`CoxPHFitter` centers covariates**, so `baseline_survival_` is the curve at the mean covariates, not the reference group. Hazard ratios are unaffected.
+- **A large sample flags small violations.** Read the size of a time-varying effect, not only the test's p-value.
+- **`return_variance=True` is not a standard error.** It is the spread of $\min(T, t^*)$ across subscribers.
+- **Do not change `subs` in place** inside a function (most likely in Exercise 4): later results go wrong without an error.
+
+## Next steps
+
+Onboarding was not randomized. Adjusting for plan removed one confounder, but motivation is not in the data, so the 2.67 months stay an association. [Module 15](/modules/15-double-ml.qmd) estimates causal effects from observational data with double machine learning, and states what such an estimate still assumes; a randomized pilot ([Module 6](/modules/06-experiments.qmd)) settles the question for the onboarding call.
+
+## Further reading
+
+1. Kaplan, E. L., & Meier, P. (1958). [Nonparametric estimation from incomplete observations](https://doi.org/10.1080/01621459.1958.10501452). *Journal of the American Statistical Association*, 53(282), 457–481. The product-limit estimator.
+2. Cox, D. R. (1972). [Regression models and life-tables](https://doi.org/10.1111/j.2517-6161.1972.tb00899.x). *Journal of the Royal Statistical Society, Series B*, 34(2), 187–220. The proportional-hazards model and its conditional likelihood.
+3. Grambsch, P. M., & Therneau, T. M. (1994). [Proportional hazards tests and diagnostics based on weighted residuals](https://doi.org/10.1093/biomet/81.3.515). *Biometrika*, 81(3), 515–526. Scaled Schoenfeld residuals and the tests behind `proportional_hazard_test`.
+4. Royston, P., & Parmar, M. K. B. (2013). [Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome](https://doi.org/10.1186/1471-2288-13-152). *BMC Medical Research Methodology*, 13, 152. RMST, and why it needs no proportional hazards.
+5. Hernán, M. A. (2010). [The hazards of hazard ratios](https://doi.org/10.1097/EDE.0b013e3181c1ea43). *Epidemiology*, 21(1), 13–15. Hazard ratios that change during follow-up, the selection built into period-specific ratios, and adjusted survival curves as the clearer summary.
+6. Giobbie-Hurder, A., Gelber, R. D., & Regan, M. M. (2013). [Challenges of guarantee-time bias](https://doi.org/10.1200/JCO.2013.49.5283). *Journal of Clinical Oncology*, 31(23), 2963–2969. Landmark analysis, and immortal time as a case of guarantee-time bias.
+7. Lee, H., & Nunan, D. (2020). [Immortal time bias](https://catalogofbias.org/biases/immortal-time-bias/). *Catalogue of Bias*. Why assignment and time zero must be aligned.
+8. Fader, P. S., & Hardie, B. G. S. (2007). [How to project customer retention](https://doi.org/10.1002/dir.20074). *Journal of Interactive Marketing*, 21(1), 76–90. The sBG and the retention counts of section 3.
+9. Davidson-Pilon, C. (2019). [lifelines: survival analysis in Python](https://doi.org/10.21105/joss.01317). *Journal of Open Source Software*, 4(40), 1317. The library the lab uses.
+10. lifelines documentation: [Introduction to survival analysis](https://lifelines.readthedocs.io/en/latest/Survival%20Analysis%20intro.html), [Survival analysis with lifelines](https://lifelines.readthedocs.io/en/latest/Survival%20analysis%20with%20lifelines.html) (the Kaplan-Meier formula, its intervals and the log-rank test) and [Testing the proportional hazard assumptions](https://lifelines.readthedocs.io/en/latest/jupyter_notebooks/Proportional%20hazard%20assumption.html).
+
+Each entry was checked on 2026-10-10; for Kaplan and Meier (1958), only the bibliographic record, since the publisher refused automated access. Fader and Hardie (2007) is also on the [References](/references.qmd) page.

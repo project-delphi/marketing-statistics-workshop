@@ -55,4 +55,13 @@
 
 [Modules 11–12 · 09:00–17:00]{.day-card-span}
 :::
+::: {.day-card}
+[Extensions]{.eyebrow}
+
+[Beyond the core week](/extensions.qmd){.day-card-title}
+
+[What changes when the data are messy, observational, path-shaped or drifting?]{.day-card-question}
+
+[Modules 13–17, optional]{.day-card-span}
+:::
 :::

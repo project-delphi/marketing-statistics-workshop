@@ -22,6 +22,9 @@ repo:
   # Colab badges, the mktstats install, the constraints file and the R helpers all point at this
   # ref. `main` while building; a release tag when the workshop is frozen for delivery. Changing
   # it changes every notebook's deps_sha, so every run record goes stale (DECISIONS.md).
+  # A notebook added after this ref is cut is not in it, so its Colab link would not open:
+  # its entry in modules.*.notebooks says `in_ref: false` until ref moves to a tag that contains
+  # it (see the `notebooks` comment under m00, and CONTRIBUTING.md).
   ref: v2026.10.1
   # The branch that collects run records and builds the site; records added after the tag live here.
   branch: main
@@ -42,9 +45,12 @@ environment:
 # Python packages the labs install on Colab, with the docs or source each was checked against.
 # Versions must agree with environment/requirements.txt (tests/test_variables.py).
 packages:
-  pymc-marketing: {version: "1.2.0", checked: 2026-10-09, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer)", docs: https://www.pymc-marketing.io/}
-  econml: {version: "0.17.0", checked: 2026-10-09, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py", docs: https://www.pywhy.org/EconML/}
+  pymc-marketing: {version: "1.2.0", checked: 2026-10-10, against: "installed source pymc_marketing 1.2.0 (signatures of MMM, BetaGeoModel, ParetoNBDModel, GammaGammaModel, ShiftedBetaGeoModel, rfm_summary, rfm_train_test_split, expected_customer_lifetime_value, add_lift_test_measurements, budget_optimizer; 2026-10-10: clv/distributions.py BetaGeoNBD.logp, clv/models/gamma_gamma.py GammaGammaModel.build_model and expected_customer_spend, clv/models/beta_geo.py BetaGeoModel.expected_purchases, transcribed in mktstats.mle and tested against them); Module 17, 2026-10-10: mmm/mmm.py MMM(time_varying_media: bool | HSGPBase) (an HSGPBase instance keeps its own dims, so dims=(date, channel) gives one multiplier per channel; True gives one shared multiplier, dims (date,)), mmm/hsgp.py SoftPlusHSGP.parameterize_from_data(X, dims, X_mid=None, eta_mass=0.05, eta_upper=1.0, ls_lower=1.0, ls_upper=None, ls_mass=0.9, cov_func=CovFunc.ExpQuad, centered=False, drop_first=True) and create_variable (softplus divided by its mean over date), mmm/tvp.py (Matern 5/2 when cov_func is None), mmm/incrementality.py contribution_over_spend (window clamped to the fitted dates), mmm/lift_test.py exact_row_indices and create_time_varying_saturation (a time-varying lift row needs a date equal to a model date)", docs: https://www.pymc-marketing.io/}
+  econml: {version: "0.17.0", checked: 2026-10-10, against: "https://github.com/py-why/EconML/blob/v0.17.0/econml/dml/causal_forest.py (Module 11); for Module 15 the installed source of econml/dml/dml.py (LinearDML.__init__ and fit, _FirstStageWrapper, sensitivity_interval, robustness_value), econml/_ortho_learner.py (cv: an iterable of splits is used as given), econml/_cate_estimator.py (ate, ate_interval, intercept__inference), econml/inference/_inference.py (StatsModelsInference cov_type='HC1' by default), econml/dml/_rlearner.py (nuisance_scores_y/_t), econml/dr/_drlearner.py (LinearDRLearner)", docs: https://www.pywhy.org/EconML/}
   nutpie: {version: "0.16.11", checked: 2026-10-09, against: "PyPI", docs: https://pymc-devs.github.io/nutpie/}
+  # Extension modules. Colab preinstalls prophet 1.4.0 (environment/colab-constraints.txt); lifelines is a pure-Python wheel.
+  lifelines: {version: "0.30.3", checked: 2026-10-10, against: "PyPI metadata (pure-Python wheel, requires_python >=3.11, uploaded 2026-03-05; needs autograd-gamma 0.5.0, pinned in requirements.txt); imports on Python 3.13; installed source lifelines 0.30.3, read again for the Module 14 build on 2026-10-10: fitters/kaplan_meier_fitter.py (KaplanMeierFitter(alpha); fit/_fit; survival_function_ = exp(cumsum(log(1 - d/n))) from utils _additive_estimate, index 0 plus every distinct duration; confidence_interval_ from _bounds, exponential Greenwood, pointwise), fitters/__init__.py (UnivariateFitter.predict = asof, flat past the data), utils/__init__.py (restricted_mean_survival_time exact step integral up to t, return_variance = variance of min(T, t); _preprocess_inputs), fitters/coxph_fitter.py (CoxPHFitter(alpha) via BaseFitter, fit(df, duration_col, event_col) uses every other column, breslow -> SemiParametricPHFitter, confidence_intervals_ on the log scale with columns '95% lower-bound' and '95% upper-bound', summary), fitters/mixins.py (hazard_ratios_ = exp(params_), check_assumptions), statistics.py (proportional_hazard_test with time_transform rank; StatisticalResult.summary sorted by name; logrank_test, multivariate_logrank_test)", docs: https://lifelines.readthedocs.io/}
+  prophet: {version: "1.4.0", checked: 2026-10-10, against: "PyPI metadata (wheels for manylinux x86_64 and aarch64, macOS arm64); installed source prophet/forecaster.py (Prophet defaults n_changepoints=25, changepoint_range=0.8, changepoint_prior_scale=0.05; predict() returns trend, yearly, holidays, additive_terms and yhat = trend * (1 + multiplicative_terms) + additive_terms; add_regressor); fitted on Python 3.13 locally (156 weekly rows, 0.04-0.16 s, identical results on repeated fits); Module 17, 2026-10-10: Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False, holidays=, uncertainty_samples=0), predict(df) columns trend, yearly, holidays, yhat (trend + yearly + holidays = yhat to 1.2e-10 on the lab data); the prophet logger and cmdstanpy log at INFO level (forecaster.py, models.py)", docs: https://facebook.github.io/prophet/}
 
 # R packages (versions come from the P3M snapshot; recorded here after the image build).
 r_packages:
@@ -144,6 +150,18 @@ days:
       - {kind: break, minutes: 10}
       - {kind: module, id: m12, part: debrief, title: "Presentations and scoring"}
       - {kind: wrapup, minutes: 20}
+  # Extensions: optional modules outside the five timed days, done on your own after the week
+  # or swapped into a custom schedule (each keeps the 45-55 / 55 / 10 module format).
+  # `track` (Technical Expert): a day without it is the core workshop. Modules on a day with
+  # `track: extensions` are counted, judged for readiness and released separately from the
+  # core (scripts/readiness.py, scripts/release_check.py --extensions); the day's page is
+  # extensions.qmd (<track>.qmd).
+  d6:
+    track: extensions
+    label: "Extensions"
+    title: "Beyond the core week"
+    question: "What changes when the data are messy, observational, path-shaped or drifting?"
+    blocks: []
 
 # Modules. minutes: briefing / lab / debrief. Content keys are filled by the Academic Director;
 # notebooks/deps/data by the Technical Expert. Content keys and their types:
@@ -183,6 +201,12 @@ modules:
     # install: what the install cell makes sure of. Python: versions from `packages`, else
     # environment/requirements.txt. R: CRAN packages from the P3M snapshot, `github_packages`
     # from their pinned archives (jsonlite is always added for R/mktstats.R).
+    # in_ref: false: repo.ref does not contain this notebook (it was added after the tag), so
+    # the generated pages show a "Colab after the next release" chip linking to the local setup,
+    # and the notebook's header says the same, instead of a Colab link. Only `false` is written;
+    # remove the key in the commit that moves repo.ref to a tag that contains the notebook.
+    # A declared fact, not a git lookup, so generated files do not depend on which tags a
+    # checkout has; tests/test_colab_ref.py checks it against git where repo.ref resolves.
     notebooks:
       - {path: labs/python/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.py, kernel: python3, install: [duckdb, pandas]}
       - {path: labs/r/00-setup-warmup.ipynb, source: labs/src/00-setup-warmup.R, kernel: ir, install: [duckdb, DBI, dplyr]}
@@ -216,7 +240,7 @@ modules:
     next: "The recency rule needs an arbitrary cutoff, cannot forecast purchases and gives no probability. Module 2 replaces it with a model of purchasing and silent dropout."
     notebooks:
       - {path: labs/python/01-customer-base-sql.ipynb, source: labs/src/01-customer-base-sql.py, kernel: python3, install: [duckdb, pandas, matplotlib, openpyxl, pyarrow]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/btyd.py, src/mktstats/synth/capstone.py, src/mktstats/synth/channels.py, src/mktstats/synth/email.py, src/mktstats/synth/geo.py, src/mktstats/synth/mmm.py]
     data:
       - {name: "UCI Online Retail II", url: "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip", sha256: 572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb}
       - {name: "CDNOW transaction log", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/cdnow_transactions.csv", sha256: 7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac}
@@ -279,7 +303,7 @@ modules:
     notebooks:
       - {path: labs/r/03-clvtools-covariates.ipynb, source: labs/src/03-clvtools-covariates.R, kernel: ir, install: [CLVTools]}
       - {path: labs/python/03-btyd-vs-ml.ipynb, source: labs/src/03-btyd-vs-ml.py, kernel: python3, install: [pymc-marketing, scikit-learn, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth, R/mktstats.R, data/synthetic/retailer_transactions.csv, data/synthetic/retailer_customers.csv, data/synthetic/truth.json]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/btyd.py, src/mktstats/synth/capstone.py, src/mktstats/synth/channels.py, src/mktstats/synth/email.py, src/mktstats/synth/geo.py, src/mktstats/synth/mmm.py, R/mktstats.R, data/synthetic/retailer_transactions.csv, data/synthetic/retailer_customers.csv, data/synthetic/truth.json]
     data:
       - {name: "Synthetic retailer (generated by mktstats.synth.retailer)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
       - {name: "CDNOW transaction log", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/cdnow_transactions.csv", sha256: 7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac}
@@ -310,7 +334,7 @@ modules:
     next: "A CLV number is not a decision: we have not turned it into the most we can pay to acquire a customer in each channel, or into whether a retention campaign pays back. Module 5 does."
     notebooks:
       - {path: labs/python/04-monetary-clv.ipynb, source: labs/src/04-monetary-clv.py, kernel: python3, install: [pymc-marketing, nutpie, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth, data/real/sbg_retention.csv]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/btyd.py, src/mktstats/synth/capstone.py, src/mktstats/synth/channels.py, src/mktstats/synth/email.py, src/mktstats/synth/geo.py, src/mktstats/synth/mmm.py, data/real/sbg_retention.csv]
     data:
       - {name: "CDNOW transaction log", url: "https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/cdnow_transactions.csv", sha256: 7311ae0fb676e9f454bba310b10bc769b1a6838aeec09bd00175eb49481dddac}
       - {name: "Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)", url: "https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf"}
@@ -340,7 +364,7 @@ modules:
     next: "CAC caps assume each channel caused the customers credited to it. Nothing so far tested that. Day 3 asks whether marketing causes sales, starting with randomized experiments in Module 6."
     notebooks:
       - {path: labs/python/05-clv-decisions.ipynb, source: labs/src/05-clv-decisions.py, kernel: python3, install: [pymc-marketing, nutpie, duckdb, matplotlib]}
-    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth]
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/btyd.py, src/mktstats/synth/capstone.py, src/mktstats/synth/channels.py, src/mktstats/synth/email.py, src/mktstats/synth/geo.py, src/mktstats/synth/mmm.py]
     data: []
   m06:
     slug: 06-experiments
@@ -562,6 +586,170 @@ modules:
     deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/recovery.py, src/mktstats/synth/channels.py, src/mktstats/synth/mmm.py, data/synthetic/capstone_transactions.csv, data/synthetic/capstone_customers.csv, data/synthetic/capstone_geo_panel.csv, data/synthetic/capstone_mmm_weekly.csv, data/synthetic/capstone_email_experiment.csv, data/synthetic/truth.json]
     data:
       - {name: "Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+  m13:
+    slug: 13-messy-real-data
+    title: "Messy real data: cleaning a real log for BTYD and spend models"
+    day: d6
+    optional: true
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: "Python with DuckDB SQL for the cleaning rules, as in Module 1 (an ASOF join matches each cancellation to the purchase it cancels); maximum-likelihood fits of the closed-form likelihoods for the many what-if fits; and PyMC-Marketing once, to confirm that fit, as in Modules 2 and 4."
+    summary: "Build a cleaning pipeline that reproduces a known clean answer on a deliberately dirtied copy of the synthetic retailer, measure how much each data error moves BG/NBD, Gamma-Gamma and individual customer scores, cap extreme orders, and apply the same pipeline to UCI Online Retail II to choose whom to contact."
+    objectives:
+      - "Write SQL rules that flag non-product lines, exact duplicate lines, and cancellations together with the purchases they cancel, and show that they reproduce the clean RFM table of the synthetic retailer exactly."
+      - "Measure, one rule at a time, how leaving each error in moves BG/NBD and Gamma-Gamma estimates, total expected revenue and individual customer scores, against the clean answer and the known truth."
+      - "Cap extreme order values at a stated percentile and show what the cap does to the spend parameters and to the value of the capped wholesale customers."
+      - "Fit BG/NBD and Gamma-Gamma to cleaned UCI Online Retail II, check them on a holdout period, and test the spend-independence assumption with Pearson and rank correlations."
+      - "Turn the fitted models into a retention-contact list and report which cleaning or counting choice moves it most."
+    outcomes:
+      - "A tested DuckDB cleaning pipeline that turns an Online-Retail-II-style line log into purchase days and an RFM table"
+      - "A table of how each data error moves model parameters, total expected revenue and individual scores, against known truth"
+      - "A capping comparison for the spend model, with what it costs the wholesale customers' value"
+      - "Holdout tracking, an independence check and a retention-contact list for Online Retail II, with how much each cleaning or counting choice moves the list"
+    prerequisites:
+      - "Module 1: cleaning Online Retail II in SQL, purchase days and the RFM table"
+      - "Module 2: BG/NBD, the calibration/holdout split and MAP fits"
+      - "Module 4: Gamma-Gamma, its independence assumption and expected spend per customer"
+      - "Helpful: Module 5's break-even lift for a retention campaign"
+    decision: "Decide which Online Retail II customers get a retention contact (when the assumed lift times margin times expected 26-week revenue exceeds the contact cost), and state which cleaning or counting choice moves that list most and by how many customers."
+    recap: "Module 1 cleaned Online Retail II with three rules checked only by row counts, and Modules 2 and 4 fitted curated or synthetic logs; nothing showed whether the cleaning was right or what a cleaning error does to a model or a decision."
+    next: "Module 14 turns to subscribers, whose churn is observed: survival models with censoring and covariates."
+    notebooks:
+      - {path: labs/python/13-messy-real-data.ipynb, source: labs/src/13-messy-real-data.py, kernel: python3, install: [pymc-marketing, duckdb, matplotlib, pyarrow, openpyxl], in_ref: false}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/synth/_rfm.py, src/mktstats/synth/messy.py, src/mktstats/mle.py, data/synthetic/messy_lines.csv, data/synthetic/truth_messy.json, data/synthetic/retailer_transactions.csv, data/synthetic/truth.json]
+    data:
+      - {name: "UCI Online Retail II", url: "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip", sha256: 572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb}
+      - {name: "Synthetic messy log (messy_lines.csv: the retailer's customers 1-2,500 and 13 wholesale buyers, dirtied by mktstats.synth.messy, seed 2033; error labels only in truth_messy.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Synthetic retailer, the clean answer (generated by mktstats.synth.retailer)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+  m14:
+    slug: 14-survival-churn
+    title: "Survival analysis for subscription churn"
+    day: d6
+    optional: true
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: "The lifelines library fits Kaplan-Meier curves, log-rank tests, Cox models, proportional-hazards tests and restricted mean survival time on pandas data frames. No model is sampled, so the fits are quick."
+    summary: "Estimate subscriber retention from right-censored data with Kaplan-Meier, see where it stops and Module 4's sBG model has to take over, adjust a confounded comparison with a Cox proportional-hazards model, find an effect that fades with tenure, and turn the effect of onboarding into months of subscription and dollars."
+    objectives:
+      - "Write the Kaplan-Meier estimator, match lifelines' KaplanMeierFitter, and show against the known truth that two retention rates that ignore censoring miss in opposite directions."
+      - "Show on the Fader-Hardie data that Kaplan-Meier reproduces observed retention but cannot extrapolate past the last observed year, while the sBG model from Module 4 can."
+      - "Fit a Cox proportional-hazards model and check that, once plan is adjusted for, the true hazard ratios of plan and onboarding lie inside their 95% confidence intervals."
+      - "Test the proportional-hazards assumption, find the covariate whose effect fades, and estimate its hazard ratio before and after a 3-month landmark."
+      - "Compute the restricted mean survival time that onboarding adds within 24 months, standardized by plan, with a 95% bootstrap interval."
+    outcomes:
+      - "Your own Kaplan-Meier function, checked against lifelines and the true retention curve"
+      - "A hazard-ratio table with and without adjustment for plan, next to the true hazard ratios"
+      - "Hazard ratios before and after a landmark for an effect that fades"
+      - "The months of subscription onboarding adds, priced against the cost of an onboarding call"
+    prerequisites:
+      - "Module 4: the shifted-beta-geometric model and contractual churn"
+      - "Logistic regression coefficients read as multiplicative effects"
+      - "Module 6: confidence intervals, and why a randomized comparison is causal"
+    decision: "Decide whether an onboarding call is worth its cost, from the months of subscription that onboarding adds within 24 months (standardized by plan, with a 95% interval), the monthly margin and the share of called subscribers the call gets to onboard, and say why the estimate stays an association until an experiment tests it."
+    recap: "Module 4's sBG model describes one cohort that joined on the same day and has no covariates; it cannot use subscribers who joined at different dates and are still active, or say which subscribers churn faster."
+    next: "Onboarding was not randomized: adjusting for plan removes one confounder, but motivation is not in the data, so the effect is still an association. Module 15 estimates causal effects from observational data; a randomized pilot (Module 6) settles it."
+    notebooks:
+      - {path: labs/python/14-survival-churn.ipynb, source: labs/src/14-survival-churn.py, kernel: python3, install: [lifelines, matplotlib], in_ref: false}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/survival.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/subscriptions.py, data/synthetic/subscriptions_subscribers.csv, data/synthetic/truth_subscriptions.json, data/real/sbg_retention.csv]
+    data:
+      - {name: "Synthetic subscription program (subscriptions_subscribers.csv, generated by mktstats.synth.subscriptions, seed 2034; truth in truth_subscriptions.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Fader & Hardie (2007) retention counts, Table 1 (committed as data/real/sbg_retention.csv)", url: "https://faculty.wharton.upenn.edu/wp-content/uploads/2012/04/Fader_hardie_jim_07.pdf"}
+  m15:
+    slug: 15-double-ml
+    title: "Causal effects without an experiment: double machine learning"
+    day: d6
+    optional: true
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: "Python. EconML's LinearDML, the double machine learning estimator, takes any scikit-learn model for its two prediction steps; the lab uses scikit-learn's histogram gradient boosting, as in Module 11, and statsmodels for the regression baseline."
+    summary: "Estimate how much installing the app, which customers chose for themselves, changed their next 26 weeks of spend: see a naive comparison and a regression with controls miss the known truth, write double machine learning with cross-fitting by hand, find out whose effect the estimate describes, then reproduce it with EconML's LinearDML and check the method against a randomized benchmark built from the Hillstrom experiment."
+    objectives:
+      - "Show, against a known true effect, how self-selection biases a naive comparison and a regression with linear controls."
+      - "Write double machine learning by hand: cross-fitted predictions of install and spend from the covariates, then a regression of residual on residual with a 95% confidence interval."
+      - "Check overlap with propensity scores, trim, and state which customers the estimate describes."
+      - "Fit the same estimator with EconML's LinearDML, using the same folds and gradient-boosting models, and compare it with yours."
+      - "Recover a randomized benchmark from a deliberately confounded sample of the Hillstrom experiment, and show how hiding one confounder biases the estimate."
+    outcomes:
+      - "Your own cross_fit() and dml_estimate() functions, checked against the true effect and against EconML"
+      - "An overlap plot, a trimmed estimate and a profile of the customers the estimate describes"
+      - "Naive, regression and double machine learning estimates next to the Hillstrom experimental benchmark"
+      - "A break-even credit per install, with the hidden confounder that would overturn it"
+    prerequisites:
+      - "Module 6: randomized experiments and 95% confidence intervals"
+      - "Module 11: treatment effects and EconML"
+      - "Linear regression with control variables; gradient boosting at the level of fit and predict"
+    decision: "Decide whether a credit paid to customers for installing the app pays back within 26 weeks, from the incremental margin per persuaded install and its 95% confidence interval, and name the unobserved confounder that could overturn the decision."
+    recap: "Modules 6, 7 and 11 estimate effects of things the company randomized or switched on; installing an app, joining a loyalty program or finishing onboarding (Module 14) are chosen by customers, and the customers who choose them differ from those who do not."
+    next: "Module 16 looks at another observational claim made every day: the credit multi-touch attribution gives each channel."
+    notebooks:
+      - {path: labs/python/15-double-ml.ipynb, source: labs/src/15-double-ml.py, kernel: python3, install: [econml, scikit-learn, statsmodels, matplotlib], in_ref: false}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/dml.py, src/mktstats/synth/_common.py, src/mktstats/synth/app_install.py, data/synthetic/app_install_customers.csv, data/synthetic/truth_app_install.json]
+    data:
+      - {name: "Synthetic app-install customers: 20,000 customers who chose whether to install the retailer's app, with each customer's true propensity and true effect (app_install_customers.csv from mktstats.synth.app_install, seed 2035; truth in truth_app_install.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)", url: "http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv", sha256: 0e5893329d8b93cefecc571777672028290ab69865718020c78c7284f291aece}
+  m16:
+    slug: 16-multi-touch-attribution
+    title: "Multi-touch attribution: Markov chains, Shapley values and incrementality"
+    day: d6
+    optional: true
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: "Written from scratch with NumPy and pandas: you write the transition matrix, the removal effect and exact Shapley values over five channels (32 coalitions) and check each by hand; the absorbing-chain solve is provided. ChannelAttribution 2.2.5 (checked 2026-10-10) has heuristics and Markov models but no Shapley values, and on PyPI it ships as source only, so it would compile in the install cell."
+    summary: "Credit conversions to channels along user journeys with last-click, first-click, linear, a Markov-chain removal effect and Shapley values, then score every method against the conversions each channel truly causes in a simulation where some channels reach users who were likely to buy anyway."
+    objectives:
+      - "Compute last-click, first-click and linear credit from journey paths, and check each on a five-journey example worked by hand."
+      - "Estimate a first-order Markov transition matrix from journeys and compute each channel's removal effect from the probability of reaching conversion."
+      - "Compute exact Shapley values from the conversion rates of channel sets and verify the efficiency, symmetry and null-player properties."
+      - "Score five attribution methods against each channel's true incremental conversions, with 95% bootstrap intervals, and explain why targeted exposure and the efficiency property keep credit away from incrementality."
+      - "Decide, with Module 6's minimum detectable effect, whether a holdout test should come before any budget move."
+    outcomes:
+      - "Your own heuristic_credit(), transition_matrix(), removal_effects() and shapley_values() functions, each checked on a hand-worked example"
+      - "A table of credited conversions under five methods next to the true incremental conversions, with 95% bootstrap intervals"
+      - "A test-or-move recommendation for retargeting, with the holdout's minimum detectable effect and the margin at risk"
+    prerequisites:
+      - "Module 6: the minimum detectable effect, and why attribution is not incrementality"
+      - "Module 8: ROAS per channel from a marketing mix model"
+    decision: "Decide whether to move budget toward the paid channel that data-driven attribution says is cheapest per conversion or to run a holdout test first, by checking that the holdout can detect the channel's break-even number of incremental conversions."
+    recap: "Module 6 showed with one randomized email test that last-touch credit counts conversions that would have happened anyway; data-driven multi-touch attribution shares credit across every touch in a journey instead, but nothing so far tested whether that credit measures what a channel causes."
+    next: "Attribution cannot tell a channel's effect from the intent of the users it reaches; experiments (Modules 6 and 7) and lift-calibrated MMMs (Module 9) can. Module 17 returns to the MMM, where a channel's effect can drift over time."
+    notebooks:
+      - {path: labs/python/16-multi-touch-attribution.ipynb, source: labs/src/16-multi-touch-attribution.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib], in_ref: false}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/attribution.py, src/mktstats/synth/_common.py, src/mktstats/synth/mta.py, data/synthetic/mta_journeys.csv, data/synthetic/truth_mta.json]
+    data:
+      - {name: "Synthetic user journeys with targeted exposure: 69,410 journeys of 100,000 users over five channels, with each channel's true incremental conversions (mta_journeys.csv from mktstats.synth.mta, seed 2036, one letter per touch; truth in truth_mta.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+  m17:
+    slug: 17-mmm-time-varying
+    title: "MMM with drifting effects and a Prophet baseline"
+    day: d6
+    optional: true
+    minutes: {briefing: 45, lab: 55, debrief: 10}
+    language: [python]
+    language_why: "PyMC-Marketing 1.2.0 fits the MMM with a separate time-varying effectiveness multiplier for each channel (a Hilbert-space Gaussian process); Prophet 1.4.0, preinstalled on Colab, builds the trend, seasonality and holiday baseline that Robyn also builds from it."
+    summary: "Find and model a channel whose effect per dollar fades (ad fatigue): show that a static MMM reports its all-period average as if it held today, detect the drift from the static model's residuals, estimate the decline with a time-varying MMM, and test against the truth what a Prophet baseline fitted to sales does to channel ROAS."
+    objectives:
+      - "Compute ROAS over a window and show, against the truth, that a static MMM gives the fading channel about the same ROAS for the last quarter as for the whole history."
+      - "Detect a drifting effect without the truth, from the year-by-year correlation between a static model's residuals and each channel's spend."
+      - "Fit an MMM with a time-varying multiplier per channel in PyMC-Marketing, check what drift its prior allows, and measure in what share of weeks the true path lies inside the 94% HDI."
+      - "Feed Prophet's trend, seasonality and holiday components into the MMM as an informed prior and measure, against the truth, how each channel's ROAS moves."
+      - "Decide on next quarter's budget for the fading channel from its current-quarter ROAS interval against break-even, and say how that differs from the all-period answer."
+    outcomes:
+      - "A window-ROAS function that works on the truth and on posterior draws"
+      - "A residual check that flags a drifting channel when no truth is available"
+      - "A plot of the estimated effectiveness path with its 94% HDI band next to the true path"
+      - "A table of ROAS with the MMM's own baseline and with Prophet's, next to the truth"
+      - "A cut-or-keep recommendation for the fading channel with the probability that it is right"
+    prerequisites:
+      - "Module 8: the Bayesian MMM, adstock, saturation, ROAS and the sampler diagnostics"
+      - "Module 9: what an MMM cannot identify, and lift tests in the model's units"
+    decision: "Decide whether to cut the fading channel's budget next quarter (social, in the lab): cut if its current-quarter ROAS is below break-even (1 ÷ gross margin) with posterior probability ≥ 0.9, keep if above with probability ≥ 0.9, otherwise run a lift test first; and say how this differs from the answer the all-period average gives."
+    recap: "Modules 8 to 10 assume each channel's effect per dollar is the same in every week of the history, so a channel that has worn out keeps the average ROAS of its good years."
+    next: "This is the last extension. A drift estimated from observational data is still an estimate: a lift test run now (Module 9) checks the current level, and Module 10's optimizer can take the current-quarter response curves instead of the all-period ones."
+    notebooks:
+      - {path: labs/python/17-mmm-time-varying.ipynb, source: labs/src/17-mmm-time-varying.py, kernel: python3, install: [pymc-marketing, nutpie, prophet, matplotlib], in_ref: false}
+    deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/drift.py, src/mktstats/synth/__init__.py, src/mktstats/synth/_common.py, src/mktstats/synth/mmm.py, src/mktstats/synth/mmm_drift.py, data/synthetic/mmm_drift_weekly.csv, data/synthetic/mmm_drift_latent.csv, data/synthetic/mmm_drift_lift_tests.csv, data/synthetic/truth_mmm_drift.json]
+    data:
+      - {name: "Synthetic weekly MMM with a fading channel: 156 weeks of sales and spend on four channels, social's effect per dollar falling to about 0.4 of its first-year level (mmm_drift_weekly.csv from mktstats.synth.mmm_drift, seed 2037; noiseless paths in mmm_drift_latent.csv, truth in truth_mmm_drift.json)", url: "https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic"}
+      - {name: "Synthetic dated lift test on the fading channel (mmm_drift_lift_tests.csv, one +30% social test ending 2025-11-17; stretch A)", url: "https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_drift_lift_tests.csv"}
 
 # Evidence rules for readiness.qmd (scripts/readiness.py). Envs with teaching: true count as
 # "ran on the runtime it is designed for"; ci: true is the CI lane; documented_only envs are

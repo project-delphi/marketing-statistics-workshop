@@ -8,6 +8,12 @@ Start with the Module 0 notebook, then follow the modules in order. Most labs ar
 
 {{< include /_includes/notebooks.md >}}
 
+## Optional extensions {#extensions}
+
+Self-paced modules beyond the five days ([extensions](extensions.qmd)). Each builds on core modules named on its page.
+
+{{< include /_includes/notebooks-extensions.md >}}
+
 ::: {.callout-important appearance="simple"}
 Notebooks are stored without outputs. Work through the cells one at a time. **Runtime → Run all** stops at the first exercise you have not written, which is the point; to see a whole lab run, turn `WORKED_EXAMPLE` on in the harness cell first.
 :::
