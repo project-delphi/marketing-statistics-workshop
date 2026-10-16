@@ -60,8 +60,8 @@
 
 [Beyond the core week](/extensions.qmd){.day-card-title}
 
-[What changes when the data are messy, observational, path-shaped or drifting?]{.day-card-question}
+[What changes when the data are messy, observational, path-shaped or drifting, or when the channel is one you own and can fire every day?]{.day-card-question}
 
-[Modules 13–17, optional]{.day-card-span}
+[Modules 13–18, optional]{.day-card-span}
 :::
 :::

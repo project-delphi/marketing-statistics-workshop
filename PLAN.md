@@ -201,3 +201,19 @@ Nothing here may change a file the 18 core notebooks' run records hash.
 - [x] [TE] no Colab link to a notebook `repo.ref` lacks: `in_ref: false` chip, release-check blocker, git cross-check test (ac84aea)
 - [x] [UI] browser check of the track's pages (desktop and phone width, both themes; headless Chromium 124, 52 page×width×theme combinations; three CSS fixes, 3c95114)
 - [x] [Lead] new release tag + full Colab sweep (core and extensions): `v2026.10.2` (a0f878f), with the queued harness, R loader, runner and Module 9 fixes; all 23 notebooks pass on Colab, in Docker and natively (2026-10-11); the core release check passes through 2026-11-01
+
+### Phase 9 — Rename, Module 18 (notifications) and the What's new page (2026-10-16)
+Asked for by the user on 2026-10-16: rename the workshop to "Machine Learning for Growth
+Marketing", add a hands-on notifications section, add a short page on recent trends. Decisions in
+DECISIONS.md ("Name and scope", "Module 18").
+- [x] [Lead] rename: `_variables.yml`, every hand-written copy, regenerated includes and notebooks (0db2922); all 23 run records stale on purpose until the next tag
+- [ ] [Owner] GitHub repository rename to `ml-for-growth-marketing`, GHCR package visibility, external links (DECISIONS.md)
+- [x] [TE] `mktstats.synth.notifications` (users, simulator with common random numbers and potential outcomes, fixed, random, segment and volume policies), `mktstats.notifications` (experiments, references, bandit loop, transition model, evaluation, checks), `make_synthetic.py` entry, `data/synthetic/notifications_users.csv` + `truth_notifications.json`, tests (38, plus 10 slow seeds)
+- [x] [TE] `labs/src/18-notifications.py` built; QUICK worked + verify and learner runs pass; FULL runs recorded natively (11.1 s) and in the Docker image (14.1 s), 2026-10-16
+- [x] [Lead] `_variables.yml` m18 (`in_ref: false`), `days.d6.question` widened, `data/README.md`
+- [ ] [AD] `briefs/18-notifications.md`, `modules/18-notifications.qmd` from the recorded runs, `references.qmd` entries (in progress)
+- [ ] [PE] `teach.qmd` and `knowledge-checks.md` for Module 18 (in progress); review of the brief and notebook
+- [x] [Lead] `trends.qmd` ("What's new", navbar after References) from primary sources fetched 2026-10-16
+- [ ] [UI] browser check of the new pages, both themes, desktop and phone width
+- [ ] [Lead] release tag containing Module 18 and the rename, `in_ref` flags removed, release check, full Colab sweep of all 24 notebooks
+

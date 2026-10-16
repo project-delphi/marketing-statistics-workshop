@@ -1,0 +1,108 @@
+{
+  "about": "True parameters of the notifications extension dataset in data/synthetic/, written by scripts/make_synthetic.py from src/mktstats/synth/. Do not edit by hand.",
+  "files": [
+    "notifications_users.csv"
+  ],
+  "seed": 2038,
+  "n_users": 20000,
+  "templates": [
+    "reminder",
+    "offer",
+    "social"
+  ],
+  "actions": [
+    "skip",
+    "reminder",
+    "offer",
+    "social"
+  ],
+  "segments": [
+    "low",
+    "mid",
+    "high"
+  ],
+  "segment_edges": [
+    2,
+    5
+  ],
+  "dgp": {
+    "description": "n_users app users. Engagement theta ~ Normal(0, 1) and fatigue sensitivity kappa = exp(KAPPA_THETA theta + Normal(0, KAPPA_SIGMA)) are hidden; sessions_last_30 ~ Poisson(exp(1 + 0.6 theta)), purchases_last_90 ~ Poisson(exp(-0.3 + 0.5 theta)) and tenure_days are observed, and segment buckets sessions_last_30 (low 0-1, mid 2-4, high 5+). Each day a policy sends one of three templates or skips. Fatigue F_{t+1} = RHO F_t + sent_t. A send is opened with probability expit(OPEN_ALPHA[template] + OPEN_THETA theta - OPEN_FATIGUE F); an open is a session. After a send the user opts out with probability expit(OPTOUT_BASE + OPTOUT_SLOPE kappa F) (F before the send), for good; UNINSTALL_SHARE of opt-outs uninstall and never visit again. Without an open the user visits with probability expit(ORGANIC_BASE + ORGANIC_THETA theta - ORGANIC_DECAY min(days_since_session, 30)); any session resets days_since_session to 0. In a session the user buys with probability expit(BUY_BASE + BUY_THETA theta + BUY_OFFER [offer]); an order is ORDER x GROSS_MARGIN of margin, OFFER_DISCOUNT less when bought from an offer. The same uniforms are drawn every day whatever the policy does (common random numbers across policies at one seed).",
+    "rho": 0.7,
+    "open_alpha": {
+      "reminder": -2.2,
+      "offer": -1.8,
+      "social": -2.0
+    },
+    "open_theta": 0.8,
+    "open_fatigue": 0.5,
+    "optout_base": -8.0,
+    "optout_slope": 0.8,
+    "kappa_theta": -0.4,
+    "kappa_sigma": 0.5,
+    "uninstall_share": 0.5,
+    "organic_base": -2.2,
+    "organic_theta": 0.9,
+    "organic_decay": 0.08,
+    "max_days_since": 30,
+    "buy_base": -1.6,
+    "buy_theta": 0.4,
+    "buy_offer": 0.6,
+    "order": 30.0,
+    "gross_margin": 0.3,
+    "offer_discount": 3.0,
+    "margin_per_order": 9.0
+  },
+  "segment_share": {
+    "low": 0.28965,
+    "mid": 0.46045,
+    "high": 0.2499
+  },
+  "mean_theta_by_segment": {
+    "low": -0.781332,
+    "mid": -0.0484126,
+    "high": 0.974607
+  },
+  "open_rate_fresh_by_template": {
+    "reminder": 0.121798,
+    "offer": 0.167152,
+    "social": 0.143073
+  },
+  "optout_per_send_at_fatigue": {
+    "0": 0.00033535,
+    "1": 0.00162891,
+    "2": 0.0139256,
+    "3": 0.0486784
+  },
+  "steady_state_fatigue": {
+    "note": "F after a long run of sends every k-th day: 1 / (1 - RHO^k) just after a send",
+    "1": 3.33333,
+    "2": 1.96078,
+    "7": 1.08975
+  },
+  "send_experiment": {
+    "days": 28,
+    "p_send": 0.3,
+    "seed_sim": 2041,
+    "seed_policy": 2042,
+    "true_same_day_effect": {
+      "sessions_per_send": 0.0740656,
+      "margin_per_send": 0.139392
+    },
+    "definition": "mean over eligible user-days of the potential-outcome difference (reminder sent vs skipped) in sessions and margin today, from the same uniforms"
+  },
+  "volume_experiment": {
+    "days": 90,
+    "cadences": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7
+    ],
+    "seed_arms": 2039,
+    "seed_sim": 2040
+  },
+  "quick_users": 5000,
+  "reference": {}
+}

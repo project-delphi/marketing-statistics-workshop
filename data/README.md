@@ -248,3 +248,35 @@ lab that drops `mobile_share` (which drives both) shows the bias of a hidden con
   drifting model said "cut" in 14 of 15 (seed 2040: P(below) 0.81, "lift test first") and its
   current-quarter ROAS lay above the truth in 14 of 15; one fit of 45 had a divergence (seed 2050,
   drifting model). The prior's share of social drift ratios at or below 0.5 was 8% to 12%.
+
+### Notifications (Module 18): `notifications_users.csv`
+
+| File | Rows | Size | Generator (seed) | Contents |
+|---|---:|---:|---|---|
+| `notifications_users.csv` | 20,000 | 668 KB | `mktstats.synth.notifications.notification_users` (2038) | user_id, tenure_days, sessions_last_30, purchases_last_90, segment (low 0-1, mid 2-4, high 5+ sessions in the last 30 days), days_since_session at the start, and the hidden true_theta (engagement) and true_kappa (fatigue sensitivity), 4 decimals |
+| `truth_notifications.json` | | 3 KB | the same | the simulator's parameters, segment shares, fresh open rates per template, opt-out per send by fatigue level, the two experiments' seeds and settings, the true same-day effect of a send on the send experiment, and the QUICK subsample size |
+
+The retailer's app users, in a random order so that any prefix is a random subsample (QUICK runs
+keep the first 5,000). Only the users are committed: the two experiments the lab analyzes are
+generated live from them with the seeds in `mktstats.notifications` (the send experiment: 28 days,
+each eligible user sent the reminder with probability 0.3 a day, 560,000 user-days; the volume
+experiment: users assigned at random to 0, 1, 2, 3, 5 or 7 reminders a week for 90 days), because
+the logs are too large to commit and every learner and run record sees the same ones anyway.
+
+- The environment (`mktstats.synth.notifications.Simulator`) draws the same five uniforms per user
+  per day whatever a policy does, so policies run at one seed are compared on common random
+  numbers, and the potential outcomes of each day's decision (reminder sent or skipped) are logged.
+  The true same-day effect of a send on the send experiment is their mean difference: 0.0741
+  sessions and $0.139 of margin per send on all 20,000 users (`truth_notifications.json`).
+- The mechanism (an assumption of this synthetic world): opens fall and opt-outs rise with
+  fatigue, which decays by 0.7 a day and rises by one per send; opting out is for good and half the
+  opt-outs uninstall; a session resets the user's days since the last visit, which otherwise
+  lowers the chance of an organic visit (the habit effect); engaged users tolerate more sends.
+  Parameters and the draw order are in the module docstring.
+- Measured with the reference solutions on the committed users (FULL, 2026-10-16): week-1 opens
+  per user rise with every cadence (0.42 at daily), 90-day margin per user peaks at three a week
+  ($21.88) and falls to $17.93 at daily, whose arm loses 46% of its users to opt-outs. Over ten
+  other simulator seeds (`tests/test_synth_notifications.py`, slow) the 95% interval of the
+  same-day effect covered the truth for both outcomes on at least 9 of 10, and the two rankings
+  held on all 10.
+

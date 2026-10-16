@@ -86,4 +86,21 @@ Find and model a channel whose effect per dollar fades (ad fatigue): show that a
 [Open the briefing](/modules/17-mmm-time-varying.qmd){.btn-quiet} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
+::: {.module-card}
+[110 minutes (45 briefing, 55 lab, 10 debrief)]{.module-clock}
+
+[Module 18]{.eyebrow}
+
+**[Notifications: volume, targeting and a policy for the long run](/modules/18-notifications.qmd)**
+
+::: {.module-summary}
+Measure what one push notification does the same day with a randomized send experiment, then what a cadence does over a quarter with a volume experiment (opens say daily, 90-day margin says three a week, and daily sends lose half the reachable base), target sends with an uplift rule that charges each send its opt-out risk, run a contextual bandit with and without a penalty for opt-outs, fit a send-or-skip policy by value iteration on the volume log with a per-send penalty, and choose a policy by 90-day margin under a reachable-base guardrail.
+:::
+
+[Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.module-builds-on}
+
+::: {.module-actions}
+[Open the briefing](/modules/18-notifications.qmd){.btn-quiet} [Colab after the next release](/setup.qmd#local "Not in v2026.10.2, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+:::
+:::
 :::

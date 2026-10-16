@@ -25,6 +25,56 @@ Newest first within each section.
   image build (packages are not renamed with a repository), and updating links posted outside the
   repository. GitHub Pages does not redirect the old site URL.
 
+## Module 18: notifications
+
+### A simulated population, two experiments and five policies, scored on common random numbers (2026-10-16)
+- The user asked for a hands-on section on notifications (channels, the volume trade-off, when
+  and how to send, virality, uplift, bandits and RL, the Meta, LinkedIn and Pinterest papers) with
+  a simulated-user environment comparing a fixed-frequency policy with a bandit or RL policy. It
+  is Module 18 on the Extensions day: the five timed days are full and were swept at
+  `v2026.10.2`, and the extension machinery (own readiness verdict, `in_ref: false`,
+  `truth_<name>.json`) needs no change for a sixth module.
+- No public dataset has sends, a control group, outcomes and opt-outs together (Duolingo's
+  release has sends and a two-hour outcome, no control and no opt-outs), so the data are
+  simulated: 20,000 app users with hidden engagement and fatigue sensitivity
+  (`mktstats.synth.notifications`). The mechanisms are the ones a growth team argues about, each
+  made measurable: fatigue (decays 0.7 a day, +1 per send) lowers opens and raises an absorbing
+  opt-out (half uninstall); a session resets days-since-visit, which otherwise lowers organic
+  visits (the habit effect, the long-term value of a send); engaged users tolerate more. The
+  parameters were tuned on 2026-10-16 until three facts held in both modes and over other seeds:
+  week-1 opens favor daily sends, 90-day margin favors three a week, and daily sends lose about
+  half the base. Everything else (a bandit beating the fixed cadence, the RL policy not) is
+  measured, not designed.
+- Only the users are committed. The send experiment (28 days, p = 0.3 a day, reminder only, so
+  the same-day truth is for one template) and the volume experiment (90 days, cadences 0, 1, 2,
+  3, 5, 7) are generated live with fixed seeds in `mktstats.notifications`: a 90-day log of
+  20,000 users is 1.8 million rows. The simulator draws the same uniforms every day whatever the
+  policy does, so policies at one seed are paired per user (common random numbers) and the
+  decision's interval is a paired difference; the potential outcomes of each day's reminder are
+  logged, which is what makes the same-day effect known exactly.
+- The five exercises are the five functions a team would write (difference in means with its
+  interval; the volume curve; the per-segment uplift rule charging each send its opt-out risk;
+  the Thompson-sampling step; value iteration), each checked on a hand-worked example and against
+  a reference on the same inputs (float32 logs, so tolerances are 1e-5 relative). The bandit loop,
+  the transition model and `greedy_policy` (never an action the data tried fewer than 30 times in
+  a state: a crude form of staying within the data, the problem conservative Q-learning addresses
+  in the LinkedIn papers) are provided. Horizon's per-send penalty is a provided knob.
+- The decision uses a reachable-base guardrail (at most 10% opt-outs a quarter) because within 90
+  days the simulation does not punish burning the base enough to settle it, and a 180-day reveal
+  shows the guardrail is a business choice: the 3V bandit stays best at 180 days. That is reported
+  as measured; it is not tuned away.
+- Measured (FULL, worked, 2026-10-16): native Apple Silicon 11.1 s Run all, Docker (2 CPUs)
+  14.1 s; QUICK 6.0 s. Verify mode fails every checkpoint on its stub; learner mode stops at
+  Checkpoint 1.
+
+### A "What's new" page, reviewed each release (2026-10-16)
+- The user asked for a short section on recent trends with sources. It is a page (`trends.qmd`,
+  navbar after References) rather than a module: it has no lab and will date. Each item names the
+  primary source fetched on the review date; company figures about the company are marked as
+  such; claims that only vendor blogs support are listed under "What we checked and left out"
+  instead of being dropped silently. The research pass (15 items, 2026-10-16) is in the session's
+  scratch notes, not the repository; the page carries every URL.
+
 ## Extensions track
 
 ### Five optional modules after the core week, built without staling the core (2026-10-10)

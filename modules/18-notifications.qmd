@@ -1,0 +1,15 @@
+---
+title: "{{< var modules.m18.title >}}"
+---
+
+{{< include /_includes/module-18.md >}}
+
+::: {.recap}
+**Where we are.** {{< var modules.m18.recap >}}
+:::
+
+## The lab {#lab}
+
+{{< include /_includes/lab-18.md >}}
+
+<!-- The briefing is written by the Academic Director from the recorded runs (PLAN.md, Module 18). -->

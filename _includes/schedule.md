@@ -117,7 +117,7 @@ On your own, before the workshop: [Module 0 · Pre-work: environment, warm-up an
 
 ## [Extensions · Beyond the core week](/extensions.qmd) {#extensions}
 
-*What changes when the data are messy, observational, path-shaped or drifting?*
+*What changes when the data are messy, observational, path-shaped or drifting, or when the channel is one you own and can fire every day?*
 
 Optional and self-paced, with no timetable: they are not part of the five days. Do them on your own after the week, or swap one into a custom schedule in place of a core module. Each is one module, a briefing, a lab and a debrief:
 
@@ -126,3 +126,4 @@ Optional and self-paced, with no timetable: they are not part of the five days. 
 - [Module 15 · Causal effects without an experiment: double machine learning](/modules/15-double-ml.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
 - [Module 16 · Multi-touch attribution: Markov chains, Shapley values and incrementality](/modules/16-multi-touch-attribution.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
 - [Module 17 · MMM with drifting effects and a Prophet baseline](/modules/17-mmm-time-varying.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)
+- [Module 18 · Notifications: volume, targeting and a policy for the long run](/modules/18-notifications.qmd): 110 minutes (45 briefing, 55 lab, 10 debrief)

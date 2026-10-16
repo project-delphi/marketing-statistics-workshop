@@ -391,6 +391,40 @@ MMM_DRIFT_TOLERANCES: dict = {
 }
 
 
+def _notifications() -> tuple[dict[str, pd.DataFrame], dict]:
+    """Module 18: the app users a notification policy is chosen for (seed 2038, 20,000
+    users). Only the users are committed; the lab generates the two experiment logs live
+    from them with the seeds in mktstats.notifications. The truth carries the true same-day
+    effect of a send on the logged send experiment and the measured reference results of
+    the lab's policies (NOTIFICATIONS_REFERENCE)."""
+    from mktstats import notifications as nt
+    from mktstats.synth import notifications
+
+    res = notifications.notification_users()
+    log = nt.send_experiment(res.users)
+    truth = {**res.truth,
+             "send_experiment": {
+                 "days": nt.SEND_DAYS, "p_send": nt.P_SEND, "seed_sim": nt.SEED_SEND_SIM,
+                 "seed_policy": nt.SEED_SEND_POLICY,
+                 "true_same_day_effect": notifications.true_same_day_effect(log),
+                 "definition": "mean over eligible user-days of the potential-outcome "
+                               "difference (reminder sent vs skipped) in sessions and margin "
+                               "today, from the same uniforms",
+             },
+             "volume_experiment": {"days": nt.VOLUME_DAYS,
+                                   "cadences": list(notifications.CADENCES),
+                                   "seed_arms": nt.SEED_VOLUME_ARMS,
+                                   "seed_sim": nt.SEED_VOLUME_SIM},
+             "quick_users": nt.QUICK_USERS,
+             "reference": NOTIFICATIONS_REFERENCE}
+    return {"notifications_users.csv": res.users}, truth
+
+
+# Module 18: measured with the reference solutions on the committed users (see
+# tests/test_synth_notifications.py); filled in after the lab's first FULL run.
+NOTIFICATIONS_REFERENCE: dict = {}
+
+
 def _app_install() -> tuple[dict[str, pd.DataFrame], dict]:
     """Module 15: customers who chose to install the app, with known propensities and
     effects (seed 2035, 20,000 customers)."""
@@ -406,6 +440,7 @@ EXTENSIONS: dict[str, Callable[[], tuple[dict[str, pd.DataFrame], dict]]] = {
     "mta": _mta,
     "app_install": _app_install,
     "mmm_drift": _mmm_drift,
+    "notifications": _notifications,
 }
 
 

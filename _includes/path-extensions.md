@@ -59,5 +59,16 @@ Find and model a channel whose effect per dollar fades (ad fatigue): show that a
 [Builds on [Module 8](/modules/08-bayesian-mmm.qmd) and [Module 9](/modules/09-mmm-calibration.qmd).]{.path-builds-on}
 :::
 :::
+::: {.path-step .path-step-optional}
+[18]{.path-num}
+
+::: {.path-body}
+[Notifications: volume, targeting and a policy for the long run](/modules/18-notifications.qmd){.path-title} [Optional]{.chip}
+
+Measure what one push notification does the same day with a randomized send experiment, then what a cadence does over a quarter with a volume experiment (opens say daily, 90-day margin says three a week, and daily sends lose half the reachable base), target sends with an uplift rule that charges each send its opt-out risk, run a contextual bandit with and without a penalty for opt-outs, fit a send-or-skip policy by value iteration on the volume log with a per-send penalty, and choose a policy by 90-day margin under a reachable-base guardrail.
+
+[Builds on [Module 6](/modules/06-experiments.qmd) and [Module 11](/modules/11-uplift.qmd).]{.path-builds-on}
+:::
+:::
 :::
 :::

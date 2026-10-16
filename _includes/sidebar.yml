@@ -54,3 +54,5 @@ website:
         text: '16 · Multi-touch attribution: Markov chains, Shapley values and incrementality'
       - href: modules/17-mmm-time-varying.qmd
         text: 17 · MMM with drifting effects and a Prophet baseline
+      - href: modules/18-notifications.qmd
+        text: '18 · Notifications: volume, targeting and a policy for the long run'
