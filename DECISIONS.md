@@ -86,6 +86,18 @@ Newest first within each section.
   and data URL in the tag points at `ml-for-growth-marketing`, which does not exist on GitHub
   until then. The owner runs the rename; the tag is cut and pushed now so that the sweep can
   follow immediately.
+- Sweep at `v2026.10.3` (2026-10-16, after the owner renamed the repository): all 24 notebooks
+  passed a worked, full-settings Run all on fresh Colab runtimes
+  (`release-colab-external-images_20261014-060047_RC00`, 2 CPUs, 13.6 GB), three at a time by
+  the S1 method; every Python record carries `mktstats_commit` 241c38f (the tag's commit) and
+  every R record `ref: v2026.10.3`. Two runs that had landed on a warm runtime (Modules 0 and 1,
+  and the capstone once) were discarded and redone fresh so that `install_seconds` is a cold
+  install. In Colab's form cell the WORKED_EXAMPLE box must be clicked by position: clicking its
+  label does not toggle it, and a run that starts that way is a learner run that stops at
+  Checkpoint 1. For the R notebooks the flag is a plain assignment, set with Colab's find and
+  replace (`WORKED_EXAMPLE <- FALSE` to `TRUE`, replace all) before Run all. Module 17 took
+  703 s, the longest. `release_check.py --extensions` with the `evidence` branch's CI records:
+  "Ready to release the core workshop and the extensions as of 2026-10-16: no blockers."
 - Local evidence at the tag: the Module 18 FULL runs of 2026-10-16 (laptop 11.8 s, Docker 14.0 s)
   were made on the final content but before the ref moved, so they read stale like every other
   record; the Colab sweep replaces them as teaching evidence.

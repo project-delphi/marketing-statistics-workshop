@@ -216,5 +216,6 @@ DECISIONS.md ("Name and scope", "Module 18").
 - [x] [Lead] `trends.qmd` ("What's new", navbar after References) from primary sources fetched 2026-10-16
 - [x] [UI] browser check of the new pages, both themes, desktop and phone width (headless Chrome 155 through Playwright, 10 pages × 1280 and 375 px × light and dark = 40 combinations, plus the welcome slides; two faults fixed in `custom.scss`: Module 18's run-record note pushed the page 19 px sideways at 375 px, and the longer name plus the new navbar item cut the brand and wrapped "Start here" / "What's new" at 1280 px; both fixes verified by injecting the rules into the rendered pages, not yet re-rendered with Quarto 1.10)
 - [x] [Lead] release tag `v2026.10.3` containing Module 18 and the rename, `in_ref` flag removed
-- [ ] [Owner] rename the GitHub repository, then [Lead] full Colab sweep of all 24 notebooks at `v2026.10.3` and `release_check.py --extensions`
+- [x] [Owner] GitHub repository renamed (2026-10-16); [Lead] full Colab sweep of all 24 notebooks at `v2026.10.3` (ada5c83), `release_check.py --extensions` passes with the CI evidence: no blockers
+- [ ] [Owner] make the GHCR package `ghcr.io/project-delphi/ml-for-growth-marketing/env` public after dispatching `image.yml` once
 
