@@ -32,9 +32,9 @@ import pandas as pd
 
 from mktstats.synth._rfm import rfm_core, swap_recency_frequency
 
-REPO_RAW = "https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop"
+REPO_RAW = "https://raw.githubusercontent.com/project-delphi/ml-for-growth-marketing"
 _PMM = "https://raw.githubusercontent.com/pymc-labs/pymc-marketing"
-_MIRROR = "https://github.com/project-delphi/marketing-statistics-workshop/releases/download/data-2026-10-09"
+_MIRROR = "https://github.com/project-delphi/ml-for-growth-marketing/releases/download/data-2026-10-09"
 
 DATASETS: dict[str, dict] = {
     "cdnow": {

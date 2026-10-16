@@ -10,7 +10,7 @@ Estimate the lift of a regional campaign with difference-in-differences and synt
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/07-synthetic-control-did.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/r/07-causalimpact-geolift.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/07-synthetic-control-did.ipynb`<br>R: `labs/r/07-causalimpact-geolift.ipynb`
 
 Data
-:   [Synthetic geo panel (40 geos x 104 weeks, known lift)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md), [Proposition 99 panel (tidysynth smoking data)](https://cran.r-project.org/src/contrib/tidysynth_0.2.1.tar.gz)
+:   [Synthetic geo panel (40 geos x 104 weeks, known lift)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/README.md), [Proposition 99 panel (tidysynth smoking data)](https://cran.r-project.org/src/contrib/tidysynth_0.2.1.tar.gz)
 :::
 
 ::: {.module-outcomes}

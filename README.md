@@ -1,44 +1,45 @@
-# Statistics for Marketing
+# Machine Learning for Growth Marketing
 
-[![publish](https://github.com/project-delphi/marketing-statistics-workshop/actions/workflows/publish.yml/badge.svg)](https://github.com/project-delphi/marketing-statistics-workshop/actions/workflows/publish.yml)
-[![notebooks](https://github.com/project-delphi/marketing-statistics-workshop/actions/workflows/notebooks.yml/badge.svg)](https://github.com/project-delphi/marketing-statistics-workshop/actions/workflows/notebooks.yml)
+[![publish](https://github.com/project-delphi/ml-for-growth-marketing/actions/workflows/publish.yml/badge.svg)](https://github.com/project-delphi/ml-for-growth-marketing/actions/workflows/publish.yml)
+[![notebooks](https://github.com/project-delphi/ml-for-growth-marketing/actions/workflows/notebooks.yml/badge.svg)](https://github.com/project-delphi/ml-for-growth-marketing/actions/workflows/notebooks.yml)
 
-A five-day hands-on workshop on statistics for sales growth and customer lifetime value (CLV): who
-your customers are and who is still active, what each one is worth, whether the marketing caused
-the sales, where the next dollar should go, and whom to target. Labs in Python and R open in Google
-Colab with one click; the same notebooks run locally in Docker and on AWS.
+A five-day hands-on workshop on machine learning and statistics for growth marketing, sales growth
+and customer lifetime value (CLV): who your customers are and who is still active, what each one is
+worth, whether the marketing caused the sales, where the next dollar should go, whom to target, and
+when to send a notification. Labs in Python and R open in Google Colab with one click; the same
+notebooks run locally in Docker and on AWS.
 
-**Site:** https://project-delphi.github.io/marketing-statistics-workshop/
+**Site:** https://project-delphi.github.io/ml-for-growth-marketing/
 
 Every method is first fitted to seeded synthetic data with a known answer (so a lab can check
 whether the method recovers the truth), then to a real dataset. Every module ends in a business
 decision. Nothing on the site claims a notebook runs unless a run record says it ran: see the
-[readiness page](https://project-delphi.github.io/marketing-statistics-workshop/readiness.html).
+[readiness page](https://project-delphi.github.io/ml-for-growth-marketing/readiness.html).
 
 ## Status
 
 <!-- BEGIN status -->
-> **As of 2026-10-11, the core workshop (pre-work and Days 1–5): Colab evidence complete; ready to teach once CI passes on the current code (the live readiness page counts CI runs).** 18 of its 18 notebooks have a current, passing, worked, full-settings run of the whole notebook on Colab. 18 have passed on another machine (18 with full settings), and 0 on CI. **Optional extensions** (Modules 13–17), not part of that verdict: 5 of 5 notebooks have a current, passing Colab run; 5 have passed on another machine and 0 on CI. [What has run, where](https://project-delphi.github.io/marketing-statistics-workshop/readiness.html).
+> **As of 2026-10-11, the core workshop (pre-work and Days 1–5): not yet ready to teach.** 0 of its 18 notebooks have a current, passing, worked, full-settings run of the whole notebook on Colab. 0 have passed on another machine (0 with full settings), and 0 on CI. **Optional extensions** (Modules 13–17), not part of that verdict: 0 of 5 notebooks have a current, passing Colab run; 0 have passed on another machine and 0 on CI. [What has run, where](https://project-delphi.github.io/ml-for-growth-marketing/readiness.html).
 <!-- END status -->
 
 This summary counts the run records committed in `runs/`. CI records live on the `evidence` branch,
-so the [live readiness page](https://project-delphi.github.io/marketing-statistics-workshop/readiness.html)
+so the [live readiness page](https://project-delphi.github.io/ml-for-growth-marketing/readiness.html)
 also counts CI runs.
 
 ## Run it
 
-- **Colab:** open any lab from the [Notebooks](https://project-delphi.github.io/marketing-statistics-workshop/notebooks.html) page.
+- **Colab:** open any lab from the [Notebooks](https://project-delphi.github.io/ml-for-growth-marketing/notebooks.html) page.
 - **Docker** (R 4.6.1, Python 3.13, JupyterLab, Quarto 1.10.19):
   ```bash
   docker run --rm -p 127.0.0.1:8888:8888 \
     -e MKTSTATS_REPO_ROOT=/home/sagemaker-user/work -e PYTHONPATH=/home/sagemaker-user/work/src \
-    -v "$PWD":/home/sagemaker-user/work ghcr.io/project-delphi/marketing-statistics-workshop/env:latest
+    -v "$PWD":/home/sagemaker-user/work ghcr.io/project-delphi/ml-for-growth-marketing/env:latest
   ```
   or build it yourself from [`environment/Dockerfile`](environment/Dockerfile).
 - **Python only, with uv:** `uv venv --python 3.13 && uv pip install -r environment/requirements.txt && uv pip install -e . --no-deps`.
 - **AWS:** [`environment/aws/`](environment/aws/) (documented and scripted, not run by the authors).
 
-Details: [Setup](https://project-delphi.github.io/marketing-statistics-workshop/setup.html).
+Details: [Setup](https://project-delphi.github.io/ml-for-growth-marketing/setup.html).
 
 ## How the repository fits together
 

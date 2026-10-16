@@ -37,7 +37,7 @@ Module 0 ({{< var modules.m00.title >}}) is optional pre-work before Day 1.
 ## Every module ends in a decision
 
 ::: {.lead}
-Statistics for marketing is only useful if it changes what someone does on Monday.
+Machine learning for growth marketing is only useful if it changes what someone does on Monday.
 :::
 
 ::: {.decision-box}

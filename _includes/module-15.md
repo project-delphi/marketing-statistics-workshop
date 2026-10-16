@@ -10,7 +10,7 @@ Estimate how much installing the app, which customers chose for themselves, chan
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/15-double-ml.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/15-double-ml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/15-double-ml.ipynb`
 
 Data
-:   [Synthetic app-install customers: 20,000 customers who chose whether to install the retailer's app, with each customer's true propensity and true effect (app_install_customers.csv from mktstats.synth.app_install, seed 2035; truth in truth_app_install.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic), [Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
+:   [Synthetic app-install customers: 20,000 customers who chose whether to install the retailer's app, with each customer's true propensity and true effect (app_install_customers.csv from mktstats.synth.app_install, seed 2035; truth in truth_app_install.json)](https://github.com/project-delphi/ml-for-growth-marketing/tree/main/data/synthetic), [Hillstrom MineThatData e-mail experiment (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
 :::
 
 ::: {.module-outcomes}

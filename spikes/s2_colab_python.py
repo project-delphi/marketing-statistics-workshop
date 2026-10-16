@@ -52,7 +52,7 @@ print(REC)
 
 # %%
 CONSTRAINTS = (
-    "https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop/main/"
+    "https://raw.githubusercontent.com/project-delphi/ml-for-growth-marketing/main/"
     "environment/requirements.txt"
 )
 with timed("install"):

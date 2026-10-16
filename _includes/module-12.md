@@ -10,7 +10,7 @@ In pairs, run the whole pipeline on the synthetic retailer (CLV by channel, a ge
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/12-capstone.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/12-capstone.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/12-capstone.ipynb`
 
 Data
-:   [Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic)
+:   [Synthetic capstone scenario (capstone_*.csv, mktstats.synth.capstone, seed 2032; scenario and hidden answers in truth.json)](https://github.com/project-delphi/ml-for-growth-marketing/tree/main/data/synthetic)
 :::
 
 ::: {.module-outcomes}

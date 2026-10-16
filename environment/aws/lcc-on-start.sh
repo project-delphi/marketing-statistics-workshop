@@ -7,7 +7,7 @@
 #
 # What it does (AWS stops a lifecycle script that runs longer than 5 minutes, so the slow part
 # runs in the background with nohup):
-#   1. clones the workshop repository into ~/marketing-statistics-workshop if it is not there
+#   1. clones the workshop repository into ~/ml-for-growth-marketing if it is not there
 #      (an existing clone is left alone: it may hold your work);
 #   2. starts a background pip install of the Python packages the labs need, at the versions
 #      pinned in the clone's _variables.yml ("packages"), with environment/requirements.txt as
@@ -24,8 +24,8 @@
 set -eu
 
 MKTSTATS_REF="main"
-REPO_URL="https://github.com/project-delphi/marketing-statistics-workshop.git"
-REPO_DIR="$HOME/marketing-statistics-workshop"
+REPO_URL="https://github.com/project-delphi/ml-for-growth-marketing.git"
+REPO_DIR="$HOME/ml-for-growth-marketing"
 LOG="$HOME/.mktstats-lcc.log"
 
 echo "mktstats lifecycle configuration: ref $MKTSTATS_REF; python3 is $(command -v python3) ($(python3 --version 2>&1))"

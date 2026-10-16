@@ -188,7 +188,7 @@ The contaminated geo got the campaign, so its sales rise in the test window. The
 
 Before a geo test, **market selection** asks which markets to treat. GeoLift, Meta's open-source geo-testing package built on augmented synthetic control, simulates the test on historical data for candidate sets of markets, and reports for each set its power by effect size, its minimum detectable effect, how well the other markets reproduce it before the test, and the budget the effect would need. The R notebook's Part D runs it on GeoLift's bundled example data (40 US cities, 90 days) as the demo for the afternoon clinic; it is not part of the lab minutes. Its top-ranked set in the recorded run is Atlanta, Las Vegas and Saint Paul, with an average MDE of about 5%.
 
-One limitation found while building the lab: at the pinned versions, GeoLift's post-test analysis function `GeoLift()` failed with two or more test markets (recorded in [DECISIONS.md](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/DECISIONS.md)). Market selection and power are not affected. For a multi-market analysis, aggregate the treated markets into one series, as this module does, or use CausalImpact.
+One limitation found while building the lab: at the pinned versions, GeoLift's post-test analysis function `GeoLift()` failed with two or more test markets (recorded in [DECISIONS.md](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/DECISIONS.md)). Market selection and power are not affected. For a multi-market analysis, aggregate the treated markets into one series, as this module does, or use CausalImpact.
 
 ## 8. The decision
 

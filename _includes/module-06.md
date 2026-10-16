@@ -10,7 +10,7 @@ Design and read randomized experiments correctly: power and minimum detectable e
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/06-experiments.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/06-experiments.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/06-experiments.ipynb`
 
 Data
-:   [Synthetic email experiment (20,000 customers, known effect)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/README.md), [Hillstrom MineThatData e-mail experiment (64,000 customers)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
+:   [Synthetic email experiment (20,000 customers, known effect)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/README.md), [Hillstrom MineThatData e-mail experiment (64,000 customers)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv)
 :::
 
 ::: {.module-outcomes}

@@ -3,6 +3,28 @@
 Each entry: what was decided, why, and the evidence (a command, a run, a URL with the date it was read).
 Newest first within each section.
 
+## Name and scope
+
+### Renamed to "Machine Learning for Growth Marketing" (2026-10-16)
+- The user asked for the workshop, repository and site to be renamed from "Statistics for Marketing"
+  to "Machine Learning for Growth Marketing", with a notifications module (Module 18) and a page on
+  recent trends added. Repository slug: `ml-for-growth-marketing` (short form; the long form would
+  make every Colab URL and badge longer for no gain). Subtitle: "Customers, incrementality, budgets
+  and notifications, with uncertainty". Short name: "ML for Growth Marketing".
+- The title and slug live in `_variables.yml` (`workshop.*`, `repo.*`, `environment.image`) and reach
+  the pages and notebooks through the generators; the hand-written copies (Quarto config, README,
+  PLAN, licence, persona files, pyproject, the R helper and Python loaders, devcontainer, AWS scripts,
+  the welcome slide, one line in two module pages) were changed in the same commit. Nothing is left
+  under the old name except the local clone directory, which the user renames.
+- Cost accepted: the loaders' raw URL (`src/mktstats/data.py`, `R/mktstats.R`) is in every module's
+  declared deps, so every run record's `deps_sha` changed and all 23 notebooks read "not run" until
+  the next release tag and Colab sweep, which this rename shares with Module 18. The data-mirror
+  release URL (`data-2026-10-09`) changed with the slug; GitHub redirects the old one.
+- Not done by the agent (permission): the GitHub repository rename itself (`gh repo rename`), making
+  the new GHCR package `ghcr.io/project-delphi/ml-for-growth-marketing/env` public after the first
+  image build (packages are not renamed with a repository), and updating links posted outside the
+  repository. GitHub Pages does not redirect the old site URL.
+
 ## Extensions track
 
 ### Five optional modules after the core week, built without staling the core (2026-10-10)
@@ -457,7 +479,7 @@ going to main one by one. `v2026.10.2` took the previous queue (below).
 (Results are added below as each spike runs.)
 
 ### S1 · Driving Colab from Chrome works (2026-10-09)
-- Opening `colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/main/<path>`,
+- Opening `colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/main/<path>`,
   Runtime → Run all, and the one-time "not authored by Google — Run anyway" consent (approved by the user
   for this repo's notebooks in this session) runs a notebook on a fresh VM.
 - Plain-text cell output is readable from the page DOM. Output that contains rich or JavaScript content

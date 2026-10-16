@@ -18,7 +18,7 @@
 #                      image.yml computes it. Default when copying: SOURCE_IMAGE's own tag
 #                      (required if that tag is :latest or a digest).
 #   SOURCE_IMAGE       optional. Copy this image instead of building, for example
-#                      ghcr.io/project-delphi/marketing-statistics-workshop/env:<tag>
+#                      ghcr.io/project-delphi/ml-for-growth-marketing/env:<tag>
 #                      (the GHCR package may be private until the repository owner makes it public)
 #   PROJECT_TAG_VALUE  value of the Project tag on the repository (default: mktstats-workshop)
 #

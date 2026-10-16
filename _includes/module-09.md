@@ -10,7 +10,7 @@ Feed geo-test results into the MMM as extra likelihood terms, validate it with t
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/09-mmm-calibration.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/r/09-robyn.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/09-mmm-calibration.ipynb`<br>R: `labs/r/09-robyn.ipynb`
 
 Data
-:   [Synthetic weekly MMM with a demand-following channel (mmm_confounded_weekly.csv, seed 2028)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_weekly.csv), [Synthetic dated lift tests (mmm_confounded_lift_tests.csv)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_confounded_lift_tests.csv), [Robyn dt_simulated_weekly (simulated MMM demo data, bundled with Robyn 3.12.1)](https://cran.r-project.org/package=Robyn)
+:   [Synthetic weekly MMM with a demand-following channel (mmm_confounded_weekly.csv, seed 2028)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/synthetic/mmm_confounded_weekly.csv), [Synthetic dated lift tests (mmm_confounded_lift_tests.csv)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/synthetic/mmm_confounded_lift_tests.csv), [Robyn dt_simulated_weekly (simulated MMM demo data, bundled with Robyn 3.12.1)](https://cran.r-project.org/package=Robyn)
 :::
 
 ::: {.module-outcomes}

@@ -1,4 +1,4 @@
-"""Helpers for the Statistics for Marketing workshop labs.
+"""Helpers for the Machine Learning for Growth Marketing workshop labs.
 
 Importing ``mktstats`` loads nothing heavy: no pymc, arviz, pytensor or econml. A lab's
 install cell must be able to import ``mktstats.runtime`` before it installs the pinned

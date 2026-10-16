@@ -1,15 +1,16 @@
-# PLAN — "Statistics for Marketing" — 5-day workshop (Quarto site + Colab labs + CI)
+# PLAN — "Machine Learning for Growth Marketing" — 5-day workshop (Quarto site + Colab labs + CI)
 
 ## Context
 `/Users/ravikalia/Code/github.com/marketing-statistics-workshop` is empty (not a git repo). Goal: build, test and
-publish a five-day hands-on workshop on statistics for marketing (sales growth + CLV) as a Quarto site on GitHub
+publish a five-day hands-on workshop on machine learning for growth marketing (sales growth + CLV; renamed from
+"Statistics for Marketing" on 2026-10-16, repo slug `ml-for-growth-marketing`) as a Quarto site on GitHub
 Pages, with labs that run on Colab (Python + R), local Linux (Docker) and documented AWS paths. It is modelled on
 project-delphi/nlp-llms (local clone at `/Users/ravikalia/Code/github.com/nlp-llms`, same owner, MIT code). The overriding
 rule: nothing is claimed to run unless it ran, and a generated readiness page says where, when, with which settings,
 and whether that evidence is still current.
 
 ## Decisions (confirmed with user)
-- Public repo `project-delphi/marketing-statistics-workshop`; site `https://project-delphi.github.io/marketing-statistics-workshop/`.
+- Public repo `project-delphi/ml-for-growth-marketing`; site `https://project-delphi.github.io/ml-for-growth-marketing/`.
 - Colab runs: I drive real Colab through the user's Chrome (Claude in Chrome). I will ask before clicking Colab's
   "notebook not authored by Google — Run anyway" consent the first time.
 - AWS: docs + scripts only, labelled "documented, not run". No cloud spend.

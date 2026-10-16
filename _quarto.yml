@@ -48,10 +48,10 @@ metadata-files:
   - _includes/sidebar.yml
 
 website:
-  title: "Statistics for Marketing"
-  description: "A five-day hands-on workshop on statistics for marketing: customer-base analysis, customer lifetime value, experiments and geo tests, Bayesian marketing mix models, budget allocation and uplift, in Python and R on Google Colab."
-  site-url: https://project-delphi.github.io/marketing-statistics-workshop/
-  repo-url: https://github.com/project-delphi/marketing-statistics-workshop
+  title: "Machine Learning for Growth Marketing"
+  description: "A five-day hands-on workshop on machine learning and statistics for growth marketing: customer-base analysis, customer lifetime value, experiments and geo tests, Bayesian marketing mix models, budget allocation, uplift and notification policies, in Python and R on Google Colab."
+  site-url: https://project-delphi.github.io/ml-for-growth-marketing/
+  repo-url: https://github.com/project-delphi/ml-for-growth-marketing
   open-graph: true
   # Previous/next links at the foot of each module page, in sidebar order.
   page-navigation: true
@@ -96,10 +96,10 @@ website:
         text: Teach
     right:
       - icon: github
-        href: https://github.com/project-delphi/marketing-statistics-workshop
+        href: https://github.com/project-delphi/ml-for-growth-marketing
         aria-label: "Source on GitHub"
   page-footer:
-    left: "Statistics for Marketing · Genial Labs · Built with [Quarto](https://quarto.org)"
+    left: "Machine Learning for Growth Marketing · Genial Labs · Built with [Quarto](https://quarto.org)"
     center:
       - href: setup.qmd
         text: Setup
@@ -107,7 +107,7 @@ website:
         text: FAQ
       - href: readiness.qmd
         text: Readiness
-    right: "[Text CC BY 4.0](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/LICENSE-content) · [Code MIT](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/LICENSE)"
+    right: "[Text CC BY 4.0](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/LICENSE-content) · [Code MIT](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/LICENSE)"
 
 format:
   html:

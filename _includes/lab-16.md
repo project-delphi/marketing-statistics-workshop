@@ -2,7 +2,7 @@
 
 ### Python lab · `16-multi-touch-attribution`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/16-multi-touch-attribution.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/16-multi-touch-attribution.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

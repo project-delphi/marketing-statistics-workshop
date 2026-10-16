@@ -19,7 +19,7 @@
 #                         AmazonSSMManagedInstanceCore. Optional for ssh.
 #   EC2_INSTANCE_TYPE     default m7i.xlarge (4 vCPU, 16 GiB). Must be x86_64: the image is amd64.
 #   EC2_VOLUME_GB         root volume in GiB (default 40; gp3, encrypted, deleted with the instance)
-#   EC2_IMAGE             image to run (default ghcr.io/project-delphi/marketing-statistics-workshop/env:latest;
+#   EC2_IMAGE             image to run (default ghcr.io/project-delphi/ml-for-growth-marketing/env:latest;
 #                         prefer a fixed :<hash> tag; the GHCR package may still be private)
 #   MKTSTATS_REF          branch or tag of the workshop repository to clone (default: main)
 #   EC2_KEY_NAME          ssh: key pair name (default mktstats-workshop)
@@ -72,7 +72,7 @@ EC2_SSH_CIDR="${EC2_SSH_CIDR:-}"
 EC2_INSTANCE_PROFILE="${EC2_INSTANCE_PROFILE:-}"
 EC2_INSTANCE_TYPE="${EC2_INSTANCE_TYPE:-m7i.xlarge}"
 EC2_VOLUME_GB="${EC2_VOLUME_GB:-40}"
-EC2_IMAGE="${EC2_IMAGE:-ghcr.io/project-delphi/marketing-statistics-workshop/env:latest}"
+EC2_IMAGE="${EC2_IMAGE:-ghcr.io/project-delphi/ml-for-growth-marketing/env:latest}"
 MKTSTATS_REF="${MKTSTATS_REF:-main}"
 EC2_KEY_NAME="${EC2_KEY_NAME:-mktstats-workshop}"
 EC2_KEY_FILE="${EC2_KEY_FILE:-$HOME/.ssh/mktstats-workshop.pem}"
@@ -135,9 +135,9 @@ if [[ -n "$SG_ID" && "$SG_ID" != None ]]; then
   note "Security group $EC2_SG_NAME ($SG_ID) exists; its rules are not changed."
 else
   if [[ "$EC2_ACCESS" == ssh ]]; then
-    SG_DESCRIPTION="Statistics for Marketing workshop: SSH from one address only"
+    SG_DESCRIPTION="Machine Learning for Growth Marketing workshop: SSH from one address only"
   else
-    SG_DESCRIPTION="Statistics for Marketing workshop: no inbound rules (SSM)"
+    SG_DESCRIPTION="Machine Learning for Growth Marketing workshop: no inbound rules (SSM)"
   fi
   SG_ID="$(aws_capture "<sg-id>" ec2 create-security-group --group-name "$EC2_SG_NAME" \
     --description "$SG_DESCRIPTION" --vpc-id "$EC2_VPC_ID" \

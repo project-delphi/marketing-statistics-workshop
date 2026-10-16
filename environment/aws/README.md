@@ -57,7 +57,7 @@ The scripts are bash and were checked with shellcheck; they run under the bash 3
 | (c) EC2 + image | yes | yes | a Linux machine | Simplest to reason about; you patch and stop it yourself. |
 
 **The image on GHCR.** CI publishes the image as
-`ghcr.io/project-delphi/marketing-statistics-workshop/env:<hash>` and `:latest`, where `<hash>`
+`ghcr.io/project-delphi/ml-for-growth-marketing/env:<hash>` and `:latest`, where `<hash>`
 is the first 12 characters of the sha256 of `environment/Dockerfile`, `requirements.txt` and
 `r-packages.txt` (`.github/workflows/image.yml`). GitHub makes a new package private by default;
 until the repository owner makes it public, pulling it needs a GitHub token with `read:packages`
@@ -105,7 +105,7 @@ kernels (`python3`, `ir`) were listed. Jupyter Server 2.20 prints a deprecation 
 AWS_REGION=eu-west-1 environment/aws/build-push-ecr.sh --dry-run
 AWS_REGION=eu-west-1 environment/aws/build-push-ecr.sh
 # or copy the CI image instead of building:
-AWS_REGION=eu-west-1 SOURCE_IMAGE=ghcr.io/project-delphi/marketing-statistics-workshop/env:<hash> \
+AWS_REGION=eu-west-1 SOURCE_IMAGE=ghcr.io/project-delphi/ml-for-growth-marketing/env:<hash> \
   environment/aws/build-push-ecr.sh
 ```
 
@@ -158,16 +158,16 @@ From a terminal you can also get a sign-in link:
 In a JupyterLab terminal in the space:
 
 ```bash
-git clone https://github.com/project-delphi/marketing-statistics-workshop.git \
-  /home/sagemaker-user/marketing-statistics-workshop
+git clone https://github.com/project-delphi/ml-for-growth-marketing.git \
+  /home/sagemaker-user/ml-for-growth-marketing
 ```
 
 The clone lives on the space's volume and survives restarts. The app image config already sets,
 for the server and every kernel:
 
 ```text
-MKTSTATS_REPO_ROOT=/home/sagemaker-user/marketing-statistics-workshop
-PYTHONPATH=/home/sagemaker-user/marketing-statistics-workshop/src
+MKTSTATS_REPO_ROOT=/home/sagemaker-user/ml-for-growth-marketing
+PYTHONPATH=/home/sagemaker-user/ml-for-growth-marketing/src
 MKTSTATS_CACHE=/home/sagemaker-user/.cache/mktstats
 ```
 
@@ -205,7 +205,7 @@ new private spaces:
 AWS_REGION=eu-west-1 SM_DOMAIN_ID=d-xxxxxxxxxxxx environment/aws/sagemaker-lifecycle-config.sh --dry-run
 ```
 
-**What it does.** At space start it clones the repository into `~/marketing-statistics-workshop`
+**What it does.** At space start it clones the repository into `~/ml-for-growth-marketing`
 (an existing clone is left alone) and installs the lab packages (`pymc-marketing`, `econml`,
 `nutpie` at the versions in `_variables.yml`, with `environment/requirements.txt` as constraints,
 the same way the Colab install cell does) into the default image's Python. AWS stops a
@@ -252,7 +252,7 @@ You reach JupyterLab through one of:
 ```bash
 AWS_REGION=eu-west-1 EC2_SSH_CIDR=203.0.113.7/32 environment/aws/ec2-launch.sh --dry-run
 AWS_REGION=eu-west-1 EC2_SSH_CIDR=203.0.113.7/32 \
-  EC2_IMAGE=ghcr.io/project-delphi/marketing-statistics-workshop/env:<hash> environment/aws/ec2-launch.sh
+  EC2_IMAGE=ghcr.io/project-delphi/ml-for-growth-marketing/env:<hash> environment/aws/ec2-launch.sh
 ```
 
 The AMI comes from Canonical's public parameter

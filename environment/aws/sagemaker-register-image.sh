@@ -26,7 +26,7 @@
 #   SM_IMAGE_NAME          SageMaker image name, lowercase (default: mktstats-env)
 #   SM_APP_IMAGE_CONFIG    app image config name (default: mktstats-env-jupyterlab)
 #   SM_REPO_DIR            where the workshop repository is cloned inside a space
-#                          (default: /home/sagemaker-user/marketing-statistics-workshop)
+#                          (default: /home/sagemaker-user/ml-for-growth-marketing)
 #   SM_SET_REPO_ENV        1 (default): set MKTSTATS_REPO_ROOT=$SM_REPO_DIR,
 #                          PYTHONPATH=$SM_REPO_DIR/src and MKTSTATS_CACHE in the container, so
 #                          notebooks use the clone; 0: set no environment variables.
@@ -87,7 +87,7 @@ command -v jq > /dev/null 2>&1 || die "jq is required (also for --dry-run: it bu
 
 SM_IMAGE_NAME="${SM_IMAGE_NAME:-mktstats-env}"
 SM_APP_IMAGE_CONFIG="${SM_APP_IMAGE_CONFIG:-mktstats-env-jupyterlab}"
-SM_REPO_DIR="${SM_REPO_DIR:-/home/sagemaker-user/marketing-statistics-workshop}"
+SM_REPO_DIR="${SM_REPO_DIR:-/home/sagemaker-user/ml-for-growth-marketing}"
 SM_SET_REPO_ENV="${SM_SET_REPO_ENV:-1}"
 SM_INSTANCE_TYPE="${SM_INSTANCE_TYPE:-ml.m5.xlarge}"
 SM_USER_PROFILE="${SM_USER_PROFILE:-}"
@@ -121,7 +121,7 @@ if aws_probe sagemaker describe-image --image-name "$SM_IMAGE_NAME"; then
 else
   aws_run sagemaker create-image --image-name "$SM_IMAGE_NAME" \
     --role-arn "$SM_EXECUTION_ROLE_ARN" \
-    --display-name "Statistics for Marketing workshop" \
+    --display-name "Machine Learning for Growth Marketing workshop" \
     --description "R 4.6.1 + Python 3.13 + JupyterLab (environment/Dockerfile)" \
     --tags "$TAGS"
 fi
@@ -263,5 +263,5 @@ note "if you created the space yourself) > Run space > Open JupyterLab. Or get a
 note "  aws sagemaker create-presigned-domain-url --domain-id $SM_DOMAIN_ID \\"
 note "    --user-profile-name <profile> --space-name <space> --region $AWS_REGION"
 note "Then, in a JupyterLab terminal in the space:"
-note "  git clone https://github.com/project-delphi/marketing-statistics-workshop.git $SM_REPO_DIR"
+note "  git clone https://github.com/project-delphi/ml-for-growth-marketing.git $SM_REPO_DIR"
 note "Stop the space when you are not using it; teardown.sh removes everything this script created."

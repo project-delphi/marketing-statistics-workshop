@@ -29,10 +29,10 @@
 set -euo pipefail
 
 # Set by ec2-launch.sh.
-MKTSTATS_IMAGE="ghcr.io/project-delphi/marketing-statistics-workshop/env:latest"
+MKTSTATS_IMAGE="ghcr.io/project-delphi/ml-for-growth-marketing/env:latest"
 MKTSTATS_REF="main"
 
-REPO_URL="https://github.com/project-delphi/marketing-statistics-workshop.git"
+REPO_URL="https://github.com/project-delphi/ml-for-growth-marketing.git"
 export DEBIAN_FRONTEND=noninteractive
 
 echo "== Docker Engine (Docker's apt repository)"
@@ -75,7 +75,7 @@ chmod 0400 /etc/mktstats/jupyter-token
 echo "== systemd service mktstats-jupyter"
 cat > /etc/systemd/system/mktstats-jupyter.service << EOF
 [Unit]
-Description=Statistics for Marketing workshop: JupyterLab in the workshop image
+Description=Machine Learning for Growth Marketing workshop: JupyterLab in the workshop image
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target

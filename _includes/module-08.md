@@ -10,7 +10,7 @@ Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonal
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/08-bayesian-mmm.ipynb`
 
 Data
-:   [Synthetic weekly MMM (mmm_weekly.csv, seed 2028)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_weekly.csv), [PyMC-Marketing mmm_example.csv (simulated demo data)](https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/mmm_example.csv)
+:   [Synthetic weekly MMM (mmm_weekly.csv, seed 2028)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/synthetic/mmm_weekly.csv), [PyMC-Marketing mmm_example.csv (simulated demo data)](https://raw.githubusercontent.com/pymc-labs/pymc-marketing/1.2.0/data/mmm_example.csv)
 :::
 
 ::: {.module-outcomes}

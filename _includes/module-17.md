@@ -10,7 +10,7 @@ Find and model a channel whose effect per dollar fades (ad fatigue): show that a
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/17-mmm-time-varying.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   Python: `labs/python/17-mmm-time-varying.ipynb`
 
 Data
-:   [Synthetic weekly MMM with a fading channel: 156 weeks of sales and spend on four channels, social's effect per dollar falling to about 0.4 of its first-year level (mmm_drift_weekly.csv from mktstats.synth.mmm_drift, seed 2037; noiseless paths in mmm_drift_latent.csv, truth in truth_mmm_drift.json)](https://github.com/project-delphi/marketing-statistics-workshop/tree/main/data/synthetic), [Synthetic dated lift test on the fading channel (mmm_drift_lift_tests.csv, one +30% social test ending 2025-11-17; stretch A)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/mmm_drift_lift_tests.csv)
+:   [Synthetic weekly MMM with a fading channel: 156 weeks of sales and spend on four channels, social's effect per dollar falling to about 0.4 of its first-year level (mmm_drift_weekly.csv from mktstats.synth.mmm_drift, seed 2037; noiseless paths in mmm_drift_latent.csv, truth in truth_mmm_drift.json)](https://github.com/project-delphi/ml-for-growth-marketing/tree/main/data/synthetic), [Synthetic dated lift test on the fading channel (mmm_drift_lift_tests.csv, one +30% social test ending 2025-11-17; stretch A)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/synthetic/mmm_drift_lift_tests.csv)
 :::
 
 ::: {.module-outcomes}

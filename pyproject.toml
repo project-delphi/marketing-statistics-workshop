@@ -1,7 +1,7 @@
 [project]
 name = "mktstats"
 version = "0.1.0"
-description = "Data loaders, seeded synthetic generators with known truth, checks and the exercise harness for the Statistics for Marketing workshop"
+description = "Data loaders, seeded synthetic generators with known truth, checks and the exercise harness for the Machine Learning for Growth Marketing workshop"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
@@ -11,8 +11,8 @@ requires-python = ">=3.12"
 dependencies = ["numpy>=1.26", "pandas>=2.2", "scipy>=1.13"]
 
 [project.urls]
-Homepage = "https://project-delphi.github.io/marketing-statistics-workshop/"
-Source = "https://github.com/project-delphi/marketing-statistics-workshop"
+Homepage = "https://project-delphi.github.io/ml-for-growth-marketing/"
+Source = "https://github.com/project-delphi/ml-for-growth-marketing"
 
 [build-system]
 requires = ["hatchling>=1.25"]

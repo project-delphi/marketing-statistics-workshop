@@ -77,9 +77,9 @@ jobs:
         with:
           name: github-pages
       - name: Unpack the site under its Pages path
-        # 404.html uses site-absolute links (/marketing-statistics-workshop/...), so the
+        # 404.html uses site-absolute links (/ml-for-growth-marketing/...), so the
         # site sits under that path inside a root directory lychee resolves against.
-        run: mkdir -p root/marketing-statistics-workshop && tar -xf artifact.tar -C root/marketing-statistics-workshop
+        run: mkdir -p root/ml-for-growth-marketing && tar -xf artifact.tar -C root/ml-for-growth-marketing
       - name: Internal links (blocking)
         uses: lycheeverse/lychee-action@v2
         with:

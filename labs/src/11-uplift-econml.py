@@ -28,7 +28,7 @@
 # **Order of work.** This lab has two notebooks in one 55-minute slot, and this Python notebook
 # comes second. You have just run the install cell above. Now open the R notebook
 # `11-grf-causal-forest` (from the
-# [notebooks page](https://project-delphi.github.io/marketing-statistics-workshop/notebooks.html))
+# [notebooks page](https://project-delphi.github.io/ml-for-growth-marketing/notebooks.html))
 # and work Part A there: Exercises 1 to 3, about 20 minutes. About 28 minutes into the lab,
 # come back here for Part B (Exercises 1 to 3 of this notebook, about 20 minutes) and the
 # decision (5 minutes).

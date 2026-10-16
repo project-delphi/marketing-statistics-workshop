@@ -2,7 +2,7 @@
   // The workshop image (environment/Dockerfile): R 4.6.1, Python 3.13, JupyterLab, Quarto 1.10.19.
   // VS Code "Reopen in Container" or GitHub Codespaces builds it from source; the first build takes
   // about 15 minutes on a laptop (DECISIONS.md, spike S4).
-  "name": "Statistics for Marketing",
+  "name": "Machine Learning for Growth Marketing",
   "build": {
     "dockerfile": "../environment/Dockerfile",
     "context": ".."

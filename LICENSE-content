@@ -1,4 +1,4 @@
-Teaching content of "Statistics for Marketing" is licensed under the
+Teaching content of "Machine Learning for Growth Marketing" is licensed under the
 Creative Commons Attribution 4.0 International License (CC BY 4.0).
 
 This covers the module pages, site text, slides, figures, and the Markdown
@@ -6,8 +6,8 @@ cells of the notebooks. Code (scripts, the mktstats package, R helpers,
 tests, workflows, configuration, environment files and the code cells of the
 notebooks) is licensed under the MIT License in LICENSE.
 
-Suggested attribution: "Statistics for Marketing" by Genial Labs,
-https://github.com/project-delphi/marketing-statistics-workshop, licensed CC BY 4.0.
+Suggested attribution: "Machine Learning for Growth Marketing" by Genial Labs,
+https://github.com/project-delphi/ml-for-growth-marketing, licensed CC BY 4.0.
 
 Third-party material keeps its own licence: datasets (see data/README.md),
 the augsynth and GeoLift source packages under cran/ (see cran/README.md).

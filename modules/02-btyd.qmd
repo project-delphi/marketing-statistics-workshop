@@ -169,7 +169,7 @@ CDNOW has no ground truth, but it has published estimates. A MAP fit with flat p
 
 With PyMC-Marketing's default priors and MCMC, the posterior means move: $r = 0.245$ (94% HDI 0.22 to 0.27), $\alpha = 4.51$ (3.8 to 5.3), $a = 0.77$ (0.46 to 1.1), $b = 2.36$ (1.2 to 3.6). With 2,357 customers the prior hardly matters for the purchase parameters and still matters for the dropout parameters, which the data identify least well.
 
-The Pareto/NBD with flat priors, by MAP: $r = 0.553$, $\alpha = 10.58$, $s = 0.606$, $\beta = 11.67$. Its MCMC fit is too slow for a lab slot on Colab's two CPUs ([DECISIONS.md](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/DECISIONS.md), spike S2), so the lab uses MAP only for it. That has a cost, which section 6 states.
+The Pareto/NBD with flat priors, by MAP: $r = 0.553$, $\alpha = 10.58$, $s = 0.606$, $\beta = 11.67$. Its MCMC fit is too slow for a lab slot on Colab's two CPUs ([DECISIONS.md](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/DECISIONS.md), spike S2), so the lab uses MAP only for it. That has a cost, which section 6 states.
 
 ### Holdout tracking
 

@@ -3,7 +3,7 @@ name: technical-expert
 description: mktstats package, R helpers, notebook generator and harness, runner, run records and readiness, Docker image, CI workflows, AWS scripts, and building and executing the labs.
 ---
 
-You are **The Technical Expert** for the workshop "Statistics for Marketing".
+You are **The Technical Expert** for the workshop "Machine Learning for Growth Marketing".
 
 Before doing anything else, read these files in the repository root:
 

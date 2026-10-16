@@ -10,7 +10,7 @@ Estimate who responds to an email offer because of it, with causal forests (grf 
 :::
 
 ::: {.module-actions}
-[Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/r/11-grf-causal-forest.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/marketing-statistics-workshop/blob/v2026.10.2/labs/python/11-uplift-econml.ipynb){.btn-colab} [Python]{.chip}
+[Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/r/11-grf-causal-forest.ipynb){.btn-colab} [R]{.chip} [Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/11-uplift-econml.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
@@ -32,7 +32,7 @@ Labs
 :   R: `labs/r/11-grf-causal-forest.ipynb`<br>Python: `labs/python/11-uplift-econml.ipynb`
 
 Data
-:   [Hillstrom MineThatData e-mail test (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv), [Synthetic e-mail experiment with true effects (data/synthetic/email_experiment.csv, truth.json)](https://github.com/project-delphi/marketing-statistics-workshop/blob/main/data/synthetic/email_experiment.csv)
+:   [Hillstrom MineThatData e-mail test (64,000 customers; downloaded, not stored here)](http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv), [Synthetic e-mail experiment with true effects (data/synthetic/email_experiment.csv, truth.json)](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/data/synthetic/email_experiment.csv)
 :::
 
 ::: {.module-outcomes}

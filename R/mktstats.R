@@ -1,4 +1,4 @@
-# R helpers for the Statistics for Marketing workshop labs (CONTRIBUTING.md, "Harness API").
+# R helpers for the Machine Learning for Growth Marketing workshop labs (CONTRIBUTING.md, "Harness API").
 #
 # The generated install cell sources this file (from the checkout when MKTSTATS_REPO_ROOT is
 # set, else from raw GitHub at the workshop's ref). The generated harness cell calls
@@ -507,7 +507,7 @@ mkt_data <- function(path, ref = getOption("mktstats.ref", Sys.getenv("MKTSTATS_
     file <- file.path(root, "data", path)
     if (!file.exists(file)) stop("No such file in the checkout: data/", path, call. = FALSE)
   } else {
-    raw <- getOption("mktstats.raw", "https://raw.githubusercontent.com/project-delphi/marketing-statistics-workshop")
+    raw <- getOption("mktstats.raw", "https://raw.githubusercontent.com/project-delphi/ml-for-growth-marketing")
     cache <- file.path(Sys.getenv("MKTSTATS_CACHE", file.path(tempdir(), "mktstats")), ref)
     file <- file.path(cache, path)
     if (!file.exists(file)) {
