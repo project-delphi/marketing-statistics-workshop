@@ -503,6 +503,14 @@ blockquote {
   .callout-body {
     font-size: 0.94rem;
   }
+
+  // The body is a flex item (Quarto's .callout-body.d-flex), so its minimum width is its
+  // longest unbreakable word; overflow-wrap cannot shrink that, and a long file name in
+  // a note (Module 18's "Where this lab has run", 375 px) pushed the page 19 px sideways.
+  // min-width: 0 lets the box shrink to the column and the word break inside it.
+  .callout-body-container {
+    min-width: 0;
+  }
 }
 
 // Callout titles at full strength. Quarto dims them (opacity 75-85%, a grey summary
@@ -628,12 +636,19 @@ div.callout.callout-disclosure > details > summary {
 
 .navbar-brand {
   font-family: $headings-font-family;
-  font-weight: 600;
+  font-size: 1.2rem; // 1.25rem left the full site name 1-2 px short at 1280 px on pages
+  font-weight: 600; // with a bold (active) navbar item; see .navbar .nav-link below.
   letter-spacing: 0.01em;
 }
 
+// Navbar items never become two-line items. With the longer site name and eight items,
+// "Start here" and "What's new" wrapped at 1280 px and the brand was cut to "Marketi…"
+// (423 px needed, 415 given); at 0.88rem and nowrap the row fits with the full name
+// at 1280 px and the navbar keeps its height. Below ~1250 px Quarto shortens the brand
+// with an ellipsis, as before.
 .navbar .nav-link {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .navbar .nav-link.active {

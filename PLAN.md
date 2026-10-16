@@ -214,7 +214,7 @@ DECISIONS.md ("Name and scope", "Module 18").
 - [x] [AD] `briefs/18-notifications.md`, `modules/18-notifications.qmd` from the recorded runs, `references.qmd` entries (written 2026-10-16 from the macOS FULL record, 11.1 s; not rendered locally, Quarto 1.6.40; the Pinterest Medium post is "Not read")
 - [x] [PE] `teach.qmd` Extensions section (Modules 13 to 18, Module 18 timing plan, stalls, debrief) and knowledge checks 18.1-18.5 from the 2026-10-16 records; three notebook fixes applied by the lead (bandit table label, reveal guarded by the decision sentence, QUICK tag)
 - [x] [Lead] `trends.qmd` ("What's new", navbar after References) from primary sources fetched 2026-10-16
-- [ ] [UI] browser check of the new pages, both themes, desktop and phone width
+- [x] [UI] browser check of the new pages, both themes, desktop and phone width (headless Chrome 155 through Playwright, 10 pages × 1280 and 375 px × light and dark = 40 combinations, plus the welcome slides; two faults fixed in `custom.scss`: Module 18's run-record note pushed the page 19 px sideways at 375 px, and the longer name plus the new navbar item cut the brand and wrapped "Start here" / "What's new" at 1280 px; both fixes verified by injecting the rules into the rendered pages, not yet re-rendered with Quarto 1.10)
 - [x] [Lead] release tag `v2026.10.3` containing Module 18 and the rename, `in_ref` flag removed
 - [ ] [Owner] rename the GitHub repository, then [Lead] full Colab sweep of all 24 notebooks at `v2026.10.3` and `release_check.py --extensions`
 

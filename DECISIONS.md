@@ -90,6 +90,19 @@ Newest first within each section.
   were made on the final content but before the ref moved, so they read stale like every other
   record; the Colab sweep replaces them as teaching evidence.
 
+## Site
+
+### Browser check after the rename and Module 18 (2026-10-16)
+- Headless Chrome 155 through Playwright over the Docker-rendered `_site/`: ten pages (index,
+  What's new, Module 18, extensions, schedule, notebooks, readiness, teach, references, knowledge
+  checks) at 1280 and 375 px in both themes, plus the welcome slides. Two problems, both fixed in
+  `custom.scss`: Module 18's "Where this lab has run" callout made the page scroll sideways by
+  19 px at 375 px (a flex body cannot shrink below its longest unbreakable word, the truth file's
+  path; `min-width: 0` on the callout body fixes it site-wide), and the longer site name
+  truncated the navbar brand at 1280 px and wrapped two links (brand 1.2rem, links 0.88rem and
+  nowrap). Re-checked on the compiled stylesheet: no problems, apart from a harmless 404 for a
+  favicon none is declared.
+
 ## Extensions track
 
 ### Five optional modules after the core week, built without staling the core (2026-10-10)
