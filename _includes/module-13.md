@@ -10,7 +10,7 @@ Build a cleaning pipeline that reproduces a known clean answer on a deliberately
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/13-messy-real-data.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

@@ -2,7 +2,7 @@
 
 ### Python lab · `18-notifications`
 
-[Colab after the next release](/setup.qmd#local "Not in v2026.10.2, the version Colab opens. Run it locally until the next release."){.chip}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/18-notifications.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

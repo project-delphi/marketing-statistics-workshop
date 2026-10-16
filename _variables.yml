@@ -25,7 +25,7 @@ repo:
   # A notebook added after this ref is cut is not in it, so its Colab link would not open:
   # its entry in modules.*.notebooks says `in_ref: false` until ref moves to a tag that contains
   # it (see the `notebooks` comment under m00, and CONTRIBUTING.md).
-  ref: v2026.10.2
+  ref: v2026.10.3
   # The branch that collects run records and builds the site; records added after the tag live here.
   branch: main
   raw: https://raw.githubusercontent.com/project-delphi/ml-for-growth-marketing
@@ -779,7 +779,7 @@ modules:
     recap: "Module 11 targeted an offer by its estimated uplift, and Module 6 measured one campaign against a control group; neither asked what happens when the same channel fires every day: a notification's cost is not its price but the users who turn it off, and its value is partly in the sessions it keeps alive weeks later."
     next: "This is the last extension. The simulation has no real tolerance curve: on a real app the opt-out rates, the habit effect and the value at stake come from the two experiments this lab runs, and the bandit's penalty is a decision, not a parameter."
     notebooks:
-      - {path: labs/python/18-notifications.ipynb, source: labs/src/18-notifications.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib], in_ref: false}
+      - {path: labs/python/18-notifications.ipynb, source: labs/src/18-notifications.py, kernel: python3, install: [numpy, pandas, scipy, matplotlib]}
     deps: [src/mktstats/__init__.py, src/mktstats/harness.py, src/mktstats/runtime.py, src/mktstats/checks.py, src/mktstats/data.py, src/mktstats/notifications.py, src/mktstats/synth/_common.py, src/mktstats/synth/notifications.py, data/synthetic/notifications_users.csv, data/synthetic/truth_notifications.json]
     data:
       - {name: "Synthetic app users: 20,000 users with observed activity features and segment, and hidden engagement and fatigue sensitivity (notifications_users.csv from mktstats.synth.notifications, seed 2038; truth in truth_notifications.json). The send and volume experiments are generated live in the lab from these users with the seeds in mktstats.notifications", url: "https://github.com/project-delphi/ml-for-growth-marketing/tree/main/data/synthetic"}

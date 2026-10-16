@@ -75,6 +75,21 @@ Newest first within each section.
   instead of being dropped silently. The research pass (15 items, 2026-10-16) is in the session's
   scratch notes, not the repository; the page carries every URL.
 
+## Releases
+
+### v2026.10.3: the rename and Module 18 in one tag, swept once (2026-10-16)
+- `repo.ref` moves to `v2026.10.3`, the first tag under the new slug and the first that contains
+  Module 18, and the `in_ref: false` flag on its notebook goes in the same commit (CONTRIBUTING.md,
+  "When a release is cut"). The rename had already staled every run record (the loaders' raw
+  URL is in every module's deps), so one full Colab sweep of all 24 notebooks serves both.
+- The sweep cannot start until the GitHub repository is renamed: every Colab badge, install cell
+  and data URL in the tag points at `ml-for-growth-marketing`, which does not exist on GitHub
+  until then. The owner runs the rename; the tag is cut and pushed now so that the sweep can
+  follow immediately.
+- Local evidence at the tag: the Module 18 FULL runs of 2026-10-16 (laptop 11.8 s, Docker 14.0 s)
+  were made on the final content but before the ref moved, so they read stale like every other
+  record; the Colab sweep replaces them as teaching evidence.
+
 ## Extensions track
 
 ### Five optional modules after the core week, built without staling the core (2026-10-10)

@@ -2,7 +2,7 @@
 
 ### Python lab · `12-capstone`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/12-capstone.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/12-capstone.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

@@ -2,7 +2,7 @@
 
 ### Python lab · `08-bayesian-mmm`
 
-[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/08-bayesian-mmm.ipynb){.btn-colab}
+[Open in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/08-bayesian-mmm.ipynb){.btn-colab}
 
 ::: {.lab-steps}
 | Step | Time |

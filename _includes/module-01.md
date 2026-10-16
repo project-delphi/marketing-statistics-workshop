@@ -10,7 +10,7 @@ Turn raw transaction logs into a customer table with DuckDB window functions, dr
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/01-customer-base-sql.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/01-customer-base-sql.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

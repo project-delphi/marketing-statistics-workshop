@@ -10,7 +10,7 @@ Build a Bayesian marketing mix model (MMM) with adstock, saturation and seasonal
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/08-bayesian-mmm.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 

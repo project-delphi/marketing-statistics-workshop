@@ -215,5 +215,6 @@ DECISIONS.md ("Name and scope", "Module 18").
 - [x] [PE] `teach.qmd` Extensions section (Modules 13 to 18, Module 18 timing plan, stalls, debrief) and knowledge checks 18.1-18.5 from the 2026-10-16 records; three notebook fixes applied by the lead (bandit table label, reveal guarded by the decision sentence, QUICK tag)
 - [x] [Lead] `trends.qmd` ("What's new", navbar after References) from primary sources fetched 2026-10-16
 - [ ] [UI] browser check of the new pages, both themes, desktop and phone width
-- [ ] [Lead] release tag containing Module 18 and the rename, `in_ref` flags removed, release check, full Colab sweep of all 24 notebooks
+- [x] [Lead] release tag `v2026.10.3` containing Module 18 and the rename, `in_ref` flag removed
+- [ ] [Owner] rename the GitHub repository, then [Lead] full Colab sweep of all 24 notebooks at `v2026.10.3` and `release_check.py --extensions`
 

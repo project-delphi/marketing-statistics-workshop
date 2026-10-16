@@ -10,7 +10,7 @@ Check that your environment runs, turn a raw transaction log into a customer tab
 :::
 
 ::: {.module-actions}
-[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/python/00-setup-warmup.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.2/labs/r/00-setup-warmup.ipynb){.btn-colab} [R]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/00-setup-warmup.ipynb){.btn-colab} [Python]{.chip} [Open the R lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/r/00-setup-warmup.ipynb){.btn-colab} [R]{.chip}
 :::
 :::
 

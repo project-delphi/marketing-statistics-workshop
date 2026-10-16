@@ -10,7 +10,7 @@ Measure what one push notification does the same day with a randomized send expe
 :::
 
 ::: {.module-actions}
-[Colab after the next release](/setup.qmd#local "Not in v2026.10.2, the version Colab opens. Run it locally until the next release."){.chip} [Python]{.chip}
+[Open the Python lab in Colab](https://colab.research.google.com/github/project-delphi/ml-for-growth-marketing/blob/v2026.10.3/labs/python/18-notifications.ipynb){.btn-colab} [Python]{.chip}
 :::
 :::
 
