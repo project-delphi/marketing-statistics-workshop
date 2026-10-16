@@ -28,6 +28,8 @@ project:
     - modules/*.qmd
     - notebooks.qmd
     - references.qmd
+    # What changed recently in growth marketing, with sources (reviewed each release).
+    - trends.qmd
     - teach.qmd
     # Instructor page, linked from teach.qmd (not in the navbar).
     - knowledge-checks.md
@@ -61,7 +63,7 @@ website:
     background: primary
     search: true
     # The three journeys: before the workshop (Start here), during it (Schedule, Days,
-    # Notebooks) and after it (References); Teach is for instructors. Setup, FAQ and
+    # Notebooks) and after it (References, What's new); Teach is for instructors. Setup, FAQ and
     # Readiness are in the footer.
     left:
       - href: index.qmd
@@ -92,6 +94,8 @@ website:
         text: Notebooks
       - href: references.qmd
         text: References
+      - href: trends.qmd
+        text: What's new
       - href: teach.qmd
         text: Teach
     right:

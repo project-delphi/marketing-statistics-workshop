@@ -1,0 +1,210 @@
+---
+title: "What's new"
+subtitle: "What changed in growth marketing between early 2025 and October 2026, and where it touches this workshop"
+description: "Recent changes in growth marketing, growth hacking and machine learning for marketing, each with the primary source we read and the module it affects."
+---
+
+::: {.section-lede}
+This page lists what changed recently and leaves out what the workshop already teaches. Each item
+says what changed, when, where we read it (*Verified (date)* means we opened that page on that
+date; *Not read* means we could not and says what we relied on instead) and which module it
+touches. Figures a company reports about itself are marked as the company's own. Last reviewed
+2026-10-16; the [references](references.qmd#how-checked) page explains how we check sources.
+:::
+
+## Measurement {#measurement}
+
+**Google's Meridian is open to everyone.** Google released Meridian, its open-source Bayesian
+marketing mix model, to all advertisers on 2025-01-29, after a limited-access period. It works on
+geo-level data, models reach and frequency rather than impressions alone, and takes the results of
+incrementality experiments as priors, which is the calibration idea of Module 9. Releases have
+continued; version 2.1.0 reached PyPI on 2026-09-25 (Apache-2.0). *Verified (2026-10-16):*
+[Google's announcement](https://blog.google/products/ads-commerce/meridian-marketing-mix-model-open-to-everyone/)
+("Meridian accounts for reach and frequency, not just impressions"; "easily integrates
+incrementality experiment results as priors") and the [repository](https://github.com/google/meridian).
+*In this workshop:* Modules 8 to 10 and 17 use PyMC-Marketing; Meridian is the second
+open-source Bayesian MMM a team can compare it with. It is not used in a lab because it conflicts
+with PyMC-Marketing's pins and prefers a GPU ([decisions](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/DECISIONS.md)).
+
+**Chrome keeps third-party cookies, and most of the Privacy Sandbox is gone.** On 2025-04-22 Google
+dropped its plan for a standalone cookie prompt in Chrome and kept the existing settings-based
+choice. On 2025-10-17 it retired most Privacy Sandbox technologies, citing low adoption, among them
+Topics, Protected Audience and the Attribution Reporting API; CHIPS, FedCM and Private State Tokens
+stay. Cookie-based tracking in Chrome therefore lasts longer than teams planned for in 2024, and
+the sandbox's privacy-preserving attribution path is no longer coming. *Verified (2026-10-16):*
+[Next steps for Privacy Sandbox](https://privacysandbox.google.com/blog/privacy-sandbox-next-steps)
+("will not be rolling out a new standalone prompt for third-party cookies") and
+[Update on plans for Privacy Sandbox technologies](https://privacysandbox.google.com/blog/update-on-plans-for-privacy-sandbox-technologies)
+("in light of their low levels of adoption, we've decided to retire the following Privacy Sandbox
+technologies"). *In this workshop:* Modules 6, 7 and 16: user-level paths remain available in
+Chrome for now, and Module 16 shows why they still do not measure incrementality.
+
+**The platforms now sell modeled incrementality.** Meta's "Incremental Attribution" setting steers
+delivery toward conversions its models judge incremental, trained on its own conversion-lift
+studies; on 2026-01-28 Meta said its Q4 2025 model drove 24% more incremental conversions than
+standard attribution and that the product reached a multi-billion-dollar annual run rate seven
+months after launch (Meta's own figures). Google's user-based Conversion Lift help page now lists
+Search and Performance Max campaigns alongside Display, Video, Demand Gen and App, with a floor of
+1,000 observed conversions and a $5,000 minimum budget, and still says to contact a Google
+representative. *Verified (2026-10-16):*
+[Meta newsroom, 2026-01-28](https://about.fb.com/news/2026/01/2026-ai-drives-performance/) ("a 24%
+increase in incremental conversions compared to our standard attribution model");
+[Google Ads help: set up Conversion Lift based on users](https://support.google.com/google-ads/answer/12005564?hl=en)
+("at least 1,000 observed conversions"; "To use Conversion Lift, contact your Google account
+representative"). *Not read:* Meta's help page on Incremental Attribution (the page did not open),
+so the launch month is not verified. *In this workshop:* Modules 6, 7 and 9. A platform's lift
+number is an experiment the platform ran on its own objective; the geo tests of Module 7 are the
+independent check.
+
+**Marketers say they will spend more on MMM.** A TransUnion and EMARKETER survey of 196 US marketing
+professionals (fielded July 2025, published 2025-10-21) found 47% planning to increase spend on
+marketing mix modeling in the next year and confidence in measurement flat. It is a vendor survey
+with a paywalled methods chart; take it as directional. *Verified (2026-10-16):*
+[TransUnion press release](https://newsroom.transunion.com/new-transunion-research-reveals-marketers-confidence-in-measurement-has-stalled/).
+*In this workshop:* Day 4.
+
+## Platforms automate the campaign {#platforms}
+
+**Meta's ad delivery runs on retrieval and ranking models that learn from everything.** Meta rebuilt
+ad retrieval (Andromeda, announced 2024-12-02) and ranking around one large foundation model, GEM,
+built "on an LLM-inspired paradigm". On its Q3 2025 earnings call Meta said combining retrieval and
+early-stage ranking raised ads quality 14% on Facebook surfaces, that revenue through its end-to-end
+automated Advantage+ products reached a $60 billion annual run rate, and that advertisers using its
+video-generation tools rose 20% quarter on quarter; its 2026-10-13 engineering post claims an 18.9%
+conversion improvement from GEM since. All figures are Meta's own. The practical change for an
+advertiser is where the levers are: targeting is automated, so the inputs that remain are creative
+variety, the conversion signal fed back, and independent measurement. *Verified (2026-10-16):*
+[Andromeda](https://engineering.fb.com/2024/12/02/production-engineering/meta-andromeda-advantage-automation-next-gen-personalized-ads-retrieval-engine/),
+[GEM](https://engineering.fb.com/2025/11/10/ml-applications/metas-generative-ads-model-gem-the-central-brain-accelerating-ads-recommendation-ai-innovation/),
+[GEM in 2026](https://engineering.fb.com/2026/10/13/ml-applications/metas-generative-ads-model-gem-scaling-the-central-model-and-compute-engine-for-frontier-ads-ai/)
+and the [Q3 2025 earnings call transcript](https://s21.q4cdn.com/399680738/files/doc_financials/2025/q3/META-Q3-2025-Earnings-Call-Transcript.pdf).
+No research paper on GEM was found; do not cite one. *In this workshop:* Modules 8, 9 and 11: when
+the platform optimizes delivery, the ROAS it reports is a model of its own targeting, and a lift
+test or an MMM calibrated by one is what tells you what the spend caused.
+
+## New channels: agents and answer engines {#agents}
+
+**AI agents can now shop and pay.** Three open protocols appeared within four months. Google's Agent
+Payments Protocol (AP2, 2025-09-16) carries cryptographically signed "mandates" that record what a
+user authorized. OpenAI and Stripe's Agentic Commerce Protocol (ACP, 2025-09-29, Apache-2.0) powered
+Instant Checkout in ChatGPT, first with Etsy sellers; on 2026-03-24 OpenAI pulled Instant Checkout
+back as a standalone feature, letting merchants use their own checkout while ChatGPT focuses on
+discovery, and the protocol continues. Google's Universal Commerce Protocol (UCP, 2026-01-11), built
+with Shopify, Etsy, Wayfair, Target and Walmart, powers checkout in AI Mode and Gemini. Shopify's
+Agentic Storefronts (2025-12-10) sell through ChatGPT, Perplexity and Microsoft Copilot and report
+orders with the originating AI channel; Mastercard (Agent Pay, 2025-04-29) and Visa (Intelligent
+Commerce, 2025-04-30) issue agent-specific tokenized credentials with user-set limits. *Verified
+(2026-10-16):* [Stripe newsroom](https://stripe.com/newsroom/news/stripe-openai-instant-checkout),
+[Stripe on ACP](https://stripe.com/blog/developing-an-open-standard-for-agentic-commerce),
+[Google Cloud on AP2](https://cloud.google.com/blog/products/ai-machine-learning/announcing-agents-to-payments-ap2-protocol),
+[Google on UCP](https://blog.google/products/ads-commerce/agentic-commerce-ai-tools-protocol-retailers-platforms/),
+[Shopify, 2025-12-10](https://www.shopify.com/news/winter-26-edition-agentic-storefronts) and
+[2026-03-24](https://www.shopify.com/news/agentic-commerce-momentum),
+[Mastercard](https://newsroom.mastercard.com/news/press/2025/april/mastercard-unveils-agent-pay-pioneering-agentic-payments-technology-to-power-commerce-in-the-age-of-ai),
+[Visa](https://usa.visa.com/about-visa/newsroom/press-releases.releaseId.21361.html). *Not read:*
+OpenAI's own announcement pages (they refused the request); we relied on Stripe as co-announcer and
+on [TechCrunch, 2026-03-24](https://techcrunch.com/2026/03/24/openais-plans-to-make-chatgpt-more-like-amazon-arent-going-so-well/)
+quoting OpenAI for the pull-back. *In this workshop:* Modules 1 to 5 and 16. An agent-referred
+order is a new acquisition channel with its own repeat behavior, and a "visit" that is an agent call
+breaks the journey data attribution relies on. Treat it as a channel to measure with Modules 2
+to 5, not as a touch.
+
+**Answer engines change what "organic" means.** Google rolled AI Mode out to all US users on
+2025-05-20, put ads in AI Overviews on desktop and in AI Mode from 2025-05-21, and by 2026-06-03
+reported AI Overviews above 2.5 billion monthly users and AI Mode past 1 billion. Pew's panel study
+of March 2025 browsing (900 US adults) found users clicked a traditional result on 8% of visits that
+showed an AI summary against 15% without one, clicked a source inside the summary on 1% of visits,
+and ended the session more often (26% against 16%); Pew reports the association, not a cause.
+Adobe's own analytics put AI-referred traffic to US retail sites up 693% year on year over the 2025
+holiday season (vendor data). *Verified (2026-10-16):*
+[Google, 2025-05-20](https://blog.google/products/search/google-search-ai-mode-update/),
+[Google Marketing Live 2025](https://blog.google/products/ads-commerce/google-marketing-live-2025/),
+[Alphabet investor presentation, June 2026](https://blog.google/alphabet/investor-presentation-june-2026/),
+[Pew Research, 2025-07-22](https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/),
+[Adobe, 2026-01-07](https://news.adobe.com/news/2026/01/adobe-holiday-shopping-season).
+*In this workshop:* Modules 8 and 17. The organic baseline of a marketing mix model fitted across
+2025 has a structural break in it; Module 17's residual check is the tool that finds it.
+
+**Retail media keeps compounding.** Amazon's advertising services revenue was $17.7 billion in Q3
+2025, up 24% on the year, from its own filing. Retail media networks sell closed-loop measurement on
+first-party purchase data: convenient, but attribution inside a walled garden, not incrementality.
+*Verified (2026-10-16):* [Amazon Q3 2025 results, SEC exhibit 99.1](https://www.sec.gov/Archives/edgar/data/1018724/000101872425000121/amzn-20250930xex991.htm).
+*In this workshop:* Modules 8, 10 and 16.
+
+## Notifications under the operating system's control {#notifications}
+
+**The phone can rewrite or silence your push.** iOS 18.1 (October 2024) introduced Apple Intelligence
+notification summaries, which condense a stack of notifications into one line. In iOS 18.3 (January
+2025) Apple made summaries "temporarily unavailable" for News and Entertainment apps after misleading
+summaries of news alerts, set summarized notifications in italics, and added Lock Screen controls to
+turn summaries off per app; the press reported their return for news apps with a warning in the iOS
+26 betas (2025-07-22). On Android 13 and later an app's notifications are off until it wins the
+POST_NOTIFICATIONS runtime permission. The copy a growth team writes may be rewritten before the user
+sees it, and the user can mute the app in two taps. *Verified (2026-10-16):*
+[About iOS 18 updates](https://support.apple.com/en-us/121161) ("Notification summaries for News &
+Entertainment apps are temporarily unavailable"; "Easily manage settings for notification summaries
+from the Lock Screen"), [Android notification runtime permission](https://developer.android.com/develop/ui/views/notifications/notification-permission)
+("your app's notifications are off by default"). *Not read:* an Apple page confirming the iOS 26
+return; [9to5Mac, 2025-07-22](https://9to5mac.com/2025/07/22/ios-26-beta-4-re-enables-apple-intelligence-notification-summaries-for-news-apps/)
+is the evidence. A widely reported Android "notification cooldown" is not on the Android 15 or 16
+developer pages we read. *In this workshop:* [Module 18](modules/18-notifications.qmd): the
+opt-out is the binding constraint of the volume trade-off, and the operating system makes it cheaper
+every year.
+
+## Methods and tools {#methods}
+
+**Sequence models for notification policy.** LinkedIn researchers reframed the send decision as
+sequence modeling with a Decision Transformer instead of value-based offline reinforcement learning,
+with a multi-reward design for a task that never ends and quantile regression for the return target;
+in production it gave +0.72% sessions over a multi-objective conservative-Q-learning agent. A
+preprint, not peer reviewed. *Verified (2026-10-16):* [arXiv 2509.02458](https://arxiv.org/abs/2509.02458)
+(submitted 2025-09-02). *In this workshop:* Module 18 fits the value-iteration policy that this
+line of work starts from, and its briefing lists the LinkedIn papers it builds on.
+
+**Digital twins of respondents.** Toubia and colleagues at Columbia released Twin-2K-500, a public
+dataset of 2,058 US respondents answering more than 500 questions over four waves, to test whether
+large-language-model "digital twins" can stand in for people in pretests; the authors report that
+twins capture relative differences between people but predict individuals poorly. *Verified
+(2026-10-16):* [arXiv 2505.17479](https://arxiv.org/abs/2505.17479) and the
+[authors' project page](https://daplab.cs.columbia.edu/projects/digitaltwins/) (the journal record
+in Marketing Science could not be opened). *In this workshop:* Module 6. A simulated respondent can
+order message variants before a test; it does not replace the test.
+
+**Open-source tooling moved under us.** PyMC-Marketing reached 1.0.0 on 2026-08-07 ("After two years
+of 0.x releases, this is our stable API"), made the multidimensional MMM the default, and in 1.1.0
+and 1.2.0 (2026-09-29, the version this workshop pins) restructured the budget optimizer and added a
+lift-test case study. CausalPy shipped Bayesian synthetic difference-in-differences in 0.9.0
+(2026-07-28) and a 1.0.0 release candidate with geo-lift analysis for MMM calibration (2026-10-06).
+Meta's Robyn has had no commit on its main branch since 2025-06-27; the repository is not archived
+and carries no deprecation notice, and reports that Meta is winding it down rest on anonymous
+sources. *Verified (2026-10-16):* [PyMC-Marketing releases](https://github.com/pymc-labs/pymc-marketing/releases),
+[CausalPy releases](https://github.com/pymc-labs/CausalPy/releases),
+[Robyn](https://github.com/facebookexperimental/Robyn). *In this workshop:* Modules 7 to 10 and 17;
+the package pins are in `_variables.yml` and the [versions page](https://github.com/project-delphi/ml-for-growth-marketing/blob/main/environment/VERSIONS.md).
+
+## Rules {#rules}
+
+**The EU AI Act applies, with its high-risk rules delayed.** Prohibitions and AI-literacy duties
+applied from 2025-02-02, obligations for general-purpose AI models from 2025-08-02, and the Act
+became generally applicable on 2026-08-02; the "Digital Omnibus on AI", in force since 2026-07-27,
+moved the high-risk obligations for Annex III use cases to 2027-12-02 and for product-embedded
+systems to 2028-08-02. In the United States, 19 states had comprehensive privacy laws by
+2025-10-27, several giving consumers a right to opt out of profiling for automated decisions. France's
+competition authority fined Apple €150 million on 2025-03-31 over how App Tracking Transparency was
+implemented, without ordering changes to it. *Verified (2026-10-16):*
+[European Commission, regulatory framework for AI](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
+(updated 2026-08-03), [IAPP state privacy overview](https://iapp.org/resources/article/us-state-privacy-laws-overview/)
+("each of the 19 states that have passed comprehensive privacy laws to date"),
+[Autorité de la concurrence](https://www.autoritedelaconcurrence.fr/en/press-release/targeted-advertising-autorite-de-la-concurrence-imposes-fine-eu150000000-apple).
+*Not read:* the Official Journal text of the omnibus regulation and the per-state effective dates
+(member-gated pages). *In this workshop:* Modules 11, 15 and 18, which make automated decisions
+about individuals: whom to discount, whom to credit, whom to notify. Keep the opt-out and the
+explanation of the rule as part of the deliverable.
+
+## What we checked and left out {#left-out}
+
+Claims we could not trace to a primary or reputable source are not on this page: that Meta will
+offer fully AI-generated ads by the end of 2026; a Meta research paper on GEM; an Android
+"notification cooldown"; Shopify's "11x" growth in AI-attributed orders; an incrementality-adoption
+percentage from the EMARKETER survey (paywalled); and that Meta is winding down Robyn. If you have a
+primary source for any of them, [open an issue](https://github.com/project-delphi/ml-for-growth-marketing/issues).
