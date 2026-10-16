@@ -2,17 +2,17 @@
 
 | Runtime | Notebook | Install and setup | Measured |
 |---|---|---|---|
-| Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/01-customer-base-sql` | 12 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/02-btyd` | 38 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/03-btyd-vs-ml` | 42 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/04-monetary-clv` | 39 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/05-clv-decisions` | 45 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/06-experiments` | 15 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/07-synthetic-control-did` | 16 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 45 s | 2026-10-11 |
+| Colab (Python runtime, CPU) | `python/00-setup-warmup` | 11 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/01-customer-base-sql` | 16 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/02-btyd` | 43 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/03-btyd-vs-ml` | 41 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/04-monetary-clv` | 40 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/05-clv-decisions` | 39 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/06-experiments` | 16 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/07-synthetic-control-did` | 12 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 46 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/09-mmm-calibration` | 41 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/10-budget-allocation` | 44 s | 2026-10-11 |
+| Colab (Python runtime, CPU) | `python/10-budget-allocation` | 41 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/11-uplift-econml` | 37 s | 2026-10-11 |
 | Colab (Python runtime, CPU) | `python/12-capstone` | 32 s | 2026-10-11 |
 | Colab (Python runtime, CPU) | `python/13-messy-real-data` | 24 s | 2026-10-11 |
@@ -20,6 +20,7 @@
 | Colab (Python runtime, CPU) | `python/15-double-ml` | 41 s | 2026-10-11 |
 | Colab (Python runtime, CPU) | `python/16-multi-touch-attribution` | 12 s | 2026-10-11 |
 | Colab (Python runtime, CPU) | `python/17-mmm-time-varying` | 45 s | 2026-10-11 |
+| Colab (Python runtime, CPU) | `python/18-notifications` | 14 s | 2026-10-16 |
 | Colab (R runtime, CPU) | `r/00-setup-warmup` | 6 s | 2026-10-11 |
 | Colab (R runtime, CPU) | `r/03-clvtools-covariates` | 15 s | 2026-10-11 |
 | Colab (R runtime, CPU) | `r/07-causalimpact-geolift` | 94 s | 2026-10-11 |
