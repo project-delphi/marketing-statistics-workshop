@@ -19,7 +19,7 @@ decision. Nothing on the site claims a notebook runs unless a run record says it
 ## Status
 
 <!-- BEGIN status -->
-> **As of 2026-10-16, the core workshop (pre-work and Days 1–5): not yet ready to teach.** 10 of its 18 notebooks have a current, passing, worked, full-settings run of the whole notebook on Colab. 0 have passed on another machine (0 with full settings), and 0 on CI. **Optional extensions** (Modules 13–18), not part of that verdict: 1 of 6 notebooks have a current, passing Colab run; 0 have passed on another machine and 0 on CI. [What has run, where](https://project-delphi.github.io/ml-for-growth-marketing/readiness.html).
+> **As of 2026-10-16, the core workshop (pre-work and Days 1–5): Colab evidence complete; ready to teach once CI passes on the current code (the live readiness page counts CI runs).** 18 of its 18 notebooks have a current, passing, worked, full-settings run of the whole notebook on Colab. 0 have passed on another machine (0 with full settings), and 0 on CI. **Optional extensions** (Modules 13–18), not part of that verdict: 6 of 6 notebooks have a current, passing Colab run; 0 have passed on another machine and 0 on CI. [What has run, where](https://project-delphi.github.io/ml-for-growth-marketing/readiness.html).
 <!-- END status -->
 
 This summary counts the run records committed in `runs/`. CI records live on the `evidence` branch,

@@ -11,20 +11,20 @@
 | Colab (Python runtime, CPU) | `python/06-experiments` | 16 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/07-synthetic-control-did` | 12 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/08-bayesian-mmm` | 46 s | 2026-10-16 |
-| Colab (Python runtime, CPU) | `python/09-mmm-calibration` | 41 s | 2026-10-11 |
+| Colab (Python runtime, CPU) | `python/09-mmm-calibration` | 43 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/10-budget-allocation` | 41 s | 2026-10-16 |
-| Colab (Python runtime, CPU) | `python/11-uplift-econml` | 37 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/12-capstone` | 32 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/13-messy-real-data` | 24 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/14-survival-churn` | 24 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/15-double-ml` | 41 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/16-multi-touch-attribution` | 12 s | 2026-10-11 |
-| Colab (Python runtime, CPU) | `python/17-mmm-time-varying` | 45 s | 2026-10-11 |
+| Colab (Python runtime, CPU) | `python/11-uplift-econml` | 33 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/12-capstone` | 38 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/13-messy-real-data` | 42 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/14-survival-churn` | 25 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/15-double-ml` | 40 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/16-multi-touch-attribution` | 21 s | 2026-10-16 |
+| Colab (Python runtime, CPU) | `python/17-mmm-time-varying` | 42 s | 2026-10-16 |
 | Colab (Python runtime, CPU) | `python/18-notifications` | 14 s | 2026-10-16 |
-| Colab (R runtime, CPU) | `r/00-setup-warmup` | 6 s | 2026-10-11 |
-| Colab (R runtime, CPU) | `r/03-clvtools-covariates` | 15 s | 2026-10-11 |
-| Colab (R runtime, CPU) | `r/07-causalimpact-geolift` | 94 s | 2026-10-11 |
-| Colab (R runtime, CPU) | `r/09-robyn` | 61 s | 2026-10-11 |
-| Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 7 s | 2026-10-11 |
+| Colab (R runtime, CPU) | `r/00-setup-warmup` | 6 s | 2026-10-16 |
+| Colab (R runtime, CPU) | `r/03-clvtools-covariates` | 16 s | 2026-10-16 |
+| Colab (R runtime, CPU) | `r/07-causalimpact-geolift` | 81 s | 2026-10-16 |
+| Colab (R runtime, CPU) | `r/09-robyn` | 65 s | 2026-10-16 |
+| Colab (R runtime, CPU) | `r/11-grf-causal-forest` | 8 s | 2026-10-16 |
 
 Measured by each notebook's install cell on a fresh runtime and read from its run record. On your own machine or in the workshop's Docker image nothing is installed.
