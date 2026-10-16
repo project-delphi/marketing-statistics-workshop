@@ -12,4 +12,350 @@ title: "{{< var modules.m18.title >}}"
 
 {{< include /_includes/lab-18.md >}}
 
-<!-- The briefing is written by the Academic Director from the recorded runs (PLAN.md, Module 18). -->
+::: {.callout-note appearance="simple"}
+**Where this lab has run.** In worked mode with full settings (all 20,000 users) on 2026-10-16, Run all took 11.8 s on an Apple Silicon laptop (native Python 3.13.2) and 14.0 s in the workshop's Docker image (linux/arm64, two CPUs, on the same laptop) ([run records]({{< var repo.url >}}/tree/main/runs)). Neither is a Colab time. No Colab run exists yet: the notebook is not in `v2026.10.2`, the version Colab opens, so it shows "Colab after the next release" until the next tag. The [Readiness](/readiness.qmd#extensions) page shows its current status. Every number on this page comes from that laptop run or from `data/synthetic/truth_notifications.json`.
+:::
+
+## 1. Four channels you own
+
+**Objective for this section:** name the four owned messaging channels, what each costs, who may send on it and what can be said about how well it works.
+
+A **notification** is a message the retailer sends to a user it already has, through a channel it controls, at no media price per message. That is what separates it from every channel in the core week: there is no auction, no publisher and no spend to allocate. The budget is the user's patience instead. Four channels matter, and they differ in three things: how a user comes to be reachable (the **permission model**), what a message costs to send, and how much volume users tolerate before they leave.
+
+| Channel | Reach | Permission model | Cost per send | Tolerance and performance |
+|---|---|---|---|---|
+| **Mobile push** (a message delivered by the phone's operating system to an installed app) | Every user who installed the app and allowed notifications | On iOS the app asks once: "The first time your app makes this authorization request, the system prompts the person to grant or deny the request and records that response. Subsequent authorization requests don't prompt the person." A **provisional** authorization delivers notifications quietly to the notification center with Keep and Turn Off buttons instead of a prompt (Apple, Verified 2026-10-16). On Android 13 and later notifications are a runtime permission, `POST_NOTIFICATIONS`: "your app's notifications are off by default. Your app must wait to send notifications until after you request the new permission and the user grants that permission" (Android Developers, Verified 2026-10-16). | No price per message; the cost is infrastructure and, above all, opt-outs and uninstalls | Varies by app, content and frequency; this module gives no benchmark. The lab's simulated reminder is opened 11.6% of the time at one a week and 3.5% at seven a week (section 2); those are properties of the simulation, not of any real app. |
+| **Email** | Every address the retailer holds with consent | An address and consent to use it; in the United States the CAN-SPAM Act requires "a clear and conspicuous explanation of how the recipient can opt out" and that opt-out requests be honored within 10 business days (FTC, Verified 2026-10-16) | A fraction of a cent per message through a sending service; the lab assumes \$0.002 | Users tolerate more email than push, since it waits in an inbox; open and click rates vary by industry and vendor and none is quoted here |
+| **Web push** (a browser notification from a website, even when the site is not open) | Every visitor who accepted the browser's prompt | The browser's Push API "gives web applications the ability to receive messages pushed to them from a server, whether or not the web app is in the foreground, or even currently loaded"; it needs an active service worker, and reaches "users that opt in" (MDN, Verified 2026-10-16) | No price per message | Behaves like mobile push with a lower acceptance of the prompt in most reports; no figure is quoted |
+| **In-app** (a message shown inside the app while the user is using it) | Only users who are in the app right now | None beyond the app itself; nothing is sent to a device | None | Cannot bring a lapsed user back, because it only shows to users who are already there; it is the channel for the moment of a session, not for creating one |
+
+Two rules follow. First, the permission is asked once and lost once: a user who taps "Don't allow", or who opts out after too many messages, is gone from the channel until they change a setting themselves. That is the **absorbing state** of section 2, and it is why a push policy's cost is counted in users, not dollars. Second, the channels differ in tolerance but share the mechanism, so the lab works on one channel, mobile push, and the send rule of section 5 takes a per-send cost so that it can be applied to email or SMS (the lab assumes \$0.05 per SMS). Benchmark open rates, click rates and opt-out rates exist in vendor reports; they vary by industry, vendor and year, and this page quotes none of them.
+
+## Notation for this module
+
+| Symbol | Meaning |
+|---|---|
+| $i$, $t$, $g$ | a user, a day, and a segment (low, mid or high: 0–1, 2–4, or 5 or more sessions in the last 30 days) |
+| $s_{it}$ | 1 if a notification was sent to user $i$ on day $t$ |
+| $\theta_i$, $\kappa_i$ | user $i$'s hidden engagement and hidden fatigue sensitivity (simulation only) |
+| $F_{it}$, $d_{it}$ | fatigue, and days since the last session, at the start of day $t$ |
+| $\rho$ | the daily decay of fatigue (0.7) |
+| $Y_{it}(1)$, $Y_{it}(0)$ | what happens on the user-day with a send and without one (sessions or margin) |
+| $\tau$, $\hat\tau$ | the same-day effect of a send, $\mathbb E[Y(1) - Y(0)]$ over eligible user-days, and its estimate |
+| $\bar y_1$, $\bar y_0$, $s_1^2$, $s_0^2$, $n_1$, $n_0$ | mean, sample variance and count of the sent and the not-sent user-days |
+| $\hat\tau_7(g)$ | the effect of a send on margin over the next seven days, in segment $g$ |
+| $\hat p_{\text{out}}(g)$, $V_g$, $c$ | the opt-out probability per send, the value at stake, and the channel's cost per send |
+| $x$, $a$ | a context (segment × fatigue bucket × days-since bucket; 54 of them) and an action (skip, reminder, offer, social) |
+| $S_{xa}$, $n_{xa}$, $\sigma$ | the bandit's summed reward and count for $(x, a)$, and its draw scale (3) |
+| $\lambda_{\text{out}}$ | the bandit's penalty for an opt-out (0, $V_g$, $3V_g$ or $10V_g$) |
+| $s$, $P(s' \mid s, a)$, $R(s, a)$, $N(s, a)$ | a state (the 54 contexts plus opted-out), the transition probability, the mean one-day reward and the visit count from the volume log |
+| $\lambda$, $\gamma$ | the per-send penalty of value iteration (\$0 to \$0.10) and the discount (0.98) |
+| $Q(s, a)$ | the value of taking action $a$ in state $s$ and acting optimally afterwards |
+| $d_i$, $\bar d$ | the per-user margin difference between two policies on common random numbers, and its mean |
+| $K$, $\ell$ | the viral factor (new users per user per week) and the weekly loss rate |
+
+## 2. The volume trade-off
+
+**Objective for this section:** estimate what one send does the same day from a randomized send experiment, then read the volume curve of a cadence experiment and name the two mechanisms that a seven-day metric cannot see.
+
+### One send, measured properly
+
+The dashboard's first report compares users who opened a notification with users who did not. In the lab's send experiment (28 days, every user not yet opted out sent the reminder with probability 0.3 each day, 560,000 user-days), openers had 1.000 sessions and \$1.97 of margin that day; non-openers had 0.079 sessions and \$0.16. The gap is \$1.81 per send. It is also wrong by about a factor of thirteen.
+
+Opening is something the user does, and engaged users do it more. They also visit and buy more whether or not anyone notifies them. The comparison measures who the engaged users are, not what the notification did. The experiment removes that: which eligible user-days got a send was a coin flip, so the sent and the not-sent user-days are alike in everything else, and the **difference in means** estimates the **same-day effect** (Module 6):
+
+$$
+\hat\tau = \bar y_1 - \bar y_0, \qquad
+\operatorname{se}(\hat\tau) = \sqrt{\frac{s_1^2}{n_1} + \frac{s_0^2}{n_0}}, \qquad
+\hat\tau \pm 1.96\, \operatorname{se}(\hat\tau),
+$$ {#eq-dim}
+
+with the sample variances of each group and a 95% normal interval. An **eligible** user-day is one on which a send was possible, that is, the user had not opted out before that day. Dropping that filter puts every opted-out user in the not-sent group forever and pulls the estimate toward zero; the lab's checkpoint recognizes that mistake by its value.
+
+FULL run, with the truth from the simulation's potential outcomes (the same user-day replayed with and without the send, from the same random draws):
+
+| Outcome | Estimate | se | 95% interval | Truth |
+|---|---|---|---|---|
+| sessions per send | 0.0745 | 0.0010 | 0.0725 to 0.0765 | 0.0741 |
+| margin per send | \$0.139 | 0.0046 | \$0.130 to \$0.148 | \$0.139 |
+
+A send is worth 14 cents of same-day margin. The number is small because most sends are not opened (open rate 8.8% in this experiment) and most sessions do not end in a \$9 order. It is also incomplete in both directions, which is what the rest of the module is about.
+
+### A cadence over a quarter
+
+The **volume experiment** assigns each user at random to a **cadence** of 0, 1, 2, 3, 5 or 7 reminders a week on fixed weekdays and keeps them on it for 90 days (about 3,300 users per arm). The **volume curve** is what each cadence produced:
+
+| Cadence (a week) | Sends per user | Open rate | Opens per user, week 1 | Share who opted out | Margin per user, 7 days | Margin per user, 90 days |
+|---|---|---|---|---|---|---|
+| 0 | 0.0 | — | 0.000 | 0.0% | \$1.28 | \$13.34 |
+| 1 | 13.0 | 0.116 | 0.118 | 0.7% | \$1.51 | \$17.68 |
+| 2 | 25.8 | 0.094 | 0.215 | 1.9% | \$1.63 | \$19.88 |
+| 3 | 38.0 | 0.080 | 0.300 | 5.4% | \$1.83 | **\$21.88** |
+| 5 | 54.6 | 0.051 | 0.352 | 25.8% | \$1.95 | \$20.41 |
+| 7 | 62.4 | 0.035 | **0.419** | 45.8% | \$1.95 | \$17.93 |
+
+Read the three peaks. Opens in week 1 rise with every extra send and peak at daily. Margin over the first week rises too, and is flat between five and seven a week. Margin over the quarter peaks at three a week and falls after it, while the share of users lost rises from 5% at three a week to 26% at five and 46% at seven. The cadence that wins on the week-1 dashboard loses the quarter by \$4 per user, almost a third of the never-send arm's whole value.
+
+By segment (90-day margin per user, with the share who opted out):
+
+| Segment | 0 | 1 | 2 | 3 | 5 | 7 |
+|---|---|---|---|---|---|---|
+| low | \$2.17 (0%) | \$3.95 (0.6%) | \$5.13 (2.8%) | \$5.37 (8.9%) | **\$5.77** (38.8%) | \$3.88 (62.7%) |
+| mid | \$8.06 (0%) | \$12.00 (0.7%) | \$14.74 (1.7%) | **\$15.11** (4.5%) | \$14.08 (24.6%) | \$11.77 (44.3%) |
+| high | \$35.77 (0%) | \$43.45 (0.7%) | \$48.47 (1.2%) | **\$51.14** (3.2%) | \$49.28 (13.0%) | \$46.59 (28.4%) |
+
+The high segment is worth seven times the low segment with no notifications at all, gains \$15 a quarter from three reminders a week, and loses the fewest users to them. The low segment's quarter margin peaks at five a week, but only by 40 cents and at the price of losing 39% of those users, most of whom will not be there next quarter.
+
+### Both sides of the trade-off, and the absorbing state
+
+Two things happen only with time, and both are absent from a same-day or a seven-day metric.
+
+- **The habit effect.** In the simulation a user who has not had a session for $d$ days visits on their own with probability $\operatorname{expit}(-2.2 + 0.9\,\theta_i - 0.08 \min(d, 30))$, and any session resets $d$ to zero. An opened notification is a session, so it raises the chance of an organic visit tomorrow and the day after. That is why one reminder a week lifts the quarter's margin from \$13.34 to \$17.68 although a single send is worth about 14 cents the same day: 13 sends × \$0.14 is roughly \$1.82, and the other \$2.50 or so is sessions the reminders kept alive (the same-day effect was measured at the send experiment's fatigue, so the split is approximate).
+- **Fatigue and the opt-out.** Every send adds one to a user's **fatigue**, which decays by 30% a day:
+
+$$
+F_{i,t+1} = \rho\, F_{it} + s_{it}, \qquad \rho = 0.7 .
+$$ {#eq-fatigue}
+
+Under daily sends fatigue settles at $1/(1 - \rho) = 3.33$ just after a send; at every other day 1.96; at weekly 1.09. Fatigue lowers the chance of an open (the reminder's open rate falls from 11.6% at one a week to 3.5% at seven) and raises the chance that the user opts out after a send: $\operatorname{expit}(-8 + 0.8\,\kappa_i F_{it})$, which averages 0.03% per send at fatigue 0, 0.16% at 1, 1.4% at 2 and 4.9% at 3. Opting out is **absorbing**: no later send reaches the user, and half of the opt-outs are uninstalls, after which the user never visits again. A seven-day window sees almost none of this, because opt-outs are rare while fatigue is still low.
+
+The volume curve is therefore a race between the habit effect, which grows with sends and then saturates, and the opt-outs, which are negligible and then steep. On this simulation they cross at three a week. On a real app the two curves come from the same two experiments; the crossing point is whatever they say.
+
+::: {.self-check}
+**Check yourself.** The 90-day margin of the daily cadence (\$17.93) is almost the same as one reminder a week (\$17.68). Does that make them equally good policies?
+
+::: {.callout-tip collapse="true" title="Answer"}
+No. The daily cadence reaches \$17.93 having lost 46% of its users, who are gone for every later quarter; the weekly cadence has lost 0.7%. The lab's reveal (section 7) shows what a second quarter does to a policy that has burned its base. Equal 90-day margin with unequal opt-outs is not a tie.
+:::
+:::
+
+## 3. When and how to send
+
+**Objective for this section:** place the main levers of a notification program (timing, caps, content, personalization, triggers) against the mechanisms above, without claiming figures the module cannot support.
+
+Each lever below is a mechanism, not a result. Which of them matters for a given app is an empirical question that the two experiments of section 2 answer.
+
+- **Send-time optimization** chooses the hour of the day per user, usually the hour at which the user has been active before, so that the push arrives while the phone is in hand. The lab's simulation has days but no hours, so it cannot show the effect; the experiment that measures it is the send experiment with the hour randomized.
+- **Frequency capping** is a hard ceiling on sends per user per window. The fixed cadences of the volume experiment are caps. A cap is a crude stand-in for the state the simulation makes explicit: fatigue. Two users under the same cap can sit at very different fatigue if one was sent more last week, which is why the policies of section 5 condition on fatigue rather than on a count.
+- **Content and template selection.** The lab's three templates are a reminder ("your basket is waiting"), an offer (10% off today) and a social message ("3 people near you bought this today"). In the simulation a fresh user opens the offer 16.7% of the time, the social message 14.3% and the reminder 12.2%, and an order bought from the offer carries \$3 less margin. The best template is therefore a trade-off too, and it depends on the user: the bandit of section 5 learned that for mid-segment users with low fatigue the social template earned the most and the reminder the least, while at high fatigue every template lost to silence. Duolingo's production bandit (section 6) chooses among hand-written templates in the same way.
+- **Personalization** fills a template's slots with the user's own data (the basket, the streak, the city). It raises the open rate of the message it is in; it does not change the opt-out mechanics, so a personalized message sent too often still loses the user.
+- **Triggered against scheduled messages.** A **scheduled** message goes out on a calendar (the reminder on Monday, Wednesday and Friday). A **triggered** message goes out when an event happens: a basket is abandoned, a friend joins, someone replies, a price drops. Triggered messages are the "activity-based notifications" of LinkedIn's 2018 system (section 6), where the decision has to be made in near real time as the event arrives. The lab's cadences are scheduled; its bandit and value-iteration policies are scheduled in timing (a decision every day) and triggered in content (the decision depends on the user's state that day).
+
+What ties the levers together is the reward they are judged by. A lever judged on opens will always favor more volume, because opens rise with sends until far past the point where the base starts to leave. A lever judged on quarter margin with opt-outs counted is judged on what the business gets.
+
+## 4. Virality
+
+**Objective for this section:** write the viral factor of a referral notification and show why more sends barely move it while the loss rate moves a lot.
+
+Some notifications carry other users' actions: "your friend joined", "someone replied to you", "3 people near you bought this". When such a message, once opened, leads the user to invite someone, the notification program becomes an acquisition channel. The **viral factor** $K$ is the number of new users each existing user brings per week; the **loss rate** $\ell$ is the share of the base lost per week. Ignoring other acquisition, the base grows while $K > \ell$. With $k$ sends a week, an open rate $o$, an invitation rate $q$ per open and an acceptance rate $r$ per invitation,
+
+$$
+K = k \cdot o \cdot q \cdot r, \qquad \ell = \frac{\text{share opted out in the quarter}}{13} .
+$$ {#eq-viral}
+
+The lab's stretch works this with the volume curve and two stated assumptions, $q = 0.1$ and $r = 0.2$. At three a week, $K = 3 \times 0.080 \times 0.1 \times 0.2 = 0.0048$ new users per user per week against a loss of $0.054 / 13 = 0.0041$: the base grows, barely. At seven a week, $K = 7 \times 0.035 \times 0.02 = 0.0049$ against a loss of $0.458 / 13 = 0.0352$: it shrinks fast. Sends more than doubled and $K$ did not move, because the open rate fell as fast as the volume rose (3 × 0.080 = 0.24 opens a week; 7 × 0.035 = 0.245). The loss rate went up ninefold.
+
+So a referral loop is designed on the same curve as everything else: the sends that would raise $K$ are the sends that raise $\ell$, and the only lever that raises $K$ without touching $\ell$ is the open rate per send, that is, the content and the targeting. "Designing without spamming" means choosing the cadence where $K - \ell$ is largest, not where $K$ is.
+
+## 5. Machine learning for a policy
+
+**Objective for this section:** build three policies from the lab's experiments (a per-segment uplift rule, a contextual bandit with an opt-out penalty, and value iteration on the volume log with a per-send penalty), and say what each optimizes and what it cannot see.
+
+### A send rule from uplift and a cost per send
+
+Module 11 chose whom to treat by comparing the estimated effect of the treatment with its cost. Here the treatment is a send, its benefit is the margin it brings over the next seven days, and its cost is not a price: it is the chance that the user opts out, times what that user was worth. The send experiment gives the effect and the opt-out probability per segment; the volume experiment gives the **value at stake** $V_g$, the segment's 90-day margin under the best uniform cadence (three a week: low \$5.37, mid \$15.11, high \$51.14). The rule, with $c$ the channel's cost per send:
+
+$$
+\text{send to segment } g \iff \hat\tau_7(g) > \hat p_{\text{out}}(g)\, V_g + c .
+$$ {#eq-rule}
+
+FULL run, at $c = 0$:
+
+| Segment | 7-day effect $\hat\tau_7$ | 95% interval | Opt-out per send $\hat p_{\text{out}}$ | Cost $\hat p_{\text{out}} V_g$ | Send? |
+|---|---|---|---|---|---|
+| low | \$0.059 | \$0.034 to \$0.084 | 0.50% | \$0.027 | yes |
+| mid | \$0.098 | \$0.066 to \$0.131 | 0.21% | \$0.032 | yes |
+| high | \$0.197 | \$0.113 to \$0.281 | 0.08% | \$0.039 | yes |
+
+Every segment passes for push. With the lab's assumed per-send costs, email (\$0.002) changes nothing and SMS (\$0.05) drops the low segment, whose 6 cents of effect does not cover 2.7 cents of opt-out risk plus 5 cents of postage. The high segment has both the largest effect and the smallest opt-out risk, because engaged users open more, buy more per session and tolerate more.
+
+The rule is a screen, not a schedule. It prices one send at the fatigue the experiment happened to have (0.3 sends a day on average). A policy that sends daily moves every user up @eq-fatigue, where the opt-out probability per send is several times higher, and the same rule would say less. Choosing how often needs the state the user is in.
+
+### A contextual bandit, and the penalty it is given
+
+A **contextual bandit** chooses an action for each **context** and learns from the reward it gets, one day at a time, with no model of what comes next. The lab's context is the user's segment, fatigue bucket and days since the last session (54 contexts), and the actions are skip and the three templates. **Thompson sampling** (Thompson, 1933, for two arms; the lab's version keeps a running mean per context and action) draws one plausible mean reward per action and plays the largest:
+
+$$
+\tilde\mu_{xa} \sim \operatorname{Normal}\!\left(\frac{S_{xa}}{n_{xa} + 1},\; \frac{\sigma^2}{n_{xa} + 1}\right), \qquad
+a^*(x) = \arg\max_a \tilde\mu_{xa} ,
+$$ {#eq-thompson}
+
+where $S_{xa}$ and $n_{xa}$ are the summed reward and the count so far, the $+1$ is one pseudo-observation of zero reward, and $\sigma = 3$. An action with few tries has a wide draw and keeps being tried; an action that has lost often enough stops being drawn on top. The lab's checkpoint feeds a fixed table: with 1,000 tries per arm and one arm's mean at 1 against 0, the function must choose it almost always; with no data it must try every arm; and it must draw from the generator it is given.
+
+The reward is the design decision. The lab gives a user-day its margin that day **minus a penalty if the user opted out that day**:
+
+$$
+r_{it} = \text{margin}_{it} - \lambda_{\text{out}} \cdot \mathbb 1[\text{user } i \text{ opted out on day } t] .
+$$ {#eq-bandit-reward}
+
+With $\lambda_{\text{out}} = 0$ an opt-out is free. The lab runs four penalties, 0, $V_g$, $3V_g$ and $10V_g$, for 90 days on the same users and random numbers:
+
+| Policy | Sends per user | Open rate | Share who opted out | Margin, 7 days | Margin, 90 days |
+|---|---|---|---|---|---|
+| bandit, penalty 0 | 61.2 | 0.051 | 41.2% | \$2.12 | \$20.65 |
+| bandit, penalty $V$ | 52.1 | 0.072 | 21.4% | \$2.10 | \$22.20 |
+| bandit, penalty $3V$ | 43.7 | 0.085 | 13.6% | \$2.10 | **\$22.51** |
+| bandit, penalty $10V$ | 33.6 | 0.103 | 8.5% | \$2.11 | \$21.96 |
+| three a week (volume arm) | 38.0 | 0.080 | 5.4% | \$1.83 | \$21.88 |
+
+With no penalty the bandit sends to nearly everyone nearly every day, since a send raises the day's margin a little and never lowers it, and it loses 41% of the base, like the daily cadence. Each penalty makes the skip action win in high-fatigue contexts, and sends fall with it. The week-1 margin is the same for every penalty, because opt-outs are rare in week 1; by day 90 the penalties have produced different bases. What the bandit never sees, with any penalty, is the habit effect: a session today raises tomorrow's organic visit, and that reward arrives tomorrow and is credited to whatever action is played then. The bandit does well here anyway, because it chooses templates (the fixed cadences only send the reminder) and because it stops sending to users whose fatigue is high.
+
+What the $10V$ bandit learned for mid-segment users who visited within the last day (mean reward per action):
+
+| Fatigue | skip | reminder | offer | social | visits |
+|---|---|---|---|---|---|
+| < 0.5 | 0.178 | 0.413 | 0.359 | **0.629** | 2,884 |
+| 0.5–1.0 | 0.256 | −0.589 | **0.468** | 0.434 | 13,013 |
+| 1.0–1.5 | 0.245 | 0.032 | **0.377** | 0.320 | 54,643 |
+| 1.5–2.0 | **0.288** | 0.021 | −0.177 | 0.149 | 58,876 |
+| 2.0–3.0 | **0.283** | −0.600 | −0.645 | −0.671 | 13,821 |
+| ≥ 3.0 | **0.280** | 0.000 | −0.824 | −1.247 | 1,093 |
+
+Sending wins while fatigue is low, the offer takes over in the middle, and silence wins from fatigue 1.5. The negative entries at high fatigue are the penalty at work: a \$151 charge (ten times the mid segment's value at stake) for each of the few opt-outs. Some entries are the price of exploration: the reminder's −0.589 at fatigue 0.5–1.0, where the offer and the social template both won, is a mean the bandit stopped revisiting once it had lost (the visit count is the context's, not the arm's).
+
+### Value iteration on the volume log, with a per-send penalty
+
+Reinforcement learning treats the user as a **state** that actions move: fatigue rises with a send and decays, days since a session reset with a session, and opting out is an absorbing state. The value of an action is today's reward plus the discounted value of the state it leads to, so a send is credited with the sessions it keeps alive and charged with the opt-outs it causes, whenever they arrive. This is the long-term value the bandit cannot see.
+
+The lab's training data is the volume experiment's log: 90 days of every user's state before each day, the action (skip or reminder) and the margin that day, 1,780,000 transitions. Counting gives an **empirical transition model**: $P(s' \mid s, a)$ is the share of visits to $(s, a)$ that went next to $s'$, $R(s, a)$ the mean margin that day, and $N(s, a)$ the number of visits. The states are the 54 contexts plus the opted-out state (55), with mean margins of \$0.24 per user-day after a skip, \$0.35 after a send and \$0.03 in the opted-out state. With the model known, the optimal action values satisfy the **Bellman equation**, and **value iteration** applies it as an update from $Q = 0$ until nothing changes:
+
+$$
+Q(s, a) \leftarrow R(s, a) - \lambda\, \mathbb 1[a = \text{send}] + \gamma \sum_{s'} P(s' \mid s, a)\, \max_{a'} Q(s', a') ,
+$$ {#eq-bellman}
+
+with $\gamma = 0.98$, a horizon of about 50 days. The term $\lambda$ is Horizon's device (Gauci et al., 2019, section 9.1): their push-notification policy was trained with "rewards for interactions and activity on Facebook, with a penalty for sending the notification", so that a send must earn its cost back in margin or in later sessions. The lab's checkpoint is a two-state example worked by hand: from state 0 a send earns 1 and leads to state 1, where a send earns −1 and a skip returns to state 0 for free; at $\gamma = 0.5$ the values are $V = [4/3, 2/3]$, and 200 sweeps must agree with 201.
+
+The policy then takes the best action by $Q$ in each state **among the actions the data tried at least 30 times there** (`greedy_policy`). An action never tried in a state has a $Q$ built from nothing, and choosing it is how offline reinforcement learning goes wrong: the policy drifts into state-action pairs the log never saw, where the model's numbers are not estimates but zeros. This is the **distribution shift** that LinkedIn's offline-RL papers handle with conservative Q-learning (section 6); the lab handles it by refusing to leave the data. On the committed log every pair was visited at least 30 times, so the restriction did not bind in the recorded run; it is there for smaller logs and real ones. Four per-send penalties, 90 days, same users and random numbers:
+
+| Policy | Sends per user | Open rate | Share who opted out | Margin, 7 days | Margin, 90 days |
+|---|---|---|---|---|---|
+| value iteration, $\lambda$ = \$0.00 | 36.1 | 0.078 | 8.4% | \$1.87 | \$20.74 |
+| value iteration, $\lambda$ = \$0.03 | 35.2 | 0.080 | 7.6% | \$1.86 | \$20.71 |
+| value iteration, $\lambda$ = \$0.06 | 31.1 | 0.089 | 2.8% | \$1.82 | \$20.61 |
+| value iteration, $\lambda$ = \$0.10 | 29.0 | 0.094 | 2.3% | \$1.77 | \$20.47 |
+
+The learned rule at $\lambda$ = \$0.06 for the mid segment is simple: send while fatigue is below 1.0, skip from 1.0 up, whatever the days since the last session. These policies send less than three a week and lose far fewer users, and their 90-day margin is \$350 to \$630 per 1,000 users below the 3-a-week arm's. Value iteration is exact for the model it is given; the model is the approximation. Its state is three coarse variables, so users with different hidden engagement share a row and the rewards and transitions are blends; the log saw high-fatigue states only through the five- and seven-a-week arms; and the policy can only send the reminder, never the offer or the social template. A richer state (the observed features, the recency of opens) and a logging policy with more variety are what the production systems add.
+
+### Optimizing long-term value: what each policy sees
+
+| Policy | Sees the same-day effect | Sees the opt-out | Sees the habit effect | Chooses the template | Stays within the data |
+|---|---|---|---|---|---|
+| fixed cadence | through the volume experiment, after the fact | after the fact | after the fact | no | yes, it is the data |
+| uplift rule (@eq-rule) | yes, over 7 days | as a per-send probability at one fatigue level | no | no | only at the experiment's fatigue |
+| contextual bandit (@eq-thompson, @eq-bandit-reward) | yes, per context | only through the penalty it is given | no | yes | explores on its own |
+| value iteration (@eq-bellman) | yes, per state | yes, through the absorbing state | yes, through $P$ and $\gamma$ | no (the log has one template) | yes, by `greedy_policy` |
+
+No policy here is right in general. The bandit won the quarter because it chose templates and stopped at high fatigue; value iteration saw the long run but on a coarse state and one template. On a real app the choice is made the way the lab makes it: run every candidate on the same users for a quarter and read the table of section 7.
+
+## 6. What the production systems did
+
+**Objective for this section:** know what each of the cited systems optimized, how, and what it reported, with the limits of what we could read.
+
+Each source below was fetched on 2026-10-16; the full list, with what was read, is in [References](/references.qmd#extensions).
+
+- **Facebook, Horizon (Gauci et al., 2019; arXiv 1811.00260 v5).** The platform paper's section 9.1 describes the push-notification case: "Historically, we have used supervised learning models for predicting click through rate (CTR)" and filtering on that score; the new policy is a discrete-action DQN whose actions are "sending and dropping the notification", trained with "rewards for interactions and activity on Facebook, with a penalty for sending the notification", a threshold on the difference of the two Q-values tuned by a PID controller, and daily retraining. They report "a significant improvement in activity and meaningful interactions"; no numeric lift is published. The code is now ReAgent (PyPI, BSD-3; the project page says "The platform was once named 'Horizon'"). The lab's $\lambda$ in @eq-bellman is this paper's send penalty.
+- **LinkedIn, near real-time activity-based notifications (Gao et al., KDD 2018).** Eleven authors at LinkedIn. From the abstract (the ACM page refused automated access): sending a notification for every event "would result in too many notifications"; they balance engagement against send volume "by formulating the problem using constrained optimization", run it in a "stream computing system" that makes "multi-channel send decisions in near real-time", and report online A/B tests on "tens of millions of members". This is the triggered-message setting of section 3.
+- **Pinterest, notification volume control (Zhao, Narita, Orten and Egan, KDD 2018).** From the abstract: notifications across email, mobile and desktop push and SMS; the central question is how often each user should be notified; a machine-learned volume per user optimized for long-term engagement, deployed in mid-2017, which reduced volume while improving click-through rate. Pinterest Engineering's 2020 post on user-state-based volume optimization is cited by title only: Medium refused automated access and we did not read it.
+- **Duolingo, a sleeping, recovering bandit (Yancey and Settles, KDD 2020).** Read in full. A bandit over hand-written reminder templates for "millions of daily reminders", with the reward "1 if the user completes a lesson within two hours of the reminder being sent, and 0 otherwise". **Sleeping** arms are templates not eligible on every round (a streak template needs a streak); **recovering** arms are templates whose reward depends on how recently they were last used, a novelty effect handled with a recency penalty and a 15-day half-life. The online test reported a 0.5% increase in daily active users and a 2% increase in new-user retention. The replication data, about 200 million reminders, is on Harvard Dataverse (CC BY-NC 4.0); the lab's third stretch asks which of its exercises could run on it.
+- **LinkedIn, offline RL for mobile notifications (Yuan et al., CIKM 2022; arXiv 2202.03867).** Actions SEND and NOT-SEND (not sending returns the candidate to the queue); the reward is "a user visit to the platform within the next time step", to "encourage long-term site engagement"; a Double DQN trained offline on data gathered by online exploration, with a state-marginalized importance-sampling estimator for offline evaluation. Online A/B against the baseline: sessions +0.30%, notification cards −3.49%, click-through +4.53%, notification unfollows −4.37%.
+- **LinkedIn, multi-objective offline RL (Prabhakar et al., KDD 2022; arXiv 2207.03029).** The same team (LinkedIn Corporation, not Meta). The reward is a weighted linear combination of three objectives, sessions, notification clicks and a volume penalty (−1 per send), with the weights as a preference vector; the learner is a Double DQN with conservative Q-learning, because "Directly utilizing existing value-based off-policy RL algorithms in an offline setting results in poor performance" under distribution shift. Their Table 1 is the point of the lab's `greedy_policy`: without CQL the DDQN raised volume 7.72% and lowered click-through 7.79%, with weekly active users down 0.69%; with CQL, sessions +0.24%, weekly active users +0.18%, volume −1.73%, click-through +2.26%. Disables are mentioned as a guardrail, not in the reward.
+- **LinkedIn, decision transformers (Ocejo et al., 2025; arXiv 2509.02458).** Policy learning as return-conditioned supervised learning, with a multi-objective reward (predicted notification value, actual visits, adaptive volume penalties) and quantile regression for the return-to-go. Compared with a multi-objective CQL agent, the deployed policy "achieved a 0.72% increase in sessions while reducing notification volume", with no significant change in click-through.
+
+Three things recur. The action is almost always send or not send, per candidate, per user, in near real time. The reward is engineered: sessions or visits, with a penalty on volume (Horizon, LinkedIn) or a guardrail outside the reward (disables), because the metric the business wants is not the one the log records per message. And offline learning from logs is handled with conservatism, by CQL or by staying near the logging policy, because a policy that leaves the data is evaluated on numbers nobody measured. The lab's three design decisions (the bandit's penalty, the send penalty, `greedy_policy`) are small versions of the same three.
+
+## 7. The decision
+
+**Objective for this section:** apply a guardrail and a paired comparison on common random numbers to choose next quarter's policy, and say what a longer horizon changes.
+
+Every policy is run for 90 days on the same 20,000 users with the same random draws (**common random numbers**: the user who would have visited on day 12 under one policy visits under the other too), so two policies can be compared user by user. The **paired difference** of policy A against B is
+
+$$
+d_i = \text{margin}_i(A) - \text{margin}_i(B), \qquad
+\bar d \pm 1.96\, \frac{\operatorname{sd}(d)}{\sqrt{n}} ,
+$$ {#eq-paired}
+
+a 95% interval on the mean per-user difference. The intervals below are narrow because pairing removes the user-to-user variation that an unpaired comparison would carry.
+
+::: {.module-decision}
+**Decision.** The rule, fixed before any number: the growth team keeps a **reachable-base guardrail**: a policy may lose at most 10% of its reachable users to opt-outs in a quarter, because a user lost is lost for every later quarter too. Among the policies within the guardrail, choose the one with the highest 90-day margin per 1,000 users, and report whether its paired interval against three a week excludes zero.
+
+FULL run, 90 days, per 1,000 users:
+
+| Policy | Sends per user | Opt-outs | Margin, 90 days | Against three a week (95% paired) | Within guardrail |
+|---|---|---|---|---|---|
+| fixed, 0 a week | 0.0 | 0.0% | \$13,662 | −\$7,437 (−7,593 to −7,280) | yes |
+| fixed, 1 a week | 13.0 | 0.5% | \$17,876 | −\$3,223 (−3,334 to −3,112) | yes |
+| fixed, 2 a week | 25.8 | 1.6% | \$20,149 | −\$950 (−1,072 to −828) | yes |
+| fixed, 3 a week | 37.9 | 5.4% | \$21,099 | 0 | yes |
+| fixed, 5 a week | 54.2 | 27.2% | \$20,302 | −\$797 (−912 to −683) | no |
+| fixed, 7 a week | 62.4 | 46.2% | \$18,459 | −\$2,640 (−2,784 to −2,495) | no |
+| value iteration, \$0.00 | 36.1 | 8.4% | \$20,742 | −\$357 (−482 to −233) | yes |
+| value iteration, \$0.03 | 35.2 | 7.6% | \$20,707 | −\$392 (−517 to −267) | yes |
+| value iteration, \$0.06 | 31.1 | 2.8% | \$20,605 | −\$494 (−620 to −368) | yes |
+| value iteration, \$0.10 | 29.0 | 2.3% | \$20,473 | −\$626 (−755 to −498) | yes |
+| bandit, penalty 0 | 61.2 | 41.2% | \$20,646 | −\$454 (−596 to −311) | no |
+| bandit, penalty $V$ | 52.1 | 21.4% | \$22,197 | +\$1,098 (+956 to +1,239) | no |
+| bandit, penalty $3V$ | 43.7 | 13.6% | \$22,507 | +\$1,408 (+1,274 to +1,542) | no |
+| **bandit, penalty $10V$** | 33.6 | 8.5% | **\$21,964** | **+\$865 (+730 to +999)** | **yes** |
+
+- **Number.** Best within the guardrail: the bandit with penalty $10V$, \$21,964 per 1,000 users over 90 days, opt-outs 8.5%, +\$865 per 1,000 against three a week (95% paired interval +\$730 to +\$999). Best ignoring the guardrail: the bandit with penalty $3V$, \$22,507, opt-outs 13.6%.
+- **Recommendation: run the $10V$ bandit next quarter.** It earns \$21,964 per 1,000 users and loses 8.5% of them; the interval against three a week excludes zero. What would change it: a guardrail above 14% would admit the $3V$ bandit (+\$1,408 per 1,000 this quarter), or evidence that the users it loses were worth less than the value at stake assumes.
+
+The three-a-week row is the same policy evaluated on all 20,000 users at the evaluation seed, which is why its \$21,099 per 1,000 differs from the volume arm's \$21.88 per user on 3,311 users.
+
+**The reveal.** The lab then does what a quarter cannot: it runs the chosen policy, the best policy ignoring the guardrail and three a week for 180 days on the same users and random numbers.
+
+| Policy | 90 days | 180 days | Second quarter | Opt-outs, 180 days |
+|---|---|---|---|---|
+| fixed, 3 a week | \$21,099 | \$41,557 | \$20,458 | 10.1% |
+| bandit, penalty $10V$ | \$21,964 | \$43,567 | \$21,603 | 10.6% |
+| bandit, penalty $3V$ | \$22,507 | \$44,401 | \$21,893 | 19.7% |
+
+Over 180 days the $3V$ bandit is still best: its second quarter earns \$290 per 1,000 more than the $10V$ bandit's although it has lost a fifth of the base, because the users it lost were the ones worth least and the ones it kept were sent the template they open. The guardrail therefore did not pay for itself inside this simulation's horizon. That does not make it wrong. The guardrail is a business choice about what a reachable user is worth beyond the horizon the simulation prices, about referrals, reviews and uninstalls that no reward here counts, and about a growth team's standing with its users. The simulation shows the price of the guardrail (\$543 per 1,000 this quarter, \$834 over two); whether to pay it is a decision, not a parameter the data return.
+:::
+
+::: {.self-check}
+**Check yourself.** A colleague proposes to pick the policy by the 7-day margin column of the bandit table instead. Which policy wins, and what does the choice ignore?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The penalty-0 bandit, by a hair (\$2.116 against \$2.10 to \$2.11 for the others): in week 1 nothing has gone wrong yet. It ignores that this policy loses 41% of the base by day 90 and ends the quarter \$454 per 1,000 behind three a week. Any window short enough to miss the opt-outs favors the policy that sends most.
+:::
+:::
+
+## 8. What this simulation cannot tell you
+
+- **Its curves are assumptions.** The opt-out curve, the habit effect, the templates' open rates and the value of a session were chosen so that every mechanism a growth team argues about is present and measurable. On a real app the same two experiments give the numbers, and they may cross at one a week or at daily.
+- **Its states are coarse and its horizon is short.** Value iteration lost to a bandit here because the state was three buckets and the log had one template; the production systems add features and candidates. And 180 days is still not the life of a user.
+- **The penalty and the guardrail are decisions.** Neither experiment returns $\lambda_{\text{out}}$, $\lambda$ or the 10%; they encode what the business thinks a lost user is worth beyond what the reward counts.
+- **Offline learning is only as good as the logging policy.** The volume log explored six cadences and one template; a log from a single production policy explores nothing, and a policy learned from it must stay very close to it.
+
+## Summary
+
+- Comparing openers with non-openers gave \$1.81 per send; the randomized send experiment gave \$0.139 (@eq-dim), and the truth was \$0.139. Opens select engaged users.
+- Over a quarter, three reminders a week earned the most (\$21.88 per user); daily sends earned the most opens in week 1 and lost 46% of the base. The habit effect and fatigue with its absorbing opt-out (@eq-fatigue) are what a seven-day metric misses.
+- A send rule from uplift (@eq-rule) charges each send its opt-out probability times the value at stake; every segment passes for push, the low segment fails for SMS. It is a screen, not a schedule.
+- A contextual bandit (@eq-thompson) optimizes the reward it is given (@eq-bandit-reward): with no opt-out penalty it burns the base; at $10V$ it keeps 91.5% of it and beats three a week by \$865 per 1,000.
+- Value iteration on the volume log with Horizon's send penalty (@eq-bellman) sees the long run but on a coarse state with one template; `greedy_policy` keeps it inside the data, as conservative Q-learning does at LinkedIn.
+- Decision: under a 10% guardrail, the $10V$ bandit (@eq-paired); over 180 days the $3V$ bandit remains best, so the guardrail is a business choice, not something the simulation proves.
+
+### Equations and where you implement them
+
+| Equation | What it is | In Lab 18 |
+|---|---|---|
+| @eq-dim | the difference in means, its standard error and 95% interval | **Exercise 1**: `incremental_per_send(log)`; Checkpoint 1 compares with the reference and with the true same-day effect |
+| @eq-fatigue | the fatigue state | Provided by the simulator; Exercise 2's `volume_curve(per_user, opens_w1)` shows its consequences; Checkpoint 2 checks the two peaks |
+| @eq-rule | the send rule with a cost per send | **Exercise 3**: `segment_uplift(log, margin_fwd, value_at_stake, cost_per_send)`; Checkpoint 3 compares with the reference and checks every effect is positive |
+| @eq-thompson, @eq-bandit-reward | the Thompson draw and the bandit's reward | **Exercise 4**: `thompson_choose(sums, counts, sigma, rng)`; Checkpoint 4 checks exploitation, exploration and the generator; the reward is in the provided `run_bandit` loop |
+| @eq-bellman | the Bellman update with a send penalty | **Exercise 5**: `q_iteration(P, R, gamma, n_iter)`; Checkpoint 5 checks a two-state example by hand and convergence; the penalty is the provided `with_send_penalty` |
+| @eq-paired | the paired difference on common random numbers | Provided: `evaluate` and `paired_difference` in the Decision cell |
+| @eq-viral | the viral factor and the loss rate | Stretch 2 |

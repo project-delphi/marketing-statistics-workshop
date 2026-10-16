@@ -448,8 +448,8 @@ print("For comparison, the 3-a-week arm of the volume experiment:",
       curve.loc[3, ["sends", "open_rate", "opt_out", "margin_7d", "margin_90d"]].round(3).to_dict())
 
 # %% [markdown]
-# What the penalty-3V bandit learned, for the mid segment: its mean reward per action by fatigue
-# bucket among users who visited within the last day.
+# What the last bandit (penalty 10V) learned, for the mid segment: its mean reward per action by
+# fatigue bucket among users who visited within the last day.
 
 # %%
 mid_fresh = labels[(labels["segment"] == "mid") & (labels["days_since"] == "<2")].index
@@ -664,11 +664,18 @@ print(f"  Mode: {'QUICK run: intervals are about twice as wide; a choice near th
 # ____ to ____). I would change it if ____.
 # ```
 #
-# Then run the next cell, which does what a quarter cannot: it runs the best policy within the
-# guardrail, the best policy ignoring it, and three a week for 180 days, with the same users and
-# random numbers.
+# Write it in `MY_SENTENCE` in the next cell. **Stop here until it is written:** the cell after
+# it does what a quarter cannot, and refuses to run while the sentence is empty. It runs the best
+# policy within the guardrail, the best policy ignoring it, and three a week for 180 days, with
+# the same users and random numbers.
 
 # %%
+MY_SENTENCE = ""  # your decision sentence, in the form above
+
+# %%
+if not MY_SENTENCE.strip() and not WORKED_EXAMPLE:
+    raise RuntimeError("Write your decision sentence in MY_SENTENCE in the cell above, then run"
+                       " this cell: the reveal only teaches after you have decided.")
 candidates = {n: ({**fixed_policies, **rl_policies}.get(n)) for n in {choice, best_any, base}}
 long_run = {}
 for name, policy in candidates.items():
@@ -683,7 +690,8 @@ reveal["margin_90d_per_1000"] = table.loc[reveal.index, "margin_90d_per_1000"]
 reveal["second quarter, $ per 1,000"] = reveal["margin_180d_per_1000"] - reveal["margin_90d_per_1000"]
 print(reveal[["margin_90d_per_1000", "margin_180d_per_1000", "second quarter, $ per 1,000",
               "opt-outs % (180 days)"]].round(1).to_string())
-print(f"\nOver 180 days the best policy is {reveal['margin_180d_per_1000'].idxmax()}.")
+print(f"\nOver 180 days the best policy is {reveal['margin_180d_per_1000'].idxmax()}"
+      f"{' (QUICK run: 5,000 users)' if QUICK else ''}.")
 
 # %% [markdown]
 # **About this simulation.** The opt-out curve, the habit effect and the value of a session are

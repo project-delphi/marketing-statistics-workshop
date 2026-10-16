@@ -8,10 +8,10 @@ Owner: Pedagogy Expert; reviewer: Academic Director. Written 2026-10-09.
 Instructor-facing. In the render list (_quarto.yml) and linked from teach.qmd, not from the navbar.
 Module titles come from _variables.yml through var shortcodes, which resolve only when the page is
 rendered.
-Modules 13-17 (the optional extensions) added 2026-10-10. They have no day page, so no "Used in"
+Modules 13-17 (the optional extensions) added 2026-10-10; Module 18 added 2026-10-16. They have no day page, so no "Used in"
 lines. Their worked numbers follow the same rule as below; where an answer points to what a lab or
 module page showed, it says so in words, and any number it quotes is on that module page. Their last
-questions follow modules.m13-m17.decision as worded on 2026-10-10.
+questions follow modules.m13-m17.decision as worded on 2026-10-10 and modules.m18.decision as worded on 2026-10-16.
 Questions are numbered module.question, with anchors #q1-1 etc. The day pages' warm-ups use some of
 them; the "Used in" line says where. Worked numbers in questions are invented for the question and
 computed by hand; none is a lab result. The last question of each module follows that module's
@@ -27,7 +27,7 @@ Each module's block has three to five short questions that can be answered from 
 - **Warm-ups** (Days 1 to 5): the day pages already carry four questions each, several taken from here.
 - **Debriefs**: a question from the module just finished, when the room's numbers are on the board.
 - **Self-checks**: participants can work through a day's modules that evening.
-- **Extensions** (Modules 13 to 17): they have no day page, so use their questions as the warm-up or debrief of an extension you swap in, or as a self-check after it.
+- **Extensions** (Modules 13 to 18): they have no day page, so use their questions as the warm-up or debrief of an extension you swap in, or as a self-check after it.
 
 Accept a room's own numbers when they differ from a worked example here because of QUICK settings or a different runtime, as long as the reasoning holds.
 
@@ -559,4 +559,36 @@ Prophet is fitted to sales, and sales include what the media produced. A slowly 
 
 ::: {.callout-tip collapse="true" title="Answer"}
 $P(\text{ROAS} < 3.33) = 3{,}480/4{,}000 = 0.87$, below the 0.9 needed to cut, and $P(\text{ROAS} > 3.33) = 0.13$ is far from the 0.9 needed to keep: run a lift test first, dated in the current quarter (a test from last year measures last year's effect). Last quarter's spend returned $200{,}000 \times (0.30 \times 2.5 - 1) = -\$50{,}000$ net at the mean (the net is linear in ROAS, so this is also its mean over the draws), an average return, not the next dollar's. The static model answers a question about the whole history: it pools every week into one effect per channel, so it says "keep" with near certainty about the past, not about now.
+:::
+
+## Module 18 · {{< var modules.m18.title >}}
+
+[**18.1**]{#q18-1} A dashboard reports that, among users sent a push notification, those who opened it brought \$1.90 of margin that day and those who did not \$0.16, so "a push is worth \$1.74". In the randomized send experiment on the same days, eligible user-days that got a send brought \$0.39 and eligible user-days that did not \$0.25. What is the same-day effect of a send, why is the dashboard's number ten times larger, and what would the dashboard show if the push did nothing at all?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The effect is $0.39 - 0.25 = \$0.14$ per send: among eligible user-days, a coin flip decided who was sent, so the not-sent days are a fair picture of what the sent days would have done. Opening is the user's choice, and engaged users open more often and buy more whether or not they are notified, so the opener gap measures who opens, not what the send did. If the push did nothing, the gap would barely move: the engaged users would still be the ones opening and buying. In Lab 18 the gap was about \$1.81 and the true same-day effect \$0.14, inside the experiment's 95% interval. Two details of the comparison matter: keep only eligible user-days (a user who has opted out sits in the not-sent group but could never be sent), and the effect per send is small because most sends are not opened and most sessions do not end in an order.
+:::
+
+[**18.2**]{#q18-2} A volume experiment assigns users at random to 1, 3 or 7 reminders a week for a quarter. Week-1 opens per user are 0.1, 0.3 and 0.4; the share who opted out by day 90 is 1%, 5% and 45%; 90-day margin per user is \$18, \$22 and \$18. The never-send arm earns \$13. A colleague wants the daily cadence because it has the most opens. Why do the two metrics pick different cadences, and what does the never-send arm tell you about the quarter's number?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Opens count sends that were read, and they rise with every extra send; they never see what volume costs. Two things happen only with time. Sends keep the habit alive (an opened notification is a session, and a session today raises tomorrow's organic visit), which is why even one reminder a week earns \$5 per user more than never sending. And sends accumulate fatigue: at seven a week nearly half the users opt out, and an opted-out user contributes nothing more from notifications, or nothing at all after an uninstall. Three a week is where the second curve starts to overtake the first. The never-send arm (\$13) is the margin a user brings with no notifications at all, the floor the other arms are measured against. The 90-day number still understates the cost of the daily cadence: a user lost on day 60 is also lost next quarter. In Lab 18, daily sends won week-1 opens and three a week won the quarter.
+:::
+
+[**18.3**]{#q18-3} In one segment a send raises the next seven days' margin by \$0.10 on average, the probability that a send makes the user opt out is 0.002, and the value at stake is a user's \$40 of 90-day margin. A push costs nothing to send; an SMS costs \$0.05. Does the uplift rule send a push, and an SMS? Why can the same rule not choose how many sends a week?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The rule charges a send its expected loss of the base plus its price: $\text{cost} = 0.002 \times 40 + \text{price}$. A push costs $0.08$, below the \$0.10 effect, so send; an SMS costs $0.08 + 0.05 = 0.13$, above it, so do not. The charge for opting out is usually the larger part, and it is what a per-send price leaves out. The rule prices one send at the fatigue level the experiment happened to have; a policy that sends every day moves every user up the fatigue curve, where the opt-out probability per send is several times higher, so the same rule would say less. It is a screen for whom to send to, not a schedule; choosing how often needs the state the user is in, which the bandit and the value-iteration policy of Lab 18 add.
+:::
+
+[**18.4**]{#q18-4} A contextual bandit's reward for a user-day is the margin earned that day, minus a penalty if the user opted out that day. In one context a send earns \$0.30 on average and a skip \$0.25, and a send makes the user opt out with probability 0.02. Which action wins with penalty 0, and with a penalty of \$10? Then: value iteration on the volume log gives a Q value for "send" in a state where the experiment never sent. Why does `greedy_policy` refuse to choose it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With penalty 0 a send wins ($0.30 > 0.25$), and it wins in every context where a send adds anything today, because the day's margin is all the bandit sees and an opt-out costs it nothing. It sends to nearly everyone nearly every day and burns the base, like the daily cadence; in Lab 18 the penalty-0 bandit lost about 41% of its users in the quarter. With a \$10 penalty the expected reward of a send is $0.30 - 0.02 \times 10 = \$0.10$, below the skip's \$0.25, so skip wins: the penalty makes the opt-out cost something today, and the bandit learns to stop in high-fatigue contexts. It still does not see the habit effect, a session's lift to tomorrow's organic visit, which arrives later and is credited to whatever action is played then. The untried action: its Q value is built from a reward and transitions that were never observed in that state, so it is a guess that value iteration treats as a fact, and off-policy methods tend to overrate exactly such actions. Keeping to actions the data tried at least 30 times in the state (the lab's bar) is the simplest guard; the production systems in the briefing use conservative Q-learning for the same reason.
+:::
+
+[**18.5**]{#q18-5} The growth team's guardrail: a policy may lose at most 10% of the reachable base to opt-outs in a quarter. Three candidates: A earns \$21,000 per 1,000 users over 90 days and loses 5%; B earns \$22,000 and loses 8%, +\$900 against the best fixed cadence with a 95% paired interval of +\$750 to +\$1,050; C earns \$22,500 and loses 14%. Which does Lab 18's rule choose? A 180-day rerun then shows C still ahead (\$44,000 per 1,000 against B's \$43,500), having lost 20% of the base. Does the rerun overturn the guardrail?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The rule chooses B: the highest 90-day margin among the policies within the guardrail, and its interval excludes zero, so the gain over the fixed cadence is measured, not noise. C is out before its margin is read. The rerun does not overturn the rule: it measures what the quarter cannot, and what it shows is that C's lead shrinks (\$1,500 at 90 days, \$500 at 180) while its losses keep compounding, with a fifth of the base gone for every later quarter. Where the guardrail sits is a business choice about how much of the base to spend for margin, fixed before the numbers are read; the rerun is evidence for the next time the team sets it, and the Decision cell's "what would change it" line is where it belongs. In Lab 18 the 10 V bandit was chosen within the 10% guardrail (8.5% lost, +\$865 against three a week, 95% paired interval +\$730 to +\$999); the 3 V bandit, excluded at 13.6%, still earned the most at 180 days with 19.7% of the base gone.
 :::

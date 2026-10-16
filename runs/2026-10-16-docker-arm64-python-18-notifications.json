@@ -6,10 +6,10 @@
   "env_detail": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.39, runner Python 3.13.14",
   "kernel": "python3",
   "settings": {},
-  "commit": "0db2922",
+  "commit": "2ea4a85",
   "ref": "v2026.10.2",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "4d124515015e0b4c",
+  "content_sha": "ca946de6c52dfbfb",
   "deps_sha": "cb2f3a45f3afd2f9",
   "runs": [
     {
@@ -17,18 +17,18 @@
       "notebook": "python/18-notifications",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 14.1,
+      "seconds": 14.0,
       "phases": {
-        "generated": 0.24,
-        "other": 11.09,
+        "generated": 0.22,
+        "other": 10.83,
         "exercise": 0.0,
-        "solution": 1.13,
-        "checkpoint": 0.32,
+        "solution": 1.18,
+        "checkpoint": 0.31,
         "verify": 0.04
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 3.26
+        "seconds": 2.96
       },
       "verified": 5,
       "python": "3.13.14",
@@ -84,17 +84,17 @@
       "notebook": "python/18-notifications",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 3.9,
+      "seconds": 3.8,
       "phases": {
         "generated": 0.16,
-        "other": 2.28,
+        "other": 2.3,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.03
+        "checkpoint": 0.04
       },
       "slowest_cell": {
         "id": "cell-001",
-        "seconds": 2.05
+        "seconds": 2.09
       }
     }
   ]

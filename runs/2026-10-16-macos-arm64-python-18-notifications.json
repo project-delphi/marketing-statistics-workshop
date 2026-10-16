@@ -7,10 +7,10 @@
   "mode": "worked",
   "kernel": "python3",
   "settings": {},
-  "commit": "0db2922",
+  "commit": "2ea4a85",
   "ref": "v2026.10.2",
   "evidence": "scripts/test_notebooks.py --record",
-  "content_sha": "4d124515015e0b4c",
+  "content_sha": "ca946de6c52dfbfb",
   "deps_sha": "cb2f3a45f3afd2f9",
   "python": "3.13.2",
   "runtime": "local",
@@ -41,18 +41,18 @@
       "notebook": "python/18-notifications",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 11.1,
+      "seconds": 11.8,
       "phases": {
-        "generated": 0.1,
-        "other": 8.4,
+        "generated": 0.16,
+        "other": 9.0,
         "exercise": 0.0,
-        "solution": 1.14,
+        "solution": 1.11,
         "checkpoint": 0.28,
         "verify": 0.03
       },
       "slowest_cell": {
-        "id": "cell-056",
-        "seconds": 1.79
+        "id": "cell-054",
+        "seconds": 1.8
       },
       "verified": 5,
       "checkpoints": {

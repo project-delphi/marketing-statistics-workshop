@@ -278,11 +278,12 @@ itself, and we say what we relied on instead. How we checked is explained at the
   Radcliffe & Surry (2011) above, which says Qini curves and measures are discussed in detail in this
   paper. The title ends "uplift model" in every record we found.
 
-## Extensions · What changes when the data are messy, observational, path-shaped or drifting? {#extensions}
+## Extensions · What changes when the data are messy, observational, path-shaped or drifting, or when the channel is one you own? {#extensions}
 
-The optional modules after the core week (see [Extensions](extensions.qmd)). Their sources were checked
-on 2026-10-10. A source that a core module already cites keeps its place above and names the extension
-module as well; library documentation and datasets are in their own sections below.
+The optional modules after the core week (see [Extensions](extensions.qmd)). The sources of Modules 13–17
+were checked on 2026-10-10 and those of Module 18 on 2026-10-16. A source that a core module already
+cites keeps its place above and names the extension module as well; library documentation and datasets
+are in their own sections below.
 
 ### Messy real data (Module 13)
 
@@ -463,6 +464,151 @@ not used, under [Library documentation](#library-docs).
 
 Also for Module 17: Prophet, PyMC-Marketing's time-varying notebooks and Robyn's use of Prophet under
 [Library documentation](#library-docs).
+
+### Notifications (Module 18)
+
+Production systems, in the order the Module 18 briefing discusses them, then the methods and the platform
+documents behind its channel table. All fetched on 2026-10-16.
+
+- Gauci, J., Conti, E., Liang, Y., Virochsiri, K., He, Y., Kaden, Z., Narayanan, V., Ye, X., Chen, Z., &
+  Fujimoto, S. (2019). *Horizon: Facebook's open source applied reinforcement learning platform.*
+  arXiv:1811.00260, v5 (2019-09-04). <https://arxiv.org/abs/1811.00260>\
+  *Verified (2026-10-16).* The abstract page (ten authors, five versions, the last dated 4 September 2019)
+  and the full text on ar5iv (<https://ar5iv.labs.arxiv.org/html/1811.00260>). Section 9.1, push
+  notifications: the previous system used "supervised learning models for predicting click through rate
+  (CTR)"; the new policy is a discrete-action DQN whose actions are "sending and dropping the
+  notification", trained with "rewards for interactions and activity on Facebook, with a penalty for
+  sending the notification", with a PID-tuned threshold and daily retraining; they report "a significant
+  improvement in activity and meaningful interactions" and publish no numeric lift. Module 18's per-send
+  penalty in value iteration is this paper's device.
+
+- ReAgent (Python package) 0.1, uploaded to PyPI 2020-05-27, BSD 3-Clause.
+  <https://pypi.org/project/reagent/>\
+  *Verified (2026-10-16).* The project page says "The platform was once named "Horizon" but we have
+  adopted the name "ReAgent" recently" and cites the Horizon paper. Cited as where the Horizon code now
+  lives; no lab uses it.
+
+- Gao, Y., Gupta, V., Yan, J., Shi, C., Tao, Z., Xiao, P. J., Wang, C., Yu, S., Rosales, R., Muralidharan,
+  A., & Chatterjee, S. (2018). Near real-time optimization of activity-based notifications. *Proceedings
+  of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining (KDD 2018)*,
+  283–292. <https://doi.org/10.1145/3219819.3219880>\
+  *Verified (2026-10-16), abstract only.* Crossref record (title, eleven authors, pages 283–292); all
+  authors at LinkedIn Corporation and the abstract through OpenAlex and Semantic Scholar: sending a
+  notification for every event "would result in too many notifications"; the trade-off between engagement
+  and send volume is handled "by formulating the problem using constrained optimization", run in a
+  "stream computing system" making "multi-channel send decisions in near real-time"; online A/B tests on
+  "tens of millions of members". The ACM page refused automated access, and the talk's page on
+  videolectures.net is behind a bot check, so the full text was not read.
+
+- Zhao, B., Narita, K., Orten, B., & Egan, J. (2018). Notification volume control and optimization system
+  at Pinterest. *Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data
+  Mining (KDD 2018)*, 1012–1020. <https://doi.org/10.1145/3219819.3219906>\
+  *Verified (2026-10-16), abstract only.* Crossref record (pages 1012–1020, all authors at Pinterest) and
+  the abstract through OpenAlex: notifications across email, mobile and desktop push and SMS; the central
+  question is how often each user should be notified; a machine-learned volume per user optimized for
+  long-term engagement, deployed in mid-2017, which reduced volume while improving click-through rate.
+  The ACM page refused automated access.
+
+- Pinterest Engineering (2020). *User state based notification volume optimization.* Medium post.\
+  *Not read.* Medium refused automated access to the post (a Cloudflare block, also with a browser user
+  agent), and no archive copy could be reached, so it is cited by title only and not linked; the Module 18
+  briefing relies on the KDD 2018 paper above for what Pinterest's system did.
+
+- Yancey, K. P., & Settles, B. (2020). A sleeping, recovering bandit algorithm for optimizing recurring
+  notifications. *Proceedings of the 26th ACM SIGKDD Conference on Knowledge Discovery and Data Mining
+  (KDD 2020)*, 3008–3016. <https://doi.org/10.1145/3394486.3403351>; PDF at
+  <https://research.duolingo.com/papers/yancey.kdd20.pdf>\
+  *Verified (2026-10-16).* Crossref record and the full text from Duolingo's research page. A bandit over
+  hand-written reminder templates for "millions of daily reminders"; the reward "is 1 if the user completes
+  a lesson within two hours of the reminder being sent, and 0 otherwise"; sleeping arms are templates with
+  eligibility criteria that are not available every round, recovering arms are templates whose reward
+  depends on how recently they were last used (a novelty effect, handled with a recency penalty and a
+  15-day half-life); the online experiment reports "a 0.5% increase in total daily active users (DAUs) and
+  a 2% increase in new user retention". The offline data were 34 days of logs, 88 million training and
+  114 million test rows. Module 18's third stretch exercise and its briefing cite it as the production
+  template bandit.
+
+- Yancey, K., & Settles, B. (2020). *Replication data for: A sleeping, recovering bandit algorithm for
+  optimizing recurring notifications.* Harvard Dataverse, published 2020-06-11, CC BY-NC 4.0.
+  <https://doi.org/10.7910/DVN/23ZWVI>\
+  *Verified (2026-10-16), record only.* Read through the Dataverse API: "Replication datasets (200 million
+  rows)", six archives (three training, three test, about 9.4 GB in all) and a readme, linked to the paper
+  above. The field list is in the readme, which we did not open; the paper describes the logged data as the
+  notification's timestamp, user ID, eligible templates, selected template, the templates sent in the prior
+  30 days, and the reward. No lab downloads it; the stretch asks which exercises could run on it.
+
+- Yuan, Y., Muralidharan, A., Nandy, P., Cheng, M., & Prabhakar, P. (2022). Offline reinforcement learning
+  for mobile notifications. *Proceedings of the 31st ACM International Conference on Information &
+  Knowledge Management (CIKM 2022)*, 3614–3623. <https://doi.org/10.1145/3511808.3557083>; arXiv:2202.03867,
+  <https://arxiv.org/abs/2202.03867>\
+  *Verified (2026-10-16).* Crossref record (CIKM 2022, pages 3614–3623), the arXiv abstract page and the
+  full text on ar5iv (<https://ar5iv.labs.arxiv.org/html/2202.03867>); every author at LinkedIn
+  Corporation. Actions SEND and NOT-SEND (the candidate returns to the queue); the reward is "a user visit
+  to the platform within the next time step"; a Double DQN trained offline on data from online exploration,
+  with "a state-marginalized importance sampling algorithm for offline evaluation"; online A/B against the
+  baseline: sessions +0.30%, notification cards −3.49%, click-through +4.53%, notification unfollows −4.37%.
+
+- Prabhakar, P., Yuan, Y., Yang, G., Sun, W., & Muralidharan, A. (2022). Multi-objective optimization of
+  notifications using offline reinforcement learning. *Proceedings of the 28th ACM SIGKDD Conference on
+  Knowledge Discovery and Data Mining (KDD 2022)*, 3752–3760. <https://doi.org/10.1145/3534678.3539193>;
+  arXiv:2207.03029, <https://arxiv.org/abs/2207.03029>\
+  *Verified (2026-10-16).* Crossref record (KDD 2022, pages 3752–3760), the arXiv abstract page and the
+  full text on ar5iv (<https://ar5iv.labs.arxiv.org/html/2207.03029>); every author at LinkedIn
+  Corporation (not Meta). The reward is a weighted linear combination of sessions, notification clicks and
+  a volume penalty of −1 per send, with the weights as a preference vector; the learner is a Double DQN
+  with conservative Q-learning, because "Directly utilizing existing value-based off-policy RL algorithms
+  in an offline setting results in poor performance" under distribution shift. Online A/B against the
+  baseline: without CQL, volume +7.72%, click-through −7.79%, weekly active users −0.69%; with CQL,
+  sessions +0.24%, weekly active users +0.18%, volume −1.73%, click-through +2.26%. Disables appear as a
+  guardrail, not in the reward. Module 18's `greedy_policy` restriction is the lab's small version of the
+  same conservatism.
+
+- Ocejo, B., Wang, R., Liu, K., Patra, R. K., Shen, H., Liu, D., Yuan, Y., Mohanasundaram, G., Borisyuk, F.,
+  & Prabhakar, P. (2025). *Generative sequential notification optimization via multi-objective decision
+  transformers.* arXiv:2509.02458, v1 (2025-09-02), CC BY 4.0. <https://arxiv.org/abs/2509.02458>\
+  *Verified (2026-10-16).* The abstract page and the full text at <https://arxiv.org/html/2509.02458v1>;
+  every author at LinkedIn. A Decision Transformer treats policy learning as return-conditioned supervised
+  learning, with a multi-objective reward (predicted notification value, actual visits, adaptive volume
+  penalties) and quantile regression for the return-to-go; compared with a multi-objective CQL agent, the
+  deployed policy "achieved a 0.72% increase in sessions while reducing notification volume", with no
+  significant change in click-through. No venue is listed on the page.
+
+- Thompson, W. R. (1933). On the likelihood that one unknown probability exceeds another in view of the
+  evidence of two samples. *Biometrika*, 25(3–4), 285–294. <https://doi.org/10.1093/biomet/25.3-4.285>\
+  *Verified (2026-10-16), record only.* Crossref record; the text was not read. Cited as the origin of
+  Thompson sampling, which Module 18's Exercise 4 writes as one Normal draw per context and action.
+
+- Apple Developer Documentation. *Asking permission to use notifications.*
+  <https://developer.apple.com/documentation/usernotifications/asking-permission-to-use-notifications>\
+  *Verified (2026-10-16)*, through the page's documentation JSON (the HTML page is script-rendered). "The
+  first time your app makes this authorization request, the system prompts the person to grant or deny
+  the request and records that response. Subsequent authorization requests don't prompt the person."
+  Provisional authorization delivers notifications "quietly", only in the notification center's history,
+  with Keep and Turn Off buttons. Module 18's channel table.
+
+- Android Developers. *Notification runtime permission.*
+  <https://developer.android.com/develop/ui/views/notifications/notification-permission>\
+  *Verified (2026-10-16).* Android 13 (API level 33) introduces the runtime permission
+  `POST_NOTIFICATIONS`; on a fresh install on Android 13 or higher "your app's notifications are off by
+  default. Your app must wait to send notifications until after you request the new permission and the
+  user grants that permission to your app"; for apps targeting 12L or lower, one tap of "Don't allow"
+  prevents further prompts until reinstall. Module 18's channel table.
+
+- MDN Web Docs. *Push API.* <https://developer.mozilla.org/en-US/docs/Web/API/Push_API>\
+  *Verified (2026-10-16).* "The Push API gives web applications the ability to receive messages pushed to
+  them from a server, whether or not the web app is in the foreground, or even currently loaded"; it needs
+  an active service worker and reaches "users that opt in"; marked Baseline widely available since March
+  2023. Module 18's channel table.
+
+- Federal Trade Commission. *CAN-SPAM Act: A compliance guide for business.*
+  <https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business>\
+  *Verified (2026-10-16).* A commercial email must include "a clear and conspicuous explanation of how the
+  recipient can opt out", and opt-out requests must be honored within 10 business days; the guide states
+  a per-email civil penalty maximum (an inflation-adjusted figure, updated on the page). Module 18's
+  channel table, for email's permission model.
+
+Also for Module 18: Module 6's experiment references under [Day 3](#day-3) and Module 11's uplift
+references under [Day 5](#day-5); the simulated app users under [Datasets](#datasets).
 
 ## Library documentation {#library-docs}
 
@@ -702,14 +848,15 @@ not listed there).
 - **Synthetic retailer** (this workshop). Generated by `mktstats.synth` with the true parameters in
   `data/synthetic/truth.json`. Simulated, with known truth; Modules 1–13. The extensions' own generated
   data (Module 13's dirtied log, Module 14's subscribers, Module 15's app installs, Module 16's customer
-  journeys and Module 17's weekly MMM with a fading channel) keep their truth in separate files,
-  `data/synthetic/truth_<name>.json`.
+  journeys, Module 17's weekly MMM with a fading channel and Module 18's app users with their hidden
+  engagement and fatigue sensitivity, whose send and volume experiments are generated live in the lab)
+  keep their truth in separate files, `data/synthetic/truth_<name>.json`.
 
 ## How the entries were checked {#how-checked}
 
-- Every entry for the core week was opened on 2026-10-09, and every entry added or read again for the
-  Extensions (Modules 13–17) on 2026-10-10: the DOI or publisher page, the Crossref record, arXiv, the
-  author's own page, or the documentation site. Several publisher pages (INFORMS, ACM, Elsevier's
+- Every entry for the core week was opened on 2026-10-09, every entry added or read again for the
+  Extensions (Modules 13–17) on 2026-10-10, and every entry for Module 18 on 2026-10-16: the DOI or
+  publisher page, the Crossref record, arXiv, the author's own page, or the documentation site. Several publisher pages (INFORMS, ACM, Elsevier's
   ScienceDirect, Taylor & Francis, PNAS) refused automated access; for those we took the bibliographic
   details from Crossref and read the abstract on arXiv, an author or institution page, PubMed Central,
   RePEc, OpenAlex, the EPA's HERO database, the Marketing Science Institute or Semantic Scholar.

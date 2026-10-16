@@ -211,8 +211,8 @@ DECISIONS.md ("Name and scope", "Module 18").
 - [x] [TE] `mktstats.synth.notifications` (users, simulator with common random numbers and potential outcomes, fixed, random, segment and volume policies), `mktstats.notifications` (experiments, references, bandit loop, transition model, evaluation, checks), `make_synthetic.py` entry, `data/synthetic/notifications_users.csv` + `truth_notifications.json`, tests (38, plus 10 slow seeds)
 - [x] [TE] `labs/src/18-notifications.py` built; QUICK worked + verify and learner runs pass; FULL runs recorded natively (11.1 s) and in the Docker image (14.1 s), 2026-10-16
 - [x] [Lead] `_variables.yml` m18 (`in_ref: false`), `days.d6.question` widened, `data/README.md`
-- [ ] [AD] `briefs/18-notifications.md`, `modules/18-notifications.qmd` from the recorded runs, `references.qmd` entries (in progress)
-- [ ] [PE] `teach.qmd` and `knowledge-checks.md` for Module 18 (in progress); review of the brief and notebook
+- [x] [AD] `briefs/18-notifications.md`, `modules/18-notifications.qmd` from the recorded runs, `references.qmd` entries (written 2026-10-16 from the macOS FULL record, 11.1 s; not rendered locally, Quarto 1.6.40; the Pinterest Medium post is "Not read")
+- [x] [PE] `teach.qmd` Extensions section (Modules 13 to 18, Module 18 timing plan, stalls, debrief) and knowledge checks 18.1-18.5 from the 2026-10-16 records; three notebook fixes applied by the lead (bandit table label, reveal guarded by the decision sentence, QUICK tag)
 - [x] [Lead] `trends.qmd` ("What's new", navbar after References) from primary sources fetched 2026-10-16
 - [ ] [UI] browser check of the new pages, both themes, desktop and phone width
 - [ ] [Lead] release tag containing Module 18 and the rename, `in_ref` flags removed, release check, full Colab sweep of all 24 notebooks
